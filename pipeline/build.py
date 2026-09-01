@@ -6,8 +6,53 @@ import json, os, re, shutil, sys, urllib.request, urllib.parse, hashlib
 from datetime import datetime
 
 BASE = os.path.dirname(os.path.abspath(__file__))
+ROOT = os.path.dirname(BASE)
 CFG = json.load(open(os.path.join(BASE, 'config.json')))
 TEMPLATE = os.path.join(BASE, 'template.html')
+
+
+def baseline_seqs():
+    """Always-present sequels baseline from data/sequels.json (her 52-series map).
+    Released-and-unread -> to read (cap 12, newest first); announced/future -> radar (cap 8)."""
+    reads, radar = [], []
+    try:
+        seq = json.load(open(os.path.join(ROOT, 'data', 'sequels.json')))
+        today = datetime.now().strftime('%Y-%m-%d')
+        for ser in seq.get('series', []):
+            for nb in ser.get('next_books', []):
+                raw = nb.get('title') or ''
+                if not raw:
+                    continue
+                m = re.match(r'^(.*?)\s*\((#[^)]*)\)\s*$', raw)
+                if m:
+                    t, n = m.group(1).strip(), m.group(2)
+                else:
+                    t = raw.split(' (')[0].strip()
+                    n = str(nb.get('volume') or nb.get('number') or '')
+                dt = str(nb.get('release_date') or '')[:10]
+                disp = dt.replace('-', ' ') if re.match(r'^\d{4}-\d{2}-\d{2}$', dt) else ''
+                ev = {'s': ser.get('series') or '', 't': t, 'n': n,
+                      'a': ser.get('author') or '', 'd': disp, 'p': ''}
+                if dt and dt <= today:
+                    reads.append(ev)
+                else:
+                    radar.append(ev)
+        reads.sort(key=lambda x: -len(x['d']))
+        radar.sort(key=lambda x: -len(x['d']))
+        reads, radar = reads[:12], radar[:8]
+    except Exception as e:
+        print('baseline sequels: %s' % e)
+    return reads, radar
+
+
+def merge(base, extra):
+    out = [dict(x) for x in base]
+    seen = {x.get('t') for x in out}
+    for x in extra:
+        if x.get('t') and x.get('t') not in seen:
+            out.append(x)
+            seen.add(x.get('t'))
+    return out
 
 HEADERS = {'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 Chrome/125 Safari/537.36'}
 
@@ -66,14 +111,17 @@ def main():
     name = datetime.now().strftime('%B')
     label = datetime.now().strftime('%B %Y')
     months = {'sep': {'name': name, 'label': label, 'current': True, 'topPick': tp, 'books': ids, 'presets': {}}}
+    br, bd = baseline_seqs()
+    seqread = merge(cur.get('sequels_read', []), br)
+    seqradar = merge(cur.get('sequels_radar', []), bd)
     data = {
         'BOOKS': books,
         'MONTHS': months,
         'ORDER': ['sep'],
         'SPINE_H': {bid: 132 + (i % 5) * 7 for i, bid in enumerate(ids)},
         'SPINE_PAL': {bid: ['#E8C4C6', '#CBD6C0', '#C9D6E0', '#F0E3C4'][i % 4] for i, bid in enumerate(ids)},
-        'SEQ_READ': cur.get('sequels_read', []),
-        'SEQ_RADAR': cur.get('sequels_radar', []),
+        'SEQ_READ': seqread,
+        'SEQ_RADAR': seqradar,
     }
     inject = '<script>window.THE_SHELF_DATA=' + json.dumps(data) + ';</script>\n'
 

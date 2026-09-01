@@ -8,6 +8,8 @@ FROM python:3.11-slim
 WORKDIR /app
 COPY pipeline/ ./pipeline/
 COPY container/server.py ./server.py
+COPY data/sequels.json ./data/sequels.json
+COPY seed-reads.json ./seed-reads.json
 COPY .lavish/assets ./assets
 
 RUN mkdir -p /app/dist/assets && \
