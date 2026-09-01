@@ -236,6 +236,16 @@ def ensure_default():
                                capture_output=True, text=True, timeout=180, cwd=PIPELINE)
             if r.returncode == 0 and os.path.isfile(os.path.join(DIST, 'index.html')):
                 return
+            log('boot: build wrote to pipeline dist? mirroring into served dist')
+            bd = os.path.join(PIPELINE, 'dist', 'index.html')
+            if os.path.isfile(bd):
+                shutil.copy2(bd, os.path.join(DIST, 'index.html'))
+                ba = os.path.join(PIPELINE, 'dist', 'assets')
+                da = os.path.join(DIST, 'assets')
+                if os.path.isdir(ba):
+                    shutil.copytree(ba, da, dirs_exist_ok=True)
+                log('boot: mirrored pipeline dist into served dist')
+                return
             log('boot: build failed (%s)' % (r.stderr or r.stdout or '')[-200:])
         tpl = os.path.join(PIPELINE, 'template.html')
         if os.path.isfile(tpl):

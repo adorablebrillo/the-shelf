@@ -10,6 +10,11 @@ BASE = os.path.dirname(os.path.abspath(__file__))
 ROOT = os.path.dirname(BASE)
 CFG = json.load(open(os.path.join(BASE, 'config.json')))
 TEMPLATE = os.path.join(BASE, 'template.html')
+# In the container, the SERVER serves /app/dist (server.py lives at /app).
+# Docker COPY flattens the repo's container/dist -> pipeline/dist symlink, so
+# the pipeline and server MUST share one dist dir via DIST_DIR (set in the
+# Dockerfile). Locally it stays pipeline/dist for repo layout compat.
+DIST = os.environ.get('DIST_DIR') or os.path.join(BASE, 'dist')
 
 MONTH_NAMES = ['JAN', 'FEB', 'MAR', 'APR', 'MAY', 'JUN', 'JUL', 'AUG', 'SEP', 'OCT', 'NOV', 'DEC']
 
@@ -99,8 +104,31 @@ def download_cover(b, covers_dir):
     return img
 
 
+def month_is_past(ym):
+    """A month file is only valid once that month is fully over. Junk files
+    (e.g. month-2026-09.json written on Sept 1 by an older build) are ignored
+    and purged — the legacy two-window run left exactly that behind."""
+    return ym < datetime.now().strftime('%Y-%m')
+
+
 def main():
+    now_ym = datetime.now().strftime('%Y-%m')
     month_files = sorted(glob.glob(os.path.join(BASE, 'data', 'month-*.json')))
+    stale = []
+    valid = []
+    for mf in month_files:
+        ym = os.path.basename(mf)[len('month-'):-len('.json')]
+        if re.match(r'^\d{4}-\d{2}$', ym) and not month_is_past(ym):
+            stale.append(mf)
+        else:
+            valid.append(mf)
+    for mf in stale:
+        try:
+            os.remove(mf)
+            print('purged stale month file: %s (month not over yet)' % os.path.basename(mf))
+        except Exception as e:
+            print('could not purge %s: %s' % (mf, e))
+    month_files = valid
     if not month_files:
         print('no curated month — run curate.py first (or drop month-*.json in data/)')
         return 1
@@ -122,7 +150,7 @@ def main():
         ids = []
         for i, b in enumerate(cur.get('books', [])):
             bid = b.get('id') or slug(b)
-            img = download_cover(b, os.path.join(BASE, 'dist', 'assets', 'covers'))
+            img = download_cover(b, os.path.join(DIST, 'assets', 'covers'))
             spice = int(b.get('spice', 3) or 3)
             books[bid] = {
                 'title': b.get('title'), 'author': b.get('author'),
@@ -185,8 +213,8 @@ def main():
             return 1
         tpl = tpl.replace(old, new, 1)
 
-    os.makedirs(os.path.join(BASE, 'dist'), exist_ok=True)
-    open(os.path.join(BASE, 'dist', 'index.html'), 'w').write(tpl)
+    os.makedirs(DIST, exist_ok=True)
+    open(os.path.join(DIST, 'index.html'), 'w').write(tpl)
     print('built dist/index.html (%d months, current: %s, %d books total)' % (len(months), order[0], len(books)))
     return 0
 

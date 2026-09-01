@@ -567,7 +567,7 @@
         <h1>The Shelf</h1>
         <div class="rule-double"></div>
         <div class="mast-meta">
-          <span class="drop-date">Dropped 1 Sep 2026</span>
+          <span class="drop-date" id="drop-date">Dropped 1 Sep 2026</span>
           <span class="chip-pub">Published Only</span>
         </div>
       </div>
@@ -735,12 +735,14 @@
      Renderer reads SEASON from this map; only 'fall' has active:true.
   */
   var SEASONS={
-    fall:{active:true,caption:'Coffee Wisdom — Autumn Edition',coffee:'assets/coffee-1.png'},
-    /* winter:{active:false,caption:'Coffee Wisdom — Cocoa Season',coffee:'assets/coffee-winter-b.png'}, */
-    /* spring:{active:false,caption:'Coffee Wisdom — Blossom Edition',coffee:'assets/coffee-spring-a.png'}, */
-    /* summer:{active:false,caption:'Coffee Wisdom — Iced Days',coffee:'assets/coffee-summer-b.png'} */
+    winter:{active:true,caption:'Coffee Wisdom — Cocoa Season',coffee:'assets/coffee-winter-b.png'},
+    spring:{active:true,caption:'Coffee Wisdom — Blossom Edition',coffee:'assets/coffee-spring-a.png'},
+    summer:{active:true,caption:'Coffee Wisdom — Iced Days',coffee:'assets/coffee-summer-b.png'},
+    fall:{active:true,caption:'Coffee Wisdom — Autumn Edition',coffee:'assets/coffee-1.png'}
   };
-  var SEASON='fall';
+  /* decor follows the BOOK month: dec–feb winter, mar–may spring, jun–aug summer, sep–nov fall */
+  var SEAOF={dec:'winter',jan:'winter',feb:'winter',mar:'spring',apr:'spring',may:'spring',jun:'summer',jul:'summer',aug:'summer',sep:'fall',oct:'fall',nov:'fall'};
+  var SEASON=SEAOF[CURRENT]||'fall';
 
   /* ---------------- BOOK DATA ---------------- */
   var BOOKS={
@@ -1294,6 +1296,17 @@
   },5000);
   var capEl=document.getElementById('coffee-cap');
   if(SEASONS[SEASON]&&SEASONS[SEASON].caption){capEl.textContent=SEASONS[SEASON].caption;}
+  var QS={
+    winter:["cocoa swirl, two marshmallows, one more chapter.","snow outside — a whole shelf inside.","hot cocoa, cold nights, warm plots."],
+    spring:["cherry-blossom latte and a fresh TBR.","bloom season is plot season.","petals fall — you fall into books."],
+    summer:["lemon ice, a lounger, a slow-burn.","the sun is up — so is your TBR.","iced hands, warmer pages."],
+    fall:["september: pumpkin spice on the shelf, spice on the page.","a good book, a warm cup — that's the whole agenda.","curl up. the leaves changed, so did your TBR."]
+  };
+  var qset=QS[SEASON];
+  if(qset){
+    var qspans=document.querySelectorAll('#quotes .quote span');
+    for(var qi=0;qi<qset.length&&qi<qspans.length;qi++){qspans[qi].textContent=qset[qi];}
+  }
 
   /* ---------------- COMING SOON DAYS BADGE ---------------- */
   (function(){
@@ -1313,6 +1326,16 @@
   var COFFEE_ART=(SEASONS[SEASON]&&SEASONS[SEASON].coffee)||'assets/coffee-1.png';
   var ciEl=document.getElementById('coffee-img');
   if(ciEl)ciEl.src=COFFEE_ART;
+
+  /* ---------------- HEADER FOLLOWS THE BOOK MONTH ---------------- */
+  try{
+    var wl=(MONTHS[CURRENT]||{}).win;
+    var dropEl=document.getElementById('drop-date');
+    if(dropEl){
+      dropEl.textContent=wl?('Released '+wl):((MONTHS[CURRENT])?('Dropped 1 '+MONTHS[CURRENT].label):'Dropped 1 Sep 2026');
+    }
+    document.title='THE SHELF — '+(MONTHS[CURRENT]?MONTHS[CURRENT].label:'NEW ROMANCE');
+  }catch(e){}
 
   render();
   renderSeqs();
