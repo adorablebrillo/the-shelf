@@ -85,6 +85,16 @@ def run_pipeline(settings):
     settings['last_result'] = ''
     save_settings(settings)
     env = dict(os.environ, OPENROUTER_API_KEY=settings.get('api_key', ''))
+    # seed any missing baseline months into the mounted data dir so the archive
+    # (June/July) survives the volume shadowing the image's baked files
+    try:
+        import shutil as _sh, glob as _gl
+        for mf in _gl.glob(os.path.join(PIPELINE, 'baseline', 'month-*.json')):
+            dst = os.path.join(PIPELINE, 'data', os.path.basename(mf))
+            if not os.path.exists(dst):
+                _sh.copy2(mf, dst)
+    except Exception as e:
+        log('baseline seed: %s' % e)
     steps = ['fetch.py', 'filter.py', 'curate.py', 'build.py']
     code = 0
     for s in steps:
