@@ -1,0 +1,122 @@
+{
+ "month": "2026-08",
+ "label": "AUG 2026",
+ "top_pick": "a4",
+ "books": [
+  {
+   "id": "full-throttle-j-k-maclaren",
+   "title": "Full Throttle",
+   "author": "J.K. MacLaren",
+   "publisher": "Dell",
+   "date": "AUG 18 2026",
+   "genre": "Formula 1",
+   "spice": 4,
+   "rating": "GR — NEW",
+   "hook": "The first woman on the grid, and the teammate she swore she'd never share a garage with again.",
+   "tropes": [
+    "Enemies to Lovers",
+    "Second Chance",
+    "Rivals",
+    "Forced Proximity (Teammates)",
+    "First Female F1 Driver"
+   ],
+   "formats": [
+    "Ebook",
+    "Audio"
+   ],
+   "img": "assets/real/aug-01.jpg",
+   "mmc": {
+    "score": 3,
+    "archetype": "same energy, no magic"
+   },
+   "fresh": true,
+   "aseq": false
+  },
+  {
+   "id": "crash-into-you-lights-out-3-simone-solta",
+   "title": "Crash into You (Lights Out #3)",
+   "author": "Simone Soltani",
+   "publisher": "Pan Macmillan",
+   "date": "AUG 27 2026",
+   "genre": "Formula 1",
+   "spice": 4,
+   "rating": "GR 4.24 · 127 ratings",
+   "hook": "He's the rival team's driver. She's the team principal's daughter. The pit lane isn't the only thing about to crash.",
+   "tropes": [
+    "Grumpy x Sunshine",
+    "Forbidden",
+    "He Falls First",
+    "Unexpected Pregnancy"
+   ],
+   "formats": [
+    "Ebook",
+    "Audio"
+   ],
+   "img": "assets/real/aug-02.jpg",
+   "mmc": {
+    "score": 3,
+    "archetype": "same energy, no magic"
+   },
+   "fresh": true,
+   "aseq": false
+  },
+  {
+   "id": "vow-of-eternal-night-lily-crozier",
+   "title": "Vow of Eternal Night",
+   "author": "Lily Crozier",
+   "publisher": "Entangled: Amara",
+   "date": "AUG 4 2026",
+   "genre": "Gothic Vampire Romantasy",
+   "spice": 3,
+   "rating": "GR 3.80 · 3,187 ratings",
+   "hook": "The vampire prince is cursed to die by morning. She's the healer who married him to save him.",
+   "tropes": [
+    "Enemies to Lovers",
+    "Marriage Bargain",
+    "Heal the Prince",
+    "Slow Burn",
+    "Forced Proximity"
+   ],
+   "formats": [
+    "Ebook",
+    "Audio"
+   ],
+   "img": "assets/real/aug-03.jpg",
+   "mmc": {
+    "score": 3,
+    "archetype": "same energy, no magic"
+   },
+   "fresh": false,
+   "aseq": false
+  },
+  {
+   "id": "the-lion-the-deathless-dark-crowns-of-ny",
+   "title": "The Lion & the Deathless Dark (Crowns of Nyaxia #5)",
+   "author": "Carissa Broadbent",
+   "publisher": "Tor",
+   "date": "AUG 4 2026",
+   "genre": "Romantasy",
+   "spice": 3,
+   "rating": "GR 4.53 · 7,761 ratings",
+   "hook": "The Nyaxia saga's new chapter: a monster, a bargain, and the girl set on making him human.",
+   "tropes": [
+    "Enemies to Lovers",
+    "Slow Burn",
+    "Forbidden",
+    "Revenge Quest",
+    "Bargain with a Monster"
+   ],
+   "formats": [
+    "Ebook",
+    "Audio"
+   ],
+   "img": "assets/real/aug-04.jpg",
+   "mmc": {
+    "score": 3,
+    "archetype": "same energy, no magic"
+   },
+   "fresh": false,
+   "aseq": true
+  }
+ ]
+}

@@ -1,0 +1,120 @@
+{
+ "month": "2026-07",
+ "label": "JUL 2026",
+ "top_pick": "the-finish-line-grace-newman",
+ "books": [
+  {
+   "id": "the-finish-line-grace-newman",
+   "title": "The Finish Line",
+   "author": "Grace Newman",
+   "publisher": "Hera",
+   "date": "JUL 7 2026",
+   "genre": "Formula 1",
+   "spice": 3,
+   "rating": "GR 3.97 · 38 ratings",
+   "hook": "They broke up, then became rivals. The contract says they can't together. The paddock says otherwise.",
+   "tropes": [
+    "Grumpy x Sunshine",
+    "Exes to Rivals-to-Lovers",
+    "Forced Proximity",
+    "Secret Relationship",
+    "Female Driver"
+   ],
+   "formats": [
+    "Ebook",
+    "Audio"
+   ],
+   "img": "assets/real/jul-01.jpg",
+   "mmc": {
+    "score": 3,
+    "archetype": "same energy, no magic"
+   },
+   "fresh": false,
+   "aseq": false
+  },
+  {
+   "id": "dominion-silk-and-iron-1-jean-kwok",
+   "title": "Dominion (Silk and Iron #1)",
+   "author": "Jean Kwok",
+   "publisher": "G.P. Putnam's Sons",
+   "date": "JUL 14 2026",
+   "genre": "Romantasy",
+   "spice": 2,
+   "rating": "GR 3.93 · 2,241 ratings",
+   "hook": "The trials choose warriors. The demons choose her. Traitors die first.",
+   "tropes": [
+    "Trials",
+    "Fated Attraction",
+    "Enemies to Lovers",
+    "Amnesia Heroine",
+    "Demons"
+   ],
+   "formats": [
+    "Ebook",
+    "Audio"
+   ],
+   "img": "assets/real/jul-02.jpg",
+   "mmc": {
+    "score": 3,
+    "archetype": "same energy, no magic"
+   },
+   "fresh": false,
+   "aseq": false
+  },
+  {
+   "id": "a-date-with-death-kelly-creagh",
+   "title": "A Date with Death",
+   "author": "Kelly Creagh",
+   "publisher": "Gallery Books",
+   "date": "JUL 14 2026",
+   "genre": "Urban Rom-Com",
+   "spice": 3,
+   "rating": "GR 3.80 · 597 ratings",
+   "hook": "She flirts with death for a living. He's the reaper who actually showed up.",
+   "tropes": [
+    "Grumpy x Sunshine",
+    "Reaper x Human",
+    "Forbidden Cost of Feeling",
+    "Found Family"
+   ],
+   "formats": [
+    "Ebook"
+   ],
+   "img": "assets/real/jul-03.jpg",
+   "mmc": {
+    "score": 3,
+    "archetype": "same energy, no magic"
+   },
+   "fresh": false,
+   "aseq": false
+  },
+  {
+   "id": "the-exquisite-torment-of-loving-your-ene",
+   "title": "The Exquisite Torment of Loving Your Enemy (Dearly Beloathed #2)",
+   "author": "Brigitte Knightley",
+   "publisher": "Ace",
+   "date": "JUL 7 2026",
+   "genre": "Romantasy",
+   "spice": 3,
+   "rating": "series avg 4.12",
+   "hook": "An assassin who must heal his enemy, one forbidden session at a time.",
+   "tropes": [
+    "Enemies to Lovers",
+    "Assassin x Scholar-Healer",
+    "Slow Burn",
+    "Banter",
+    "Forced Proximity"
+   ],
+   "formats": [
+    "Ebook"
+   ],
+   "img": "assets/real/jul-04.jpg",
+   "mmc": {
+    "score": 3,
+    "archetype": "same energy, no magic"
+   },
+   "fresh": false,
+   "aseq": false
+  }
+ ]
+}

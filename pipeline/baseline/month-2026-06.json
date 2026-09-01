@@ -1,0 +1,91 @@
+{
+ "month": "2026-06",
+ "label": "JUN 2026",
+ "top_pick": "the-winged-game-sophie-kim",
+ "books": [
+  {
+   "id": "the-winged-game-sophie-kim",
+   "title": "The Winged Game",
+   "author": "Sophie Kim",
+   "publisher": "Del Rey",
+   "date": "JUN 30 2026",
+   "genre": "Fantasy x Sports",
+   "spice": 3,
+   "rating": "GR 4.00 · 5,439 ratings",
+   "hook": "The magical sport you've never heard of, played by rivals who fake-date their way to the final.",
+   "tropes": [
+    "Rivals to Lovers",
+    "Second Chance",
+    "Fake Relationship Contract",
+    "Hidden Magical Cities"
+   ],
+   "formats": [
+    "Ebook",
+    "Audio"
+   ],
+   "img": "assets/real/jun-01.jpg",
+   "mmc": {
+    "score": 3,
+    "archetype": "same energy, no magic"
+   },
+   "fresh": false,
+   "aseq": false
+  },
+  {
+   "id": "witch-season-broken-coven-1-julia-bianco",
+   "title": "Witch Season (Broken Coven #1)",
+   "author": "Julia Bianco",
+   "publisher": "St. Martin's Press",
+   "date": "JUN 30 2026",
+   "genre": "Urban Witches",
+   "spice": 2,
+   "rating": "GR 3.67 · 1,007 ratings",
+   "hook": "A witch, a coven in crisis, and the enemy she keeps ending up stuck with.",
+   "tropes": [
+    "Enemies to Lovers",
+    "Hidden Witch World",
+    "Forced Proximity",
+    "Found Family"
+   ],
+   "formats": [
+    "Ebook",
+    "Audio"
+   ],
+   "img": "assets/real/jun-02.jpg",
+   "mmc": {
+    "score": 3,
+    "archetype": "same energy, no magic"
+   },
+   "fresh": false,
+   "aseq": false
+  },
+  {
+   "id": "wildflower-becky-jenkinson",
+   "title": "Wildflower",
+   "author": "Becky Jenkinson",
+   "publisher": "Del Rey",
+   "date": "JUN 16 2026",
+   "genre": "Cozy Fantasy",
+   "spice": 1,
+   "rating": "GR 3.80 · 644 ratings",
+   "hook": "Two outcasts, one cursed quest, and a truth spell that says everything out loud.",
+   "tropes": [
+    "Two Outcasts",
+    "Forced Proximity Quest",
+    "Truth Curse",
+    "Slow Burn"
+   ],
+   "formats": [
+    "Ebook",
+    "Audio"
+   ],
+   "img": "assets/real/jun-03.jpg",
+   "mmc": {
+    "score": 3,
+    "archetype": "same energy, no magic"
+   },
+   "fresh": false,
+   "aseq": false
+  }
+ ]
+}
