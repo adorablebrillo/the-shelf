@@ -1365,8 +1365,8 @@
   'use strict';
   var veil=document.getElementById('set-veil');
   if(!veil)return;
-  function open(){veil.classList.add('open');document.body.style.overflow='hidden';}
-  function close(){veil.classList.remove('open');document.body.style.overflow='';}
+  function open(){veil.classList.add('open');document.body.style.overflow='hidden';startPolling();}
+  function close(){veil.classList.remove('open');document.body.style.overflow='';stopPolling();}
   document.getElementById('set-btn').addEventListener('click',open);
   document.getElementById('set-x').addEventListener('click',close);
   veil.addEventListener('click',function(e){if(e.target===veil)close();});
@@ -1382,12 +1382,16 @@
       var last=s.last_run?(new Date(s.last_run)).toLocaleString():'never';
       document.getElementById('status-line').textContent=
         'monthly job: '+s.schedule+' · last run: '+last+(s.last_result?(' · '+s.last_result+(s.last_books?(' · '+s.last_books+' books'):'')):'');
-      document.getElementById('run-state').textContent=s.running?'running…':'';
+      document.getElementById('run-state').textContent=
+        s.running?'running…':(s.last_result?('done — '+s.last_result+(s.last_books?(' ('+s.last_books+' books)'):'')):'');
     }).catch(function(){
       document.getElementById('key-state').textContent='container offline — open via the-shelf:8787';
       document.getElementById('status-line').textContent='settings live in the container build (port 8787)';
     });
   }
+  var pollTimer=null;
+  function startPolling(){if(!pollTimer){pollTimer=setInterval(loadStatus,6000);}}
+  function stopPolling(){if(pollTimer){clearInterval(pollTimer);pollTimer=null;}}
   function loadModels(sel){
     j('/api/models').then(function(d){
       var m=document.getElementById('set-model');m.innerHTML='';
