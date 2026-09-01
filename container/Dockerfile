@@ -6,6 +6,10 @@ FROM python:3.11-slim
 # Run (or just use docker-compose.yml for Unraid).
 
 WORKDIR /app
+# server.py (at /app) serves /app/dist; the pipeline must write there too.
+# Docker COPY flattens the repo's container/dist symlink, so the bake and
+# every runtime build use DIST_DIR to target the SAME dir as the server.
+ENV DIST_DIR=/app/dist
 COPY pipeline/ ./pipeline/
 COPY container/server.py ./server.py
 COPY data/sequels.json ./data/sequels.json
