@@ -35,7 +35,14 @@ def in_window(d, mon):
         return True
 
 def main():
-    mon = datetime.now().strftime('%Y-%m')
+    from datetime import date
+    mon_prefix = None
+    # run for the previous month: accept the newest candidates-*.json
+    import glob
+    files = sorted(glob.glob(os.path.join(BASE, CFG['output_dir'], 'candidates-*.json')))
+    if files:
+        mon_prefix = os.path.basename(files[-1])[len('candidates-'):-len('.json')]
+    mon = mon_prefix or datetime.now().strftime('%Y-%m')
     src_path = os.path.join(BASE, CFG['output_dir'], 'candidates-%s.json' % mon)
     if not os.path.exists(src_path):
         print('no candidates file — run fetch.py first'); return 1
