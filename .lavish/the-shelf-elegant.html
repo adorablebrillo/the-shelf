@@ -1,0 +1,64 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>THE SHELF — 3 elegant design directions</title>
+<style>
+  :root{--bg:#151519;--panel:#1e1e24;--text:#f3f1ec;--muted:#a9a7a0;--line:#33333c}
+  *{box-sizing:border-box;margin:0;padding:0}
+  html,body{height:100%}
+  body{background:var(--bg);color:var(--text);font:500 13px/1.4 "Helvetica Neue",Helvetica,Arial,sans-serif;overflow:hidden}
+  header{height:118px;padding:14px 22px;border-bottom:1px solid var(--line);display:flex;flex-direction:column;gap:10px;background:var(--panel)}
+  .top{display:flex;align-items:baseline;gap:14px;flex-wrap:wrap}
+  .brand{font:900 20px/1 "Arial Black",Arial,sans-serif;letter-spacing:.02em;text-transform:uppercase}
+  .brand em{font-style:italic;font-family:Georgia,serif;color:#ffb3d1}
+  .sub{color:var(--muted);font-size:12px}
+  .tabs{display:flex;gap:8px;flex-wrap:wrap}
+  button.tab{font:800 12px/1 "Arial Black",Arial,sans-serif;letter-spacing:.06em;text-transform:uppercase;background:#26262e;color:var(--text);border:1px solid var(--line);border-radius:999px;padding:9px 14px;cursor:pointer;display:flex;align-items:center;gap:10px;transition:transform .12s ease}
+  button.tab:hover{background:#2e2e38}
+  button.tab:active{transform:scale(.97)}
+  button.tab.active{background:#fff;color:#151519;border-color:#fff}
+  button.tab .chip{font:600 10px/1 "Courier New",monospace;letter-spacing:.03em;padding:3px 6px;border-radius:4px;color:#151519}
+  button.tab .name{white-space:nowrap}
+  .palette{display:flex;align-items:center;gap:6px;padding:0 22px 10px;color:var(--muted);font-size:11px;flex-wrap:wrap}
+  .palette .swatch{width:14px;height:14px;border-radius:4px;border:1px solid rgba(255,255,255,.25);flex:none}
+  .palette .note{margin-left:auto}
+  main{height:calc(100% - 118px)}
+  iframe{width:100%;height:100%;border:0;display:block;background:#fff}
+  .hint{position:fixed;right:14px;bottom:12px;background:rgba(21,21,25,.85);color:var(--muted);font:11px/1.3 "Courier New",monospace;padding:6px 10px;border-radius:6px;pointer-events:none;z-index:9}
+</style>
+</head>
+<body>
+<header>
+  <div class="top">
+    <div class="brand">The Shelf <em>— elegant directions v2</em></div>
+    <div class="sub">Three refined takes · mock data · click everything, it's all alive · tracker pills + months + modals</div>
+  </div>
+  <nav class="tabs" id="tabs">
+    <button class="tab active" data-v="1"><span class="chip" style="background:#E8C4C6">1</span><span class="name">Cream Literary Journal</span></button>
+    <button class="tab" data-v="2"><span class="chip" style="background:#C9A227">2</span><span class="name">Luxury Bookshop Catalog</span></button>
+    <button class="tab" data-v="3"><span class="chip" style="background:#8A2B2B;color:#fff">3</span><span class="name">Gallery Minimal</span></button>
+  </nav>
+  <div class="palette" id="palette"></div>
+</header>
+<main><iframe id="frame" src="variant-elegant-1.html" title="variant preview"></iframe></main>
+<div class="hint">fully clickable — tracker pills, month tabs, why-it-won, how-picks-work</div>
+<script>
+  var DATA = {
+    "1": {file:"variant-elegant-1.html", note:"Paris Review meets a luxury bookshop journal — ivory paper, pastel blocks, Bodoni masthead", colors:["#F7F1E7","#1A1815","#E8C4C6","#CBD6C0","#C9D6E0","#F0E3C4"]},
+    "2": {file:"variant-elegant-2.html", note:"dark-academia rare bookshop catalogue — forest green walls, bone plates, gold-foil frames", colors:["#123B2A","#F5F1E8","#C9A227","#201B14","#E9E2D2"]},
+    "3": {file:"variant-elegant-3.html", note:"white-cube gallery — bone page, massive Didot, duotone covers that bloom on hover, one oxblood accent", colors:["#FBF9F4","#141414","#8A2B2B","#8C867D"]}
+  };
+  var frame=document.getElementById("frame"), palette=document.getElementById("palette"), tabs=document.querySelectorAll("button.tab");
+  function show(v){
+    tabs.forEach(function(t){t.classList.toggle("active",t.dataset.v===v)});
+    frame.src=DATA[v].file;
+    palette.innerHTML=DATA[v].colors.map(function(c){return '<span class="swatch" style="background:'+c+'"></span><span style="font-family:\'Courier New\',monospace">'+c+'</span>'}).join("")+'<span class="note">'+DATA[v].note+'</span>';
+  }
+  tabs.forEach(function(t){t.addEventListener("click",function(){show(t.dataset.v)})});
+  document.addEventListener("keydown",function(e){if(e.key==="1")show("1");if(e.key==="2")show("2");if(e.key==="3")show("3")});
+  show("1");
+</script>
+</body>
+</html>

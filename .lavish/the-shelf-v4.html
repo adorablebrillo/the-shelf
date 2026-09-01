@@ -1,0 +1,1323 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>THE SHELF — NEW ROMANCE, MONTHLY — SEP 2026</title>
+<link rel="icon" href="data:,">
+<style>
+  /* ============ CREAM JOURNAL v4 — DESIGN TOKENS ============ */
+  :root{
+    --paper:#F7F1E7;        /* ivory paper */
+    --paper-hi:#FBF6EC;     /* lighter paper (cards, chips) */
+    --rule:#F2EBDE;         /* ruled lines */
+    --line:#E4DAC7;         /* margin line / soft shadows */
+    --ink:#1A1815;          /* dark ink */
+    --rose:#E8C4C6;         /* pastel rose */
+    --sage:#CBD6C0;         /* pastel sage */
+    --blue:#C9D6E0;         /* powder blue */
+    --butter:#F0E3C4;       /* butter */
+    --au-o:#D89A6E;         /* dusty orange (autumn accents: PSL + garland only) */
+    --au-r:#C8704A;         /* muted rust */
+    --au-s:#9BA98A;         /* sage-olive */
+    --au-b:#B8788A;         /* dusty rose-red */
+    --steam:#D8D2C4;        /* steam wisps */
+    --mast:'Bodoni 72','Didot','Bodoni MT',Georgia,'Times New Roman',serif;
+    --meta:'Baskerville','Baskerville Old Face',Georgia,'Times New Roman',serif;
+    --hand:'Bradley Hand','Noteworthy','Chalkboard SE','Marker Felt','Comic Sans MS',cursive;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  html{-webkit-text-size-adjust:100%}
+  body{
+    background:var(--paper);
+    color:var(--ink);
+    font-family:var(--meta);
+    font-size:15px;
+    line-height:1.5;
+  }
+  button{font-family:inherit;color:inherit;background:none;border:none;cursor:pointer}
+  button:active{transform:scale(.98)}
+  button:focus-visible, a:focus-visible{outline:2px solid var(--ink);outline-offset:2px}
+  img{display:block;border:0}
+
+  /* ============ PAGE WRAP + MARGIN LINE ============ */
+  .wrap{max-width:1180px;margin:0 auto;padding:30px 26px 0}
+  @media (max-width:720px){.wrap{padding:20px 18px 0}}
+
+  /* ============ MASTHEAD ============ */
+  .masthead{padding-top:26px}
+  .mast-flex{display:flex;align-items:center;justify-content:center;gap:36px;flex-wrap:wrap}
+  .mast-art{position:relative;flex:0 0 auto;transform:rotate(-1deg)}
+  .mast-art img{width:158px;height:auto;border:1px solid var(--ink);background:var(--paper-hi)}
+  .mast-tape{top:-12px;left:50%;margin-left:-42px;transform:rotate(-9deg);background:var(--rose)}
+  .mast-text{text-align:center;min-width:0}
+  .kicker{
+    display:flex;align-items:center;justify-content:center;gap:10px;flex-wrap:wrap;
+    font-family:var(--mast);font-size:11px;letter-spacing:.38em;font-weight:600;
+    text-transform:uppercase;
+  }
+  .kicker .sprig{width:15px;height:22px;flex:0 0 auto}
+  .masthead h1{
+    font-family:var(--mast);font-weight:600;
+    font-size:clamp(46px,7.4vw,80px);
+    letter-spacing:.045em;line-height:1.02;
+    margin:10px 0 16px;
+    text-transform:uppercase;
+  }
+  .rule-double{height:4px;border-top:1px solid var(--ink);border-bottom:1px solid var(--ink);margin:0 auto;max-width:900px}
+  .mast-meta{
+    display:flex;align-items:center;justify-content:space-between;gap:12px;
+    margin:13px 0 0;flex-wrap:wrap;
+  }
+  .drop-date{font-family:var(--mast);font-size:11px;letter-spacing:.3em;text-transform:uppercase;font-weight:600}
+  .chip-pub{
+    font-family:var(--mast);font-size:9.5px;letter-spacing:.26em;text-transform:uppercase;
+    border:1px solid var(--ink);border-radius:999px;padding:5px 14px;
+    background:var(--paper-hi);
+  }
+  @media (max-width:820px){
+    .mast-art img{width:116px}
+    .mast-flex{gap:22px}
+  }
+
+  /* ============ COFFEE CORNER ============ */
+  .coffee{
+    display:flex;align-items:center;gap:26px;
+    padding:6px 0 2px;margin-top:24px;
+  }
+  .coffee-art{flex:0 0 128px;min-width:0}
+  .coffee-art{position:relative;flex:0 0 122px;min-width:0}
+  .coffee-img{width:116px;height:116px;object-fit:contain;display:block;animation:bob 3.6s ease-in-out infinite alternate}
+  @keyframes bob{from{transform:rotate(-1.4deg) translateY(0)}to{transform:rotate(.8deg) translateY(-5px)}}
+  .coffee-art .steam-w{position:absolute;top:4%;width:14%;height:19%;border-radius:50%;
+    background:radial-gradient(ellipse at 50% 100%,rgba(156,148,128,.75),rgba(156,148,128,0) 72%);
+    filter:blur(1.5px);opacity:0;pointer-events:none;animation:wisp 3.2s ease-in-out infinite}
+  .coffee-art .st1{left:31%}
+  .coffee-art .st2{left:47%;animation-delay:.9s}
+  .coffee-art .st3{left:62%;animation-delay:1.7s}
+  @keyframes wisp{0%{opacity:0;transform:translateY(9px) scale(.85)}30%{opacity:.85}100%{opacity:0;transform:translateY(-24px) scale(1.2)}}
+  .coffee-svg{display:none}
+  /* sticker set (ink doodle) */
+  .stk{width:46px;height:46px;object-fit:contain;display:inline-block}
+  .stk-spot{position:relative;display:inline-block;width:70px;height:56px;margin:4px 0 6px 2px}
+  .stk-tape{position:absolute;left:0;top:2px;width:70px;height:50px;background:var(--ta,#F0E3C4);border:1px solid var(--ink);transform:rotate(-3deg);z-index:1}
+  .stk-below{position:relative;z-index:2;width:44px;height:44px;transform:rotate(5deg);margin:6px 0 0 14px}
+  .stk-lane{width:26px;height:26px;transform:rotate(8deg)}
+  /* mmc vibe meter */
+  .mmc{display:flex;align-items:center;gap:9px;margin-top:9px;flex-wrap:wrap}
+  .mmc-lab{font-family:var(--mast);font-size:8.5px;letter-spacing:.18em;text-transform:uppercase;font-weight:600}
+  .mmc-dots{display:inline-flex;gap:3px}
+  .mmc-dots i{width:7px;height:7px;border-radius:50%;border:1px solid var(--ink);background:transparent}
+  .mmc-dots i.on{background:var(--rose);border-color:var(--ink)}
+  .mmc-note{font-family:var(--hand);font-size:10.5px;font-weight:700;color:var(--ink)}
+  /* series lane */
+  .lane{border:1px solid var(--ink);background:var(--paper-hi);padding:12px 14px;margin-top:16px}
+  .lane-head{display:flex;align-items:center;justify-content:space-between;gap:8px;font-family:var(--mast);font-size:10px;letter-spacing:.22em;text-transform:uppercase;font-weight:600}
+  .lane-chips{display:flex;gap:6px;margin-top:9px;flex-wrap:wrap}
+  .lane-chip{border:1px solid var(--ink);background:var(--paper);font-family:var(--mast);font-size:8.5px;letter-spacing:.1em;text-transform:uppercase;padding:4px 8px;cursor:pointer;font-weight:600}
+  .lane-chip.on{background:var(--butter)}
+  .lane-books{display:flex;gap:6px;margin-top:10px;align-items:stretch;flex-wrap:wrap}
+  .lb-chip{border:1px solid var(--ink);padding:5px 8px;font-family:var(--mast);font-size:8px;letter-spacing:.05em;max-width:130px}
+  .lb-chip b{display:block;font-size:9.5px;letter-spacing:.04em;font-weight:700}
+  .lb-chip.read{background:var(--sage)}
+  .lb-chip.out{background:var(--butter)}
+  .lb-chip.soon{background:var(--paper);border-style:solid}
+  .lb-date{font-family:var(--hand);font-size:9.5px;font-weight:700}
+  /* read pill */
+  .read-pill{border:1px solid var(--ink);background:var(--paper);font-family:var(--mast);font-size:8px;letter-spacing:.1em;text-transform:uppercase;padding:3px 7px;cursor:pointer;font-weight:600}
+  .read-pill.on{background:var(--sage)}
+  .coffee-quotes{flex:1;min-width:0;max-width:600px;border:1px solid var(--ink);background:var(--paper-hi);padding:11px 16px}
+  .coffee-cap{
+    font-family:var(--mast);font-size:9.5px;letter-spacing:.3em;font-weight:600;
+    text-transform:uppercase;margin-bottom:9px;
+  }
+  .quotes{position:relative;min-height:44px}
+  .quote{
+    position:absolute;left:0;right:0;top:0;
+    display:flex;gap:9px;align-items:flex-start;
+    font-family:var(--hand);font-weight:700;font-size:13.5px;line-height:1.45;color:var(--ink);
+    opacity:0;transform:translateY(10px);
+    transition:opacity .7s ease,transform .7s ease;
+    pointer-events:none;
+  }
+  .quote.on{opacity:1;transform:none}
+  .quote .q-ico{flex:0 0 auto;width:16px;height:14px;margin-top:3px}
+  /* steam wisps */
+  .steam path{
+    fill:none;stroke:var(--steam);stroke-width:3.6;stroke-linecap:round;
+    transform-box:fill-box;transform-origin:center bottom;
+    animation:steam 3.8s ease-in-out infinite;
+  }
+  .steam path:nth-child(2){animation-delay:1.2s}
+  .steam path:nth-child(3){animation-delay:2.4s}
+  @keyframes steam{
+    0%{opacity:0;transform:translateY(6px) scale(.9)}
+    35%{opacity:.6;transform:translateY(-8px) scale(1)}
+    70%{opacity:.22;transform:translateY(-18px) scale(1.05)}
+    100%{opacity:0;transform:translateY(-26px) scale(1.1)}
+  }
+  @media (max-width:680px){
+    .coffee{flex-direction:column;align-items:flex-start;gap:10px}
+    .coffee-art{width:110px}
+  }
+
+  /* ============ BOOKSHELF TRACKER (GLOBAL) ============ */
+  .tracker{
+    position:relative;margin-top:46px;
+    background:var(--paper-hi);border:1px solid var(--ink);padding:26px 22px 16px;
+  }
+
+  .tracker-head{display:flex;align-items:baseline;justify-content:space-between;gap:10px;flex-wrap:wrap}
+  .tracker-head .label{font-family:var(--mast);font-size:11px;letter-spacing:.32em;text-transform:uppercase;font-weight:600}
+  .tracker-counts{font-family:var(--hand);font-size:12.5px;color:var(--ink);font-weight:700}
+  .shelf-rows{margin-top:14px;display:flex;align-items:flex-end;gap:10px;overflow-x:auto;padding:4px 2px 10px}
+  .shelf-rows::-webkit-scrollbar{height:7px}
+  .shelf-rows::-webkit-scrollbar-track{background:var(--paper)}
+  .shelf-rows::-webkit-scrollbar-thumb{background:var(--line);border:1px solid var(--ink)}
+  .shelf-row{display:flex;align-items:flex-end;gap:8px;flex:0 0 auto}
+  .row-lab{
+    flex:0 0 34px;text-align:center;
+    font-family:var(--mast);font-size:8.5px;letter-spacing:.22em;font-weight:600;
+    text-transform:uppercase;color:var(--ink);
+    border:1px solid var(--ink);background:var(--paper);padding:3px 0;
+  }
+  .row-spines{display:flex;align-items:flex-end;gap:8px;flex-wrap:nowrap}
+  .spine{
+    position:relative;width:47px;flex:0 0 auto;height:var(--sh,132px);
+    background:var(--paper-hi);border:1px solid var(--line);
+    padding:12px 3px 6px;text-align:center;
+    transition:background-color .3s ease,transform .2s ease;
+  }
+  .spine:hover{transform:translateY(-3px)}
+  .spine.st-read{background:var(--bp,var(--rose));border-color:var(--ink)}
+  .spine.st-loved{background:var(--bp,var(--rose));border-color:var(--ink)}
+  .spine.st-want{border:1.5px solid var(--ink);background:var(--paper)}
+  .spine.st-skip{border-color:var(--ink);opacity:.5}
+  .spine-t{
+    writing-mode:vertical-rl;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
+    font-family:var(--meta);font-size:8px;letter-spacing:.06em;text-transform:uppercase;
+    color:var(--ink);display:block;height:100%;
+  }
+  .spine-spark{position:absolute;top:7px;left:50%;margin-left:-5px;width:10px;height:9px;pointer-events:none}
+  .spine-wantdot{
+    position:absolute;left:50%;bottom:8px;width:7px;height:7px;margin-left:-3.5px;
+    border:1.2px solid var(--ink);border-radius:50%;background:var(--paper-hi);pointer-events:none;
+  }
+
+  .shelf-board{height:12px;background:var(--line);border:1px solid var(--ink);margin-top:2px}
+
+
+  /* ============ MONTH INDEX (cream gilt-format rows) ============ */
+  .index{margin:44px 0 0}
+  .index-head{font-family:var(--mast);font-size:11px;letter-spacing:.34em;font-weight:600;text-transform:uppercase;margin-bottom:14px}
+  .mrow{
+    display:flex;align-items:center;gap:16px;width:100%;text-align:left;
+  }
+  .mselect{
+    width:100%;margin-top:9px;
+    font-family:var(--meta);font-size:10px;letter-spacing:.12em;text-transform:uppercase;
+    border:1px solid var(--ink);background:var(--paper-hi);color:var(--ink);
+    padding:9px 12px;border-radius:0;cursor:pointer;
+  }
+  .mselect:focus{outline:2px solid var(--rose)}
+  .mrow{
+    border:1px solid var(--ink);margin-top:-1px;
+    background:transparent;padding:13px 18px;
+    transition:background-color .2s ease;
+  }
+  .mrow:hover{background:var(--paper-hi)}
+  .mrow.cur{background:var(--butter)}
+  .mrow.cur:hover{background:var(--butter)}
+  .mname{
+    flex:1;min-width:0;
+    font-family:var(--mast);font-weight:600;
+    font-size:clamp(15px,2vw,21px);letter-spacing:.12em;white-space:nowrap;
+  }
+  .mkind{
+    font-family:var(--mast);font-size:8.5px;letter-spacing:.24em;text-transform:uppercase;font-weight:600;
+    border:1px solid var(--ink);padding:3px 10px;background:var(--paper-hi);
+  }
+  .mrow.cur .mkind{background:var(--paper-hi)}
+  .mcount{font-family:var(--mast);font-size:11px;letter-spacing:.2em;font-weight:600;text-transform:uppercase}
+
+  /* ============ MAIN ROW: GRID + SEQUELS ============ */
+  .mainrow{display:grid;grid-template-columns:minmax(0,1fr) 320px;gap:34px;align-items:start;margin-top:4px}
+  @media (max-width:900px){.mainrow{grid-template-columns:1fr;gap:44px}}
+
+  .shelf-head{
+    display:flex;align-items:baseline;justify-content:space-between;gap:10px;flex-wrap:wrap;
+    margin:44px 0 20px;
+    font-family:var(--mast);font-size:12.5px;letter-spacing:.3em;text-transform:uppercase;font-weight:600;
+  }
+  .shelf-head .small{font-family:var(--hand);font-size:12.5px;letter-spacing:.02em;text-transform:none;font-weight:700}
+  .grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:24px}
+  @media (max-width:1020px){.grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
+  @media (max-width:660px){.grid{grid-template-columns:1fr}}
+
+  .card{
+    position:relative;background:var(--paper-hi);border:1px solid var(--ink);
+    padding:16px 14px 14px;display:flex;flex-direction:column;min-width:0;
+    transition:transform .2s ease;
+  }
+  .card:hover{transform:translateY(-2px)}
+  .card.pulse{animation:pulse 1.3s ease 1}
+  @keyframes pulse{0%{transform:scale(1)}28%{transform:scale(1.025)}100%{transform:scale(1)}}
+
+  .cover-wrap{position:relative;width:min(152px,100%);margin:2px auto 0}
+  .cover-wrap img{width:100%;aspect-ratio:2/3;object-fit:cover;border:1px solid var(--ink);background:var(--line)}
+  .tape{position:absolute;width:84px;height:22px;
+    clip-path:polygon(7% 0%,0% 22%,7% 46%,0% 68%,7% 88%,0% 100%,100% 100%,100% 88%,93% 68%,100% 46%,93% 22%,100% 0%);
+  }
+  .tape-a{top:-11px;left:-13px;transform:rotate(-38deg);background:var(--ta,var(--rose))}
+  .tape-b{bottom:-11px;right:-13px;transform:rotate(32deg);background:var(--tb,var(--sage))}
+  .badge-fresh{
+    position:absolute;left:-8px;bottom:-6px;transform:rotate(-7deg);
+    background:var(--butter);padding:4px 10px 4px 12px;
+    font-family:var(--meta);font-size:7.5px;letter-spacing:.14em;text-transform:uppercase;font-weight:700;
+    clip-path:polygon(6% 0%,0% 30%,6% 60%,0% 100%,100% 100%,100% 0%);
+  }
+  .badge-arch{background:var(--sage)}
+  .seal{
+    position:absolute;left:-16px;bottom:-18px;width:86px;height:86px;z-index:3;
+    transform:rotate(-6deg);filter:drop-shadow(2px 3px 0 var(--line));
+  }
+  .chip.ant{background:var(--rose)}
+
+  .card-body{display:flex;flex-direction:column;flex:1;padding-top:13px;min-width:0}
+  .title{
+    font-family:var(--mast);font-weight:600;font-size:14px;letter-spacing:.1em;
+    text-transform:uppercase;line-height:1.28;overflow-wrap:anywhere;
+    display:flex;align-items:flex-start;gap:7px;
+  }
+  .title .t{flex:1;min-width:0;overflow-wrap:anywhere}
+  .title .stk{flex:0 0 auto;width:17px;height:15px;margin-top:2px}
+  .meta{font-family:var(--meta);font-size:9.5px;letter-spacing:.1em;text-transform:uppercase;margin-top:7px;line-height:1.55}
+  .hook{
+    font-family:var(--hand);font-weight:700;font-size:14px;line-height:1.5;color:var(--ink);
+    margin-top:12px;transform:rotate(var(--rot,0deg));padding:0 2px;overflow-wrap:anywhere;
+  }
+  .tropes{display:flex;flex-wrap:wrap;gap:5px;margin-top:12px}
+  .chip{
+    font-family:var(--meta);font-size:8px;letter-spacing:.06em;text-transform:uppercase;
+    border:1px solid var(--ink);border-radius:3px;padding:2.5px 7px;background:var(--paper-hi);
+  }
+  .chip.genre{font-weight:700;border-color:var(--ink);background:var(--gc,var(--rose))}
+  .spice-row{display:flex;align-items:center;gap:7px;margin-top:11px}
+  .chilis{display:flex;gap:3px}
+  .chilis svg{width:12px;height:12px;display:block}
+  .spice-num{font-family:var(--hand);font-weight:700;font-size:13px}
+  .formats{display:flex;gap:6px;margin-top:11px;flex-wrap:wrap}
+  .mini-washi{
+    font-family:var(--meta);font-size:7.5px;letter-spacing:.12em;text-transform:uppercase;font-weight:700;
+    background:var(--wc,var(--rose));padding:3px 9px;
+    clip-path:polygon(8% 0%,0% 30%,8% 60%,0% 100%,100% 100%,100% 60%,92% 30%,100% 0%);
+    white-space:nowrap;
+  }
+  .pills{display:flex;flex-wrap:wrap;gap:5px;margin-top:12px}
+  .pill{
+    font-family:var(--meta);font-size:8px;letter-spacing:.1em;text-transform:uppercase;font-weight:700;
+    border:1px solid var(--ink);border-radius:2px;padding:4px 8px;background:var(--paper-hi);
+    white-space:nowrap;transition:background-color .2s ease,transform .2s ease;
+  }
+  .pill:hover{background:var(--rule)}
+  .pill.sel{border-color:var(--ink);transform:rotate(-1.2deg)}
+  .pill.sel-want{background:var(--blue)}
+  .pill.sel-read{background:var(--sage)}
+  .pill.sel-loved{background:var(--rose)}
+  .pill.sel-skip{background:var(--butter)}
+  .fit{
+    display:flex;align-items:flex-start;gap:6px;margin-top:12px;
+    font-family:var(--hand);font-weight:700;font-size:12.5px;line-height:1.45;color:var(--ink);
+  }
+  .fit svg{flex:0 0 auto;width:16px;height:11px;margin-top:2px}
+
+  /* why it won sticky note */
+  .why{
+    position:relative;margin:14px -4px 0;background:var(--butter);
+    clip-path:polygon(0% 7px,3% 0%,7% 9px,12% 2%,17% 8px,23% 1%,29% 9px,35% 2%,41% 8px,48% 1%,55% 9px,62% 2%,69% 8px,76% 1%,83% 9px,89% 2%,94% 8px,100% 3%,100% 100%,100% 100%,0% 100%);
+    padding:12px 12px 8px;transform:rotate(-1.2deg);
+    filter:drop-shadow(3px 4px 0 var(--line));
+  }
+  .why-head{width:100%;display:flex;align-items:center;gap:8px;padding:0;text-align:left}
+  .note-label{
+    font-family:var(--meta);font-size:7.5px;letter-spacing:.14em;text-transform:uppercase;font-weight:700;
+    background:var(--paper-hi);border:1px solid var(--ink);padding:2px 7px;border-radius:2px;
+  }
+  .why-title{font-family:var(--hand);font-weight:700;font-size:13.5px;flex:1}
+  .why .chev{width:12px;height:9px;transition:transform .25s ease}
+  .why.open .chev{transform:rotate(180deg)}
+  .why-body{max-height:0;overflow:hidden;transition:max-height .35s ease}
+  .why.open .why-body{max-height:280px}
+  .why-body p{font-family:var(--hand);font-weight:700;font-size:13px;line-height:1.5;padding:8px 2px 4px}
+  .why .clip{position:absolute;top:-9px;right:16px;width:13px;height:22px;transform:rotate(14deg)}
+
+  /* ============ SEQUELS COLUMN ============ */
+  .seq-col{position:sticky;top:16px;min-width:0}
+  .seq-head h3{font-family:var(--mast);font-weight:600;font-size:17px;letter-spacing:.14em;text-transform:uppercase;line-height:1.25}
+  .seq-sub{font-family:var(--hand);font-weight:700;font-size:12.5px;margin-top:4px}
+  .seq-group{margin-top:20px;border:1px solid var(--ink);background:var(--paper-hi);padding:14px 14px 12px}
+  .sg-head{
+    display:flex;align-items:baseline;gap:8px;flex-wrap:wrap;
+    font-family:var(--mast);font-size:10px;letter-spacing:.3em;text-transform:uppercase;font-weight:600;
+    padding-bottom:9px;border-bottom:1px solid var(--line);margin-bottom:10px;
+  }
+  .sg-sub{font-family:var(--hand);font-size:11px;letter-spacing:.02em;text-transform:none;font-weight:700;color:var(--ink)}
+  .seq-list{list-style:none;display:flex;flex-direction:column;gap:8px}
+  .seq-list.more{display:none}
+  .seq-group.open .seq-list.more{display:flex}
+  .seq-item{border:1px solid var(--line);background:var(--paper);padding:9px 11px}
+  .seq-top{display:flex;align-items:center;justify-content:space-between;gap:6px}
+  .seq-x{
+    flex:0 0 auto;width:19px;height:19px;margin-left:auto;
+    border:1px solid var(--ink);background:var(--paper-hi);cursor:pointer;
+    display:flex;align-items:center;justify-content:center;padding:0;
+  }
+  .seq-x svg{width:8px;height:8px}
+  .seq-x:hover{background:var(--rose)}
+  .seq-top{display:flex;align-items:center;justify-content:space-between;gap:8px}
+  .seq-series{
+    font-family:var(--meta);font-size:7.5px;letter-spacing:.12em;text-transform:uppercase;font-weight:700;
+    background:var(--rose);border:1px solid var(--ink);padding:2px 7px;
+    white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-width:0;
+  }
+  .want-pill{
+    flex:0 0 auto;
+    font-family:var(--meta);font-size:8px;letter-spacing:.1em;text-transform:uppercase;font-weight:700;
+    border:1px solid var(--ink);border-radius:999px;padding:3px 10px;background:var(--paper-hi);
+    white-space:nowrap;
+    transition:background-color .2s ease,transform .2s ease;
+  }
+  .want-pill:hover{background:var(--rule)}
+  .want-pill.on{background:var(--rose);transform:rotate(-1.2deg)}
+  .seq-title{font-family:var(--mast);font-weight:600;font-size:11.5px;letter-spacing:.06em;line-height:1.3;margin-top:5px}
+  .seq-title .seq-num{font-family:var(--meta);font-weight:400;font-size:9px;letter-spacing:.08em;color:var(--ink)}
+  .seq-meta{
+    font-family:var(--meta);font-size:9px;letter-spacing:.06em;text-transform:uppercase;
+    margin-top:3px;line-height:1.5;
+  }
+  .spark{display:inline-block;width:11px;height:11px;vertical-align:-1.5px;margin-left:4px;transform:rotate(-8deg)}
+  .showmore{
+    width:100%;margin-top:10px;padding:7px 10px;text-align:center;
+    font-family:var(--hand);font-weight:700;font-size:12.5px;color:var(--ink);
+    border:1px dashed var(--ink);background:var(--paper-hi);
+  }
+  .showmore:hover{background:var(--rule)}
+  .seq-note{margin-top:14px;font-family:var(--hand);font-weight:700;font-size:12.5px;line-height:1.45}
+
+  /* ============ COMING SOON ============ */
+  .soon{
+    margin:40px 0 0;border:1.5px solid var(--ink);background:var(--paper-hi);
+    display:flex;align-items:center;gap:16px;flex-wrap:wrap;padding:16px 20px;
+  }
+  .soon-tag{
+    font-family:var(--mast);font-size:10px;letter-spacing:.3em;text-transform:uppercase;font-weight:600;
+    border:1px solid var(--ink);padding:6px 12px;background:var(--sage);
+  }
+  .soon-note{flex:1;min-width:220px;display:flex;align-items:baseline;gap:10px;flex-wrap:wrap}
+  .soon-book{font-family:'Snell Roundhand','Apple Chancery','Segoe Script','Bradley Hand',cursive;font-size:clamp(26px,3.2vw,34px);font-weight:700;line-height:1.05}
+  .soon-rest{font-family:var(--hand);font-weight:700;font-size:12.5px}
+  .soon-days{
+    font-family:var(--hand);font-weight:700;font-size:12px;
+    background:var(--butter);border:1px solid var(--ink);padding:5px 11px;
+    transform:rotate(-2deg);
+    clip-path:polygon(6% 0%,0% 28%,6% 56%,0% 100%,100% 100%,100% 56%,94% 28%,100% 0%);
+  }
+  .soon .bow{width:34px;height:26px;flex:0 0 auto;transform:rotate(8deg)}
+
+  /* how picks button */
+  .hp-wrap{text-align:center;margin:36px 0 0}
+  .hp-btn{
+    font-family:var(--hand);font-weight:700;font-size:15px;color:var(--ink);
+    background:var(--butter);padding:13px 26px;display:inline-block;
+    clip-path:polygon(2% 4%,6% 0%,10% 5%,15% 1%,20% 6%,26% 0%,31% 6%,37% 1%,43% 6%,49% 1%,55% 6%,61% 1%,67% 6%,73% 1%,79% 6%,85% 1%,90% 6%,94% 2%,98% 6%,100% 12%,100% 96%,96% 100%,0% 100%,0% 12%);
+    filter:drop-shadow(3px 4px 0 var(--line));
+    transition:transform .2s ease;
+  }
+  .hp-btn:hover{transform:translateY(-2px)}
+
+  /* ============ FOOTER ============ */
+  footer{margin:46px 0 26px;text-align:center}
+  .foot-rule{height:4px;border-top:1px solid var(--ink);border-bottom:1px solid var(--ink);max-width:760px;margin:0 auto 16px}
+  footer p{font-family:var(--mast);font-size:9.5px;letter-spacing:.28em;text-transform:uppercase;font-weight:600}
+
+  /* ============ MODAL ============ */
+  .veil{
+    position:fixed;inset:0;background:var(--rule);z-index:60;
+    display:none;align-items:center;justify-content:center;padding:26px;
+  }
+  .veil.open{display:flex}
+  .note-modal{
+    position:relative;width:min(560px,100%);background:var(--butter);
+    clip-path:polygon(0% 10px,3% 2%,7% 12px,12% 3%,18% 11px,24% 2%,30% 12px,36% 3%,42% 11px,48% 2%,55% 12px,61% 3%,68% 11px,75% 2%,81% 12px,87% 3%,93% 11px,97% 2%,100% 10px,100% 100%,94% 97%,88% 100%,82% 96%,75% 100%,68% 97%,61% 100%,54% 96%,48% 100%,41% 97%,35% 100%,29% 96%,23% 100%,17% 97%,11% 100%,5% 96%,0% 100%);
+    transform:rotate(1deg);
+    filter:drop-shadow(9px 12px 0 var(--line));
+    padding:30px 34px 26px;
+  }
+  .modal-x{
+    position:absolute;top:14px;right:16px;width:30px;height:30px;
+    border:1px solid var(--ink);border-radius:50%;background:var(--paper-hi);
+    display:flex;align-items:center;justify-content:center;
+  }
+  .modal-x svg{width:11px;height:11px}
+  .modal-head{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+  .modal-head .note-label{background:var(--paper-hi)}
+  .modal-head h2{font-family:var(--hand);font-weight:700;font-size:22px}
+  .modal-sub{font-family:var(--hand);font-weight:700;font-size:13px;margin-top:4px;color:var(--ink)}
+  .rules{margin-top:16px;list-style:none;display:flex;flex-direction:column;gap:11px}
+  .rules li{display:flex;align-items:flex-start;gap:10px;font-family:var(--hand);font-weight:700;font-size:14.5px;line-height:1.45}
+  .rules .cbox{flex:0 0 auto;width:18px;height:18px;margin-top:1px}
+
+  /* floating sticker toast */
+  .toast{
+    position:fixed;z-index:90;pointer-events:none;
+    background:var(--butter);border:1px solid var(--ink);padding:7px 13px;
+    font-family:var(--hand);font-weight:700;font-size:13px;line-height:1.25;color:var(--ink);
+    transform:translate(-50%,-130%) rotate(-2deg);opacity:0;
+    transition:opacity .3s ease,transform .3s ease;
+    clip-path:polygon(5% 0%,0% 30%,5% 60%,0% 100%,100% 100%,100% 62%,95% 30%,100% 0%);
+  }
+  .toast.in{opacity:1;transform:translate(-50%,-115%) rotate(-2deg)}
+  .toast.out{opacity:0;transform:translate(-50%,-160%) rotate(-2deg)}
+</style>
+</head>
+<body>
+
+<!-- ============ SVG STICKER LIBRARY (inline, solid fills) ============ -->
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <symbol id="ic-heart" viewBox="0 0 24 22">
+    <path fill="var(--hf,var(--rose))" stroke="var(--ink)" stroke-width="1.6"
+      d="M12 19.8C7.2 16.5 2.4 12 2.4 7.4 2.4 3.9 5 2 7.6 2c1.8 0 3.4 1.1 4.4 2.6C13 3.1 14.6 2 16.4 2c2.6 0 5.2 1.9 5.2 5.4 0 4.6-4.8 9.1-9.6 12.4Z"/>
+  </symbol>
+  <symbol id="ic-star" viewBox="0 0 24 24">
+    <path fill="var(--sf,var(--rose))" stroke="var(--ink)" stroke-width="1.5"
+      d="M12 2l2.9 6.6 7 .7-5.3 4.7 1.6 7-6.2-3.7-6.2 3.7 1.6-7L2.1 9.3l7-.7L12 2Z"/>
+  </symbol>
+  <symbol id="ic-bow" viewBox="0 0 32 24">
+    <path fill="var(--bf,var(--rose))" stroke="var(--ink)" stroke-width="1.4"
+      d="M15 12C12.6 7.2 8.2 3.7 4.9 5.3 2.4 6.6 2.6 10.6 5.6 12 2.6 13.4 2.4 17.4 4.9 18.7c3.3 1.6 7.7-1.9 10.1-6.7Z"/>
+    <path fill="var(--bf,var(--rose))" stroke="var(--ink)" stroke-width="1.4"
+      d="M17 12c2.4-4.8 6.8-8.3 10.1-6.7 2.5 1.3 2.3 5.3-.7 6.7 3 1.4 3.2 5.4.7 6.7-3.3 1.6-7.7-1.9-10.1-6.7Z"/>
+    <circle cx="16" cy="12" r="2.7" fill="var(--bf,var(--rose))" stroke="var(--ink)" stroke-width="1.4"/>
+  </symbol>
+  <symbol id="ic-sprig" viewBox="0 0 18 30">
+    <path fill="none" stroke="var(--ink)" stroke-width="1.4" d="M9 29V3"/>
+    <g fill="var(--gf,var(--sage))" stroke="var(--ink)" stroke-width=".9">
+      <ellipse cx="12.4" cy="6" rx="3.8" ry="1.7" transform="rotate(24 12.4 6)"/>
+      <ellipse cx="5.6" cy="9" rx="3.8" ry="1.7" transform="rotate(-24 5.6 9)"/>
+      <ellipse cx="12.4" cy="12.6" rx="3.8" ry="1.7" transform="rotate(24 12.4 12.6)"/>
+      <ellipse cx="5.6" cy="15.6" rx="3.8" ry="1.7" transform="rotate(-24 5.6 15.6)"/>
+      <ellipse cx="12.4" cy="19.2" rx="3.8" ry="1.7" transform="rotate(24 12.4 19.2)"/>
+      <ellipse cx="9" cy="2" rx="1.8" ry="3.4"/>
+    </g>
+  </symbol>
+  <symbol id="ic-clip" viewBox="0 0 16 30">
+    <path fill="none" stroke="var(--ink)" stroke-width="1.7" stroke-linecap="round"
+      d="M10.2 3.4C10.2 1.6 5.8 1.6 5.8 3.4V24c0 2.7 4.4 2.7 4.4 0V7.6c0-1.4-1.9-1.4-1.9 0v16"/>
+  </symbol>
+  <symbol id="ic-arrow" viewBox="0 0 22 14">
+    <path fill="none" stroke="var(--ink)" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"
+      d="M2 10.5C7.8 2.5 13.4 2 20 6.2"/>
+    <path fill="none" stroke="var(--ink)" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"
+      d="M15.2 2.2 20 6.2l-5.4 2.6"/>
+  </symbol>
+  <symbol id="ic-chev" viewBox="0 0 12 8">
+    <path fill="none" stroke="var(--ink)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" d="M1.5 1.5 6 6l4.5-4.5"/>
+  </symbol>
+  <symbol id="ic-x" viewBox="0 0 14 14">
+    <path fill="none" stroke="var(--ink)" stroke-width="1.8" stroke-linecap="round" d="M2.2 2.2l9.6 9.6M11.8 2.2 2.2 11.8"/>
+  </symbol>
+  <symbol id="ic-chili" viewBox="0 0 14 14">
+    <path fill="var(--cf,var(--line))" stroke="var(--ink)" stroke-width="1"
+      d="M9 2C6.6 2.4 5.2 4 5.7 5.8 4.7 5 3.3 5.3 2.7 6.7c-.6 1.4.2 3.2 2 4.4 1.8 1.2 4.1 1.5 5.6.4 1.5-1.1 2.1-3 1.4-5.5C11 3.5 11.4 2 9.8 1.7 9.5 1.6 9.4 1.9 9 2Z"/>
+    <path fill="var(--cf,var(--line))" stroke="var(--ink)" stroke-width="1"
+      d="M10.3.9c.5.5.9 1.1 1.2 1.7l-.9.4c-.2-.6-.6-1.2-1-1.7Z"/>
+  </symbol>
+  <symbol id="ic-check" viewBox="0 0 18 18">
+    <rect x="2.2" y="2.8" width="13.6" height="13.6" rx="1.6" fill="var(--paper-hi)" stroke="var(--ink)" stroke-width="1.5"/>
+    <path fill="none" stroke="var(--ink)" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" d="M5.6 9.6l2.7 2.7 4.9-6.4"/>
+  </symbol>
+  <symbol id="ic-bean" viewBox="0 0 14 18">
+    <path fill="var(--bf2,var(--rule))" stroke="var(--ink)" stroke-width="1.2"
+      d="M7 2.6C10.8 4.6 11.9 8.9 10.5 12.4 9.4 15.4 5.7 16.2 3.8 14 1.9 11.8 3.6 3.6 7 2.6Z"/>
+    <path fill="none" stroke="var(--ink)" stroke-width="1" d="M6 4.2c.5 3.8.3 7.8 1.2 10.2"/>
+  </symbol>
+</svg>
+
+<div class="wrap">
+
+  <!-- ============ MASTHEAD ============ -->
+  <header class="masthead">
+    <div class="mast-flex">
+      <figure class="mast-art">
+        <img src="assets/reader-illustration.png" alt="Line-art reader holding a mug beside an open book" width="158" height="224">
+        <span class="tape mast-tape" aria-hidden="true"></span>
+      </figure>
+      <div class="mast-text">
+        <p class="kicker">New Romance, Monthly — Sport Romance + Romantasy <svg class="sprig" aria-hidden="true"><use href="#ic-sprig"/></svg></p>
+        <h1>The Shelf</h1>
+        <div class="rule-double"></div>
+        <div class="mast-meta">
+          <span class="drop-date">Dropped 1 Sep 2026</span>
+          <span class="chip-pub">Published Only</span>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <!-- ============ COMING SOON (top) ============ -->
+  <section class="soon" aria-label="Coming soon">
+    <span class="soon-tag">Your Series</span>
+    <p class="soon-note"><span class="soon-book">Threshing Day</span><span class="soon-rest">the empyrean story collection · rebecca yarros</span></p>
+    <span class="soon-days" id="soon-days"></span>
+  </section>
+
+  <!-- ============ COFFEE CORNER ============ -->
+  <section class="coffee" aria-label="Coffee Corner">
+    <div class="coffee-art" aria-hidden="true">
+      <img class="coffee-img" id="coffee-img" src="assets/coffee-1.png" alt="Pumpkin spice latte">
+      <span class="steam-w st1"></span><span class="steam-w st2"></span><span class="steam-w st3"></span>
+      <svg class="coffee-svg" viewBox="0 0 210 250" aria-hidden="true" hidden>
+        <ellipse cx="105" cy="217" rx="72" ry="12" fill="#FBF6EC" stroke="#1A1815" stroke-width="2"></ellipse>
+      </svg>
+      <span class="stk-label-marker" hidden></span>
+    </div>
+    <div class="coffee-quotes">
+      <p class="coffee-cap" id="coffee-cap">Coffee Wisdom — Autumn Edition</p>
+      <div class="quotes" id="quotes">
+        <p class="quote on"><svg class="q-ico" aria-hidden="true" style="--hf:#E8C4C6"><use href="#ic-heart"/></svg><span>september: pumpkin spice on the shelf, spice on the page.</span></p>
+        <p class="quote"><svg class="q-ico" aria-hidden="true" style="--bf2:#E4DAC7"><use href="#ic-bean"/></svg><span>a good book, a warm cup — that&#39;s the whole agenda.</span></p>
+        <p class="quote"><svg class="q-ico" aria-hidden="true" style="--hf:#E8C4C6"><use href="#ic-heart"/></svg><span>curl up. the leaves changed, so did your TBR.</span></p>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ BOOKSHELF TRACKER (GLOBAL) ============ -->
+  <section class="tracker" id="tracker" aria-label="Bookshelf tracker">
+    <div class="tracker-head">
+      <span class="label">Bookshelf Tracker</span>
+      <span class="tracker-counts" id="tracker-counts"></span>
+    </div>
+    <div class="shelf-rows" id="shelf"></div>
+    <div class="shelf-board"></div>
+  </section>
+
+  <!-- ============ MONTH INDEX ============ -->
+  <section class="index" aria-label="Months">
+    <h2 class="index-head">Month Index</h2>
+    <div id="month-row"></div>
+  </section>
+
+  <!-- ============ MAIN ROW ============ -->
+  <main class="mainrow">
+
+    <!-- ==== THE SHELF GRID ==== -->
+    <div class="grid-col">
+      <div class="shelf-head" id="shelf-head"><h2 id="shelf-title"></h2><span class="small" id="shelf-sub"></span></div>
+      <div class="grid" id="grid"></div>
+
+      <div class="hp-wrap">
+        <button class="hp-btn" id="hp-btn">how picks work?</button>
+      </div>
+    </div>
+
+    <!-- ==== SEQUELS COLUMN ==== -->
+    <aside class="seq-col" aria-label="Series sequels">
+      <div class="seq-head">
+        <h3>Your Series, Next</h3>
+        <p class="seq-sub">sequels we found waiting for you</p>
+      </div>
+
+      <div class="lane" id="lane" aria-label="Your series lane">
+        <div class="lane-head">Your Series Lane <img class="stk stk-lane" src="assets/st-fae.png" alt="Fae sticker"></div>
+        <div class="lane-chips" id="lane-chips"></div>
+        <div class="lane-books" id="lane-books"></div>
+      </div>
+
+      <div class="seq-group" id="g-read">
+        <h4 class="sg-head">To Read <span class="sg-sub">out now</span></h4>
+        <ul class="seq-list" id="seq-read"></ul>
+        <ul class="seq-list more" id="seq-read-more"></ul>
+        <button class="showmore" id="btn-more-read">show 8 more</button>
+      </div>
+
+      <div class="seq-group" id="g-radar">
+        <h4 class="sg-head">On Your Radar <span class="sg-sub">upcoming</span></h4>
+        <ul class="seq-list" id="seq-radar"></ul>
+        <ul class="seq-list more" id="seq-radar-more"></ul>
+        <button class="showmore" id="btn-more-radar">show 3 more</button>
+      </div>
+
+      <p class="seq-note">updated from your shelf · 52 series checked</p>
+    </aside>
+  </main>
+
+  <footer>
+    <div class="foot-rule"></div>
+    <p>The Shelf — Mock Data For Design Review</p>
+  </footer>
+</div>
+
+<!-- ============ HOW PICKS WORK MODAL ============ -->
+<div class="veil" id="veil" role="dialog" aria-modal="true" aria-labelledby="hp-title">
+  <div class="note-modal">
+    <button class="modal-x" id="modal-x" aria-label="Close modal"><svg aria-hidden="true"><use href="#ic-x"/></svg></button>
+    <div class="modal-head">
+      <span class="note-label">Note</span>
+      <h2 id="hp-title">how picks work</h2>
+    </div>
+    <p class="modal-sub">five rules, written by heart — the shelf updates the 1st of every month</p>
+    <ul class="rules">
+      <li><svg class="cbox" aria-hidden="true"><use href="#ic-check"/></svg><span>soft quality floor — books early readers disliked get dropped</span></li>
+      <li><svg class="cbox" aria-hidden="true"><use href="#ic-check"/></svg><span>a FRESH READ badge means a new book not yet proven</span></li>
+      <li><svg class="cbox" aria-hidden="true"><use href="#ic-check"/></svg><span>fit score ranks by your genres, tropes and spice band — and the tracker feeds next month&#39;s picks</span></li>
+      <li><svg class="cbox" aria-hidden="true"><use href="#ic-check"/></svg><span>TRAD-PUB FIRST, INDIE WITH PROOF — traditional publishers lead; indie titles must clear a quality bar (solid early ratings) to make the shelf</span></li>
+      <li><svg class="cbox" aria-hidden="true"><use href="#ic-check"/></svg><span>M/F ROMANCE ONLY — no M/M or F/F titles</span></li>
+    </ul>
+  </div>
+</div>
+
+<script>
+(function(){
+  'use strict';
+
+  var STORE_KEY='shelf-tracker-v4';
+  var SEQ_KEY='shelf-tracker-v4-seq';
+  var CURRENT='sep';
+
+  /* ---------- SEASON CONFIG: fall ACTIVE for SEP 2026 ----------
+     Placeholder variants (kept commented for the future):
+       winter : cocoa & marshmallow — chocolate swirl, two white marshmallows in the cup;
+                quotes about snow, cocoa and one more chapter.
+       spring : blossom latte — latte with a cherry-blossom sprig and pink petals;
+                quotes about blooms and a new TBR.
+       summer : iced lemon — tall glass, lemon wheel, straw;
+                quotes about sun, ice and staying in the pool chair.
+     Renderer reads SEASON from this map; only 'fall' has active:true.
+  */
+  var SEASONS={
+    fall:{active:true,caption:'Coffee Wisdom — Autumn Edition',coffee:'assets/coffee-1.png'},
+    /* winter:{active:false,caption:'Coffee Wisdom — Cocoa Season',coffee:'assets/coffee-winter-b.png'}, */
+    /* spring:{active:false,caption:'Coffee Wisdom — Blossom Edition',coffee:'assets/coffee-spring-a.png'}, */
+    /* summer:{active:false,caption:'Coffee Wisdom — Iced Days',coffee:'assets/coffee-summer-b.png'} */
+  };
+  var SEASON='fall';
+
+  /* ---------------- BOOK DATA ---------------- */
+  var BOOKS={
+    /* ===== SEP 2026 ===== */
+    b1:{month:'sep',img:'assets/real/cover-01.jpg',title:'The Final Score',spine:'THE FINAL SCORE',author:'Lana Ferguson',publisher:'Berkley',
+        date:'JUL 7 2026',genre:'Hockey',spice:4,
+        tropes:['Hockey Romance','Forced Proximity','Grumpy & Sunshine','Athlete Hero'],
+        gr:'GR 3.59 · 4,655 ratings',formats:['Ebook','Audio'],
+        hook:"The league's most unimpressed goalie meets the one person who won't cheer for him. So much for keeping score.",
+        fit:'hockey + forced proximity = your lane'},
+    b2:{month:'sep',img:'assets/real/cover-02.jpg',title:'Embrace (Off the Ice #4)',spine:'EMBRACE',author:'Bal Khabra',publisher:'Berkley',
+        date:'AUG 4 2026',genre:'Hockey',spice:4,
+        tropes:['Forbidden Love','Forced Proximity','Friends to Lovers','Athlete Hero'],
+        gr:'GR 3.96 · 5,443 ratings',formats:['Ebook','Audio'],
+        hook:"Studying with the team captain is a bad idea. Falling for him was never on the syllabus.",
+        fit:"Off the Ice keeps your hockey streak. forbidden? even better."},
+    b3:{month:'sep',img:'assets/real/cover-03.jpg',title:'The Paddock Club (Slipstream #2)',spine:'THE PADDOCK CLUB',author:'Madge Maril',publisher:'Simon & Schuster',
+        date:'JUL 14 2026',genre:'Formula 1',spice:4,
+        tropes:['Enemies to Lovers','Forced Proximity','Rivals','Influencer Heroine'],
+        gr:'GR 3.91 · 698 ratings',formats:['Ebook','Audio'],
+        hook:'She has the paddock pass. He has the ego. The pit lane has seen nothing yet.',
+        fit:'F1! you read Wrecked - and enemies to lovers is your top trope'},
+    b4:{month:'sep',img:'assets/real/cover-04.jpg',title:'Just for the Plot (Bay Area Players #2)',spine:'JUST FOR THE PLOT',author:'Meghan Quinn',publisher:'Montlake',
+        date:'JUL 28 2026',genre:'Baseball',spice:4,
+        tropes:['Friends to Lovers',"Sibling's Best Friend",'Slow Burn','Age Gap'],
+        gr:'GR 4.83 · 6 ratings',formats:['Ebook','Audio'],
+        hook:"Best friend's little sister. He raised his hand for the fake date. Now it's a slow burn with a deadline.",
+        fit:"Meghan Quinn again. your shelf says it for me."},
+    b5:{month:'sep',img:'assets/real/cover-05.jpg',title:'These Vile Hearts',spine:'THESE VILE HEARTS',author:'Melody Robinette',publisher:"G.P. Putnam's Sons",
+        date:'AUG 11 2026',genre:'Fae Romantasy',spice:2,fresh:true,
+        tropes:['Fae Prince','Enemies to Lovers','Cursed Hero','Desperate Bargain','Fairy-Tale Vibes'],
+        gr:'GR 3.89 · 152 ratings',formats:['Ebook','Audio'],
+        hook:'She made a deal with a cursed fae prince. Neither of them ever planned to keep their word.',
+        fit:'fae + bargain. your Quicksilver lane, but funnier.'},
+    b6:{month:'sep',img:'assets/real/cover-06.jpg',title:'How to Marry a Winged King',spine:'WINGED KING',author:'A.J. Lancaster',publisher:'Tor',
+        date:'AUG 20 2026',genre:'Fae (Cinderella)',spice:1,fresh:true,
+        tropes:['Fae King','Cinderella Retelling','Masquerade','Grumpy-Sunshine'],
+        gr:'GR 4.09 · 162 ratings',formats:['Ebook','Audio'],
+        hook:'Cinderella, but the prince has wings, the clock is a masquerade, and the slipper was the easy part.',
+        fit:'fae retelling, grumpy-sunshine. light on spice, heavy on charm.'},
+    b7:{month:'sep',img:'assets/real/cover-07.jpg',title:'Spellcast (A Fire in the Sky #3)',spine:'SPELLCAST',author:'Sophie Jordan',publisher:'Avon',
+        date:'JUL 28 2026',genre:'Dragon Shifter',spice:3,
+        tropes:['Dragon Shifter','Enemies to Lovers','Forced Proximity','Cursed Heroine'],
+        gr:'GR 3.63 · 606 ratings',formats:['Ebook','Audio'],
+        hook:'He burned her walls down once. Now every spell she casts pulls him right back.',
+        fit:'draaaagons. enemies to lovers. done.'},
+    b8:{month:'sep',img:'assets/real/cover-08.jpg',title:"World's Okayest Oracle (Reluctantly) Seeks Demon (Supernatural Entanglements #2)",spine:'OKAYEST ORACLE',author:'Olivia Dade',publisher:'Berkley',
+        date:'AUG 11 2026',genre:'Urban Fantasy',spice:4,
+        tropes:['Urban Fantasy','Second Chance','Oracle FMC','Demon Hero','Humor'],
+        gr:'GR 3.92 · 594 ratings',formats:['Ebook','Audio'],
+        hook:"She's the oracle who's usually wrong. He's the demon who's apparently her match. It's fine. It's going fine.",
+        fit:'second chance + humor. you liked Anathema; this one blooms.'},
+
+    /* ===== AUG 2026 ===== */
+    a1:{month:'aug',img:'assets/real/aug-01.jpg',title:'Full Throttle',spine:'FULL THROTTLE',author:'J.K. MacLaren',publisher:'Dell',
+        date:'AUG 18 2026',genre:'Formula 1',spice:4,fresh:true,
+        tropes:['Enemies to Lovers','Second Chance','Rivals','Forced Proximity (Teammates)','First Female F1 Driver'],
+        gr:'GR — NEW',formats:['Ebook','Audio'],
+        hook:"The first woman on the grid, and the teammate she swore she'd never share a garage with again.",
+        fit:'F1. teammates. enemies to lovers. you read Wrecked.'},
+    a2:{month:'aug',img:'assets/real/aug-02.jpg',title:'Crash into You (Lights Out #3)',spine:'CRASH INTO YOU',author:'Simone Soltani',publisher:'Pan Macmillan',
+        date:'AUG 27 2026',genre:'Formula 1',spice:4,fresh:true,
+        tropes:['Grumpy x Sunshine','Forbidden',"He Falls First",'Unexpected Pregnancy'],
+        gr:'GR 4.24 · 127 ratings',formats:['Ebook','Audio'],
+        hook:"He's the rival team's driver. She's the team principal's daughter. The pit lane isn't the only thing about to crash.",
+        fit:"Lights Out #3 — the F1 series you'll binge."},
+    a3:{month:'aug',img:'assets/real/aug-03.jpg',title:'Vow of Eternal Night',spine:'VOW OF ETERNAL NIGHT',author:'Lily Crozier',publisher:'Entangled: Amara',
+        date:'AUG 4 2026',genre:'Gothic Vampire Romantasy',spice:3,
+        tropes:['Enemies to Lovers','Marriage Bargain','Heal the Prince','Slow Burn','Forced Proximity'],
+        gr:'GR 3.80 · 3,187 ratings',formats:['Ebook','Audio'],
+        hook:"The vampire prince is cursed to die by morning. She's the healer who married him to save him.",
+        fit:"marriage bargain + vampires? there's a vow with your name on it."},
+    a4:{month:'aug',img:'assets/real/aug-04.jpg',title:'The Lion & the Deathless Dark (Crowns of Nyaxia #5)',spine:'LION & DEATHLESS DARK',author:'Carissa Broadbent',publisher:'Tor',
+        date:'AUG 4 2026',genre:'Romantasy',spice:3,aseq:true,
+        tropes:['Enemies to Lovers','Slow Burn','Forbidden','Revenge Quest','Bargain with a Monster'],
+        gr:'GR 4.53 · 7,761 ratings',formats:['Ebook','Audio'],
+        hook:"The Nyaxia saga's new chapter: a monster, a bargain, and the girl set on making him human.",
+        fit:'CARISSA BROADBENT. new Nyaxia. you read the Crowns.'},
+
+    /* ===== JUL 2026 ===== */
+    j1:{month:'jul',img:'assets/real/jul-01.jpg',title:'The Finish Line',spine:'THE FINISH LINE',author:'Grace Newman',publisher:'Hera',
+        date:'JUL 7 2026',genre:'Formula 1',spice:3,
+        tropes:['Grumpy x Sunshine','Exes to Rivals-to-Lovers','Forced Proximity','Secret Relationship','Female Driver'],
+        gr:'GR 3.97 · 38 ratings',formats:['Ebook','Audio'],
+        hook:"They broke up, then became rivals. The contract says they can't together. The paddock says otherwise.",
+        fit:'the F1 streak continues.'},
+    j2:{month:'jul',img:'assets/real/jul-02.jpg',title:'Dominion (Silk and Iron #1)',spine:'DOMINION',author:'Jean Kwok',publisher:"G.P. Putnam's Sons",
+        date:'JUL 14 2026',genre:'Romantasy',spice:2,
+        tropes:['Trials','Fated Attraction','Enemies to Lovers','Amnesia Heroine','Demons'],
+        gr:'GR 3.93 · 2,241 ratings',formats:['Ebook','Audio'],
+        hook:'The trials choose warriors. The demons choose her. Traitors die first.',
+        fit:'Fourth Wing energy with battle-tigers (2/5 - the plot carries it).'},
+    j3:{month:'jul',img:'assets/real/jul-03.jpg',title:'A Date with Death',spine:'A DATE WITH DEATH',author:'Kelly Creagh',publisher:'Gallery Books',
+        date:'JUL 14 2026',genre:'Urban Rom-Com',spice:3,
+        tropes:['Grumpy x Sunshine','Reaper x Human','Forbidden Cost of Feeling','Found Family'],
+        gr:'GR 3.80 · 597 ratings',formats:['Ebook'],
+        hook:"She flirts with death for a living. He's the reaper who actually showed up.",
+        fit:'urban + comedy: your Olivia Dade energy.'},
+    j4:{month:'jul',img:'assets/real/jul-04.jpg',title:'The Exquisite Torment of Loving Your Enemy (Dearly Beloathed #2)',spine:'EXQUISITE TORMENT',author:'Brigitte Knightley',publisher:'Ace',
+        date:'JUL 7 2026',genre:'Romantasy',spice:3,
+        tropes:['Enemies to Lovers','Assassin x Scholar-Healer','Slow Burn','Banter','Forced Proximity'],
+        gr:'series avg 4.12',formats:['Ebook'],
+        hook:'An assassin who must heal his enemy, one forbidden session at a time.',
+        fit:'assassin + healer, slow burn, banter.'},
+
+    /* ===== JUN 2026 ===== */
+    n1:{month:'jun',img:'assets/real/jun-01.jpg',title:'The Winged Game',spine:'THE WINGED GAME',author:'Sophie Kim',publisher:'Del Rey',
+        date:'JUN 30 2026',genre:'Fantasy x Sports',spice:3,
+        tropes:['Rivals to Lovers','Second Chance','Fake Relationship Contract','Hidden Magical Cities'],
+        gr:'GR 4.00 · 5,439 ratings',formats:['Ebook','Audio'],
+        hook:"The magical sport you've never heard of, played by rivals who fake-date their way to the final.",
+        fit:'the fantasy x sports crossover of the summer.'},
+    n2:{month:'jun',img:'assets/real/jun-02.jpg',title:'Witch Season (Broken Coven #1)',spine:'WITCH SEASON',author:'Julia Bianco',publisher:"St. Martin's Press",
+        date:'JUN 30 2026',genre:'Urban Witches',spice:2,
+        tropes:['Enemies to Lovers','Hidden Witch World','Forced Proximity','Found Family'],
+        gr:'GR 3.67 · 1,007 ratings',formats:['Ebook','Audio'],
+        hook:'A witch, a coven in crisis, and the enemy she keeps ending up stuck with.',
+        fit:'urban fantasy, enemies-to-lovers.'},
+    n3:{month:'jun',img:'assets/real/jun-03.jpg',title:'Wildflower',spine:'WILDFLOWER',author:'Becky Jenkinson',publisher:'Del Rey',
+        date:'JUN 16 2026',genre:'Cozy Fantasy',spice:1,
+        tropes:['Two Outcasts','Forced Proximity Quest','Truth Curse','Slow Burn'],
+        gr:'GR 3.80 · 644 ratings',formats:['Ebook','Audio'],
+        hook:'Two outcasts, one cursed quest, and a truth spell that says everything out loud.',
+        fit:'cozy and warm - the chai latte of this month.'}
+  };
+
+  var MONTHS={
+    sep:{label:'SEP 2026',name:'SEPTEMBER 2026',current:true,books:['b1','b2','b3','b4','b5','b6','b7','b8'],topPick:'b1',
+         presets:{b2:'loved',b5:'skip'}},
+    aug:{label:'AUG 2026',name:'AUGUST 2026',current:false,books:['a1','a2','a3','a4'],topPick:'a4',
+         presets:{a1:'loved',a2:'read',a3:'read',a4:'loved'}},
+    jul:{label:'JUL 2026',name:'JULY 2026',current:false,books:['j1','j2','j3','j4'],
+         presets:{j1:'read',j2:'want',j3:'skip',j4:'read'}},
+    jun:{label:'JUN 2026',name:'JUNE 2026',current:false,books:['n1','n2','n3'],
+         presets:{n1:'loved',n2:'read',n3:'want'}}
+  };
+  var ORDER=['sep','aug','jul','jun'];
+
+  var SPINE_H={b1:150,b2:160,b3:144,b4:156,b5:148,b6:162,b7:150,b8:158,
+               a1:150,a2:160,a3:146,a4:154,
+               j1:152,j2:160,j3:146,j4:156,
+               n1:154,n2:146,n3:158};
+  var SPINE_PAL={b1:'#E8C4C6',b2:'#CBD6C0',b3:'#C9D6E0',b4:'#F0E3C4',b5:'#E8C4C6',b6:'#CBD6C0',b7:'#C9D6E0',b8:'#F0E3C4',
+                 a1:'#E8C4C6',a2:'#CBD6C0',a3:'#C9D6E0',a4:'#F0E3C4',
+                 j1:'#E8C4C6',j2:'#CBD6C0',j3:'#C9D6E0',j4:'#F0E3C4',
+                 n1:'#E8C4C6',n2:'#CBD6C0',n3:'#C9D6E0'};
+
+  /* ---------------- SEQUELS DATA (verified) ---------------- */
+  var SEQ_READ=[
+    {s:'The Empyrean',t:'Onyx Storm',n:'#3',a:'Rebecca Yarros',d:'out 21 Jan 2025',p:'Red Tower'},
+    {s:'Fae & Alchemy',t:'Brimstone',n:'#2',a:'Callie Hart',d:'out 18 Nov 2025',p:'Hachette UK'},
+    {s:'Zodiac Academy',t:'Restless Stars',n:'#9',a:'Peckham & Valenti',d:'out 3 Mar 2026',p:'King\u2019s Hollow'},
+    {s:'The Sacred Stones',t:'A Reign of Rose',n:'finale',a:'Kate Golden',d:'out Oct 2024',p:'Berkley'},
+    {s:'Legends of Thezmarr',t:'Vows & Ruins',n:'#2',a:'Helen Scheuerer',d:'out 2023',p:'Alchemy Books'},
+    {s:'Crescent City',t:'House of Sky and Breath',n:'#2',a:'Sarah J. Maas',d:'out 15 Feb 2022',p:'Bloomsbury'},
+    {s:'Blood and Ash',t:'A Kingdom of Flesh and Fire',n:'#2',a:'J.L. Armentrout',d:'out 2020',p:'Blue Box'},
+    {s:'The Ashes of Thezmarr',t:'Thorns & Fire',n:'#2',a:'Helen Scheuerer',d:'out 29 Jul 2025',p:'Alchemy Books'},
+    {s:'The Ashes of Thezmarr',t:'Silver & Smoke',n:'finale',a:'Helen Scheuerer',d:'out 6 Nov 2025',p:'Alchemy Books'},
+    {s:'Blood and Ash',t:'The War of Two Queens',n:'#4',a:'J.L. Armentrout',d:'out 2022',p:'Blue Box'},
+    {s:'Crescent City',t:'House of Flame and Shadow',n:'finale',a:'Sarah J. Maas',d:'out 30 Jan 2024',p:'Bloomsbury'},
+    {s:'Shadows of the Tenebris Court',t:'A Promise of Lies',n:'finale',a:'Clare Sager',d:'out Jan 2025',p:'Podium'},
+    {s:'Playing for Keeps',t:'Breathe with Me',n:'finale',a:'Becka Mack',d:'out 28 Oct 2025',p:'Zando / Slowburn'},
+    {s:'Prince of Sin',t:'Throne of Nightmares',n:'#3',a:'Kerri Maniscalco',d:'out 10 Feb 2026',p:'Little, Brown'}
+  ];
+  var SEQ_RADAR=[
+    {s:'The Empyrean',t:'Threshing Day',n:'story collection',a:'Rebecca Yarros',d:'29 SEP 2026',p:'Red Tower',soon:true,iso:'2026-09-29'},
+    {s:'ACOTAR',t:'A Court of Splintered Harmony',n:'#6',a:'Sarah J. Maas',d:'27 OCT 2026',p:'Bloomsbury',soon:true,iso:'2026-10-27'},
+    {s:'The Hurricane Wars',t:'This Shattered Tempest',n:'finale',a:'Thea Guanzon',d:'6 OCT 2026',p:'Harper Voyager',soon:true,iso:'2026-10-06'},
+    {s:'ACOTAR',t:'A Court of Forgotten Melody',n:'#7',a:'Sarah J. Maas',d:'12 JAN 2027',p:'Bloomsbury',soon:false},
+    {s:'The Empyrean',t:'Untitled',n:'#4',a:'Rebecca Yarros',d:'announced, no date',p:'Red Tower',soon:false},
+    {s:'Fae & Alchemy',t:'Untitled',n:'#3',a:'Callie Hart',d:'expected 2027',p:'',soon:false},
+    {s:'Moonfall',t:'Untitled',n:'#3',a:'Sarah A. Parker',d:'TBA',p:'',soon:false},
+    {s:'Blood and Ash',t:'Untitled',n:'#7',a:'J.L. Armentrout',d:'announced',p:'',soon:false},
+    {s:'The Eating Woods',t:'Vasmora',n:'finale',a:'Keri Lake',d:'OCT 2026',p:'',soon:false}
+  ];
+
+  /* ---------------- TRACKER STATE (GLOBAL) ---------------- */
+  function load(k){
+    try{var s=localStorage.getItem(k);return s?JSON.parse(s):{};}catch(e){return {};}
+  }
+  function hasKey(k){try{return localStorage.getItem(k)!==null;}catch(e){return false;}}
+  var tracker=load(STORE_KEY);
+  if(!hasKey(STORE_KEY)){
+    tracker={};
+    for(var m in MONTHS){
+      var pr=MONTHS[m].presets;
+      for(var bid in pr){tracker[bid]=pr[bid];}
+    }
+    try{localStorage.setItem(STORE_KEY,JSON.stringify(tracker));}catch(e){}
+  }
+  var seqTracker=load(SEQ_KEY);
+  (function(){for(var i=0;i<SEQ_READ.length;i++){if(SEQ_READ[i].t==='Onyx Storm')seqTracker['tr'+(i+1)]='read';}try{localStorage.setItem(SEQ_KEY,JSON.stringify(seqTracker));}catch(e){}})();
+
+  function stateOf(bid){return tracker[bid]||'none';}
+  function setState(bid,s){
+    if(s==='none'){delete tracker[bid];}else{tracker[bid]=s;}
+    try{localStorage.setItem(STORE_KEY,JSON.stringify(tracker));}catch(e){}
+  }
+  function seqState(id){return seqTracker[id]==='want';}
+  function setSeqState(id,v){
+    if(v){seqTracker[id]='want';}else{delete seqTracker[id];}
+    try{localStorage.setItem(SEQ_KEY,JSON.stringify(seqTracker));}catch(e){}
+  }
+  function seqRead(id){return seqTracker[id]==='read';}
+  function setSeqRead(id,v){
+    if(v){seqTracker[id]='read';}else{delete seqTracker[id];}
+    try{localStorage.setItem(SEQ_KEY,JSON.stringify(seqTracker));}catch(e){}
+  }
+  function seqGone(id){return seqTracker[id]==='dismiss';}
+  function setSeqGone(id){
+    seqTracker[id]='dismiss';
+    try{localStorage.setItem(SEQ_KEY,JSON.stringify(seqTracker));}catch(e){}
+  }
+
+  /* ---------------- DOM REFS ---------------- */
+  var grid=document.getElementById('grid');
+  var shelf=document.getElementById('shelf');
+  var monthRow=document.getElementById('month-row');
+  var countsEl=document.getElementById('tracker-counts');
+  var titleEl=document.getElementById('shelf-title');
+  var subEl=document.getElementById('shelf-sub');
+
+  /* ---------------- HELPERS ---------------- */
+  function esc(s){return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
+  function chilis(n){
+    var h='';
+    for(var i=1;i<=4;i++){
+      h+='<svg aria-hidden="true" class="chili'+(i<=n?'':' off')+'" style="--cf:'+(i<=n?'#E8C4C6':'#FBF6EC')+'"><use href="#ic-chili"/></svg>';
+    }
+    return h;
+  }
+  function heartStk(){return '<svg class="stk" aria-hidden="true" style="--hf:#E8C4C6"><use href="#ic-heart"/></svg>';}
+  function starStk(){return '<svg class="stk" aria-hidden="true" style="--sf:#E8C4C6"><use href="#ic-star"/></svg>';}
+  function sealHTML(){
+    return '<svg class="seal" viewBox="0 0 100 100" aria-label="Top pick No. 1">'+
+      '<polygon points="50,4 56.9,10.6 65.7,6.8 70,15.4 79.6,14.8 80.6,24.3 89.8,27 87.6,36.3 95.3,42 90,50 95.3,58 87.6,63.7 89.8,73 80.6,75.7 79.6,85.2 70,84.6 65.7,93.2 56.9,89.4 50,96 43.1,89.4 34.3,93.2 30,84.6 20.4,85.2 19.4,75.7 10.2,73 12.4,63.7 4.7,58 10,50 4.7,42 12.4,36.3 10.2,27 19.4,24.3 20.4,14.8 30,15.4 34.3,6.8 43.1,10.6" fill="#E8C4C6" stroke="#1A1815" stroke-width="1.6"/>'+
+      '<circle cx="50" cy="50" r="34" fill="#F0E3C4" stroke="#1A1815" stroke-width="1"/>'+
+      '<text x="50" y="44" text-anchor="middle" font-size="11" font-weight="700" letter-spacing="1" font-family="Baskerville,Georgia,serif" fill="#1A1815">TOP PICK</text>'+
+      '<text x="50" y="58" text-anchor="middle" font-size="11" font-weight="700" letter-spacing="1" font-family="Baskerville,Georgia,serif" fill="#1A1815">NO. 1</text>'+
+      '</svg>';
+  }
+
+  /* ---------------- RENDER: CARDS ---------------- */
+  function cardHTML(bid,m,idx){
+    var b=BOOKS[bid],st=stateOf(bid),mm=MONTHS[m];
+    var tp=(mm.topPick===bid)&&mm.current;
+    var rot=idx%2===0?'-1.2deg':'1.3deg';
+    var gc=['#E8C4C6','#CBD6C0','#C9D6E0','#F0E3C4'][idx%4];
+    var wc=['#F0E3C4','#E8C4C6','#CBD6C0','#C9D6E0'][idx%4];
+    var h='';
+    h+='<article class="card" id="card-'+bid+'" data-book="'+bid+'">';
+    h+='  <div class="cover-wrap">';
+    h+='    <img src="'+b.img+'" alt="Cover of '+esc(b.title)+' by '+esc(b.author)+'" width="152" height="228">';
+    h+='    <span class="tape tape-a" style="--ta:#'+(idx%2? 'CBD6C0':'E8C4C6')+'"></span>';
+    h+='    <span class="tape tape-b" style="--tb:#'+(idx%3? 'E8C4C6':'CBD6C0')+'"></span>';
+    if(b.fresh) h+='    <span class="badge-fresh">Fresh Read</span>';
+    if(!mm.current) h+='    <span class="badge-fresh badge-arch">Archive</span>';
+    if(tp) h+='    '+sealHTML();
+    if(mm.current&&b.aseq) h+='    <span class="chip ant">Anticipated Sequel</span>';
+    var stkImg=tp?'assets/st-wingheart.png':
+      (String(b.title).indexOf('Winged King')>-1?'assets/st-dragon-reading.png':
+      (String(b.title).indexOf('Vile Hearts')>-1?'assets/st-fae.png':
+      (String(b.title).indexOf('Final Score')>-1?'assets/st-hockey.png':
+      (String(b.title).indexOf('Paddock')>-1?'assets/st-f1.png':''))));
+    h+='  </div>';
+    h+='  <div class="card-body">';
+    h+='    <h3 class="title"><span class="t">'+esc(b.title)+'</span>'+((tp)?starStk():'')+((st==='loved')?heartStk():'')+'</h3>';
+    if(stkImg)h+='    <div class="stk-spot"><span class="stk-tape" style="--ta:'+(idx%2?'#E8C4C6':'#F0E3C4')+'"></span><img class="stk stk-below" src="'+stkImg+'" alt="Book sticker"></div>';
+    h+='    <p class="meta">'+esc(b.author)+' — '+esc(b.publisher)+'<br>'+esc(b.date)+' · '+esc(b.gr)+' · '+esc(b.genre)+'</p>';
+    h+='    <p class="hook" style="--rot:'+rot+'">'+esc(b.hook)+'</p>';
+    h+='    <div class="tropes"><span class="chip genre" style="--gc:'+gc+'">'+esc(b.genre)+'</span>';
+    for(var i=0;i<b.tropes.length;i++){h+='<span class="chip">'+esc(b.tropes[i])+'</span>';}
+    h+='    </div>';
+    h+='    <div class="spice-row"><span class="spice-num">'+b.spice+'/5</span><span class="chilis">'+chilis(b.spice)+'</span></div>';
+    var rom=(String(b.genre).toLowerCase().indexOf('romantasy')>-1||String(b.genre).toLowerCase().indexOf('fantasy')>-1);
+    var ms=b.mmc||(3+(idx%3));
+    h+='    <div class="mmc"><span class="mmc-lab">MMC vibe</span><span class="mmc-dots">';
+    for(var d2=1;d2<=5;d2++){h+='<i class="'+(d2<=ms?'on':'')+'"></i>';}
+    h+='</span><span class="mmc-note">'+(rom?'Xaden · Rhysand · Raihn energy':'same energy, no magic')+'</span></div>';
+    h+='    <div class="formats">';
+    for(var f=0;f<b.formats.length;f++){h+='<span class="mini-washi" style="--wc:'+wc+'">'+b.formats[f]+'</span>';}
+    h+='    </div>';
+    h+='    <div class="pills" data-book="'+bid+'">';
+    var states=['want','read','loved','skip'];
+    for(var p=0;p<states.length;p++){
+      var s=states[p];
+      h+='<button class="pill'+(st===s?' sel sel-'+s:'')+'" data-state="'+s+'" aria-pressed="'+(st===s)+'">'+s+'</button>';
+    }
+    h+='    </div>';
+    h+='    <p class="fit"><svg aria-hidden="true"><use href="#ic-arrow"/></svg><span>'+esc(b.fit)+'</span></p>';
+    if(tp){
+      h+='    <div class="why" id="why-'+bid+'">';
+      h+='      <svg class="clip" aria-hidden="true"><use href="#ic-clip"/></svg>';
+      h+='      <button class="why-head" data-why="'+bid+'" aria-expanded="false" aria-controls="why-body-'+bid+'">';
+      h+='        <span class="note-label">Note</span><span class="why-title">why it won</span>';
+      h+='        <svg class="chev" aria-hidden="true"><use href="#ic-chev"/></svg>';
+      h+='      </button>';
+      h+='      <div class="why-body" id="why-body-'+bid+'">';
+      h+='        <p>hockey + grumpy x sunshine + forced proximity, and its 4,655 early ratings make it the proven one this month. the rest are fresh reads.</p>';
+      h+='      </div>';
+      h+='    </div>';
+    }
+    h+='  </div>';
+    h+='</article>';
+    return h;
+  }
+
+  /* ---------------- RENDER: GLOBAL SPINES ---------------- */
+  function renderSpines(){
+    var h='';
+    for(var oi=0;oi<ORDER.length;oi++){
+      var m=ORDER[oi],mm=MONTHS[m];
+      h+='<div class="shelf-row">';
+      h+='  <span class="row-lab">'+mm.label.substr(0,3)+'</span>';
+      h+='  <div class="row-spines">';
+      for(var i=0;i<mm.books.length;i++){
+        var bid=mm.books[i],b=BOOKS[bid],st=stateOf(bid);
+        h+='<button class="spine st-'+st+'" data-book="'+bid+'" style="--bp:'+SPINE_PAL[bid]+';--sh:'+SPINE_H[bid]+'px" title="Jump to '+esc(b.title)+'" aria-label="Jump to '+esc(b.title)+'">'+
+           '<span class="spine-t">'+esc(b.spine)+'</span>'+
+           (st==='loved'?'<svg class="spine-spark" style="--hf:#FBF6EC" aria-hidden="true"><use href="#ic-heart"/></svg>':'')+
+           (st==='want'?'<span class="spine-wantdot" aria-hidden="true"></span>':'')+
+           '</button>';
+      }
+      h+='  </div>';
+      h+='</div>';
+    }
+    shelf.innerHTML=h;
+  }
+
+  /* ---------------- RENDER: COUNTS + MONTHS ---------------- */
+  function renderCounts(){
+    var r=0,l=0,w=0,k=0;
+    for(var m in MONTHS){
+      var books=MONTHS[m].books;
+      for(var i=0;i<books.length;i++){
+        var s=stateOf(books[i]);
+        if(s==='read')r++;else if(s==='loved')l++;else if(s==='want')w++;else if(s==='skip')k++;
+      }
+    }
+    var parts=[];
+    if(r)parts.push('READ '+r);
+    if(l)parts.push('LOVED '+l);
+    if(w)parts.push('WANT '+w);
+    if(k)parts.push('SKIP '+k);
+    countsEl.textContent=parts.length?parts.join(' · '):'nothing on the shelf yet';
+  }
+
+  function renderMonths(){
+    var cur=MONTHS[CURRENT];
+    var h='<button class="mrow cur" data-month="'+CURRENT+'" aria-pressed="true">'+
+          '<span class="mname">'+cur.label+'</span>'+
+          '<span class="mkind">'+(cur.current?'Current':'Archive')+'</span>'+
+          '<span class="mcount">'+cur.books.length+' Books</span></button>';
+    h+='<select class="mselect" id="month-select" aria-label="Browse past months">'+
+       '<option value="" selected disabled>past months — pick one</option>';
+    for(var oi=0;oi<ORDER.length;oi++){
+      var m=ORDER[oi];
+      if(m===CURRENT) continue;
+      var mm=MONTHS[m];
+      h+='<option value="'+m+'">'+mm.label+' — Archive · '+mm.books.length+' Books</option>';
+    }
+    h+='</select>';
+    monthRow.innerHTML=h;
+  }
+
+  function renderGrid(){
+    var m=MONTHS[CURRENT];
+    titleEl.textContent='The '+m.name+' Shelf';
+    subEl.textContent=m.books.length+' books · '+(m.topPick&&m.current?'1 top pick':'no top pick');
+    var h='';
+    for(var i=0;i<m.books.length;i++){h+=cardHTML(m.books[i],CURRENT,i);}
+    grid.innerHTML=h;
+  }
+  function render(){
+    renderMonths();
+    renderSpines();
+    renderCounts();
+    renderGrid();
+  }
+
+  /* ---------------- RENDER: SEQUELS ---------------- */
+  function seqItemHTML(o,id){
+    return '<li class="seq-item">'+
+      '<div class="seq-top"><span class="seq-series">'+esc(o.s)+'</span>'+
+      '<button class="seq-x" data-seqx="'+id+'" aria-label="dismiss from list" title="dismiss from list"><svg aria-hidden="true"><use href="#ic-x"/></svg></button>'+
+      '<button class="read-pill'+(seqRead(id)?' on':'')+'" data-seqr="'+id+'" aria-pressed="'+(seqRead(id)?'true':'false')+'">read</button>'+
+      '</div>'+
+      '<p class="seq-title">'+esc(o.t)+' <span class="seq-num">'+esc(o.n)+'</span></p>'+
+      '<p class="seq-meta">'+esc(o.a)+' · '+esc(o.d)+(o.p?' · '+esc(o.p):'')+
+      (o.soon?'<svg class="spark" aria-label="closing soon" title="closing soon" style="--sf:#E8C4C6"><use href="#ic-star"/></svg>':'')+
+      '</p></li>';
+  }
+  function renderSeqs(){
+    var hr='',rr='';
+    for(var i=0;i<SEQ_READ.length;i++){hr+=seqItemHTML(SEQ_READ[i],'tr'+(i+1));}
+    var hMore=document.getElementById('seq-read-more');
+    var hrVis='',hrMore='';
+    for(var j=0;j<SEQ_READ.length;j++){
+      var idj='tr'+(j+1);
+      if(seqGone(idj))continue;
+      if(seqRead(idj))continue;
+      if(j<6){hrVis+=seqItemHTML(SEQ_READ[j],idj);}
+      else{hrMore+=seqItemHTML(SEQ_READ[j],idj);}
+    }
+    document.getElementById('seq-read').innerHTML=hrVis;
+    hMore.innerHTML=hrMore;
+    var rVis='',rMore='';
+    for(var k2=0;k2<SEQ_RADAR.length;k2++){
+      if(k2<6){rVis+=seqItemHTML(SEQ_RADAR[k2],'rd'+(k2+1));}
+      else{rMore+=seqItemHTML(SEQ_RADAR[k2],'rd'+(k2+1));}
+    }
+    document.getElementById('seq-radar').innerHTML=rVis;
+    document.getElementById('seq-radar-more').innerHTML=rMore;
+  }
+
+  /* ---------------- SCROLL + TOAST ---------------- */
+  function smoothScrollTo(y){
+    try{ window.scrollTo({top:y,behavior:'smooth'}); }catch(e){ window.scrollTo(0,y); }
+    var startY=window.pageYOffset||document.documentElement.scrollTop;
+    setTimeout(function(){
+      var nowY=window.pageYOffset||document.documentElement.scrollTop;
+      if(Math.abs(nowY-startY)<2 && Math.abs(nowY-y)>2){ window.scrollTo(0,y); }
+    },480);
+  }
+  function scrollToCard(card){
+    var y=card.getBoundingClientRect().top+(window.pageYOffset||document.documentElement.scrollTop)-110;
+    smoothScrollTo(y);
+  }
+  function toast(msg,x,y){
+    var t=document.createElement('div');
+    t.className='toast';
+    t.textContent=msg;
+    t.style.left=x+'px';
+    t.style.top=y+'px';
+    document.body.appendChild(t);
+    requestAnimationFrame(function(){t.classList.add('in');});
+    setTimeout(function(){t.classList.add('out');},1700);
+    setTimeout(function(){t.remove();},2400);
+  }
+
+  /* ---------------- INTERACTIONS ---------------- */
+  grid.addEventListener('click',function(e){
+    var pill=e.target.closest('.pill');
+    if(pill){
+      var wrap=pill.parentElement;
+      var bid=wrap.getAttribute('data-book');
+      var st=pill.getAttribute('data-state');
+      var cur=stateOf(bid);
+      var r=pill.getBoundingClientRect();
+      var next=(cur===st)?'none':st;
+      setState(bid,next);
+      render();
+      var msg=next==='none'?'cleared - shelf updated':(next==='want'?'tagged - shelf updated!':'colored on your shelf!');
+      toast(msg,r.left+r.width/2,r.top-6);
+      return;
+    }
+    var whyBtn=e.target.closest('.why-head');
+    if(whyBtn){
+      var w=document.getElementById('why-'+whyBtn.getAttribute('data-why'));
+      var open=w.classList.toggle('open');
+      whyBtn.setAttribute('aria-expanded',open?'true':'false');
+    }
+  });
+
+  monthRow.addEventListener('click',function(e){
+    var box=e.target.closest('.mrow');
+    if(!box)return;
+    var el=document.getElementById('shelf-head');
+    if(el)scrollToCard(el);
+  });
+  monthRow.addEventListener('change',function(e){
+    var sel=e.target.closest('#month-select');
+    if(!sel||!sel.value)return;
+    CURRENT=sel.value;
+    render();
+    sel.value='';
+    var el=document.getElementById('shelf-head');
+    if(el)scrollToCard(el);
+  });
+
+  shelf.addEventListener('click',function(e){
+    var sp=e.target.closest('.spine');
+    if(!sp)return;
+    var bid=sp.getAttribute('data-book');
+    if(BOOKS[bid].month!==CURRENT){
+      CURRENT=BOOKS[bid].month;
+      render();
+    }
+    requestAnimationFrame(function(){
+      var card=document.getElementById('card-'+bid);
+      if(!card)return;
+      scrollToCard(card);
+      card.classList.remove('pulse');
+      void card.offsetWidth;
+      card.classList.add('pulse');
+      setTimeout(function(){card.classList.remove('pulse');},1400);
+    });
+  });
+
+  var seqCol=document.querySelector('.seq-col');
+  seqCol.addEventListener('click',function(e){
+    var rb2=e.target.closest('.read-pill');
+    if(rb2){
+      var rid2=rb2.getAttribute('data-seqr');
+      setSeqRead(rid2,!seqRead(rid2));
+      renderSeqs();
+      renderLane();
+      return;
+    }
+    var xb=e.target.closest('.seq-x');
+    if(xb){
+      setSeqGone(xb.getAttribute('data-seqx'));
+      renderSeqs();
+      renderLane();
+      return;
+    }
+  });
+
+  document.getElementById('btn-more-read').addEventListener('click',function(){
+    var g=document.getElementById('g-read');
+    var open=g.classList.toggle('open');
+    this.textContent=open?'hide extras':'show 8 more';
+  });
+  document.getElementById('btn-more-radar').addEventListener('click',function(){
+    var g=document.getElementById('g-radar');
+    var open=g.classList.toggle('open');
+    this.textContent=open?'hide extras':'show 3 more';
+  });
+
+  var veil=document.getElementById('veil');
+  document.getElementById('hp-btn').addEventListener('click',function(){
+    veil.classList.add('open');
+    document.body.style.overflow='hidden';
+  });
+  document.getElementById('modal-x').addEventListener('click',function(){closeModal();});
+  veil.addEventListener('click',function(e){ if(e.target===veil)closeModal(); });
+  function closeModal(){veil.classList.remove('open');document.body.style.overflow='';}
+  document.addEventListener('keydown',function(e){
+    if(e.key==='Escape')closeModal();
+  });
+
+  /* ---------------- COFFEE QUOTES ROTATION ---------------- */
+  var quotes=document.querySelectorAll('#quotes .quote');
+  var qIdx=0;
+  setInterval(function(){
+    qIdx=(qIdx+1)%quotes.length;
+    for(var i=0;i<quotes.length;i++){
+      if(i===qIdx){quotes[i].classList.add('on');}
+      else{quotes[i].classList.remove('on');}
+    }
+  },5000);
+  var capEl=document.getElementById('coffee-cap');
+  if(SEASONS[SEASON]&&SEASONS[SEASON].caption){capEl.textContent=SEASONS[SEASON].caption;}
+
+  /* ---------------- COMING SOON DAYS BADGE ---------------- */
+  (function(){
+    var el=document.getElementById('soon-days');
+    var item=null;
+    for(var i=0;i<SEQ_RADAR.length;i++){
+      if(SEQ_RADAR[i].iso){item=SEQ_RADAR[i];break;}
+    }
+    if(!item)return;
+    var t=new Date();
+    var d=new Date(item.iso+'T00:00:00');
+    var days=Math.max(0,Math.ceil((d-t)/86400000));
+    el.textContent=days===0?'out today':(days===1?'1 day':days+' days');
+  })();
+
+  /* ---------------- SEASONAL ART: COFFEE + GARLAND ---------------- */
+  var COFFEE_ART=(SEASONS[SEASON]&&SEASONS[SEASON].coffee)||'assets/coffee-1.png';
+  var ciEl=document.getElementById('coffee-img');
+  if(ciEl)ciEl.src=COFFEE_ART;
+
+  render();
+  renderSeqs();
+  /* ---------------- SERIES LANE (SEQUELS VISUALIZER) ---------------- */
+  var LANES=[
+    {key:'empyrean',name:'The Empyrean',match:['The Empyrean','Empyrean'],base:[{t:'Fourth Wing',st:'read'},{t:'Iron Flame',st:'read'}]},
+    {key:'fae',name:'Fae & Alchemy',match:['Fae & Alchemy'],base:[{t:'Quicksilver',st:'read'}]},
+    {key:'acotar',name:'ACOTAR',match:['ACOTAR','A Court'],base:[{t:'ACOTAR 1-5',st:'read'}]},
+    {key:'za',name:'Zodiac Academy',match:['Zodiac Academy'],base:[{t:'ZA 1-8',st:'read'}]}
+  ];
+  var laneCur='empyrean';
+  function laneBooks(lane){
+    var out=lane.base.slice();
+    var all=SEQ_READ.concat(SEQ_RADAR);
+    for(var i=0;i<all.length;i++){
+      var s=all[i],ok=false;
+      for(var j=0;j<lane.match.length;j++){if(String(s.s).indexOf(lane.match[j])>-1){ok=true;break;}}
+      if(!ok)continue;
+      var isRadar=i>=SEQ_READ.length;
+      var id=(isRadar?'rd':'tr')+((isRadar?(i-SEQ_READ.length):i)+1);
+      if(seqGone(id))continue;
+      if(seqRead(id)){out.push({t:s.t,st:'read',dt:'read'});}
+      else{out.push({t:s.t,st:(isRadar?'soon':'out'),dt:String(s.d||s.n||'').toUpperCase()});}
+    }
+    return out;
+  }
+  function renderLane(){
+    var chips='',bk='';
+    for(var i=0;i<LANES.length;i++){chips+='<button class="lane-chip'+(LANES[i].key===laneCur?' on':'')+'" data-lane="'+LANES[i].key+'">'+esc(LANES[i].name)+'</button>';}
+    document.getElementById('lane-chips').innerHTML=chips;
+    var books=laneBooks(laneCur==='empyrean'?LANES[0]:LANES.filter(function(l){return l.key===laneCur;})[0]);
+    for(var k=0;k<books.length;k++){
+      var x=books[k];
+      bk+='<div class="lb-chip '+x.st+'"><b>'+esc(x.t)+'</b><span class="lb-date">'+esc(x.dt||x.st)+'</span></div>';
+    }
+    document.getElementById('lane-books').innerHTML=bk;
+  }
+  document.getElementById('lane-chips').addEventListener('click',function(e){
+    var c=e.target.closest('.lane-chip');
+    if(!c)return;
+    laneCur=c.getAttribute('data-lane');
+    renderLane();
+  });
+  renderLane();
+})();
+</script>
+</body>
+</html>

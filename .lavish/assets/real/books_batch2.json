@@ -1,0 +1,255 @@
+[
+ {
+  "id": "aug-01",
+  "title": "Full Throttle",
+  "author": "J.K. MacLaren",
+  "publisher": "Dell (Penguin Random House)",
+  "release_date": "2026-08-18",
+  "month": "aug",
+  "subgenre": "Contemporary sport romance - Formula 1",
+  "spice": 4,
+  "tropes": [
+   "enemies-to-lovers",
+   "second chance",
+   "forced proximity (teammates)",
+   "rivals",
+   "first female F1 driver"
+  ],
+  "goodreads": {
+   "avg": null,
+   "count": null
+  },
+  "cover_file": "aug-01.jpg",
+  "bytes": 44513
+ },
+ {
+  "id": "aug-02",
+  "title": "Crash into You",
+  "author": "Simone Soltani",
+  "publisher": "Pan Macmillan (UK; US release Nov 10, 2026 via PRH)",
+  "release_date": "2026-08-27",
+  "month": "aug",
+  "subgenre": "Contemporary sport romance - Formula 1 (Lights Out #3)",
+  "spice": 4,
+  "tropes": [
+   "grumpy x sunshine",
+   "forbidden love (rival team principal's daughter)",
+   "he falls first",
+   "unexpected pregnancy",
+   "MCs in their 30s"
+  ],
+  "goodreads": {
+   "avg": "4.24",
+   "count": "127"
+  },
+  "cover_file": "aug-02.jpg",
+  "bytes": 42114
+ },
+ {
+  "id": "aug-03",
+  "title": "Vow of Eternal Night",
+  "author": "Lily Crozier",
+  "publisher": "Entangled: Amara",
+  "release_date": "2026-08-04",
+  "month": "aug",
+  "subgenre": "Gothic paranormal romantasy (vampires)",
+  "spice": 3,
+  "tropes": [
+   "enemies-to-lovers",
+   "marriage bargain / cursed betrothal",
+   "heal the prince",
+   "slow burn",
+   "forced proximity"
+  ],
+  "goodreads": {
+   "avg": "3.80",
+   "count": "3,187"
+  },
+  "cover_file": "aug-03.jpg",
+  "bytes": 31442
+ },
+ {
+  "id": "aug-04",
+  "title": "The Lion & the Deathless Dark",
+  "author": "Carissa Broadbent",
+  "publisher": "Tor Publishing Group (Crowns of Nyaxia #5 / Bloodborn Duet #1)",
+  "release_date": "2026-08-04",
+  "month": "aug",
+  "subgenre": "Vampire fantasy romance / romantasy (epic)",
+  "spice": 3,
+  "tropes": [
+   "enemies-to-lovers",
+   "slow burn",
+   "forbidden attraction",
+   "revenge quest",
+   "bargain with a monster"
+  ],
+  "goodreads": {
+   "avg": "4.53",
+   "count": "7,761"
+  },
+  "cover_file": "aug-04.jpg",
+  "bytes": 23640
+ },
+ {
+  "id": "jul-01",
+  "title": "The Finish Line",
+  "author": "Grace Newman",
+  "publisher": "Hera Books (distributed by Penguin Random House)",
+  "release_date": "2026-07-07",
+  "month": "jul",
+  "subgenre": "Contemporary sport romance - Formula 1",
+  "spice": 3,
+  "tropes": [
+   "grumpy x sunshine",
+   "exes to rivals-to-lovers",
+   "forced proximity",
+   "secret relationship (contract forbids)",
+   "female driver"
+  ],
+  "goodreads": {
+   "avg": "3.97",
+   "count": "38"
+  },
+  "cover_file": "jul-01.jpg",
+  "bytes": 38783
+ },
+ {
+  "id": "jul-02",
+  "title": "Dominion",
+  "author": "Jean Kwok",
+  "publisher": "G.P. Putnam's Sons",
+  "release_date": "2026-07-14",
+  "month": "jul",
+  "subgenre": "Romantasy (Chinese mythology, battle-tygers, Silk and Iron #1)",
+  "spice": 2,
+  "tropes": [
+   "Fourth Wing meets Hunger Games vibes",
+   "fated attraction / enemies-to-lovers",
+   "brutal bonding trials",
+   "chosen one (amnesia heroine)",
+   "demons & anchored realms"
+  ],
+  "goodreads": {
+   "avg": "3.93",
+   "count": "2,241"
+  },
+  "cover_file": "jul-02.jpg",
+  "bytes": 30871
+ },
+ {
+  "id": "jul-03",
+  "title": "A Date with Death",
+  "author": "Kelly Creagh",
+  "publisher": "Gallery Books (Simon & Schuster)",
+  "release_date": "2026-07-14",
+  "month": "jul",
+  "subgenre": "Urban/paranormal fantasy romance (comedy)",
+  "spice": 3,
+  "tropes": [
+   "grumpy x sunshine",
+   "reaper x human",
+   "forbidden cost of feeling",
+   "found family",
+   "cozy-horror rom-com"
+  ],
+  "goodreads": {
+   "avg": "3.80",
+   "count": "597"
+  },
+  "cover_file": "jul-03.jpg",
+  "bytes": 38026
+ },
+ {
+  "id": "jul-04",
+  "title": "The Exquisite Torment of Loving Your Enemy",
+  "author": "Brigitte Knightley",
+  "publisher": "Ace (Berkley / PRH)",
+  "release_date": "2026-07-07",
+  "month": "jul",
+  "subgenre": "Romantasy (fantasy romance; Dearly Beloathed #2)",
+  "spice": 3,
+  "tropes": [
+   "enemies-to-lovers",
+   "assassin x scholar-healer",
+   "forbidden longing",
+   "slow burn with witty banter",
+   "healing sessions & forced proximity"
+  ],
+  "goodreads": {
+   "avg": "n/a (2,600+ reviews; series avg 4.12)",
+   "count": "2,600+"
+  },
+  "cover_file": "jul-04.jpg",
+  "bytes": 26134
+ },
+ {
+  "id": "jun-01",
+  "title": "The Winged Game",
+  "author": "Sophie Kim",
+  "publisher": "Del Rey (Penguin Random House)",
+  "release_date": "2026-06-30",
+  "month": "jun",
+  "subgenre": "Fantasy x sports romance (magical sport 'carriwitchet')",
+  "spice": 3,
+  "tropes": [
+   "fantasy meets sports romance",
+   "rivals-to-lovers",
+   "second chance",
+   "fake relationship (contract)",
+   "hidden magical cities"
+  ],
+  "goodreads": {
+   "avg": "4.00",
+   "count": "5,439"
+  },
+  "cover_file": "jun-01.jpg",
+  "bytes": 36832
+ },
+ {
+  "id": "jun-02",
+  "title": "Witch Season",
+  "author": "Julia Bianco",
+  "publisher": "St. Martin's Press (Broken Coven #1)",
+  "release_date": "2026-06-30",
+  "month": "jun",
+  "subgenre": "Urban romantasy (witches, LA covens)",
+  "spice": 2,
+  "tropes": [
+   "enemies-to-lovers",
+   "hidden witch world",
+   "forced proximity",
+   "found family",
+   "action-packed contemporary fantasy"
+  ],
+  "goodreads": {
+   "avg": "3.67",
+   "count": "1,007"
+  },
+  "cover_file": "jun-02.jpg",
+  "bytes": 38064
+ },
+ {
+  "id": "jun-03",
+  "title": "Wildflower",
+  "author": "Becky Jenkinson",
+  "publisher": "Del Rey (Penguin Random House)",
+  "release_date": "2026-06-16",
+  "month": "jun",
+  "subgenre": "Cozy fantasy romance (romantasy-lite)",
+  "spice": 1,
+  "tropes": [
+   "two outcasts",
+   "forced proximity quest",
+   "truth curse",
+   "slow burn",
+   "queer-norm world, M/F central"
+  ],
+  "goodreads": {
+   "avg": "3.80",
+   "count": "644"
+  },
+  "cover_file": "jun-03.jpg",
+  "bytes": 41873
+ }
+]

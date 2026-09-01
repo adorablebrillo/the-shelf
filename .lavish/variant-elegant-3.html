@@ -1,0 +1,849 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>The Shelf — Issue 01 · September 2026</title>
+<meta name="description" content="The Shelf — new romance monthly. Sport romance + romantasy, curated for you.">
+<style>
+  /* ============================================================
+     THE SHELF — VARIANT 3 · GALLERY MINIMAL
+     High-end art publication / white-cube gallery.
+     Solid hex fills only. No translucency, no blur, no boxes.
+     ============================================================ */
+  :root{
+    --bg:      #FBF9F4;  /* bone off-white — page ground        */
+    --ink:     #141414;  /* near-black — primary text           */
+    --accent:  #8A2B2B;  /* deep oxblood — the one accent       */
+    --grey:    #8C867D;  /* warm grey — secondary text / labels */
+    --line:    #DED8CC;  /* hairline rule on bone               */
+    --line-ink:#C9C2B4;  /* hairline rule next to ink elements  */
+    --display: "Didot","Bodoni 72","Bodoni MT","Times New Roman",serif;
+    --body:    "Baskerville","Hoefler Text","Georgia","Palatino","Times New Roman",serif;
+  }
+  *{ margin:0; padding:0; box-sizing:border-box; }
+  html{ -webkit-text-size-adjust:100%; }
+  body{
+    background:var(--bg);
+    color:var(--ink);
+    font-family:var(--body);
+    font-size:17px;
+    line-height:1.62;
+    -webkit-font-smoothing:antialiased;
+    text-rendering:optimizeLegibility;
+  }
+  ::selection{ background:var(--accent); color:var(--bg); }
+  button{ font:inherit; color:inherit; background:none; border:0; cursor:pointer; }
+  img{ display:block; max-width:100%; }
+  a{ color:inherit; }
+
+  .wrap{ max-width:1180px; margin:0 auto; padding:0 48px; }
+
+  /* ---------- typography system ---------- */
+  .kicker{
+    font-family:var(--body);
+    font-size:10.5px;
+    letter-spacing:.22em;
+    text-transform:uppercase;
+    color:var(--grey);
+    font-weight:600;
+  }
+  .kicker.acc{ color:var(--accent); }
+  .display{ font-family:var(--display); font-weight:400; }
+  .caps{ font-family:var(--body); font-size:10.5px; letter-spacing:.18em; text-transform:uppercase; font-weight:600; }
+  .hairline-top{ border-top:1px solid var(--line); }
+
+  /* ---------- buttons: one-line text, press scale, focus ring ---------- */
+  .btn{
+    display:inline-flex;
+    align-items:center;
+    justify-content:center;
+    gap:8px;
+    white-space:nowrap;
+    font-family:var(--body);
+    font-size:10.5px;
+    font-weight:600;
+    letter-spacing:.18em;
+    text-transform:uppercase;
+    border:1px solid var(--line-ink);
+    color:var(--ink);
+    padding:10px 18px;
+    background:transparent;
+    transition:background .18s ease, color .18s ease, border-color .18s ease, transform .12s ease;
+  }
+  .btn:hover{ border-color:var(--ink); color:var(--ink); background:var(--bg); }
+  .btn:active{ transform:scale(.98); }
+  .btn:focus-visible{ outline:2px solid var(--accent); outline-offset:3px; }
+  .btn.solid{ background:var(--ink); border-color:var(--ink); color:var(--bg); }
+  .btn.solid:hover{ background:var(--accent); border-color:var(--accent); color:var(--bg); }
+
+  /* ---------- masthead ---------- */
+  header.masthead{ padding-top:104px; }
+  .mast-title{
+    font-family:var(--display);
+    font-size:clamp(58px, 10.4vw, 136px);
+    line-height:.92;
+    letter-spacing:.005em;
+    text-transform:uppercase;
+    color:var(--ink);
+  }
+  .mast-title .accent{ color:var(--accent); }
+  .mast-meta{
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    gap:24px 40px;
+    flex-wrap:wrap;
+    margin-top:44px;
+    padding-top:18px;
+    border-top:1px solid var(--line);
+  }
+  .mast-right{ display:flex; align-items:center; gap:32px; flex-wrap:wrap; }
+  .chip{
+    display:inline-flex;
+    align-items:center;
+    gap:8px;
+    border:1px solid var(--line-ink);
+    padding:7px 13px;
+    font-size:9.5px;
+    font-weight:600;
+    letter-spacing:.2em;
+    text-transform:uppercase;
+    color:var(--ink);
+    background:transparent;
+  }
+  .mast-sub{
+    margin-top:26px;
+    font-size:11px;
+    letter-spacing:.3em;
+    text-transform:uppercase;
+    color:var(--grey);
+    font-weight:600;
+  }
+
+  /* ---------- hero (full-bleed diptych) ---------- */
+  .hero{
+    margin-top:96px;
+    padding-top:64px;
+    border-top:1px solid var(--line);
+    display:grid;
+    grid-template-columns:minmax(300px, 400px) minmax(0, 1fr);
+    gap:72px;
+    align-items:start;
+  }
+  .cover{
+    width:100%;
+    aspect-ratio:2/3;
+    overflow:hidden;
+    background:var(--line);
+  }
+  .cover img{
+    width:100%; height:100%;
+    object-fit:cover;
+    filter:grayscale(1) contrast(1.05) sepia(.14);
+    transition:filter .5s ease;
+  }
+  .cover img{ will-change:filter; }
+  .hero .cover{ position:relative; }
+  .hero-copy{ min-width:0; }
+  .hero-folio{
+    display:flex; align-items:baseline; gap:20px; flex-wrap:wrap;
+    margin-bottom:26px;
+  }
+  .hero-title{
+    font-family:var(--display);
+    font-size:clamp(40px, 4.6vw, 62px);
+    line-height:1.02;
+    text-transform:uppercase;
+    letter-spacing:.02em;
+  }
+  .hero-by{
+    margin-top:20px;
+    font-size:10.5px; font-weight:600;
+    letter-spacing:.22em; text-transform:uppercase;
+    color:var(--grey);
+  }
+  .hero-by strong{ color:var(--ink); font-weight:600; }
+  .hero-hook{
+    margin-top:34px;
+    font-style:italic;
+    font-size:21px;
+    line-height:1.5;
+    color:var(--ink);
+    max-width:56ch;
+  }
+  .hero-meta{
+    margin-top:34px;
+    display:flex; align-items:center; gap:16px 26px; flex-wrap:wrap;
+  }
+  .spice{ display:inline-flex; align-items:center; gap:10px; }
+  .spice-dots{ display:inline-flex; gap:5px; }
+  .spice-dot{ width:8px; height:8px; border:1px solid var(--line-ink); }
+  .spice-dot.on{ background:var(--ink); border-color:var(--ink); }
+
+  /* why-it-won */
+  .why{ margin-top:44px; border-top:1px solid var(--line); }
+  .why-toggle{
+    width:100%;
+    display:flex; justify-content:space-between; align-items:center;
+    padding:18px 2px;
+    font-size:10.5px; font-weight:600;
+    letter-spacing:.22em; text-transform:uppercase;
+    color:var(--ink);
+    transition:transform .12s ease, color .18s ease;
+  }
+  .why-toggle:hover{ color:var(--accent); }
+  .why-toggle:active{ transform:scale(.98); }
+  .why-toggle:focus-visible{ outline:2px solid var(--accent); outline-offset:3px; }
+  .chev{
+    width:9px; height:9px;
+    border-right:1px solid var(--ink);
+    border-bottom:1px solid var(--ink);
+    transform:rotate(45deg);
+    transition:transform .3s ease;
+    flex:none;
+    margin-right:6px;
+  }
+  .why.open .chev{ transform:rotate(225deg); }
+  .why-panel{
+    display:grid;
+    grid-template-rows:0fr;
+    transition:grid-template-rows .45s ease;
+  }
+  .why.open .why-panel{ grid-template-rows:1fr; }
+  .why-inner{ overflow:hidden; min-height:0; }
+  .why-inner ul{ list-style:none; padding:4px 0 26px; }
+  .why-inner li{
+    padding:16px 2px;
+    border-top:1px solid var(--line);
+    font-size:16px;
+    color:var(--ink);
+    display:grid;
+    grid-template-columns:56px 1fr;
+    gap:8px;
+  }
+  .why-inner li .idx{ font-size:10px; letter-spacing:.2em; color:var(--grey); font-weight:600; padding-top:4px; }
+
+  /* ---------- catalog ---------- */
+  .catalog-head{ margin-top:140px; padding-top:56px; border-top:1px solid var(--line); }
+  .catalog-head .rowtitle{
+    font-family:var(--display);
+    font-size:clamp(26px, 2.6vw, 36px);
+    letter-spacing:.06em;
+    text-transform:uppercase;
+    margin-top:14px;
+  }
+  .entry{
+    display:grid;
+    grid-template-columns:minmax(0, 1fr) 224px;
+    gap:64px;
+    align-items:center;
+    padding:64px 0;
+    border-top:1px solid var(--line);
+  }
+  .entry:last-child{ border-bottom:1px solid var(--line); }
+  .entry.flip{ grid-template-columns:224px minmax(0, 1fr); }
+  .entry.flip .e-cover{ order:-1; }
+  .e-text{ min-width:0; }
+  .e-top{
+    display:flex; align-items:center; gap:18px; flex-wrap:wrap;
+    margin-bottom:20px;
+  }
+  .e-folio{ font-family:var(--display); font-size:15px; color:var(--grey); letter-spacing:.1em; }
+  .e-title{
+    font-family:var(--display);
+    font-size:clamp(30px, 3.1vw, 44px);
+    line-height:1.05;
+    text-transform:uppercase;
+    letter-spacing:.02em;
+    transition:color .25s ease;
+  }
+  .entry:hover .e-title{ color:var(--accent); }
+  .e-by{ margin-top:14px; font-size:10.5px; font-weight:600; letter-spacing:.22em; text-transform:uppercase; color:var(--grey); }
+  .e-by strong{ color:var(--ink); font-weight:600; }
+  .e-hook{ margin-top:20px; font-style:italic; font-size:18px; line-height:1.55; max-width:62ch; }
+  .e-tropes{ margin-top:20px; }
+  .e-meta{
+    margin-top:24px;
+    display:flex; align-items:center; gap:14px 22px; flex-wrap:wrap;
+  }
+  .badge{
+    border:1px solid var(--line-ink);
+    padding:6px 12px;
+    font-size:9.5px; font-weight:600;
+    letter-spacing:.18em; text-transform:uppercase;
+  }
+  .badge.acc{ border-color:var(--accent); color:var(--accent); }
+  .fit{ font-size:10px; letter-spacing:.2em; text-transform:uppercase; color:var(--grey); font-weight:600; }
+
+  /* tracker pills */
+  .pills{ display:flex; gap:8px; flex-wrap:wrap; margin-top:28px; }
+  .pill{
+    border:1px solid var(--line-ink);
+    background:transparent;
+    color:var(--grey);
+    padding:8px 15px;
+    font-size:9.5px; font-weight:600;
+    letter-spacing:.18em; text-transform:uppercase;
+    white-space:nowrap;
+    transition:background .15s ease, color .15s ease, border-color .15s ease, transform .12s ease;
+  }
+  .pill:hover{ border-color:var(--ink); color:var(--ink); }
+  .pill:active{ transform:scale(.98); }
+  .pill:focus-visible{ outline:2px solid var(--accent); outline-offset:3px; }
+  .pill.is-on{ background:var(--ink); border-color:var(--ink); color:var(--bg); }
+  .pill.is-on[data-state="LOVED"]{ background:var(--accent); border-color:var(--accent); color:var(--bg); }
+
+  /* ---------- coming soon ---------- */
+  .coming{
+    margin-top:120px;
+    padding:48px 0;
+    border-top:1px solid var(--line);
+    border-bottom:1px solid var(--line);
+    display:flex;
+    align-items:baseline;
+    gap:20px 34px;
+    flex-wrap:wrap;
+  }
+  .coming .line{ font-size:18px; }
+  .coming .cap{ letter-spacing:.04em; text-transform:uppercase; font-family:var(--display); font-size:19px; }
+  .coming .cap span{ color:var(--accent); }
+
+  /* ---------- archive index ---------- */
+  .archive{ margin-top:140px; }
+  .archive .arch-title{
+    font-family:var(--display);
+    font-size:clamp(26px, 2.6vw, 36px);
+    letter-spacing:.06em;
+    text-transform:uppercase;
+    margin-top:14px;
+  }
+  .tabs{ display:flex; gap:8px; flex-wrap:wrap; margin-top:32px; }
+  .tab{
+    border:1px solid var(--line-ink);
+    background:transparent;
+    color:var(--grey);
+    padding:11px 20px;
+    font-size:10.5px; font-weight:600;
+    letter-spacing:.2em; text-transform:uppercase;
+    white-space:nowrap;
+    transition:background .15s ease, color .15s ease, border-color .15s ease, transform .12s ease;
+  }
+  .tab:hover{ border-color:var(--ink); color:var(--ink); }
+  .tab:active{ transform:scale(.98); }
+  .tab:focus-visible{ outline:2px solid var(--accent); outline-offset:3px; }
+  .tab.is-active{ background:var(--ink); border-color:var(--ink); color:var(--bg); }
+  .arch-note{ margin-top:26px; font-size:10.5px; letter-spacing:.22em; text-transform:uppercase; color:var(--grey); font-weight:600; }
+  .arch-row{
+    margin-top:34px;
+    display:grid;
+    grid-template-columns:52px minmax(0,1.4fr) minmax(0,1fr) auto;
+    gap:28px;
+    align-items:center;
+    border-top:1px solid var(--line);
+    padding:22px 0;
+  }
+  .arch-row .a-folio{ font-family:var(--display); font-size:14px; color:var(--grey); letter-spacing:.1em; }
+  .arch-row .a-title{
+    font-family:var(--display);
+    font-size:21px; letter-spacing:.03em;
+    text-transform:uppercase;
+    line-height:1.1;
+    transition:color .25s ease;
+  }
+  .arch-row:hover .a-title{ color:var(--accent); }
+  .arch-row .a-by{ font-size:10px; font-weight:600; letter-spacing:.2em; text-transform:uppercase; color:var(--grey); }
+  .arch-row .pills{ margin-top:0; }
+  .arch-row .pills .pill{ padding:6px 11px; font-size:9px; }
+  .arch-rows-footer{ margin-top:30px; padding-top:24px; border-top:1px solid var(--line); }
+
+  /* ---------- footer ---------- */
+  footer{
+    margin-top:140px;
+    border-top:1px solid var(--line);
+    padding:44px 0 88px;
+  }
+  .foot-row{
+    display:flex; justify-content:space-between; align-items:center;
+    gap:16px 32px; flex-wrap:wrap;
+  }
+
+  /* ---------- modal ---------- */
+  .modal{ position:fixed; inset:0; z-index:100; display:none; }
+  .modal.open{ display:flex; align-items:center; justify-content:center; }
+  .modal-backdrop{ position:absolute; inset:0; background:var(--ink); }
+  .modal-panel{
+    position:relative;
+    background:var(--bg);
+    border:1px solid var(--line);
+    width:min(760px, calc(100vw - 48px));
+    max-height:calc(100vh - 48px);
+    overflow:auto;
+    padding:64px 72px 56px;
+  }
+  .modal-close{
+    position:absolute; top:16px; right:16px;
+    width:36px; height:36px;
+    display:flex; align-items:center; justify-content:center;
+    border:1px solid var(--line-ink);
+    color:var(--ink); background:transparent;
+    transition:border-color .15s ease, background .15s ease, transform .12s ease;
+  }
+  .modal-close::before, .modal-close::after{
+    content:""; position:absolute; left:50%; top:50%;
+    width:14px; height:1.5px; background:var(--ink);
+    transition:background .15s ease;
+  }
+  .modal-close::before{ transform:translate(-50%,-50%) rotate(45deg); }
+  .modal-close::after{ transform:translate(-50%,-50%) rotate(-45deg); }
+  .modal-close:hover{ border-color:var(--ink); background:var(--bg); }
+  .modal-close:active{ transform:scale(.98); }
+  .modal-close:focus-visible{ outline:2px solid var(--accent); outline-offset:3px; }
+  .modal-panel h2{
+    font-family:var(--display);
+    font-size:clamp(28px, 3.4vw, 40px);
+    text-transform:uppercase;
+    letter-spacing:.03em;
+    line-height:1.05;
+    margin-top:14px;
+    margin-bottom:12px;
+  }
+  .modal-panel .kicker .acc{ color:var(--accent); }
+  .rules{ list-style:none; margin-top:20px; }
+  .rules li{
+    display:grid;
+    grid-template-columns:44px 1fr;
+    gap:14px;
+    padding:18px 0;
+    border-top:1px solid var(--line);
+    font-size:16.5px;
+    line-height:1.55;
+  }
+  .rules li .num{
+    font-family:var(--display); font-size:15px; color:var(--accent);
+    padding-top:2px;
+  }
+  .rules li strong{ font-weight:600; }
+
+  /* ---------- responsive ---------- */
+  @media (max-width: 960px){
+    .wrap{ padding:0 28px; }
+    .hero{ grid-template-columns:1fr; gap:44px; }
+    .hero .cover{ width:min(340px, 100%); }
+    .entry, .entry.flip{ grid-template-columns:1fr; gap:36px; }
+    .entry.flip .e-cover{ order:0; }
+    .e-meta{ margin-top:20px; }
+    .arch-row{ grid-template-columns:40px minmax(0,1fr); }
+    .arch-row .a-by{ grid-column:2; }
+    .arch-row .pills{ grid-column:2; }
+    .modal-panel{ padding:52px 36px 44px; }
+  }
+  @media (max-width: 520px){
+    header.masthead{ padding-top:72px; }
+    .mast-meta{ margin-top:32px; }
+    .mast-right{ gap:18px; }
+    .arch-row{ grid-template-columns:32px minmax(0,1fr); gap:14px; }
+    .rules li{ grid-template-columns:32px 1fr; }
+  }
+  @media (prefers-reduced-motion: reduce){
+    *, *::before, *::after{ transition:none !important; }
+  }
+</style>
+</head>
+<body>
+
+<div class="wrap">
+
+  <!-- ============ MASTHEAD ============ -->
+  <header class="masthead">
+    <h1 class="mast-title">The <span class="accent">Shelf</span></h1>
+    <div class="mast-meta">
+      <span class="caps">Issue 01 - September 2026</span>
+      <div class="mast-right">
+        <span class="caps">Dropped 1 Sep 2026</span>
+        <span class="chip" title="Recommendations come from traditional publishers only">Published Only</span>
+        <button type="button" class="btn" id="howPicksBtn">How Picks Work</button>
+      </div>
+    </div>
+    <p class="mast-sub">New Romance, Monthly - Sport Romance + Romantasy - Curated for You</p>
+  </header>
+
+  <!-- ============ HERO ============ -->
+  <section class="hero" id="hero" aria-label="Top pick">
+    <div class="cover">
+      <img id="heroCover" alt="Cover of the top pick — Ashes of the Iron Crown by Tamsin Vale" width="512" height="768" fetchpriority="high">
+    </div>
+    <div class="hero-copy">
+      <div class="hero-folio">
+        <span class="kicker acc">Top Pick</span>
+        <span class="kicker">Vol. 01</span>
+        <span class="kicker">Sept. 2026</span>
+      </div>
+      <h2 class="hero-title" id="heroTitle"></h2>
+      <p class="hero-by" id="heroBy"></p>
+      <p class="hero-hook" id="heroHook"></p>
+      <div class="hero-meta" id="heroMeta"></div>
+      <div class="why" id="whyBox">
+        <button type="button" class="why-toggle" id="whyToggle" aria-expanded="false" aria-controls="whyPanel">
+          <span>Why It Won</span>
+          <span class="chev" aria-hidden="true"></span>
+        </button>
+        <div class="why-panel" id="whyPanel">
+          <div class="why-inner">
+            <ul>
+              <li><span class="idx">01</span><span>Dragons + fae matches your <strong>Fourth Wing</strong> / <strong>Moon Hatched</strong> track.</span></li>
+              <li><span class="idx">02</span><span>Enemies-to-lovers is your most-read trope.</span></li>
+              <li><span class="idx">03</span><span>Proven — <strong>4.6 stars</strong>, <strong>1.2k</strong> early ratings.</span></li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ CATALOG ============ -->
+  <section class="catalog" aria-label="The catalog">
+    <div class="catalog-head">
+      <p class="kicker acc">The Catalog</p>
+      <h2 class="rowtitle">Seven More, In Fit-Rank Order</h2>
+    </div>
+    <div id="catalogList"></div>
+  </section>
+
+  <!-- ============ COMING SOON ============ -->
+  <div class="coming" aria-label="Coming soon">
+    <span class="cap">Your Series <span>·</span></span>
+    <span class="line">Ember Falls (Dragons of Ember Hollow #4) - Tessa Hale - out 3 OCT - you've read all three so far.</span>
+  </div>
+
+  <!-- ============ ARCHIVE ============ -->
+  <section class="archive" aria-label="Archive">
+    <p class="kicker acc">The Archive</p>
+    <h2 class="arch-title">Previous Months</h2>
+    <div class="tabs" id="tabs" role="tablist" aria-label="Archive month">
+      <button type="button" class="tab" data-m="sep" role="tab" aria-selected="true">Sep</button>
+      <button type="button" class="tab" data-m="aug" role="tab" aria-selected="false">Aug</button>
+      <button type="button" class="tab" data-m="jul" role="tab" aria-selected="false">Jul</button>
+      <button type="button" class="tab" data-m="jun" role="tab" aria-selected="false">Jun</button>
+    </div>
+    <p class="arch-note" id="archNote"></p>
+    <div id="archList"></div>
+  </section>
+
+  <!-- ============ FOOTER ============ -->
+  <footer>
+    <div class="foot-row">
+      <span class="caps" style="color:var(--grey)">The Shelf - mock data for design review.</span>
+      <span class="caps">Issue 01 - September 2026</span>
+    </div>
+  </footer>
+
+</div>
+
+<!-- ============ MODAL ============ -->
+<div class="modal" id="modal" hidden>
+  <div class="modal-backdrop" id="modalBackdrop"></div>
+  <div class="modal-panel" role="dialog" aria-modal="true" aria-labelledby="modalTitle">
+    <button type="button" class="modal-close" id="modalClose" aria-label="Close"></button>
+    <p class="kicker"><span class="acc">The Shelf</span> - Editor's Note</p>
+    <h2 id="modalTitle">How Picks Work</h2>
+    <ol class="rules">
+      <li><span class="num">1</span><span><strong>Soft quality floor</strong> - books early readers disliked get dropped.</span></li>
+      <li><span class="num">2</span><span><strong>FRESH READS badge</strong> = new book not yet proven.</span></li>
+      <li><span class="num">3</span><span><strong>Fit score</strong> ranks by your genres, tropes and spice band, and the tracker feeds next month's picks.</span></li>
+      <li><span class="num">4</span><span><strong>TRAD PUBLISHED ONLY</strong> - recommendations come from traditional publishers (no indie or self-published titles).</span></li>
+      <li><span class="num">5</span><span><strong>M/F ROMANCE ONLY</strong> - no M/M or F/F titles.</span></li>
+    </ol>
+    <button type="button" class="btn js-close">Close</button>
+  </div>
+</div>
+
+<noscript><p style="text-align:center;padding:40px">This preview needs JavaScript enabled.</p></noscript>
+
+<script>
+(function () {
+  "use strict";
+
+  /* ---------------- data ---------------- */
+  var BOOKS = {
+    1: { t:"Ashes of the Iron Crown", a:"Tamsin Vale", g:"Romantasy (fae/dragons)", p:"Orbit",
+         c:"assets/cover-01-iron-crown.jpg",
+         hook:"The crown burns for her - but the dragon only bows to the girl who intends to kill it.",
+         tropes:["enemies-to-lovers","forced proximity","fated mates","morally grey crown"],
+         spice:4, fmt:"Ebook + Audio", badge:null, fit:"Dragons + fae · enemies-to-lovers" },
+    2: { t:"Full Throttle Hearts", a:"Delia Frost", g:"Formula 1", p:"Berkley",
+         c:"assets/cover-02-throttle-hearts.jpg",
+         hook:"Two paddocks. One seat. The man who took her seat is the only one she can't stop texting.",
+         tropes:["grumpy/sunshine","fake dating","rivals-to-lovers"],
+         spice:3, fmt:"Ebook Only", badge:"FRESH READ", fit:"F1 · grumpy/sunshine" },
+    3: { t:"Ice, Love & Game Week", a:"Piper Brooks", g:"Hockey", p:"Piatkus",
+         c:"assets/cover-03-ice-gameweek.jpg",
+         hook:"The league's grumpiest captain is one road-trip weekend from falling for his best friend's little sister.",
+         tropes:["one bed","forbidden","hockey"],
+         spice:4, fmt:"Ebook + Audio", badge:"FRESH READ", fit:"Hockey · forced proximity" },
+    4: { t:"Wings of the Starless Court", a:"Aeli Marchetti", g:"Romantasy (dragons)", p:"Harper Voyager",
+         c:"assets/cover-04-starless-court.jpg",
+         hook:"Her wings were taken as a punishment. His were given as a curse. Together they can only fly one way.",
+         tropes:["fated mates","slow burn","court intrigue"],
+         spice:3, fmt:"Ebook + Audio", badge:"FRESH READ", fit:"Dragon riders · fated mates" },
+    5: { t:"Grid Girls", a:"Sofia Reyes", g:"Formula 1", p:"Sourcebooks",
+         c:"assets/cover-05-grid-girls.jpg",
+         hook:"She engineered the car. He took the credit. This season, the telemetry never lies.",
+         tropes:["enemies-to-lovers","workplace","banter"],
+         spice:3, fmt:"Ebook + Audio", badge:"PROVEN 4.3 STARS", fit:"F1 · enemies-to-lovers" },
+    6: { t:"The Demon of Third Line", a:"Jemma Hart", g:"Hockey", p:"Avon",
+         c:"assets/cover-06-demon-third-line.jpg",
+         hook:"Everyone fears him on the ice. She's the only one who knows why he loses his temper in the third.",
+         tropes:["grumpy/sunshine","single dad","small town"],
+         spice:4, fmt:"Ebook + Audio", badge:null, fit:"Hockey · single dad" },
+    7: { t:"A Court of Ember & Ash", a:"Celeste Marchand", g:"Romantasy (fae)", p:"Tor",
+         c:"assets/cover-07-ember-ash.jpg",
+         hook:"The fae court that burned her family will learn why she was raised in the ashes.",
+         tropes:["enemies-to-lovers","revenge","morally grey FMC"],
+         spice:4, fmt:"Ebook Only", badge:"FRESH READ", fit:"Fae · 4/5 spice" },
+    8: { t:"Touchdown at Rosewood", a:"Kiley Cross", g:"College Football", p:"Montlake",
+         c:"assets/cover-08-touchdown-rosewood.jpg",
+         hook:"He's the quarterback who blew his scholarship. She's the tutor who can't stand him - or stop watching film.",
+         tropes:["grumpy/sunshine","small town","slow burn"],
+         spice:3, fmt:"Ebook + Audio", badge:null, fit:"College football · small town" }
+  };
+
+  var MONTHS = {
+    sep: { label:"Sep 2026", long:"September 2026", note:"Current issue - 8 books", books:[1,2,3,4,5,6,7,8] },
+    aug: { label:"Aug 2026", long:"August 2026",   note:"Archive - 4 books",        books:[2,3,5,8] },
+    jul: { label:"Jul 2026", long:"July 2026",     note:"Archive - 4 books",        books:[1,4,6,7] },
+    jun: { label:"Jun 2026", long:"June 2026",     note:"Archive - 3 books",        books:[2,4,7] }
+  };
+
+  var PRESETS = {
+    sep: { 2:"LOVED", 5:"READ", 7:"SKIP" },
+    aug: { 2:"LOVED", 3:"READ", 5:"WANT", 8:"SKIP" },
+    jul: { 1:"READ", 4:"LOVED", 6:"READ", 7:"SKIP" },
+    jun: { 2:"READ", 4:"WANT", 7:"READ" }
+  };
+
+  var KEY = "shelf-tracker-e3";
+  var ARCHIVE = "sep";
+  var WHY_OPEN = false;
+
+  /* ---------------- storage ---------------- */
+  function loadStore() {
+    try {
+      var raw = window.localStorage.getItem(KEY);
+      if (raw) { var v = JSON.parse(raw); if (v && typeof v === "object") { return v; } }
+    } catch (e) { /* private mode / file:// — fall back to memory */ }
+    return {};
+  }
+  var stored = loadStore();
+  function saveStore() {
+    try { window.localStorage.setItem(KEY, JSON.stringify(stored)); } catch (e) { /* memory only */ }
+  }
+
+  function stateOf(m, b) {
+    var mm = stored[m];
+    if (mm && b in mm) { return mm[b]; }
+    return (PRESETS[m] && b in PRESETS[m]) ? PRESETS[m][b] : null;
+  }
+
+  /* ---------------- helpers ---------------- */
+  function esc(s) {
+    return String(s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;")
+                    .replace(/"/g,"&quot;");
+  }
+
+  function spiceHTML(n) {
+    var out = '<span class="spice"><span class="caps" style="color:var(--grey)">Spice ' + n + "/5</span><span class=\"spice-dots\">";
+    for (var i = 1; i <= 5; i++) {
+      out += '<span class="spice-dot' + (i <= n ? " on" : "") + '"></span>';
+    }
+    return out + "</span></span>";
+  }
+
+  var STATES = ["WANT","READ","LOVED","SKIP"];
+  function pillsHTML(m, b) {
+    var cur = stateOf(m, b);
+    var s = '<div class="pills" data-m="' + m + '" data-b="' + b + '" role="group" aria-label="Tracker - ' + esc(BOOKS[b].t) + '">';
+    for (var i = 0; i < STATES.length; i++) {
+      var v = STATES[i];
+      var on = (cur === v);
+      s += '<button type="button" class="pill' + (on ? " is-on" : "") +
+           '" data-state="' + v + '" aria-pressed="' + on + '">' + v + "</button>";
+    }
+    return s + "</div>";
+  }
+
+  function tropeHTML(b) {
+    var s = '<span class="caps" style="color:var(--grey)">';
+    for (var i = 0; i < b.tropes.length; i++) {
+      if (i) { s += " &nbsp;·&nbsp; "; }
+      s += esc(b.tropes[i]);
+    }
+    return s + "</span>";
+  }
+
+  function badgeHTML(b) {
+    if (!b.badge) { return ""; }
+    var acc = (b.badge === "FRESH READ") ? " acc" : "";
+    return '<span class="badge' + acc + '">' + esc(b.badge) + "</span>";
+  }
+
+  /* ---------------- render: hero + catalog ---------------- */
+  function renderHero() {
+    var b = BOOKS[1];
+    document.getElementById("heroCover").src = b.c;
+    document.getElementById("heroTitle").textContent = b.t;
+    document.getElementById("heroBy").innerHTML =
+      "by <strong>" + esc(b.a) + "</strong> &nbsp;&middot;&nbsp; " + esc(b.p) + " &nbsp;&middot;&nbsp; " + esc(b.g);
+    document.getElementById("heroHook").textContent = b.hook;
+    document.getElementById("heroMeta").innerHTML =
+      spiceHTML(b.spice) +
+      '<span class="caps">' + esc(b.fmt) + "</span>" +
+      '<span class="caps" style="color:var(--grey)">Fit - ' + esc(b.fit) + "</span>" +
+      pillsHTML("sep", 1);
+    document.getElementById("heroCover").alt =
+      "Cover of " + b.t + " by " + b.a;
+  }
+
+  function renderCatalog() {
+    var host = document.getElementById("catalogList");
+    var html = "";
+    var ids = [2,3,4,5,6,7,8];
+    for (var i = 0; i < ids.length; i++) {
+      var b = BOOKS[ids[i]];
+      var folio = (ids[i] < 10 ? "0" : "") + ids[i];
+      var flip = (i % 2 === 1) ? " flip" : "";
+      html +=
+        '<article class="entry' + flip + '">' +
+          '<div class="e-text">' +
+            '<div class="e-top">' +
+              '<span class="e-folio">' + folio + "</span>" +
+              '<span class="caps" style="color:var(--grey)">' + esc(b.g) + " &middot; " + esc(b.p) + "</span>" +
+              badgeHTML(b) +
+            "</div>" +
+            '<h3 class="e-title">' + esc(b.t) + "</h3>" +
+            '<p class="e-by">by <strong>' + esc(b.a) + "</strong></p>" +
+            '<p class="e-hook">' + esc(b.hook) + "</p>" +
+            '<p class="e-tropes">' + tropeHTML(b) + "</p>" +
+            '<div class="e-meta">' +
+              spiceHTML(b.spice) +
+              '<span class="caps">' + esc(b.fmt) + "</span>" +
+              '<span class="fit">Fit - ' + esc(b.fit) + "</span>" +
+            "</div>" +
+            pillsHTML("sep", ids[i]) +
+          "</div>" +
+          '<div class="e-cover"><div class="cover"><img decoding="async" src="' + b.c + '" alt="Cover of ' + esc(b.t) + " by " + esc(b.a) + '"></div></div>' +
+        "</article>";
+    }
+    host.innerHTML = html;
+  }
+
+  /* ---------------- render: archive ---------------- */
+  function renderArchive() {
+    var note = document.getElementById("archNote");
+    var host = document.getElementById("archList");
+    var m = MONTHS[ARCHIVE];
+    note.textContent = m.long + " - " + m.note;
+    var html = "";
+    for (var i = 0; i < m.books.length; i++) {
+      var id = m.books[i];
+      var b = BOOKS[id];
+      var folio = (id < 10 ? "0" : "") + id;
+      html +=
+        '<div class="arch-row">' +
+          '<span class="a-folio">' + folio + "</span>" +
+          '<span class="a-title">' + esc(b.t) + "</span>" +
+          '<span class="a-by">' + esc(b.a) + " &middot; " + esc(b.g) + "</span>" +
+          pillsHTML(ARCHIVE, id) +
+        "</div>";
+    }
+    host.innerHTML = html;
+
+    /* tab active states */
+    var tabs = document.querySelectorAll(".tab");
+    for (var t = 0; t < tabs.length; t++) {
+      var on = (tabs[t].getAttribute("data-m") === ARCHIVE);
+      tabs[t].classList.toggle("is-active", on);
+      tabs[t].setAttribute("aria-selected", on ? "true" : "false");
+    }
+  }
+
+  /* ---------------- interactions ---------------- */
+  function refreshPills() {
+    var groups = document.querySelectorAll(".pills");
+    for (var i = 0; i < groups.length; i++) {
+      var g = groups[i];
+      g.innerHTML = pillsButtonsHTML(g.getAttribute("data-m"), +g.getAttribute("data-b"));
+    }
+  }
+  function pillsButtonsHTML(m, b) {
+    var cur = stateOf(m, b);
+    var s = "";
+    for (var i = 0; i < STATES.length; i++) {
+      var v = STATES[i];
+      var on = (cur === v);
+      s += '<button type="button" class="pill' + (on ? " is-on" : "") +
+           '" data-state="' + v + '" aria-pressed="' + on + '">' + v + "</button>";
+    }
+    return s;
+  }
+
+  document.addEventListener("click", function (ev) {
+    var pill = ev.target.closest("button.pill");
+    if (pill) {
+      var g = pill.closest(".pills");
+      var m = g.getAttribute("data-m");
+      var b = +g.getAttribute("data-b");
+      var v = pill.getAttribute("data-state");
+      if (!stored[m]) { stored[m] = {}; }
+      var cur = stateOf(m, b);
+      stored[m][b] = (cur === v) ? null : v;
+      saveStore();
+      refreshPills();
+      renderArchive();
+      return;
+    }
+
+    var tab = ev.target.closest("button.tab");
+    if (tab) {
+      ARCHIVE = tab.getAttribute("data-m");
+      renderArchive();
+      return;
+    }
+
+    if (ev.target.closest("#whyToggle")) {
+      WHY_OPEN = !WHY_OPEN;
+      var wb = document.getElementById("whyBox");
+      wb.classList.toggle("open", WHY_OPEN);
+      document.getElementById("whyToggle").setAttribute("aria-expanded", WHY_OPEN ? "true" : "false");
+      return;
+    }
+
+    if (ev.target.closest("#howPicksBtn")) { openModal(); return; }
+    if (ev.target.closest("#modalClose")) { closeModal(); return; }
+    if (ev.target.closest(".js-close")) { closeModal(); return; }
+    if (ev.target.closest("#modalBackdrop")) { closeModal(); return; }
+  });
+
+  var modal = document.getElementById("modal");
+  function openModal() {
+    modal.hidden = false;
+    modal.classList.add("open");
+    document.getElementById("modalClose").focus();
+  }
+  function closeModal() {
+    modal.classList.remove("open");
+    modal.hidden = true;
+    document.getElementById("howPicksBtn").focus();
+  }
+  document.addEventListener("keydown", function (ev) {
+    if (ev.key === "Escape" && !modal.hidden) { closeModal(); }
+  });
+
+  /* ---------------- boot ---------------- */
+  renderHero();
+  renderCatalog();
+  renderArchive();
+})();
+</script>
+</body>
+</html>

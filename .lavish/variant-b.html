@@ -1,0 +1,731 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>THE SHELF - ISSUE 01 - SEPTEMBER 2026</title>
+<style>
+:root{
+  --paper:#F2EFE7;
+  --ink:#101418;
+  --red:#E4002B;
+  --blue:#005BBB;
+  --gold:#FFC72C;
+  --disp:'American Typewriter', Rockwell, Georgia, 'Times New Roman', serif;
+  --num:'Arial Black', 'Arial Bold', 'Helvetica Neue', Arial, sans-serif;
+  --mono:'Courier New', Courier, monospace;
+  --body:Georgia, 'Times New Roman', serif;
+}
+*{box-sizing:border-box;}
+html,body{margin:0;padding:0;}
+body{
+  background:var(--paper);
+  color:var(--ink);
+  font-family:var(--body);
+  -webkit-font-smoothing:antialiased;
+}
+img{display:block;max-width:100%;}
+button{font:inherit;cursor:pointer;user-select:none;transition:transform .08s ease, background-color .12s ease, color .12s ease, border-color .12s ease;}
+button:active{transform:scale(.98);}
+button:focus-visible,a:focus-visible{outline:3px dashed var(--blue);outline-offset:3px;}
+::selection{background:var(--gold);color:var(--ink);}
+[hidden]{display:none !important;}
+.wrap{max-width:1180px;margin:0 auto;padding:0 24px;}
+.pg{
+  position:absolute;top:10px;right:12px;
+  font-family:var(--mono);font-size:11px;letter-spacing:1px;
+  border:2px solid var(--ink);background:var(--paper);color:var(--ink);
+  padding:2px 7px;
+}
+/* ---------------- TOP STRIPES + SCOREBOARD ---------------- */
+.varsity{height:14px;background:repeating-linear-gradient(90deg,var(--blue) 0 44px,var(--red) 44px 88px,var(--gold) 88px 132px);border-bottom:3px solid var(--ink);}
+.scoreboard{background:var(--ink);color:var(--paper);}
+.score-row{display:flex;align-items:stretch;}
+.cell{font-family:var(--mono);font-size:12px;font-weight:bold;letter-spacing:1.5px;padding:9px 18px;white-space:nowrap;}
+.cell-ink{background:var(--ink);color:var(--paper);}
+.cell-red{background:var(--red);color:var(--paper);border-left:3px solid var(--ink);}
+.cell-blue{background:var(--blue);color:var(--paper);border-left:3px solid var(--ink);}
+/* ---------------- MASTHEAD ---------------- */
+.masthead{position:relative;padding:44px 0 30px;}
+.sunburst{
+  position:absolute;right:6px;top:6px;width:300px;height:150px;
+  border-radius:150px 150px 0 0;
+  background:repeating-conic-gradient(from 270deg at 50% 100%, var(--red) 0deg 8deg, var(--gold) 8deg 16deg);
+  border:4px solid var(--ink);border-bottom:none;
+}
+.mast-row{position:relative;display:flex;align-items:center;gap:26px;flex-wrap:wrap;}
+.roundel{
+  flex:0 0 auto;width:96px;height:96px;border-radius:50%;
+  background:var(--ink);color:var(--paper);
+  border:6px solid var(--red);box-shadow:0 0 0 4px var(--gold);
+  display:flex;align-items:center;justify-content:center;
+  font-family:var(--disp);font-weight:700;font-size:34px;letter-spacing:1px;
+}
+.roundel span{transform:translateY(-2px);}
+.mast-main{min-width:0;}
+.wordmark{
+  margin:0;
+  font-family:var(--disp);font-weight:700;text-transform:uppercase;
+  font-size:clamp(46px,8.5vw,112px);line-height:.95;letter-spacing:.02em;
+}
+.sub-band{
+  display:inline-block;margin:14px 0 10px;
+  background:var(--gold);border:3px solid var(--ink);
+  padding:8px 16px;
+  font-family:var(--disp);font-weight:700;font-size:14px;letter-spacing:1.5px;
+  text-transform:uppercase;
+  transform:rotate(-.6deg);
+  box-shadow:5px 5px 0 var(--ink);
+}
+.mast-mono{margin:10px 0 0;font-family:var(--mono);font-size:11px;letter-spacing:2px;color:var(--ink);}
+/* ---------------- HERO ---------------- */
+.hero{
+  position:relative;margin-top:6px;
+  border:4px solid var(--ink);background:var(--paper);
+  box-shadow:12px 12px 0 var(--red);
+}
+.hero-grid{display:grid;grid-template-columns:360px minmax(0,1fr);}
+.hero-cover{position:relative;margin:0;padding:22px;}
+.hero-cover img{
+  width:100%;aspect-ratio:2/3;object-fit:cover;
+  border:3px solid var(--ink);box-shadow:9px 9px 0 var(--gold);
+}
+.ribbon{
+  position:absolute;top:6px;left:34px;
+  background:var(--red);color:var(--paper);
+  border:3px solid var(--ink);box-shadow:4px 4px 0 var(--ink);
+  padding:6px 14px;
+  font-family:var(--disp);font-weight:700;font-size:13px;letter-spacing:1.5px;
+  text-transform:uppercase;
+  transform:rotate(-2deg);
+}
+.cap{margin:14px 0 0;font-family:var(--mono);font-size:10px;letter-spacing:1.5px;}
+.hero-body{border-left:3px solid var(--ink);padding:26px 30px 24px;min-width:0;}
+.eyebrow{
+  display:inline-block;margin:0 0 12px;
+  background:var(--ink);color:var(--paper);
+  padding:6px 14px;
+  font-family:var(--disp);font-weight:700;font-size:12px;letter-spacing:2px;text-transform:uppercase;
+}
+.hero-title{margin:0;font-family:var(--disp);font-weight:700;text-transform:uppercase;font-size:clamp(32px,3.9vw,50px);line-height:1.02;}
+.hero-author{margin:6px 0 12px;font-family:var(--mono);font-size:14px;letter-spacing:1px;font-weight:bold;}
+.chip{
+  display:inline-block;
+  border:2px solid var(--ink);
+  padding:5px 10px;
+  font-family:var(--disp);font-weight:700;font-size:11px;letter-spacing:.08em;text-transform:uppercase;
+}
+.genre-chip{background:var(--blue);color:var(--paper);}
+.genre-gold{background:var(--gold);color:var(--ink);}
+.hero-genre{margin:0 0 14px;}
+.hook{
+  margin:0 0 16px;
+  font-family:var(--body);font-style:italic;font-size:19px;line-height:1.45;
+  border-left:8px solid var(--red);padding-left:14px;
+}
+.statline{display:flex;align-items:flex-end;gap:9px;font-family:var(--num);font-size:15px;letter-spacing:.5px;margin-bottom:12px;}
+.lead{flex:1 1 14px;min-width:10px;height:0;border-bottom:3px dotted var(--ink);margin-bottom:4px;}
+.meta-row{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:14px;}
+.spice{display:inline-flex;gap:4px;}
+.spice i{width:18px;height:11px;border:2px solid var(--ink);background:var(--paper);display:block;}
+.spice i.on{background:var(--red);}
+.tropes{display:flex;flex-wrap:wrap;gap:7px;margin-bottom:18px;}
+.tropes span{
+  border:2px solid var(--ink);background:var(--paper);
+  padding:4px 9px;
+  font-family:var(--disp);font-weight:700;font-size:10.5px;letter-spacing:.06em;text-transform:uppercase;
+}
+.why-btn{
+  display:inline-flex;align-items:center;gap:10px;
+  background:var(--paper);border:3px solid var(--ink);color:var(--ink);
+  padding:10px 16px;
+  font-family:var(--disp);font-weight:700;font-size:13px;letter-spacing:.1em;text-transform:uppercase;
+}
+.why-btn:hover{background:var(--ink);color:var(--paper);}
+.chev{width:9px;height:9px;border-right:3px solid currentColor;border-bottom:3px solid currentColor;transform:rotate(45deg);transition:transform .25s ease;margin-top:-3px;}
+.why-btn.open .chev{transform:rotate(225deg);margin-top:3px;}
+.why-panel{display:grid;grid-template-rows:0fr;transition:grid-template-rows .35s ease;}
+.why-panel.open{grid-template-rows:1fr;}
+.why-clip{overflow:hidden;}
+.why-content{padding:14px 0 4px;margin:0;font-size:15px;}
+.why-content p{margin:0 0 8px;font-size:15px;line-height:1.5;}
+.why-num{
+  display:inline-block;min-width:34px;margin-right:10px;padding:2px 6px;
+  background:var(--gold);border:2px solid var(--ink);
+  font-family:var(--num);font-style:normal;font-size:13px;
+}
+.tracker-row{display:flex;align-items:center;gap:12px;margin-top:16px;flex-wrap:wrap;}
+.tracker-label{font-family:var(--num);font-size:13px;letter-spacing:1.5px;}
+.pills{display:flex;flex-wrap:wrap;gap:7px;border-top:3px dotted var(--ink);padding-top:12px;margin-top:14px;}
+.tracker-row .pills{border-top:none;padding-top:0;margin-top:0;}
+.pill{
+  border:3px solid var(--ink);background:var(--paper);color:var(--ink);
+  padding:7px 13px;
+  font-family:var(--disp);font-weight:700;font-size:12px;letter-spacing:.1em;text-transform:uppercase;
+  white-space:nowrap;
+}
+.pill:hover{background:var(--ink);color:var(--paper);}
+.pill.active[data-state="want"]{background:var(--gold);color:var(--ink);}
+.pill.active[data-state="read"]{background:var(--blue);color:var(--paper);}
+.pill.active[data-state="loved"]{background:var(--red);color:var(--paper);}
+.pill.active[data-state="skip"]{background:var(--ink);color:var(--paper);}
+.pill.active:hover{outline:3px dashed var(--ink);outline-offset:2px;background:var(--ink);color:var(--paper);}
+.pill.active[data-state="want"]:hover{background:var(--gold);color:var(--ink);}
+.pill.active[data-state="read"]:hover{background:var(--blue);color:var(--paper);}
+.pill.active[data-state="loved"]:hover{background:var(--red);color:var(--paper);}
+/* ---------------- MONTH TABS (GAME-SCHEDULE TICKETS) ---------------- */
+.tabs{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:16px;margin:34px 0 30px;}
+.tab{
+  position:relative;display:flex;align-items:stretch;text-align:left;
+  border:3px solid var(--ink);background:var(--paper);color:var(--ink);
+  padding:0;cursor:pointer;
+}
+.tab-stub{
+  flex:0 0 46px;display:flex;align-items:center;justify-content:center;
+  background:var(--paper);border-right:3px dashed var(--ink);
+  font-family:var(--num);font-size:17px;
+}
+.tab-main{flex:1;min-width:0;padding:8px 12px 8px 14px;display:flex;flex-direction:column;justify-content:center;}
+.tab-month{font-family:var(--disp);font-weight:700;font-size:16px;letter-spacing:1px;white-space:nowrap;}
+.tab-count{font-family:var(--mono);font-size:10px;letter-spacing:1.5px;white-space:nowrap;}
+.tab:hover{background:var(--gold);}
+.tab:hover .tab-stub{background:var(--ink);color:var(--gold);}
+.tab.active{background:var(--red);color:var(--paper);}
+.tab.active .tab-stub{background:var(--gold);color:var(--ink);border-right:3px dashed var(--gold);}
+.tab.active:hover{background:var(--red);color:var(--paper);}
+.tab.active:hover .tab-stub{background:var(--gold);color:var(--ink);}
+.punch{position:absolute;left:32px;width:14px;height:14px;border-radius:50%;background:var(--paper);border:3px solid var(--ink);}
+.punch-top{top:-10px;}.punch-bot{bottom:-10px;}
+.tab.active .punch{background:var(--paper);border-color:var(--ink);}
+/* ---------------- LINEUP CARDS ---------------- */
+.sec-head{display:flex;align-items:baseline;justify-content:space-between;gap:14px;flex-wrap:wrap;border-bottom:6px solid var(--ink);padding-bottom:10px;margin-bottom:34px;}
+.sec-head h2{margin:0;font-family:var(--disp);font-weight:700;text-transform:uppercase;font-size:clamp(22px,2.6vw,32px);letter-spacing:.5px;}
+.accent-red{color:var(--red);}
+.sec-mono{font-family:var(--mono);font-size:11px;letter-spacing:1.5px;}
+.lineup-list{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:26px;margin-top:30px;margin-bottom:44px;}
+.card{
+  --accent:var(--red);
+  position:relative;display:flex;gap:18px;
+  border:3px solid var(--ink);background:var(--paper);
+  padding:18px;
+  box-shadow:6px 6px 0 var(--ink);
+  transition:transform .15s ease, box-shadow .15s ease;
+}
+.card::before{content:'';position:absolute;top:0;left:0;right:0;height:10px;background:var(--accent);border-bottom:3px solid var(--ink);}
+.card:hover{transform:translate(-4px,-4px);box-shadow:11px 11px 0 var(--accent);}
+.acc-red{--accent:var(--red);}
+.acc-blue{--accent:var(--blue);}
+.acc-gold{--accent:var(--gold);}
+.jersey{
+  position:absolute;top:-19px;left:12px;z-index:2;
+  background-color:var(--accent);
+  background-image:radial-gradient(circle 1px at center, var(--paper) 1px, transparent 1.4px);
+  background-size:7px 7px;
+  color:var(--paper);
+  border:3px solid var(--ink);box-shadow:4px 4px 0 var(--ink);
+  padding:2px 10px 4px;
+  font-family:var(--num);font-size:24px;letter-spacing:1px;line-height:1.1;
+}
+.acc-gold .jersey{color:var(--ink);}
+.card-cover{flex:0 0 150px;width:150px;border:3px solid var(--ink);aspect-ratio:2/3;object-fit:cover;background:var(--ink);}
+.card-body{flex:1;min-width:0;}
+.card-top{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:8px;}
+.card-title{margin:0;font-family:var(--disp);font-weight:700;text-transform:uppercase;font-size:19px;line-height:1.12;overflow-wrap:break-word;}
+.card-author{margin:4px 0 8px;font-family:var(--mono);font-size:12px;letter-spacing:1px;font-weight:bold;}
+.card .hook{margin:0 0 10px;font-size:14.5px;border-left-width:6px;line-height:1.4;overflow-wrap:break-word;}
+.card .statline{font-size:12.5px;margin-bottom:9px;}
+.card .lead{border-bottom-width:2px;margin-bottom:3px;}
+.card .spice i{width:15px;height:9px;}
+.card .tropes{margin-bottom:10px;gap:6px;}
+.card .tropes span{font-size:9.5px;padding:3px 7px;}
+.fmt{
+  display:inline-block;border:2px solid var(--ink);
+  padding:4px 9px;
+  font-family:var(--disp);font-weight:700;font-size:10.5px;letter-spacing:.08em;text-transform:uppercase;
+}
+.fmt-gold{background:var(--gold);color:var(--ink);}
+.fmt-blue{background:var(--blue);color:var(--paper);}
+.badge{
+  display:inline-block;border:2px solid var(--ink);
+  padding:4px 9px;transform:rotate(-3deg);
+  font-family:var(--disp);font-weight:700;font-size:10px;letter-spacing:.1em;text-transform:uppercase;
+  white-space:nowrap;
+}
+.badge-fresh{background:var(--gold);color:var(--ink);}
+.badge-proven{background:var(--blue);color:var(--paper);}
+.card-foot{display:flex;align-items:center;gap:7px;flex-wrap:wrap;margin-bottom:11px;}
+.reprint{font-family:var(--mono);font-size:9.5px;letter-spacing:1.5px;color:var(--ink);}
+/* ---------------- NEXT GAME BANNER ---------------- */
+.nextgame{
+  position:relative;
+  background:var(--red);color:var(--paper);
+  border:4px solid var(--ink);box-shadow:10px 10px 0 var(--blue);
+  display:grid;grid-template-columns:auto minmax(0,1fr) auto;align-items:center;gap:22px;
+  padding:22px 24px;margin-bottom:48px;
+}
+.pg-next{background:var(--gold);color:var(--ink);border-color:var(--ink);}
+.ng-label{
+  background:var(--gold);color:var(--ink);border:3px solid var(--ink);
+  padding:10px 14px;
+  font-family:var(--disp);font-weight:700;font-size:15px;letter-spacing:1.5px;text-transform:uppercase;
+  white-space:nowrap;transform:rotate(-2deg);
+}
+.ng-main{min-width:0;}
+.ng-title{margin:0;font-family:var(--disp);font-weight:700;text-transform:uppercase;font-size:clamp(24px,3.2vw,40px);line-height:1.05;}
+.ng-line{margin:8px 0 0;font-family:var(--mono);font-size:12px;letter-spacing:1px;font-weight:bold;overflow-wrap:break-word;}
+.ng-date{
+  text-align:center;background:var(--ink);color:var(--paper);
+  border:3px solid var(--paper);padding:10px 14px;line-height:1;
+}
+.ng-date b{display:block;font-family:var(--num);font-size:12px;letter-spacing:2px;margin-bottom:2px;}
+.ng-date span{font-family:var(--num);font-size:30px;}
+/* ---------------- FOOTER ---------------- */
+.footer{background:var(--ink);color:var(--paper);border-top:8px solid var(--red);}
+.foot-row{display:flex;align-items:center;justify-content:space-between;gap:20px;flex-wrap:wrap;padding:24px 0;}
+.foot-note{margin:0;font-family:var(--mono);font-size:12px;letter-spacing:1.5px;}
+.btn-gold{
+  background:var(--gold);color:var(--ink);border:3px solid var(--paper);
+  padding:12px 20px;
+  font-family:var(--disp);font-weight:700;font-size:13px;letter-spacing:.12em;text-transform:uppercase;
+  white-space:nowrap;
+}
+.btn-gold:hover{background:var(--paper);transform:translate(0,-2px);}
+.foot-strip{height:14px;background:repeating-linear-gradient(90deg,var(--gold) 0 44px,var(--red) 44px 88px,var(--blue) 88px 132px);}
+/* ---------------- MODAL ---------------- */
+.modal{
+  position:fixed;inset:0;z-index:60;
+  background:var(--ink);
+  display:none;align-items:center;justify-content:center;
+  padding:24px;
+}
+.modal.open{display:flex;}
+.modal-card{
+  position:relative;
+  width:100%;max-width:620px;max-height:88vh;overflow:auto;
+  background:
+    radial-gradient(circle at 0 50%, transparent 10px, var(--paper) 10.5px),
+    radial-gradient(circle at 100% 50%, transparent 10px, var(--paper) 10.5px),
+    var(--paper);
+  border:4px solid var(--ink);
+  box-shadow:12px 12px 0 var(--red);
+  padding:30px 36px 26px;
+}
+.modal-head{display:flex;align-items:center;justify-content:space-between;gap:14px;border-bottom:5px solid var(--ink);padding-bottom:12px;margin-bottom:18px;}
+.modal-head h2{margin:0;font-family:var(--disp);font-weight:700;text-transform:uppercase;font-size:26px;letter-spacing:1px;}
+.modal-x{
+  background:var(--paper);border:3px solid var(--ink);color:var(--ink);
+  width:42px;height:42px;
+  font-family:var(--num);font-size:20px;line-height:1;
+  display:flex;align-items:center;justify-content:center;
+}
+.modal-x:hover{background:var(--red);color:var(--paper);}
+.rules{list-style:none;margin:0 0 16px;padding:0;}
+.rules li{display:flex;gap:14px;align-items:flex-start;padding:12px 0;}
+.rules li + li{border-top:3px dotted var(--ink);}
+.rule-num{
+  flex:0 0 auto;background:var(--red);color:var(--paper);
+  border:2px solid var(--ink);
+  padding:4px 8px;
+  font-family:var(--num);font-size:16px;
+}
+.rules h3{margin:0 0 4px;font-family:var(--disp);font-weight:700;font-size:15px;letter-spacing:.08em;text-transform:uppercase;}
+.rules p{margin:0;font-size:15px;line-height:1.5;}
+.rules-foot{margin:16px 0 0;font-family:var(--mono);font-size:10.5px;letter-spacing:1.5px;border-top:3px solid var(--ink);padding-top:10px;}
+/* ---------------- RESPONSIVE ---------------- */
+@media (max-width:960px){
+  .hero-grid{grid-template-columns:minmax(0,1fr);}
+  .hero-body{border-left:none;border-top:3px solid var(--ink);}
+  .hero-cover{max-width:330px;}
+  .lineup-list{grid-template-columns:minmax(0,1fr);}
+  .tabs{grid-template-columns:repeat(2,minmax(0,1fr));}
+  .sunburst{display:none;}
+}
+@media (max-width:640px){
+  .score-row{flex-wrap:wrap;}
+  .cell{flex:1 1 auto;border-left:none;border-top:3px solid var(--ink);}
+  .cell:first-child{border-top:none;}
+  .card{flex-direction:column;}
+  .card-cover{flex:0 0 auto;width:100%;max-width:250px;margin:6px auto 0;}
+  .nextgame{grid-template-columns:minmax(0,1fr);gap:14px;text-align:center;}
+  .ng-label{transform:none;justify-self:center;}
+  .ng-date{justify-self:center;}
+  .foot-row{justify-content:center;text-align:center;}
+}
+</style>
+</head>
+<body>
+
+<div class="varsity" aria-hidden="true"></div>
+
+<div class="scoreboard">
+  <div class="wrap score-row">
+    <span class="cell cell-ink">ISSUE 01 - SEPTEMBER 2026</span>
+    <span class="cell cell-red">NEW ROMANCE, MONTHLY</span>
+    <span class="cell cell-blue">DROPPED 1 SEP 2026</span>
+  </div>
+</div>
+
+<header class="wrap masthead">
+  <div class="sunburst" aria-hidden="true"></div>
+  <div class="mast-row">
+    <div class="roundel" aria-hidden="true"><span>SF</span></div>
+    <div class="mast-main">
+      <h1 class="wordmark">THE SHELF</h1>
+      <p class="sub-band">NEW ROMANCE, MONTHLY - SPORT ROMANCE + ROMANTASY - CURATED FOR YOU</p>
+      <p class="mast-mono">GAME PROGRAM NO. 01 - PRINTED ON NEWSPRINT - TEAM COLORS ON FULL DISPLAY</p>
+    </div>
+  </div>
+</header>
+
+<main class="wrap">
+
+  <section class="hero" aria-label="Top pick of the month">
+    <span class="pg" aria-hidden="true">PG 01</span>
+    <div class="hero-grid">
+      <figure class="hero-cover">
+        <span class="ribbon">NO. 1 PICK</span>
+        <img src="assets/cover-01-iron-crown.jpg" alt="Cover of Ashes of the Iron Crown by Tamsin Vale">
+        <figcaption class="cap">COVER ART 01 - IRON CROWN - PROGRAM PLATE</figcaption>
+      </figure>
+      <div class="hero-body">
+        <p class="eyebrow">TODAY'S TOP PICK</p>
+        <h2 class="hero-title">Ashes of the Iron Crown</h2>
+        <p class="hero-author">by Tamsin Vale</p>
+        <p class="hero-genre"><span class="chip genre-chip genre-gold">ROMANTASY - FAE + DRAGONS</span></p>
+        <p class="hook">"The crown burns for her - but the dragon only bows to the girl who intends to kill it."</p>
+        <div class="statline"><b>FIT 96</b><i class="lead" aria-hidden="true"></i><b>TROPE 10/10</b><i class="lead" aria-hidden="true"></i><b>SPICE 4/5</b></div>
+        <div class="meta-row">
+          <div class="spice" aria-label="Spice 4 out of 5"><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i></i></div>
+          <span class="fmt fmt-gold">EBOOK</span>
+          <span class="fmt fmt-blue">AUDIO</span>
+        </div>
+        <div class="tropes">
+          <span>enemies-to-lovers</span><span>forced proximity</span><span>fated mates</span><span>morally grey crown</span>
+        </div>
+        <button class="why-btn" id="why-btn" aria-expanded="false" aria-controls="why-panel">WHY IT WON <span class="chev" aria-hidden="true"></span></button>
+        <div class="why-panel" id="why-panel">
+          <div class="why-clip">
+            <div class="why-content">
+              <p><b class="why-num" aria-hidden="true">01</b>Dragons + fae matches your Fourth Wing / Moon Hatched track.</p>
+              <p><b class="why-num" aria-hidden="true">02</b>Enemies-to-lovers is your most-read trope.</p>
+              <p><b class="why-num" aria-hidden="true">03</b>Proven 4.6 stars with 1.2K early ratings - it earns the top spot over the fresh reads.</p>
+            </div>
+          </div>
+        </div>
+        <div class="tracker-row">
+          <span class="tracker-label">TRACKER</span>
+          <div class="pills" data-month="SEP" data-book="b1">
+            <button type="button" class="pill" data-month="SEP" data-book="b1" data-state="want" aria-pressed="false">WANT</button>
+            <button type="button" class="pill" data-month="SEP" data-book="b1" data-state="read" aria-pressed="false">READ</button>
+            <button type="button" class="pill" data-month="SEP" data-book="b1" data-state="loved" aria-pressed="false">LOVED</button>
+            <button type="button" class="pill" data-month="SEP" data-book="b1" data-state="skip" aria-pressed="false">SKIP</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <nav class="tabs" aria-label="Issue months">
+    <button type="button" class="tab active" data-month="SEP" aria-pressed="true">
+      <span class="tab-stub">08</span>
+      <span class="tab-main"><span class="tab-month">SEP 2026</span><span class="tab-count">8 BOOKS - CURRENT</span></span>
+      <span class="punch punch-top" aria-hidden="true"></span><span class="punch punch-bot" aria-hidden="true"></span>
+    </button>
+    <button type="button" class="tab" data-month="AUG" aria-pressed="false">
+      <span class="tab-stub">04</span>
+      <span class="tab-main"><span class="tab-month">AUG 2026</span><span class="tab-count">4 BOOKS - ARCHIVE</span></span>
+      <span class="punch punch-top" aria-hidden="true"></span><span class="punch punch-bot" aria-hidden="true"></span>
+    </button>
+    <button type="button" class="tab" data-month="JUL" aria-pressed="false">
+      <span class="tab-stub">04</span>
+      <span class="tab-main"><span class="tab-month">JUL 2026</span><span class="tab-count">4 BOOKS - ARCHIVE</span></span>
+      <span class="punch punch-top" aria-hidden="true"></span><span class="punch punch-bot" aria-hidden="true"></span>
+    </button>
+    <button type="button" class="tab" data-month="JUN" aria-pressed="false">
+      <span class="tab-stub">03</span>
+      <span class="tab-main"><span class="tab-month">JUN 2026</span><span class="tab-count">3 BOOKS - ARCHIVE</span></span>
+      <span class="punch punch-top" aria-hidden="true"></span><span class="punch punch-bot" aria-hidden="true"></span>
+    </button>
+  </nav>
+
+  <section id="view-sep" aria-label="September lineup">
+    <div class="sec-head">
+      <h2>THIS MONTH'S LINEUP <span class="accent-red">- 7 STARTERS</span></h2>
+      <span class="sec-mono">FIT-RANK ORDER - CLICK A PILL TO LOG YOUR TRACKER</span>
+    </div>
+    <div id="grid-sep" class="lineup-list"></div>
+  </section>
+
+  <section id="view-arch" aria-label="Archive month" hidden>
+    <div class="sec-head">
+      <h2 id="arch-title">ARCHIVE - AUGUST 2026</h2>
+      <span class="sec-mono" id="arch-sub">REPRINTED FROM THE SHELF RECORDS</span>
+    </div>
+    <div id="grid-arch" class="lineup-list"></div>
+  </section>
+
+  <section class="nextgame" aria-label="Next game - your series">
+    <span class="pg pg-next" aria-hidden="true">PG 06</span>
+    <div class="ng-label">NEXT GAME</div>
+    <div class="ng-main">
+      <h2 class="ng-title">EMBER FALLS</h2>
+      <p class="ng-line">YOUR SERIES: DRAGONS OF EMBER HOLLOW #4 - TESSA HALE - OUT 3 OCT - YOU'VE READ ALL THREE SO FAR</p>
+    </div>
+    <div class="ng-date" aria-hidden="true"><b>OUT</b><span>3 OCT</span></div>
+  </section>
+
+</main>
+
+<footer class="footer">
+  <div class="wrap foot-row">
+    <p class="foot-note">THE SHELF - MOCK DATA FOR DESIGN REVIEW</p>
+    <button type="button" class="btn-gold" id="open-rules">HOW PICKS WORK</button>
+  </div>
+  <div class="foot-strip" aria-hidden="true"></div>
+</footer>
+
+<div class="modal" id="rules-modal" aria-hidden="true" role="dialog" aria-labelledby="rules-title">
+  <div class="modal-card">
+    <div class="modal-head">
+      <h2 id="rules-title">HOW PICKS WORK</h2>
+      <button type="button" class="modal-x" id="close-rules" aria-label="Close">X</button>
+    </div>
+    <ol class="rules">
+      <li>
+        <b class="rule-num" aria-hidden="true">01</b>
+        <div><h3>SOFT QUALITY FLOOR</h3><p>Books early readers disliked get dropped.</p></div>
+      </li>
+      <li>
+        <b class="rule-num" aria-hidden="true">02</b>
+        <div><h3>FRESH READS BADGE</h3><p>A new book not yet proven.</p></div>
+      </li>
+      <li>
+        <b class="rule-num" aria-hidden="true">03</b>
+        <div><h3>FIT SCORE + TRACKER</h3><p>Ranks by your genres, tropes and spice band. The tracker feeds next month's picks.</p></div>
+      </li>
+    </ol>
+    <p class="rules-foot">THE SHELF - ISSUE 01 - MOCK DATA FOR DESIGN REVIEW</p>
+  </div>
+</div>
+
+<script>
+(function(){
+'use strict';
+
+var BOOKS = {
+  b1:{id:'b1',num:'01',title:'ASHES OF THE IRON CROWN',author:'Tamsin Vale',genre:'ROMANTASY - FAE + DRAGONS',
+      img:'assets/cover-01-iron-crown.jpg',accent:'gold',fit:96,tm:'10/10',spice:4,badge:'',badgeCls:'',
+      formats:['EBOOK','AUDIO'],
+      hook:'\u201CThe crown burns for her - but the dragon only bows to the girl who intends to kill it.\u201D',
+      tropes:['enemies-to-lovers','forced proximity','fated mates','morally grey crown']},
+  b2:{id:'b2',num:'02',title:'FULL THROTTLE HEARTS',author:'Delia Frost',genre:'FORMULA 1',
+      img:'assets/cover-02-throttle-hearts.jpg',accent:'red',fit:91,tm:'8/10',spice:3,badge:'FRESH READ',badgeCls:'fresh',
+      formats:['EBOOK ONLY'],
+      hook:'\u201CTwo paddocks. One seat. The man who took her seat is the only one she can\u2019t stop texting.\u201D',
+      tropes:['grumpy/sunshine','fake dating','rivals-to-lovers']},
+  b3:{id:'b3',num:'03',title:'ICE, LOVE &amp; GAME WEEK',author:'Piper Brooks',genre:'HOCKEY',
+      img:'assets/cover-03-ice-gameweek.jpg',accent:'blue',fit:88,tm:'9/10',spice:4,badge:'FRESH READ',badgeCls:'fresh',
+      formats:['EBOOK','AUDIO'],
+      hook:'\u201CThe league\u2019s grumpiest captain is one road-trip weekend from falling for his best friend\u2019s little sister.\u201D',
+      tropes:['one bed','forbidden','hockey']},
+  b4:{id:'b4',num:'04',title:'WINGS OF THE STARLESS COURT',author:'Aeli Marchetti',genre:'ROMANTASY - DRAGONS',
+      img:'assets/cover-04-starless-court.jpg',accent:'gold',fit:86,tm:'8/10',spice:3,badge:'FRESH READ',badgeCls:'fresh',
+      formats:['EBOOK','AUDIO'],
+      hook:'\u201CHer wings were taken as a punishment. His were given as a curse. Together they can only fly one way.\u201D',
+      tropes:['fated mates','slow burn','court intrigue']},
+  b5:{id:'b5',num:'05',title:'GRID GIRLS',author:'Sofia Reyes',genre:'FORMULA 1',
+      img:'assets/cover-05-grid-girls.jpg',accent:'red',fit:84,tm:'9/10',spice:3,badge:'PROVEN 4.3 STARS',badgeCls:'proven',
+      formats:['EBOOK','AUDIO'],
+      hook:'\u201CShe engineered the car. He took the credit. This season, the telemetry never lies.\u201D',
+      tropes:['enemies-to-lovers','workplace','banter']},
+  b6:{id:'b6',num:'06',title:'THE DEMON OF THIRD LINE',author:'Jemma Hart',genre:'HOCKEY',
+      img:'assets/cover-06-demon-third-line.jpg',accent:'blue',fit:82,tm:'7/10',spice:4,badge:'',badgeCls:'',
+      formats:['EBOOK','AUDIO'],
+      hook:'\u201CEveryone fears him on the ice. She\u2019s the only one who knows why he loses his temper in the third.\u201D',
+      tropes:['grumpy/sunshine','single dad','small town']},
+  b7:{id:'b7',num:'07',title:'A COURT OF EMBER &amp; ASH',author:'Celeste Marchand',genre:'ROMANTASY - FAE',
+      img:'assets/cover-07-ember-ash.jpg',accent:'gold',fit:79,tm:'8/10',spice:4,badge:'FRESH READ',badgeCls:'fresh',
+      formats:['EBOOK ONLY'],
+      hook:'\u201CThe fae court that burned her family will learn why she was raised in the ashes.\u201D',
+      tropes:['enemies-to-lovers','revenge','morally grey FMC']},
+  b8:{id:'b8',num:'08',title:'TOUCHDOWN AT ROSEWOOD',author:'Kiley Cross',genre:'COLLEGE FOOTBALL',
+      img:'assets/cover-08-touchdown-rosewood.jpg',accent:'red',fit:77,tm:'7/10',spice:3,badge:'',badgeCls:'',
+      formats:['EBOOK','AUDIO'],
+      hook:'\u201CHe\u2019s the quarterback who blew his scholarship. She\u2019s the tutor who can\u2019t stand him - or stop watching film.\u201D',
+      tropes:['grumpy/sunshine','small town','slow burn']}
+};
+
+var MONTHS = {
+  SEP:{label:'SEP 2026',full:'SEPTEMBER 2026',books:['b1','b2','b3','b4','b5','b6','b7','b8'],
+       presets:{b2:'loved',b5:'read',b7:'skip'}},
+  AUG:{label:'AUG 2026',full:'AUGUST 2026',books:['b2','b3','b5','b8'],
+       presets:{b2:'loved',b3:'read',b5:'want',b8:'skip'}},
+  JUL:{label:'JUL 2026',full:'JULY 2026',books:['b1','b4','b6','b7'],
+       presets:{b1:'read',b4:'loved',b6:'read',b7:'skip'}},
+  JUN:{label:'JUN 2026',full:'JUNE 2026',books:['b2','b4','b7'],
+       presets:{b2:'read',b4:'want',b7:'read'}}
+};
+
+var PILLS = [['want','WANT'],['read','READ'],['loved','LOVED'],['skip','SKIP']];
+var KEY = 'shelf-tracker-b';
+var store = {};
+try{
+  var raw = localStorage.getItem(KEY);
+  store = raw ? JSON.parse(raw) : {};
+  if(typeof store !== 'object' || store === null){ store = {}; }
+}catch(e){ store = {}; }
+
+function effState(month, bookId){
+  var m = store[month];
+  if(m && Object.prototype.hasOwnProperty.call(m, bookId)){ return m[bookId] || ''; }
+  var p = MONTHS[month].presets;
+  return (p && p[bookId]) || '';
+}
+function setState(month, bookId, state){
+  if(!store[month]){ store[month] = {}; }
+  if(state){ store[month][bookId] = state; }
+  else{ delete store[month][bookId]; }
+  try{ localStorage.setItem(KEY, JSON.stringify(store)); }catch(e){}
+}
+function updatePills(month, bookId){
+  var s = effState(month, bookId);
+  var containers = document.querySelectorAll('.pills[data-month="'+month+'"][data-book="'+bookId+'"]');
+  Array.prototype.forEach.call(containers, function(c){
+    var btns = c.querySelectorAll('.pill');
+    Array.prototype.forEach.call(btns, function(b){
+      var on = b.getAttribute('data-state') === s;
+      b.classList.toggle('active', on);
+      b.setAttribute('aria-pressed', String(on));
+    });
+  });
+}
+function pillSet(bookId, month, state){
+  return PILLS.map(function(p){
+    var st = p[0], label = p[1];
+    var on = state === st;
+    return '<button type="button" class="pill'+(on?' active':'')+'" data-month="'+month+'" data-book="'+bookId+'" data-state="'+st+'" aria-pressed="'+String(on)+'">'+label+'</button>';
+  }).join('');
+}
+function spiceBlocks(n){
+  var s = '';
+  for(var i=0;i<5;i++){ s += '<i'+(i<n?' class="on"':'')+'></i>'; }
+  return s;
+}
+function cardHTML(book, month, compact){
+  var state = effState(month, book.id);
+  var badge = book.badge ? '<span class="badge badge-'+book.badgeCls+'">'+book.badge+'</span>' : '';
+  var extra = compact ? '' :
+    '<p class="hook">'+book.hook+'</p>' +
+    '<div class="statline"><b>FIT '+book.fit+'</b><i class="lead" aria-hidden="true"></i><b>TROPE '+book.tm+'</b><i class="lead" aria-hidden="true"></i><b>SPICE '+book.spice+'/5</b></div>' +
+    '<div class="spice" aria-label="Spice '+book.spice+' out of 5">'+spiceBlocks(book.spice)+'</div>' +
+    '<div class="tropes">'+book.tropes.map(function(t){return '<span>'+t+'</span>';}).join('')+'</div>';
+  var fmts = book.formats.map(function(f){
+    var cls = (f.indexOf('EBOOK')===0) ? 'gold' : 'blue';
+    return '<span class="fmt fmt-'+cls+'">'+f+'</span>';
+  }).join('');
+  var reprint = compact ? '<span class="reprint">REPRINTED FROM THE ARCHIVE</span>' : '';
+  return '<article class="card acc-'+book.accent+(compact?' compact':'')+'">' +
+    '<span class="jersey" aria-hidden="true">'+book.num+'</span>' +
+    '<img class="card-cover" src="'+book.img+'" alt="Cover of '+book.title.replace('&amp;','&')+' by '+book.author+'">' +
+    '<div class="card-body">' +
+      '<div class="card-top"><span class="chip genre-chip">'+book.genre+'</span>'+badge+'</div>' +
+      '<h3 class="card-title">'+book.title+'</h3>' +
+      '<p class="card-author">by '+book.author+'</p>' +
+      extra +
+      '<div class="card-foot">'+fmts+reprint+'</div>' +
+      '<div class="pills" data-month="'+month+'" data-book="'+book.id+'">'+pillSet(book.id, month, state)+'</div>' +
+    '</div>' +
+  '</article>';
+}
+
+var currentMonth = 'SEP';
+var gridSep = document.getElementById('grid-sep');
+var gridArch = document.getElementById('grid-arch');
+var archTitle = document.getElementById('arch-title');
+
+function renderSepGrid(){
+  gridSep.innerHTML = MONTHS.SEP.books.slice(1).map(function(id){
+    return cardHTML(BOOKS[id], 'SEP', false);
+  }).join('');
+}
+function renderArchive(m){
+  var md = MONTHS[m];
+  archTitle.textContent = 'ARCHIVE - ' + md.full;
+  gridArch.innerHTML = md.books.map(function(id){
+    return cardHTML(BOOKS[id], m, true);
+  }).join('');
+}
+function switchMonth(m){
+  currentMonth = m;
+  var tabs = document.querySelectorAll('.tab');
+  Array.prototype.forEach.call(tabs, function(t){
+    var on = t.getAttribute('data-month') === m;
+    t.classList.toggle('active', on);
+    t.setAttribute('aria-pressed', String(on));
+  });
+  var isSep = (m === 'SEP');
+  document.getElementById('view-sep').hidden = !isSep;
+  document.getElementById('view-arch').hidden = isSep;
+  if(!isSep){ renderArchive(m); }
+}
+
+/* Tracker pills - delegated */
+document.addEventListener('click', function(e){
+  var p = e.target.closest ? e.target.closest('.pill') : null;
+  if(!p){ return; }
+  var book = p.getAttribute('data-book');
+  var month = p.getAttribute('data-month');
+  if(!book || !month){ return; }
+  var active = p.classList.contains('active');
+  setState(month, book, active ? '' : p.getAttribute('data-state'));
+  updatePills(month, book);
+});
+
+/* Month tabs */
+document.addEventListener('click', function(e){
+  var t = e.target.closest ? e.target.closest('.tab') : null;
+  if(!t){ return; }
+  switchMonth(t.getAttribute('data-month'));
+});
+
+/* Why it won */
+var whyBtn = document.getElementById('why-btn');
+var whyPanel = document.getElementById('why-panel');
+whyBtn.addEventListener('click', function(){
+  var open = whyPanel.classList.toggle('open');
+  whyBtn.classList.toggle('open', open);
+  whyBtn.setAttribute('aria-expanded', String(open));
+});
+
+/* Modal */
+var modal = document.getElementById('rules-modal');
+var openBtn = document.getElementById('open-rules');
+var closeBtn = document.getElementById('close-rules');
+function openModal(){
+  modal.classList.add('open');
+  modal.setAttribute('aria-hidden','false');
+  document.body.style.overflow = 'hidden';
+  closeBtn.focus();
+}
+function closeModal(){
+  modal.classList.remove('open');
+  modal.setAttribute('aria-hidden','true');
+  document.body.style.overflow = '';
+  openBtn.focus();
+}
+openBtn.addEventListener('click', openModal);
+closeBtn.addEventListener('click', closeModal);
+modal.addEventListener('click', function(e){
+  if(e.target === modal){ closeModal(); }
+});
+document.addEventListener('keydown', function(e){
+  if(e.key === 'Escape' && modal.classList.contains('open')){ closeModal(); }
+});
+
+/* Init */
+renderSepGrid();
+switchMonth('SEP');
+})();
+</script>
+</body>
+</html>

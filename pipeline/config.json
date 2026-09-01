@@ -1,0 +1,18 @@
+{
+  "model": "openai/gpt-4o-mini",
+  "max_candidates": 40,
+  "window_months": 2,
+  "target_books": [6, 8],
+  "spice_min": 3,
+  "trad_pub_score_rating": 4.0,
+  "trad_pub_score_count": 100,
+  "apple_country": "us",
+  "reddit_subs": ["fantasyromance", "RomanceBooks"],
+  "deploy": {
+    "enabled": false,
+    "host": "user@example.com",
+    "path": "/var/www/the-shelf/"
+  },
+  "output_dir": "data",
+  "dist_dir": "dist"
+}

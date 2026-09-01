@@ -1,0 +1,857 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>THE SHELF - Issue 01 - September 2026</title>
+<style>
+  :root{
+    --paper:#FFF6E9;
+    --ink:#131313;
+    --mag:#FF2E88;
+    --tan:#FF7A00;
+    --sun:#FFD23F;
+    --cob:#2B50FF;
+    --f-display:"Arial Black","HelveticaNeue-CondensedBlack","Helvetica Neue Condensed",Impact,"Arial Narrow",Arial,sans-serif;
+    --f-serif:Georgia,"Times New Roman",Times,serif;
+    --f-body:"Helvetica Neue",Helvetica,Arial,sans-serif;
+    --f-mono:"Courier New",Courier,monospace;
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;}
+  body{
+    background:var(--paper);
+    color:var(--ink);
+    font-family:var(--f-body);
+    -webkit-font-smoothing:antialiased;
+    overflow-x:clip;
+  }
+  img{max-width:100%;}
+  button{font-family:inherit;color:inherit;cursor:pointer;}
+  button:focus-visible,a:focus-visible{outline:3px solid var(--cob);outline-offset:2px;}
+
+  .page{max-width:1180px;margin:0 auto;padding:0 28px;}
+
+  /* ---------- masthead ---------- */
+  .topbar{display:flex;justify-content:space-between;align-items:flex-start;gap:18px;margin-top:26px;flex-wrap:wrap;}
+  .issuekicker{
+    display:inline-block;background:var(--ink);color:var(--paper);
+    font-family:var(--f-display);font-size:12px;font-weight:900;letter-spacing:.24em;
+    padding:9px 16px;border:3px solid var(--ink);box-shadow:4px 4px 0 var(--tan);
+  }
+  .datebar{
+    display:inline-block;margin-top:10px;background:var(--paper);color:var(--ink);
+    font-family:var(--f-display);font-size:11px;font-weight:900;letter-spacing:.22em;
+    padding:7px 14px;border:3px solid var(--ink);
+  }
+  .barcode{text-align:center;}
+  .barcode .bars{
+    width:132px;height:40px;
+    background:repeating-linear-gradient(90deg,
+      var(--ink) 0 2px,var(--paper) 2px 5px,var(--ink) 5px 6px,var(--paper) 6px 10px,
+      var(--ink) 10px 13px,var(--paper) 13px 15px,var(--ink) 15px 16px,var(--paper) 16px 20px,
+      var(--ink) 20px 23px,var(--paper) 23px 25px,var(--ink) 25px 27px,var(--paper) 27px 30px,
+      var(--ink) 30px 32px,var(--paper) 32px 36px,var(--ink) 36px 38px,var(--paper) 38px 41px,
+      var(--ink) 41px 43px,var(--paper) 43px 47px,var(--ink) 47px 50px,var(--paper) 50px 52px);
+  }
+  .barcode .bars-label{font-family:var(--f-mono);font-size:9px;letter-spacing:.34em;margin-top:5px;}
+
+  .masthead{padding:18px 0 8px;}
+  .thebar{
+    display:inline-block;background:var(--tan);color:var(--ink);
+    font-family:var(--f-display);font-size:22px;font-weight:900;letter-spacing:.3em;
+    padding:6px 20px;border:3px solid var(--ink);transform:rotate(-2deg);
+    box-shadow:5px 5px 0 var(--mag);margin-left:4px;
+  }
+  .mast-title{
+    font-family:var(--f-display);font-weight:900;text-transform:uppercase;
+    font-size:clamp(64px,11.5vw,158px);line-height:.82;letter-spacing:-.015em;
+    margin:12px 0 0;color:var(--ink);text-shadow:7px 7px 0 var(--mag);
+  }
+  .substrips{display:flex;flex-wrap:wrap;gap:14px;margin-top:24px;}
+  .strip{
+    font-family:var(--f-display);font-size:14px;font-weight:900;letter-spacing:.05em;
+    text-transform:uppercase;padding:10px 18px;border:3px solid var(--ink);
+    box-shadow:4px 4px 0 var(--ink);
+  }
+  .strip-1{background:var(--mag);color:var(--paper);transform:rotate(-1.2deg);}
+  .strip-2{background:var(--cob);color:var(--paper);transform:rotate(1deg);}
+  .strip-3{background:var(--sun);color:var(--ink);transform:rotate(-.6deg);}
+  .halftone{height:16px;margin-top:2px;
+    background-image:radial-gradient(circle,#131313 1.6px,transparent 1.8px);
+    background-size:10px 10px;background-position:0 3px;}
+  .halftone--cob{background-image:radial-gradient(circle,var(--cob) 1.6px,transparent 1.8px);}
+  .halftone--mag{background-image:radial-gradient(circle,var(--mag) 1.6px,transparent 1.8px);}
+  .halftone--sun{background-image:radial-gradient(circle,var(--sun) 1.6px,transparent 1.8px);}
+  .inkline{height:4px;background:var(--ink);}
+
+  /* ---------- tabs ---------- */
+  .tabsrow{display:flex;align-items:flex-end;gap:16px;flex-wrap:wrap;margin:30px 0 14px;}
+  .tabs{display:flex;align-items:flex-end;gap:12px;flex-wrap:wrap;}
+  .tab{
+    position:relative;border:3px solid var(--ink);background:var(--tan);color:var(--ink);
+    padding:10px 22px 11px 16px;text-align:left;box-shadow:5px 5px 0 var(--ink);
+    display:flex;flex-direction:column;gap:1px;transform:rotate(0deg);
+    transition:transform .15s ease,box-shadow .15s ease;
+  }
+  .tab::after{content:"";position:absolute;right:-10px;top:50%;width:20px;height:20px;
+    transform:translateY(-50%);background:var(--paper);border-radius:50%;}
+  .tab:hover{transform:translateY(-2px) rotate(-1deg);box-shadow:7px 7px 0 var(--ink);}
+  .tab:active{transform:scale(.98);}
+  .tab .t-m{font-family:var(--f-display);font-size:26px;font-weight:900;line-height:1;letter-spacing:.02em;}
+  .tab .t-d{font-family:var(--f-display);font-size:10px;font-weight:900;letter-spacing:.14em;}
+  .tab .t-c{font-family:var(--f-mono);font-size:9px;letter-spacing:.12em;opacity:1;}
+  .tab[data-month="sep"]{background:var(--sun);color:var(--ink);}
+  .tab[data-month="aug"]{background:var(--tan);color:var(--ink);}
+  .tab[data-month="jul"]{background:var(--mag);color:var(--paper);}
+  .tab[data-month="jun"]{background:var(--cob);color:var(--paper);}
+  .tab.is-active{transform:translateY(-4px) rotate(-1.5deg);border-width:4px;box-shadow:8px 8px 0 var(--ink);}
+  .tab.is-active .t-m{font-size:32px;}
+  .btn{
+    font-family:var(--f-display);font-weight:900;text-transform:uppercase;
+    letter-spacing:.06em;font-size:13px;border:3px solid var(--ink);
+    background:var(--ink);color:var(--paper);padding:13px 18px;
+    box-shadow:5px 5px 0 var(--mag);transition:transform .15s ease,box-shadow .15s ease,background .15s ease;
+  }
+  .btn:hover{transform:translate(-2px,-2px);box-shadow:7px 7px 0 var(--mag);background:var(--cob);}
+  .btn:active{transform:scale(.98);}
+  .btn--sun{background:var(--sun);color:var(--ink);box-shadow:5px 5px 0 var(--ink);}
+  .btn--sun:hover{background:var(--tan);box-shadow:7px 7px 0 var(--ink);}
+
+  /* ---------- generic type ---------- */
+  .kicker{
+    font-family:var(--f-display);font-size:12px;font-weight:900;letter-spacing:.24em;
+    text-transform:uppercase;display:inline-block;
+  }
+  .kicker-plate{background:var(--ink);color:var(--paper);padding:7px 14px;border:3px solid var(--ink);box-shadow:4px 4px 0 var(--mag);}
+  .kicker-plate--cob{box-shadow:4px 4px 0 var(--cob);}
+  .hl{background:linear-gradient(var(--sun),var(--sun)) no-repeat 0 56%/100% 40%;padding:0 .08em;}
+  .hl-paper{background:linear-gradient(var(--paper),var(--paper)) no-repeat 0 56%/100% 40%;padding:0 .08em;}
+
+  /* ---------- hero ---------- */
+  .hero-stage{position:relative;margin-top:18px;overflow:hidden;}
+  .hero-sunburst{
+    position:absolute;left:50%;top:50%;width:1360px;height:1360px;
+    transform:translate(-50%,-50%) rotate(6deg);pointer-events:none;
+    background:repeating-conic-gradient(var(--sun) 0deg 9deg,var(--paper) 9deg 18deg);
+  }
+  .hero{
+    position:relative;border:4px solid var(--ink);background:var(--paper);
+    box-shadow:12px 12px 0 var(--ink);margin:26px;
+    display:grid;grid-template-columns:45% 1fr;gap:34px;padding:34px;align-items:start;
+  }
+  .hero-coverwrap{position:relative;width:min(100%,330px);margin:0 auto;}
+  .hero-cover{transform:rotate(-2.6deg);}
+  .cv{
+    aspect-ratio:2/3;object-fit:cover;display:block;width:100%;
+    border:3px solid var(--ink);box-shadow:8px 8px 0 var(--ink);background:var(--ink);
+  }
+  .seal{
+    position:absolute;top:-30px;left:-26px;width:118px;height:118px;
+    background:var(--mag);clip-path:polygon(50.00% 0.00%,59.58% 14.26%,75.00% 6.70%,76.16% 23.84%,93.30% 25.00%,85.74% 40.42%,100.00% 50.00%,85.74% 59.58%,93.30% 75.00%,76.16% 76.16%,75.00% 93.30%,59.58% 85.74%,50.00% 100.00%,40.42% 85.74%,25.00% 93.30%,23.84% 76.16%,6.70% 75.00%,14.26% 59.58%,0.00% 50.00%,14.26% 40.42%,6.70% 25.00%,23.84% 23.84%,25.00% 6.70%,40.42% 14.26%);
+    filter:drop-shadow(4px 4px 0 var(--ink));
+    display:flex;align-items:center;justify-content:center;transform:rotate(-13deg);
+  }
+  .seal-inner{width:56px;text-align:center;}
+  .seal-inner .s1{font-family:var(--f-display);font-size:16px;font-weight:900;color:var(--paper);display:block;line-height:1;}
+  .seal-inner .s2{font-family:var(--f-display);font-size:9px;font-weight:900;color:var(--sun);letter-spacing:.28em;display:block;margin-top:3px;}
+  .sticker{
+    position:absolute;font-family:var(--f-display);font-size:11px;font-weight:900;
+    text-transform:uppercase;letter-spacing:.05em;padding:7px 12px;border:3px solid var(--ink);
+    box-shadow:4px 4px 0 var(--ink);white-space:nowrap;
+  }
+  .sticker--ratings{background:var(--sun);color:var(--ink);bottom:-16px;right:-14px;transform:rotate(3deg);}
+  .sticker--ribbon{background:var(--cob);color:var(--paper);top:-14px;right:-18px;transform:rotate(4deg);}
+  .sticker--fresh{background:var(--tan);color:var(--ink);}
+  .sticker--proven{background:var(--cob);color:var(--paper);}
+
+  .hero-text{min-width:0;}
+  .hero-title{
+    font-family:var(--f-display);font-weight:900;text-transform:uppercase;
+    font-size:clamp(30px,4.3vw,54px);line-height:.94;letter-spacing:-.01em;
+    margin:10px 0 10px;text-shadow:4px 4px 0 var(--cob);
+  }
+  .hero-author{
+    font-family:var(--f-display);font-size:13px;font-weight:900;letter-spacing:.22em;
+    text-transform:uppercase;background:var(--ink);color:var(--paper);
+    display:inline-block;padding:8px 14px;border:3px solid var(--ink);transform:rotate(-.8deg);
+    box-shadow:4px 4px 0 var(--tan);
+  }
+  .hero-hook{
+    font-family:var(--f-serif);font-style:italic;font-size:clamp(18px,1.9vw,23px);
+    line-height:1.35;margin:16px 0 14px;color:var(--ink);
+  }
+  .tropebox{display:flex;flex-wrap:wrap;gap:9px;margin:12px 0 16px;}
+  .chip{
+    font-family:var(--f-display);font-size:11px;font-weight:900;text-transform:uppercase;
+    letter-spacing:.04em;padding:7px 12px;border:2.5px solid var(--ink);box-shadow:3px 3px 0 var(--ink);
+  }
+  .chip-0{background:var(--mag);color:var(--paper);}
+  .chip-1{background:var(--sun);color:var(--ink);}
+  .chip-2{background:var(--cob);color:var(--paper);}
+  .chip-3{background:var(--tan);color:var(--ink);}
+  .chip--ink{background:var(--ink);color:var(--paper);}
+  .spicerow{display:flex;align-items:center;gap:10px;margin:12px 0 10px;}
+  .label{
+    font-family:var(--f-display);font-size:11px;font-weight:900;letter-spacing:.2em;
+    text-transform:uppercase;background:var(--paper);border:3px solid var(--ink);padding:6px 10px;
+  }
+  .spice{display:flex;gap:5px;}
+  .pip{width:15px;height:15px;border:3px solid var(--ink);background:var(--paper);display:inline-block;box-shadow:2px 2px 0 var(--ink);}
+  .pip.on{background:var(--mag);}
+  .spice-n{font-family:var(--f-display);font-weight:900;font-size:14px;}
+  .fmt{display:inline-block;font-family:var(--f-display);font-size:11px;font-weight:900;letter-spacing:.08em;background:var(--ink);color:var(--paper);padding:7px 12px;border:3px solid var(--ink);transform:rotate(-1deg);}
+
+  .why-btn{
+    display:flex;align-items:center;justify-content:space-between;gap:12px;width:100%;
+    background:var(--sun);border:3px solid var(--ink);box-shadow:5px 5px 0 var(--ink);
+    font-family:var(--f-display);font-size:15px;font-weight:900;letter-spacing:.1em;
+    text-transform:uppercase;padding:13px 16px;margin-top:14px;
+    transition:transform .15s ease,box-shadow .15s ease,background .15s ease;
+  }
+  .why-btn:hover{transform:translate(-1px,-1px);box-shadow:7px 7px 0 var(--ink);background:var(--tan);}
+  .why-btn:active{transform:scale(.98);}
+  .chev{width:11px;height:11px;border-right:3px solid var(--ink);border-bottom:3px solid var(--ink);transform:rotate(45deg);transition:transform .3s ease;flex:none;}
+  .why-btn[aria-expanded="true"] .chev{transform:rotate(225deg);}
+  .why-panel{max-height:0;overflow:hidden;transition:max-height .35s ease;}
+  .why-panel.open{max-height:460px;}
+  .why-inner{border:3px solid var(--ink);background:var(--paper);box-shadow:inset 0 0 0 3px var(--paper),5px 5px 0 var(--mag);margin-top:10px;padding:16px 18px;}
+  .why-list{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:12px;}
+  .why-list li{display:flex;gap:12px;align-items:flex-start;font-size:14px;line-height:1.4;}
+  .rno{flex:none;width:30px;height:30px;border:3px solid var(--ink);background:var(--sun);font-family:var(--f-display);font-weight:900;font-size:13px;display:flex;align-items:center;justify-content:center;box-shadow:3px 3px 0 var(--ink);}
+
+  .pills{display:flex;gap:8px;flex-wrap:wrap;margin-top:16px;}
+  .pill{
+    font-family:var(--f-display);font-size:11px;font-weight:900;letter-spacing:.08em;
+    text-transform:uppercase;padding:9px 13px;border:3px solid var(--ink);
+    background:var(--paper);color:var(--ink);box-shadow:3px 3px 0 var(--ink);
+    transition:transform .12s ease,box-shadow .12s ease,background .12s ease;
+  }
+  .pill:hover{background:var(--sun);transform:translate(-1px,-1px);box-shadow:4px 4px 0 var(--ink);}
+  .pill:active{transform:scale(.96);}
+  .pill.on{box-shadow:4px 4px 0 var(--ink);}
+  .pill.on.pill-want{background:var(--cob);color:var(--paper);}
+  .pill.on.pill-read{background:var(--tan);color:var(--ink);}
+  .pill.on.pill-loved{background:var(--mag);color:var(--paper);}
+  .pill.on.pill-skip{background:var(--ink);color:var(--paper);}
+
+  /* ---------- section headers ---------- */
+  .sect-head{margin:52px 0 24px;}
+  .sect-title{
+    font-family:var(--f-display);font-weight:900;text-transform:uppercase;
+    font-size:clamp(36px,5.4vw,68px);line-height:.9;margin:12px 0 0;letter-spacing:-.01em;
+    text-shadow:5px 5px 0 var(--tan);
+  }
+  .sect-title span{display:block;}
+
+  /* ---------- month sections ---------- */
+  .mhead{display:flex;align-items:center;gap:14px;flex-wrap:wrap;margin:34px 0 8px;}
+  .mhead .mtitle{font-family:var(--f-display);font-size:26px;font-weight:900;text-transform:uppercase;}
+  .mtag{
+    font-family:var(--f-display);font-size:10px;font-weight:900;letter-spacing:.2em;
+    background:var(--cob);color:var(--paper);padding:6px 10px;border:3px solid var(--ink);
+    transform:rotate(-2deg);box-shadow:3px 3px 0 var(--ink);
+  }
+  .mtag--current{background:var(--mag);color:var(--paper);}
+
+  /* ---------- cards ---------- */
+  .grid-mix{display:grid;grid-template-columns:repeat(12,1fr);gap:26px;align-items:start;}
+  .grid-mix>*{min-width:0;}
+  .sp12{grid-column:span 12;}
+  .sp7{grid-column:span 7;}
+  .sp5{grid-column:span 5;}
+  .sp4{grid-column:span 4;}
+  .card{
+    position:relative;background:var(--paper);border:3px solid var(--ink);
+    padding:20px;transition:transform .15s ease,box-shadow .15s ease;
+    min-width:0;
+  }
+  .card:hover{transform:translate(-3px,-3px);box-shadow:11px 11px 0 var(--ink);}
+  .sh-mag{box-shadow:8px 8px 0 var(--mag);}
+  .sh-tan{box-shadow:8px 8px 0 var(--tan);}
+  .sh-cob{box-shadow:8px 8px 0 var(--cob);}
+  .card:hover.sh-mag{box-shadow:11px 11px 0 var(--mag);}
+  .card:hover.sh-tan{box-shadow:11px 11px 0 var(--tan);}
+  .card:hover.sh-cob{box-shadow:11px 11px 0 var(--cob);}
+  .card-head{display:flex;align-items:flex-start;justify-content:space-between;gap:10px;margin-bottom:12px;}
+  .rank{
+    flex:none;font-family:var(--f-display);font-size:26px;font-weight:900;
+    background:var(--sun);border:3px solid var(--ink);padding:4px 12px;line-height:1;
+    box-shadow:4px 4px 0 var(--ink);transform:rotate(-2deg);
+  }
+  .genchip{
+    font-family:var(--f-display);font-size:10px;font-weight:900;letter-spacing:.08em;
+    text-transform:uppercase;background:var(--tan);border:2.5px solid var(--ink);
+    padding:6px 10px;transform:rotate(1.4deg);box-shadow:3px 3px 0 var(--ink);
+  }
+  .genchip--cob{background:var(--cob);color:var(--paper);transform:rotate(-1.4deg);}
+  .genchip--mag{background:var(--mag);color:var(--paper);transform:rotate(1.4deg);}
+  .card-title{
+    font-family:var(--f-display);font-weight:900;text-transform:uppercase;
+    font-size:clamp(19px,2.1vw,26px);line-height:.95;margin:6px 0 6px;letter-spacing:-.01em;
+  }
+  .card-author{
+    font-family:var(--f-display);font-size:11px;font-weight:900;letter-spacing:.18em;
+    text-transform:uppercase;color:var(--ink);
+  }
+  .card-hook{font-family:var(--f-serif);font-style:italic;font-size:15.5px;line-height:1.4;margin:10px 0 12px;}
+  .meta{display:flex;flex-wrap:wrap;align-items:center;gap:10px;margin:10px 0 4px;}
+  .fitline{
+    font-family:var(--f-display);font-size:10px;font-weight:900;letter-spacing:.18em;
+    text-transform:uppercase;margin-top:10px;padding:6px 0;
+  }
+
+  .covwrap{position:relative;margin:0 0 14px;}
+  .covwrap .cv{border-width:3px;}
+
+  /* wide */
+  .card--wide{display:grid;grid-template-columns:320px 1fr;gap:26px;padding:24px;}
+  .card--wide .covwrap{margin:0;}
+  .card--wide.rev{grid-template-columns:1fr 320px;}
+  .card--wide.rev .covwrap{order:2;}
+  .card--wide .textcol{min-width:0;}
+  .card--mid{display:grid;grid-template-columns:200px 1fr;gap:20px;}
+  .card--mid .covwrap{margin:0;align-self:start;}
+  .card--mid .textcol{min-width:0;}
+  .card--tall .covwrap{width:62%;margin:0 auto 14px;}
+  .card--sm .covwrap{width:64%;}
+  .card--sm .covwrap.al-left{margin:0 0 14px;}
+  .card--sm .covwrap.al-right{margin:0 0 14px auto;}
+  .card--sm .covwrap.al-center{margin:0 auto 14px;}
+
+  /* slim (archive) */
+  .grid-slim{display:grid;grid-template-columns:repeat(4,1fr);gap:24px;}
+  .card--slim{padding:16px;}
+  .card--slim .covwrap{margin:0 0 12px;}
+
+  .is-hidden{display:none !important;}
+
+  /* ---------- coming soon ---------- */
+  .soon{
+    position:relative;margin:52px 0 8px;background:var(--ink);color:var(--paper);
+    border:4px solid var(--ink);box-shadow:12px 12px 0 var(--tan);padding:26px 28px;
+  }
+  .soon .s-kick{
+    font-family:var(--f-display);font-size:12px;font-weight:900;letter-spacing:.26em;
+    color:var(--sun);text-transform:uppercase;
+  }
+  .soon .s-big{
+    font-family:var(--f-display);font-weight:900;text-transform:uppercase;
+    font-size:clamp(20px,3vw,34px);line-height:1.05;margin:8px 0 4px;color:var(--paper);
+  }
+  .soon .s-big em{font-style:normal;color:var(--mag);}
+  .soon .s-sub{font-family:var(--f-serif);font-style:italic;font-size:16px;color:var(--paper);}
+  .soon-sticker{
+    position:absolute;top:-16px;right:-14px;background:var(--sun);color:var(--ink);
+    font-family:var(--f-display);font-size:11px;font-weight:900;letter-spacing:.06em;
+    text-transform:uppercase;padding:8px 13px;border:3px solid var(--ink);
+    box-shadow:4px 4px 0 var(--mag);transform:rotate(3deg);
+  }
+
+  /* ---------- footer ---------- */
+  .foot{
+    border-top:4px solid var(--ink);margin-top:54px;padding:26px 0 44px;
+    display:flex;justify-content:space-between;align-items:center;gap:20px;flex-wrap:wrap;
+  }
+  .foot-name{font-family:var(--f-display);font-size:24px;font-weight:900;text-transform:uppercase;text-shadow:3px 3px 0 var(--mag);}
+  .foot-sub{font-family:var(--f-display);font-size:11px;font-weight:900;letter-spacing:.24em;text-transform:uppercase;margin-top:6px;opacity:1;}
+  .foot-right{display:flex;align-items:center;gap:22px;flex-wrap:wrap;}
+  .barcode--small .bars{width:96px;height:28px;}
+
+  /* ---------- modal ---------- */
+  .overlay{
+    position:fixed;inset:0;background:var(--ink);z-index:90;
+    display:flex;align-items:center;justify-content:center;padding:24px;
+  }
+  .overlay[hidden]{display:none;}
+  .modal{
+    position:relative;background:var(--paper);border:4px solid var(--ink);
+    box-shadow:14px 14px 0 var(--mag);max-width:640px;width:100%;
+    max-height:88vh;overflow:auto;padding:32px 30px 30px;
+  }
+  .x{
+    position:absolute;top:12px;right:12px;width:42px;height:42px;
+    background:var(--sun);border:3px solid var(--ink);box-shadow:3px 3px 0 var(--ink);
+    font-family:var(--f-display);font-weight:900;font-size:22px;line-height:1;
+    transition:transform .12s ease,background .12s ease;
+  }
+  .x:hover{background:var(--mag);color:var(--paper);transform:translate(-1px,-1px);}
+  .x:active{transform:scale(.96);}
+  .modal h2{
+    font-family:var(--f-display);font-weight:900;text-transform:uppercase;
+    font-size:clamp(28px,4vw,40px);line-height:.95;margin:12px 0 18px;
+    text-shadow:4px 4px 0 var(--tan);
+  }
+  .rules{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:16px;}
+  .rules li{display:flex;gap:14px;align-items:flex-start;}
+  .rules .rno{width:36px;height:36px;font-size:15px;margin-top:2px;}
+  .rtitle{font-family:var(--f-display);font-size:14px;font-weight:900;letter-spacing:.06em;text-transform:uppercase;margin-bottom:4px;}
+  .rbody{font-size:14px;line-height:1.45;}
+
+  /* ---------- responsive ---------- */
+  @media (max-width:980px){
+    .hero{grid-template-columns:1fr;margin:22px 14px;}
+    .hero-coverwrap{max-width:300px;}
+    .hero-sunburst{width:900px;height:900px;}
+    .grid-mix{grid-template-columns:1fr;}
+    .sp12,.sp7,.sp5,.sp4{grid-column:span 1;}
+    .card--wide{grid-template-columns:1fr;}
+    .card--wide.rev{grid-template-columns:1fr;}
+    .card--wide.rev .covwrap{order:0;}
+    .card--wide .covwrap,.card--wide.rev .covwrap{max-width:280px;margin:0 auto;}
+    .card--mid{grid-template-columns:1fr;}
+    .card--mid .covwrap{width:62%;margin:0 auto;}
+    .grid-slim{grid-template-columns:repeat(2,1fr);}
+  }
+  @media (max-width:640px){
+    .page{padding:0 16px;}
+    .grid-slim{grid-template-columns:1fr;}
+    .tab{flex:1 1 auto;}
+    .foot{justify-content:flex-start;}
+    .hero{padding:22px;}
+    .hero-title{text-shadow:3px 3px 0 var(--cob);}
+  }
+</style>
+</head>
+<body>
+<div class="page">
+
+  <!-- =================== MASTHEAD =================== -->
+  <header class="masthead">
+    <div class="topbar">
+      <div>
+        <span class="issuekicker">ISSUE 01 - SEPTEMBER 2026</span><br>
+        <span class="datebar">DROPPED 1 SEP 2026</span>
+      </div>
+      <div class="barcode" aria-hidden="true">
+        <div class="bars"></div>
+        <div class="bars-label">THE SHELF 09/26</div>
+      </div>
+    </div>
+    <div class="thebar">A NEW ROMANCE PAGE</div>
+    <h1 class="mast-title">The Shelf</h1>
+    <div class="substrips">
+      <span class="strip strip-1">New Romance, Monthly</span>
+      <span class="strip strip-2">Sport Romance + Romantasy</span>
+      <span class="strip strip-3">Curated For You</span>
+    </div>
+    <div class="inkline"></div>
+    <div class="halftone"></div>
+  </header>
+
+  <!-- =================== TABS =================== -->
+  <div class="tabsrow">
+    <div class="tabs" role="tablist" aria-label="Issues">
+      <button type="button" class="tab is-active" data-month="sep" role="tab" aria-selected="true">
+        <span class="t-m">SEP</span><span class="t-d">2026</span><span class="t-c">8 BOOKS</span>
+      </button>
+      <button type="button" class="tab" data-month="aug" role="tab" aria-selected="false">
+        <span class="t-m">AUG</span><span class="t-d">2026</span><span class="t-c">4 BOOKS</span>
+      </button>
+      <button type="button" class="tab" data-month="jul" role="tab" aria-selected="false">
+        <span class="t-m">JUL</span><span class="t-d">2026</span><span class="t-c">4 BOOKS</span>
+      </button>
+      <button type="button" class="tab" data-month="jun" role="tab" aria-selected="false">
+        <span class="t-m">JUN</span><span class="t-d">2026</span><span class="t-c">3 BOOKS</span>
+      </button>
+    </div>
+    <button type="button" class="btn" id="howBtn">How Picks Work</button>
+  </div>
+
+  <!-- =================== MONTHS =================== -->
+  <main id="months">
+
+    <!-- ========== SEPTEMBER ========== -->
+    <section class="is-hidden" data-month="sep" aria-label="September 2026 issue"></section>
+
+    <!-- ========== AUGUST ========== -->
+    <section class="is-hidden" data-month="aug" aria-label="August 2026 archive"></section>
+
+    <!-- ========== JULY ========== -->
+    <section class="is-hidden" data-month="jul" aria-label="July 2026 archive"></section>
+
+    <!-- ========== JUNE ========== -->
+    <section class="is-hidden" data-month="jun" aria-label="June 2026 archive"></section>
+  </main>
+
+  <!-- =================== FOOTER =================== -->
+  <footer class="foot">
+    <div>
+      <div class="foot-name">The Shelf</div>
+      <div class="foot-sub">Mock data for design review</div>
+      <div class="halftone halftone--mag" style="width:190px;margin-top:8px;"></div>
+    </div>
+    <div class="foot-right">
+      <button type="button" class="btn btn--sun" id="howBtn2">How Picks Work</button>
+      <div class="barcode barcode--small" aria-hidden="true">
+        <div class="bars"></div>
+        <div class="bars-label">MOCK 001</div>
+      </div>
+    </div>
+  </footer>
+</div>
+
+<!-- =================== MODAL =================== -->
+<div class="overlay" id="overlay" hidden>
+  <div class="modal" role="dialog" aria-modal="true" aria-labelledby="modalTitle">
+    <button type="button" class="x" id="modalX" aria-label="Close">×</button>
+    <span class="kicker kicker-plate">The shelf method</span>
+    <h2 id="modalTitle">How Picks Work</h2>
+    <ol class="rules">
+      <li>
+        <span class="rno" style="background:var(--tan);">01</span>
+        <div>
+          <div class="rtitle">Soft quality floor</div>
+          <div class="rbody">Books early readers disliked get dropped before they ever reach your shelf.</div>
+        </div>
+      </li>
+      <li>
+        <span class="rno" style="background:var(--sun);">02</span>
+        <div>
+          <div class="rtitle">Fresh Reads badge</div>
+          <div class="rbody">A new book not yet proven. It caught the curators' eye, but the ratings are still coming in.</div>
+        </div>
+      </li>
+      <li>
+        <span class="rno" style="background:var(--mag);color:var(--paper);">03</span>
+        <div>
+          <div class="rtitle">Fit score</div>
+          <div class="rbody">Ranks by your genres, tropes and spice band - and the tracker feeds next month's picks.</div>
+        </div>
+      </li>
+    </ol>
+  </div>
+</div>
+
+<script>
+(function(){
+  "use strict";
+
+  /* ------------------ data ------------------ */
+  var BOOKS = {
+    b1:{title:"Ashes of the Iron Crown",author:"Tamsin Vale",genre:"Formulas",img:"assets/cover-01-iron-crown.jpg",
+        hook:"The crown burns for her - but the dragon only bows to the girl who intends to kill it.",
+        tropes:["enemies-to-lovers","forced proximity","fated mates","morally grey crown"],spice:4,fmt:"EBOOK + AUDIO"},
+    b2:{title:"Full Throttle Hearts",author:"Delia Frost",genre:"Formula 1",img:"assets/cover-02-throttle-hearts.jpg",
+        hook:"Two paddocks. One seat. The man who took her seat is the only one she can't stop texting.",
+        tropes:["grumpy/sunshine","fake dating","rivals-to-lovers"],spice:3,fmt:"EBOOK ONLY",badge:"FRESH READ",fit:"F1, grumpy/sunshine"},
+    b3:{title:"Ice, Love & Game Week",author:"Piper Brooks",genre:"Hockey",img:"assets/cover-03-ice-gameweek.jpg",
+        hook:"The league's grumpiest captain is one road-trip weekend from falling for his best friend's little sister.",
+        tropes:["one bed","forbidden","hockey"],spice:4,fmt:"EBOOK + AUDIO",badge:"FRESH READ",fit:"Hockey, forced proximity"},
+    b4:{title:"Wings of the Starless Court",author:"Aeli Marchetti",genre:"Romantasy - Dragons",img:"assets/cover-04-starless-court.jpg",
+        hook:"Her wings were taken as a punishment. His were given as a curse. Together they can only fly one way.",
+        tropes:["fated mates","slow burn","court intrigue"],spice:3,fmt:"EBOOK + AUDIO",badge:"FRESH READ",fit:"Dragon riders, fated mates"},
+    b5:{title:"Grid Girls",author:"Sofia Reyes",genre:"Formula 1",img:"assets/cover-05-grid-girls.jpg",
+        hook:"She engineered the car. He took the credit. This season, the telemetry never lies.",
+        tropes:["enemies-to-lovers","workplace","banter"],spice:3,fmt:"EBOOK + AUDIO",badge:"PROVEN 4.3 STARS",fit:"F1, enemies-to-lovers"},
+    b6:{title:"The Demon of Third Line",author:"Jemma Hart",genre:"Hockey",img:"assets/cover-06-demon-third-line.jpg",
+        hook:"Everyone fears him on the ice. She's the only one who knows why he loses his temper in the third.",
+        tropes:["grumpy/sunshine","single dad","small town"],spice:4,fmt:"EBOOK + AUDIO",fit:"Hockey, single dad"},
+    b7:{title:"A Court of Ember & Ash",author:"Celeste Marchand",genre:"Romantasy - Fae",img:"assets/cover-07-ember-ash.jpg",
+        hook:"The fae court that burned her family will learn why she was raised in the ashes.",
+        tropes:["enemies-to-lovers","revenge","morally grey FMC"],spice:4,fmt:"EBOOK ONLY",badge:"FRESH READ",fit:"Fae, 4/5 spice"},
+    b8:{title:"Touchdown at Rosewood",author:"Kiley Cross",genre:"College Football",img:"assets/cover-08-touchdown-rosewood.jpg",
+        hook:"He's the quarterback who blew his scholarship. She's the tutor who can't stand him - or stop watching film.",
+        tropes:["grumpy/sunshine","small town","slow burn"],spice:3,fmt:"EBOOK + AUDIO",fit:"College football, small town"}
+  };
+
+  var MONTHS = {
+    sep:{label:"September 2026",current:true,books:["b1","b2","b3","b4","b5","b6","b7","b8"],
+         preset:{b2:"LOVED",b5:"READ",b7:"SKIP"}},
+    aug:{label:"August 2026",current:false,books:["b2","b3","b5","b8"],
+         preset:{b2:"LOVED",b3:"READ",b5:"WANT",b8:"SKIP"}},
+    jul:{label:"July 2026",current:false,books:["b1","b4","b6","b7"],
+         preset:{b1:"READ",b4:"LOVED",b6:"READ",b7:"SKIP"}},
+    jun:{label:"June 2026",current:false,books:["b2","b4","b7"],
+         preset:{b2:"READ",b4:"WANT",b7:"READ"}}
+  };
+
+  var STATES = ["WANT","READ","LOVED","SKIP"];
+
+  /* ------------------ tracker state ------------------ */
+  var KEY = "shelf-tracker-a";
+  var tracker = {};
+  try{
+    var raw = window.localStorage.getItem(KEY);
+    if(raw){ tracker = JSON.parse(raw) || {}; }
+  }catch(e){ tracker = {}; }
+
+  function curState(m,b){
+    if(tracker[m] && tracker[m].hasOwnProperty(b)){ return tracker[m][b]; }
+    return (MONTHS[m].preset && MONTHS[m].preset[b]) || "";
+  }
+  function saveTracker(){
+    try{ window.localStorage.setItem(KEY, JSON.stringify(tracker)); }catch(e){}
+  }
+  function setPillStates(m,b){
+    var cur = curState(m,b);
+    document.querySelectorAll('.pill[data-month="'+m+'"][data-book="'+b+'"]').forEach(function(p){
+      var on = p.getAttribute("data-state") === cur;
+      p.classList.toggle("on", on);
+      p.setAttribute("aria-pressed", on ? "true" : "false");
+    });
+  }
+
+  /* ------------------ html builders ------------------ */
+  function esc(s){ return String(s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;"); }
+
+  function chips(list){
+    return list.map(function(t,i){
+      return '<span class="chip chip-'+(i%4)+'" style="transform:rotate('+((i%2? -1:1)*1.1)+'deg)">'+esc(t).toUpperCase()+'</span>';
+    }).join("");
+  }
+  function spiceHTML(n){
+    var s = "";
+    for(var i=1;i<=5;i++){ s += '<span class="pip'+(i<=n?' on':'')+'"></span>'; }
+    return '<span class="spice" aria-label="spice '+n+' out of 5">'+s+'</span><span class="spice-n">'+n+'/5</span>';
+  }
+  function pillsHTML(m,b){
+    return STATES.map(function(st){
+      var on = curState(m,b) === st;
+      return '<button type="button" class="pill pill-'+st.toLowerCase()+(on?' on':'')+
+             '" data-month="'+m+'" data-book="'+b+'" data-state="'+st+'" aria-pressed="'+on+'">'+st+'</button>';
+    }).join("");
+  }
+  function badgeHTML(bk){
+    if(!bk.badge){ return ""; }
+    var cls = bk.badge.indexOf("FRESH") === 0 ? "sticker--fresh" : "sticker--proven";
+    return '<span class="sticker '+cls+'">'+esc(bk.badge)+'</span>';
+  }
+  function metaHTML(bk){
+    return '<div class="meta"><span class="fmt">'+esc(bk.fmt)+'</span>'+
+           '<div class="spicerow"><span class="label">Spice</span>'+spiceHTML(bk.spice)+'</div></div>'+
+           (bk.fit ? '<div class="fitline"><span class="hl">FIT:</span> '+esc(bk.fit).toUpperCase()+'</div>' : '');
+  }
+  function coverHTML(bk,align){
+    return '<div class="covwrap '+align+'">'+
+             '<img class="cv" src="'+bk.img+'" alt="Cover: '+esc(bk.title)+' by '+esc(bk.author)+'" loading="lazy">'+
+             badgeHTML(bk)+
+           '</div>';
+  }
+
+  function cardHTML(bid,month,layout){
+    var bk = BOOKS[bid];
+    var num = {b2:2,b3:3,b4:4,b5:5,b6:6,b7:7,b8:8}[bid];
+    var rankHtml = '<span class="rank">'+num+'</span>';
+    var gc = (num%2===0) ? ' genchip--cob' : '';
+    var head = '<div class="card-head">'+rankHtml+'<span class="genchip'+gc+'">'+esc(bk.genre).toUpperCase()+'</span></div>';
+    var textcol = '<div class="textcol">'+head+
+        '<h3 class="card-title">'+esc(bk.title).toUpperCase()+'</h3>'+
+        '<div class="card-author">BY '+esc(bk.author).toUpperCase()+'</div>'+
+        '<p class="card-hook">'+esc(bk.hook)+'</p>'+
+        '<div class="tropebox">'+chips(bk.tropes)+'</div>'+
+        metaHTML(bk)+
+        '<div class="pills">'+pillsHTML(month,bid)+'</div>'+
+      '</div>';
+
+    var cls = {wide:"card--wide", "wide-rev":"card--wide rev", mid:"card--mid", tall:"card--tall", sm:"card--sm"}[layout];
+    var shadow = {wide:"", "wide-rev":"", mid:"sh-tan", tall:"sh-cob", sm:"sh-mag"}[layout];
+    if(layout==="wide" || layout==="wide-rev"){
+      return '<article class="card '+cls+'" style="box-shadow:8px 8px 0 var(--ink)">'+coverHTML(bk,"")+textcol+'</article>';
+    }
+    if(layout==="mid"){
+      return '<article class="card '+cls+' '+shadow+'">'+coverHTML(bk,"")+textcol+'</article>';
+    }
+    if(layout==="tall"){
+      return '<article class="card '+cls+' '+shadow+'">'+coverHTML(bk,"")+textcol+'</article>';
+    }
+    var align = {b5:"al-center", b6:"al-left", b7:"al-right"}[bid];
+    return '<article class="card '+cls+' '+shadow+'">'+coverHTML(bk,align)+textcol+'</article>';
+  }
+
+  /* ------------------ month rendering ------------------ */
+  function renderSep(){
+    var bk1 = BOOKS.b1;
+    var hero = '<div class="hero-stage">'+
+      '<div class="hero-sunburst" aria-hidden="true"></div>'+
+      '<div class="hero">'+
+        '<div class="hero-coverwrap">'+
+          '<div class="hero-cover">'+
+            '<img class="cv" src="'+bk1.img+'" alt="Cover: '+esc(bk1.title)+' by '+esc(bk1.author)+'" fetchpriority="high">'+
+          '</div>'+
+          '<div class="seal" aria-hidden="true"><div class="seal-inner"><span class="s1">TOP</span><span class="s2">PICK</span></div></div>'+
+          '<span class="sticker sticker--ribbon">ROMANTASY</span>'+
+          '<span class="sticker sticker--ratings">4.6 STARS / 1.2K EARLY RATINGS</span>'+
+        '</div>'+
+        '<div class="hero-text">'+
+          '<span class="kicker kicker-plate">TOP PICK - THIS MONTH</span>'+
+          '<h2 class="hero-title">Ashes of the<br><span class="hl">Iron Crown</span></h2>'+
+          '<div class="hero-author">BY '+esc(bk1.author).toUpperCase()+'</div>'+
+          '<p class="hero-hook">The crown <span class="hl">burns for her</span> - but the dragon only bows to the girl who <span class="hl">intends to kill it</span>.</p>'+
+          '<div class="tropebox">'+chips(bk1.tropes)+'</div>'+
+          '<div class="spicerow"><span class="label">Spice</span>'+spiceHTML(bk1.spice)+'</div>'+
+          '<div><span class="fmt">'+bk1.fmt+'</span></div>'+
+          '<button type="button" class="why-btn" id="whyBtn" aria-expanded="false" aria-controls="whyPanel">'+
+            '<span>WHY IT WON</span><span class="chev"></span>'+
+          '</button>'+
+          '<div class="why-panel" id="whyPanel">'+
+            '<div class="why-inner">'+
+              '<ul class="why-list">'+
+                '<li><span class="rno">01</span><span>dragons+fae matches your Fourth Wing / Moon Hatched track</span></li>'+
+                '<li><span class="rno" style="background:var(--mag);color:var(--paper);">02</span><span>enemies-to-lovers is your most-read trope</span></li>'+
+                '<li><span class="rno" style="background:var(--cob);color:var(--paper);">03</span><span>proven 4.6 stars, 1.2k early ratings, so it earns the top spot over the fresh reads</span></li>'+
+              '</ul>'+
+            '</div>'+
+          '</div>'+
+          '<div class="pills">'+pillsHTML("sep","b1")+'</div>'+
+        '</div>'+
+      '</div>'+
+    '</div>';
+
+    var lineupHead = '<div class="sect-head">'+
+      '<span class="kicker kicker-plate kicker-plate--cob">NO. 02 - SEVEN MORE, RANKED BY FIT</span>'+
+      '<h2 class="sect-title">The Line-Up<span>02 - 08</span></h2>'+
+      '<div class="halftone halftone--cob" style="max-width:420px;"></div>'+
+    '</div>';
+
+    var grid = '<div class="grid-mix">';
+    grid += '<div class="sp12">'+cardHTML("b2","sep","wide")+'</div>';
+    grid += '<div class="sp7">'+cardHTML("b3","sep","mid")+'</div>';
+    grid += '<div class="sp5">'+cardHTML("b4","sep","tall")+'</div>';
+    grid += '<div class="sp4">'+cardHTML("b5","sep","sm")+'</div>';
+    grid += '<div class="sp4">'+cardHTML("b6","sep","sm")+'</div>';
+    grid += '<div class="sp4">'+cardHTML("b7","sep","sm")+'</div>';
+    grid += '<div class="sp12">'+cardHTML("b8","sep","wide-rev")+'</div>';
+    grid += '</div>';
+
+    var soon = '<div class="soon">'+
+      '<div class="s-kick">YOUR SERIES</div>'+
+      '<div class="s-big">Ember Falls - <em>Dragons of Ember Hollow #4</em> - Tessa Hale - Out 3 Oct</div>'+
+      '<div class="s-sub">You have read all three so far.</div>'+
+      '<span class="soon-sticker">OUT OCT 3</span>'+
+    '</div>';
+
+    return hero + lineupHead + grid + soon;
+  }
+
+  function renderArchive(m){
+    var md = MONTHS[m];
+    var tag = md.current
+      ? '<span class="mtag mtag--current">CURRENT ISSUE</span>'
+      : '<span class="mtag">ARCHIVE</span>';
+    var head = '<div class="mhead">'+
+      '<h2 class="mtitle">'+md.label+'</h2>'+tag+
+      '<span class="halftone" style="flex:1;min-width:60px;height:12px;"></span>'+
+    '</div>';
+    var grid = '<div class="grid-slim">';
+    md.books.forEach(function(bid){
+      var bk = BOOKS[bid];
+      var num = {b1:1,b2:2,b3:3,b4:4,b5:5,b6:6,b7:7,b8:8}[bid];
+      var gc = (num%2===0) ? ' genchip--mag' : '';
+      grid += '<article class="card card--slim" data-bid="'+bid+'">'+
+        '<div class="covwrap">'+
+          '<img class="cv" src="'+bk.img+'" alt="Cover: '+esc(bk.title)+' by '+esc(bk.author)+'" loading="lazy">'+
+        '</div>'+
+        '<div class="card-head"><span class="rank" style="font-size:18px;">'+num+'</span>'+
+          '<span class="genchip'+gc+'" style="font-size:9px;">'+esc(bk.genre).toUpperCase()+'</span></div>'+
+        '<h3 class="card-title" style="font-size:17px;">'+esc(bk.title).toUpperCase()+'</h3>'+
+        '<div class="card-author">BY '+esc(bk.author).toUpperCase()+'</div>'+
+        '<p class="card-hook" style="font-size:14px;">'+esc(bk.hook)+'</p>'+
+        '<div class="spicerow"><span class="label" style="font-size:9px;">Spice</span>'+spiceHTML(bk.spice)+'</div>'+
+        '<div style="margin-top:8px;"><span class="fmt" style="font-size:10px;">'+esc(bk.fmt)+'</span></div>'+
+        '<div class="pills">'+pillsHTML(m,bid)+'</div>'+
+      '</article>';
+    });
+    grid += '</div>';
+    return head + grid;
+  }
+
+  /* ------------------ boot ------------------ */
+  function boot(){
+    var sep = document.querySelector('section[data-month="sep"]');
+    sep.innerHTML = renderSep();
+    ["aug","jul","jun"].forEach(function(m){
+      document.querySelector('section[data-month="'+m+'"]').innerHTML = renderArchive(m);
+    });
+    /* default tab = sep */
+    selectMonth("sep", false);
+  }
+
+  /* ------------------ interactions ------------------ */
+  function selectMonth(m, scroll){
+    document.querySelectorAll(".tab").forEach(function(t){
+      var on = t.getAttribute("data-month") === m;
+      t.classList.toggle("is-active", on);
+      t.setAttribute("aria-selected", on ? "true" : "false");
+    });
+    document.querySelectorAll("section[data-month]").forEach(function(s){
+      s.classList.toggle("is-hidden", s.getAttribute("data-month") !== m);
+    });
+    if(scroll !== false){
+      var head = document.querySelector('section[data-month="'+m+'"]');
+      if(head){ head.scrollIntoView({behavior:"smooth", block:"start"}); }
+    }
+  }
+
+  /* pills: delegated clicks */
+  document.addEventListener("click", function(e){
+    var pill = e.target.closest(".pill");
+    if(pill){
+      var m = pill.getAttribute("data-month");
+      var b = pill.getAttribute("data-book");
+      var st = pill.getAttribute("data-state");
+      if(!tracker[m]){ tracker[m] = {}; }
+      var next = (curState(m,b) === st) ? "" : st;
+      tracker[m][b] = next;
+      saveTracker();
+      setPillStates(m,b);
+      return;
+    }
+    var tab = e.target.closest(".tab");
+    if(tab){
+      selectMonth(tab.getAttribute("data-month"), true);
+      return;
+    }
+    var why = e.target.closest("#whyBtn");
+    if(why){
+      var panel = document.getElementById("whyPanel");
+      var open = panel.classList.toggle("open");
+      why.setAttribute("aria-expanded", open ? "true" : "false");
+      return;
+    }
+    if(e.target.closest("#howBtn") || e.target.closest("#howBtn2")){
+      openModal();
+      return;
+    }
+  });
+
+  /* ------------------ modal ------------------ */
+  var overlay = document.getElementById("overlay");
+  var modalX = document.getElementById("modalX");
+  var prevFocus = null;
+
+  function openModal(){
+    prevFocus = document.activeElement;
+    overlay.hidden = false;
+    overlay.classList.add("is-open");
+    document.body.style.overflow = "hidden";
+    modalX.focus();
+  }
+  function closeModal(){
+    overlay.hidden = true;
+    overlay.classList.remove("is-open");
+    document.body.style.overflow = "";
+    if(prevFocus && prevFocus.focus){ prevFocus.focus(); }
+  }
+  document.addEventListener("keydown", function(e){
+    if(e.key === "Escape" && !overlay.hidden){ closeModal(); return; }
+    if(e.key === "Tab" && !overlay.hidden){
+      var panel = overlay.querySelector(".modal");
+      var items = panel.querySelectorAll("button, [href], [tabindex]:not([tabindex='-1'])");
+      if(!items.length){ return; }
+      var first = items[0], last = items[items.length-1];
+      if(e.shiftKey && document.activeElement === first){ e.preventDefault(); last.focus(); }
+      else if(!e.shiftKey && document.activeElement === last){ e.preventDefault(); first.focus(); }
+    }
+  });
+  overlay.addEventListener("click", function(e){
+    if(e.target === overlay){ closeModal(); }
+  });
+  modalX.addEventListener("click", closeModal);
+
+  /* ------------------ go ------------------ */
+  boot();
+})();
+</script>
+</body>
+</html>

@@ -1,0 +1,748 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>THE SHELF - Issue 01 - September 2026</title>
+<style>
+/* ============================================================
+   THE SHELF - Y2K GLOSS direction
+   Late-90s / early-2000s teen glossy magazine, smashed into a
+   website. Gloss black base, chrome lilac gradients, hot magenta,
+   aqua cyan, lemon. Solid fills only - depth via color blocks.
+   ============================================================ */
+*{margin:0;padding:0;box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{
+  font-family:"Futura","Century Gothic","Avenir Next","Helvetica Neue",Helvetica,Arial,sans-serif;
+  background:#0A0A0A;color:#111;font-size:16px;-webkit-font-smoothing:antialiased;
+}
+img{display:block}
+[hidden]{display:none !important}
+.wrap{width:min(1180px,calc(100% - 40px));margin:0 auto}
+
+/* ---------- chrome text treatment (solid gradient stops) ---------- */
+.chrome-text{
+  background:linear-gradient(180deg,#E8E2FF 0%,#B7A7FF 42%,#6A5CFF 78%,#8F79FF 100%);
+  -webkit-background-clip:text;background-clip:text;
+  -webkit-text-fill-color:transparent;color:transparent;
+}
+
+/* ---------- glossy white streak (solid white bar, no alpha) ---------- */
+.streak{
+  position:absolute;top:5px;left:10%;right:10%;height:8px;border-radius:999px;
+  background:#fff;pointer-events:none;z-index:0;
+}
+
+/* ============================================================
+   MASTHEAD
+   ============================================================ */
+.masthead{
+  background:linear-gradient(180deg,#0A0A0A 0%,#101010 100%);
+  padding:58px 0 44px;text-align:center;position:relative;overflow:hidden;
+}
+.chromebar{height:9px;background:linear-gradient(90deg,#B7A7FF 0%,#6A5CFF 28%,#FF00A8 52%,#00D9FF 74%,#F5FF3D 100%)}
+.spark-row{font-size:16px;color:#FF00A8;letter-spacing:30px;user-select:none;margin-bottom:8px}
+.mast-glow{
+  font-family:"Arial Black","Arial","Helvetica Neue",Helvetica,sans-serif;
+  font-size:clamp(62px,13vw,148px);line-height:.92;letter-spacing:.005em;
+  padding:8px 14px;filter:drop-shadow(5px 5px 0 #FF00A8);
+}
+.issue{margin-top:16px;color:#fff;font-weight:800;letter-spacing:.4em;font-size:clamp(11px,1.5vw,14px)}
+.sub{margin-top:10px;color:#B7A7FF;font-weight:600;letter-spacing:.27em;font-size:clamp(9px,1.3vw,12px)}
+.date-chip{
+  display:inline-block;margin-top:24px;padding:9px 22px;border-radius:999px;
+  background:#F5FF3D;color:#0A0A0A;border:3px solid #fff;box-shadow:4px 4px 0 #FF00A8;
+  font-weight:900;font-size:11px;letter-spacing:.24em;white-space:nowrap;
+}
+.mast-spark{color:#00D9FF;margin:0 8px}
+
+/* ============================================================
+   MONTH NAV (segmented pill tabs)
+   ============================================================ */
+.monthnav{background:#fff;border-bottom:3px solid #0A0A0A;padding:14px 0}
+.monthnav .wrap{display:flex;justify-content:center}
+.tabs{
+  display:inline-flex;flex-wrap:wrap;gap:10px;justify-content:center;
+  background:#fff;border:3px solid #0A0A0A;border-radius:999px;padding:8px;
+}
+.tab{
+  border:3px solid #0A0A0A;background:#fff;color:#0A0A0A;border-radius:999px;
+  padding:11px 22px;font-family:inherit;font-weight:900;font-size:13px;
+  letter-spacing:.1em;cursor:pointer;white-space:nowrap;
+  transition:transform .14s ease,background .14s ease,color .14s ease;
+}
+.tab:hover{transform:translateY(-2px);background:#FFF9A6}
+.tab:active{transform:scale(.98)}
+.tab.sel{background:#0A0A0A;color:#F5FF3D}
+
+/* ============================================================
+   HERO - chrome lilac block, tilted sticker poster
+   ============================================================ */
+.hero{
+  background:linear-gradient(180deg,#C4B9FF 0%,#B7A7FF 30%,#6A5CFF 100%);
+  padding:72px 0 88px;color:#fff;
+}
+.hero-grid{display:grid;grid-template-columns:minmax(300px,400px) 1fr;gap:64px;align-items:center}
+.hero-poster{position:relative}
+.poster{
+  transform:rotate(-2deg);border:6px solid #fff;border-radius:18px;overflow:hidden;
+  background:#fff;position:relative;z-index:1;
+  box-shadow:20px 20px 0 #FF00A8,40px 40px 0 #00D9FF;
+}
+.poster img{width:100%;aspect-ratio:2/3;object-fit:cover}
+.poster-tag{
+  position:absolute;top:-24px;left:-16px;transform:rotate(6deg);z-index:3;
+  background:#F5FF3D;border:3px solid #0A0A0A;box-shadow:4px 4px 0 #0A0A0A;
+  border-radius:48% 52% 60% 40% / 55% 45% 50% 50%;
+  padding:10px 18px;font-family:"Arial Black","Arial",sans-serif;
+  font-size:13px;color:#0A0A0A;letter-spacing:.08em;white-space:nowrap;
+}
+.poster-note{
+  position:absolute;bottom:-18px;right:-10px;transform:rotate(-5deg);z-index:3;
+  background:#FF00A8;border:3px solid #fff;box-shadow:4px 4px 0 #0A0A0A;
+  border-radius:999px;padding:7px 16px;color:#fff;font-weight:900;
+  font-size:10px;letter-spacing:.2em;white-space:nowrap;
+}
+.hero-copy h2{
+  font-family:"Arial Black","Arial","Helvetica Neue",Helvetica,sans-serif;
+  font-size:clamp(30px,4.6vw,56px);line-height:1.02;letter-spacing:-.01em;
+  text-shadow:4px 4px 0 #FF00A8;
+}
+.hero-author{font-family:Georgia,"Times New Roman",serif;font-style:italic;font-size:clamp(17px,2vw,22px);margin:12px 0 6px;color:#F5FF3D}
+.hero-genre{
+  display:inline-block;background:#0A0A0A;color:#F5FF3D;border:3px solid #fff;
+  border-radius:999px;padding:6px 14px;font-size:10px;font-weight:900;
+  letter-spacing:.22em;margin:12px 0 16px;box-shadow:4px 4px 0 #00D9FF;
+}
+.hero-hook{
+  position:relative;overflow:hidden;background:#0A0A0A;border:3px solid #fff;
+  border-radius:18px;padding:22px 20px 16px;font-size:clamp(15px,1.8vw,18px);
+  font-weight:700;line-height:1.5;box-shadow:6px 6px 0 #F5FF3D;
+}
+.hero-hook .streak{top:6px}
+.hero-hook span{position:relative;z-index:1}
+.hero-chips{display:flex;flex-wrap:wrap;gap:8px;margin:16px 0 4px}
+.chip-out{
+  border:3px solid #0A0A0A;border-radius:999px;padding:5px 12px;background:#fff;
+  color:#0A0A0A;font-size:10px;font-weight:900;letter-spacing:.07em;white-space:nowrap;
+}
+.hero-meta{display:flex;flex-wrap:wrap;gap:10px;margin:16px 0;align-items:center}
+.meta-chip{
+  display:inline-flex;align-items:center;gap:6px;background:#fff;color:#0A0A0A;
+  border:3px solid #0A0A0A;border-radius:999px;padding:7px 14px;
+  font-size:10px;font-weight:900;letter-spacing:.16em;white-space:nowrap;
+}
+.meta-chip.cyan{background:#00D9FF}
+.spark{color:#FF00A8;font-size:12px;line-height:1}
+.spark.off{color:#C9C9C9}
+.why-btn{
+  display:inline-flex;align-items:center;gap:10px;position:relative;overflow:hidden;
+  background:#0A0A0A;color:#fff;border:3px solid #fff;border-radius:999px;
+  padding:14px 26px;font-family:inherit;font-weight:900;font-size:13px;
+  letter-spacing:.14em;cursor:pointer;box-shadow:8px 8px 0 #FF00A8;
+  transition:transform .12s ease,box-shadow .12s ease;
+  white-space:nowrap;
+}
+.why-btn .lab{position:relative;z-index:1}
+.why-btn .chev{
+  position:relative;z-index:1;display:inline-block;font-size:12px;
+  transition:transform .3s ease;transform:translateY(1px);
+}
+.why-btn:hover{transform:translateY(-2px)}
+.why-btn:active{transform:scale(.98)}
+.why-btn.open .chev{transform:rotate(180deg)}
+.why-panel{display:grid;grid-template-rows:0fr;transition:grid-template-rows .35s ease}
+.why-panel.open{grid-template-rows:1fr}
+.why-inner{overflow:hidden}
+.why-box{
+  margin-top:18px;background:#0A0A0A;border:3px solid #fff;border-radius:20px;
+  padding:24px 26px;box-shadow:6px 6px 0 #00D9FF;
+}
+.why-box h4{color:#F5FF3D;font-size:12px;font-weight:900;letter-spacing:.3em;margin-bottom:12px}
+.why-list{list-style:none}
+.why-list li{
+  color:#fff;font-size:15px;font-weight:600;line-height:1.45;padding:9px 0;
+  border-bottom:2px solid #262626;
+}
+.why-list li:last-child{border-bottom:none}
+.why-list .spark{margin-right:10px;color:#FF6AD0}
+
+/* hero tracker pills - same component as cards, styled for lilac bg */
+.hero-track{display:flex;gap:8px;flex-wrap:wrap;margin:16px 0 0;padding-top:14px;border-top:2px solid #fff}
+
+/* ============================================================
+   LINEUP - full-bleed magenta block, glossy tile grid
+   ============================================================ */
+.lineup{
+  background:linear-gradient(180deg,#FF6AD0 0%,#FF00A8 30%,#C60082 100%);
+  padding:78px 0 92px;
+}
+.sec-title{
+  font-family:"Arial Black","Arial","Helvetica Neue",Helvetica,sans-serif;
+  font-size:clamp(30px,4.6vw,54px);letter-spacing:-.01em;color:#fff;
+  text-shadow:4px 4px 0 #0A0A0A;
+}
+.sec-sub{margin-top:10px;color:#fff;font-weight:800;font-size:12px;letter-spacing:.3em}
+.sec-title.dark{color:#0A0A0A;text-shadow:3px 3px 0 #fff}
+.sec-sub.dark{color:#0A0A0A}
+.stack-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:26px;margin-top:38px}
+.card{
+  background:#fff;border:3px solid #0A0A0A;border-radius:20px;overflow:hidden;
+  box-shadow:8px 8px 0 #0A0A0A;
+  transition:transform .16s ease,box-shadow .16s ease;
+}
+.card:hover{transform:translateY(-5px);box-shadow:12px 12px 0 #0A0A0A}
+.card-strip{
+  display:flex;align-items:center;justify-content:space-between;gap:8px;
+  padding:13px 14px 11px;position:relative;overflow:hidden;
+  background:linear-gradient(180deg,#FF00A8 0%,#D60091 100%);
+  border-bottom:3px solid #0A0A0A;
+}
+.card-strip .streak{top:5px;height:6px;left:8%;right:8%}
+.rank{font-family:"Arial Black","Arial",sans-serif;color:#fff;font-size:15px;letter-spacing:.06em;text-shadow:2px 2px 0 #0A0A0A;white-space:nowrap}
+.badge{
+  font-family:"Arial Black","Arial",sans-serif;font-size:9px;letter-spacing:.1em;
+  border:3px solid #0A0A0A;border-radius:999px;padding:4px 10px;
+  white-space:nowrap;position:relative;z-index:1;
+}
+.badge.fresh{background:#F5FF3D;color:#0A0A0A}
+.badge.proven{background:#00D9FF;color:#0A0A0A}
+.cover-wrap{padding:16px 16px 0}
+.cover-wrap img{
+  width:76%;margin:0 auto;aspect-ratio:2/3;object-fit:cover;
+  border:3px solid #0A0A0A;border-radius:14px;background:#E8E8E8;
+}
+.card-body{padding:14px 16px 18px}
+.card-title{font-family:"Arial Black","Arial",sans-serif;font-size:17px;line-height:1.15;letter-spacing:.01em;color:#0A0A0A}
+.card-author{font-family:Georgia,"Times New Roman",serif;font-style:italic;color:#C60082;font-size:14px;margin:4px 0 8px}
+.genre{
+  display:inline-block;background:#00D9FF;border:3px solid #0A0A0A;border-radius:999px;
+  padding:3px 10px;font-size:9px;font-weight:900;letter-spacing:.14em;color:#0A0A0A;
+  margin-bottom:10px;white-space:nowrap;
+}
+.hook{font-family:Georgia,"Times New Roman",serif;font-style:italic;font-size:13.5px;line-height:1.5;color:#222;margin-bottom:10px}
+.chips{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:12px}
+.chip{
+  border:2px solid #0A0A0A;border-radius:999px;padding:3px 9px;background:#fff;
+  color:#0A0A0A;font-size:9.5px;font-weight:900;letter-spacing:.05em;white-space:nowrap;
+}
+.meta-row{display:flex;align-items:center;flex-wrap:wrap;gap:8px;margin-bottom:10px}
+.spice{font-size:10px;font-weight:900;letter-spacing:.1em;color:#0A0A0A;display:inline-flex;align-items:center;gap:5px;white-space:nowrap}
+.fmt{background:#0A0A0A;color:#fff;border-radius:999px;padding:4px 10px;font-size:9px;font-weight:900;letter-spacing:.14em;white-space:nowrap}
+.fit{font-family:Georgia,"Times New Roman",serif;font-style:italic;font-size:12.5px;color:#333;margin-bottom:13px}
+.fit-label{
+  font-family:"Futura","Century Gothic",Arial,sans-serif;font-style:normal;font-size:9px;
+  font-weight:900;letter-spacing:.18em;background:#0A0A0A;color:#F5FF3D;
+  padding:2px 7px;border-radius:999px;margin-right:7px;display:inline-block;
+  transform:translateY(-1px);
+}
+
+/* ---------- tracker pills (shared) ---------- */
+.track{display:flex;gap:6px;flex-wrap:wrap;border-top:2px solid #0A0A0A;padding-top:12px}
+.pill{
+  flex:1 1 auto;border:3px solid #0A0A0A;background:#fff;border-radius:999px;
+  padding:7px 4px;font-family:"Futura","Century Gothic",Arial,sans-serif;
+  font-size:10px;font-weight:900;letter-spacing:.1em;cursor:pointer;
+  color:#0A0A0A;white-space:nowrap;transition:background .14s ease,transform .14s ease,box-shadow .14s ease;
+}
+.pill:hover{background:#FFE9F7}
+.pill:active{transform:scale(.98)}
+.pill.sel{background:#FF00A8;color:#fff;box-shadow:3px 3px 0 #0A0A0A;transform:translate(-1px,-1px)}
+
+/* ============================================================
+   COMING SOON - full-bleed cyan block
+   ============================================================ */
+.soon{
+  background:linear-gradient(180deg,#7FEBFF 0%,#00D9FF 45%,#00A7C6 100%);
+  padding:56px 0;border-top:3px solid #0A0A0A;
+}
+.soon-flex{display:flex;align-items:center;gap:30px;flex-wrap:wrap}
+.soon-badge{
+  background:#F5FF3D;border:3px solid #0A0A0A;box-shadow:5px 5px 0 #0A0A0A;
+  border-radius:48% 52% 60% 40% / 55% 45% 50% 50%;padding:18px 24px;
+  transform:rotate(-3deg);font-family:"Arial Black","Arial",sans-serif;
+  font-size:16px;color:#0A0A0A;letter-spacing:.05em;white-space:nowrap;
+}
+.soon-copy{flex:1 1 300px}
+.soon-copy h3{font-family:"Arial Black","Arial",sans-serif;font-size:clamp(22px,3vw,34px);color:#0A0A0A}
+.soon-sub{margin-top:5px;color:#06404C;font-weight:800;font-size:13px;letter-spacing:.08em}
+.soon-note{font-family:Georgia,"Times New Roman",serif;font-style:italic;font-size:17px;color:#0A0A0A;margin-top:10px}
+.soon-pips{display:flex;gap:8px;align-items:center;padding:14px 18px;background:#0A0A0A;border:3px solid #fff;border-radius:999px;box-shadow:5px 5px 0 #F5FF3D}
+.soon-pips .spark{color:#FF00A8;font-size:20px}
+.soon-pips .spark.on{color:#F5FF3D}
+.soon-pips .count{color:#fff;font-weight:900;font-size:10px;letter-spacing:.2em;margin-left:8px}
+
+/* ============================================================
+   ARCHIVE - full-bleed lemon block
+   ============================================================ */
+.archive{background:#F5FF3D;padding:72px 0 96px}
+.arch-list{margin-top:32px;display:flex;flex-direction:column;gap:16px}
+.arch-row{
+  background:#fff;border:3px solid #0A0A0A;border-radius:18px;padding:14px 18px;
+  display:flex;gap:18px;align-items:center;flex-wrap:wrap;
+  box-shadow:6px 6px 0 #0A0A0A;transition:transform .14s ease;
+}
+.arch-row:hover{transform:translateY(-3px)}
+.arch-cover{width:76px;border:3px solid #0A0A0A;border-radius:10px;overflow:hidden;flex:0 0 auto;background:#E8E8E8}
+.arch-cover img{width:100%;aspect-ratio:2/3;object-fit:cover}
+.arch-mid{flex:1 1 260px}
+.arch-title{font-family:"Arial Black","Arial",sans-serif;font-size:15px;color:#0A0A0A}
+.arch-author{font-family:Georgia,"Times New Roman",serif;font-style:italic;color:#C60082;font-size:13px;margin:2px 0 7px}
+.arch-meta{display:flex;flex-wrap:wrap;gap:6px;align-items:center}
+.arch-chip{
+  border:2px solid #0A0A0A;border-radius:999px;padding:2px 9px;background:#fff;
+  font-size:8.5px;font-weight:900;letter-spacing:.1em;color:#0A0A0A;white-space:nowrap;
+}
+.arch-chip.cyan{background:#00D9FF}
+.arch-chip.black{background:#0A0A0A;color:#fff}
+.arch-fit{font-family:Georgia,"Times New Roman",serif;font-style:italic;font-size:12px;color:#333;margin-top:6px}
+.arch-track{flex:1 1 220px;max-width:380px}
+.arch-track .track{border-top:2px solid #0A0A0A}
+
+/* ============================================================
+   FOOTER
+   ============================================================ */
+.foot{background:linear-gradient(180deg,#0A0A0A 0%,#1A1A1A 100%);padding:54px 0 62px;border-top:3px solid #FF00A8}
+.foot-flex{display:flex;align-items:center;justify-content:space-between;gap:26px;flex-wrap:wrap}
+.foot-logo{
+  font-family:"Arial Black","Arial",sans-serif;font-size:clamp(26px,3.4vw,40px);
+  letter-spacing:.02em;filter:drop-shadow(3px 3px 0 #FF00A8);
+}
+.foot-note{color:#fff;font-weight:600;font-size:13px;letter-spacing:.04em;margin-left:12px}
+.foot-left{display:flex;align-items:baseline;flex-wrap:wrap;gap:2px}
+.btn-mag{
+  display:inline-flex;align-items:center;position:relative;overflow:hidden;
+  background:linear-gradient(180deg,#FF6AD0 0%,#FF00A8 42%,#E00097 100%);
+  color:#fff;border:3px solid #fff;border-radius:999px;padding:16px 28px;
+  font-family:"Futura","Century Gothic",Arial,sans-serif;font-weight:900;
+  font-size:13px;letter-spacing:.14em;cursor:pointer;white-space:nowrap;
+  box-shadow:7px 7px 0 #6A5CFF;
+  transition:transform .12s ease,box-shadow .12s ease,filter .12s ease;
+}
+.btn-mag .lab{position:relative;z-index:1}
+.btn-mag:hover{filter:brightness(1.07);transform:translateY(-2px)}
+.btn-mag:active{transform:scale(.98)}
+
+/* ============================================================
+   MODAL - HOW PICKS WORK
+   ============================================================ */
+.modal{
+  position:fixed;inset:0;z-index:99;background:#0A0A0A;
+  display:flex;align-items:center;justify-content:center;padding:22px;overflow-y:auto;
+}
+.modal-card{
+  background:#fff;border:5px solid #0A0A0A;border-radius:26px;
+  max-width:640px;width:100%;padding:28px;box-shadow:14px 14px 0 #FF00A8;
+}
+.modal-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:20px;gap:14px}
+.modal-head h3{
+  font-family:"Arial Black","Arial",sans-serif;font-size:clamp(20px,3vw,28px);
+  color:#0A0A0A;
+}
+.close{
+  flex:0 0 auto;width:46px;height:46px;border-radius:50%;border:3px solid #0A0A0A;
+  background:linear-gradient(180deg,#FF00A8 0%,#C60082 100%);color:#fff;
+  font-size:24px;font-weight:900;line-height:1;cursor:pointer;
+  transition:transform .12s ease;
+}
+.close:hover{transform:rotate(12deg) scale(1.06)}
+.close:active{transform:scale(.98)}
+.rule{
+  display:flex;gap:14px;align-items:flex-start;padding:14px;
+  border:3px solid #0A0A0A;border-radius:16px;margin-bottom:14px;background:#fff;
+}
+.rule:last-child{margin-bottom:0}
+.rule-chip{
+  flex:0 0 auto;width:36px;height:36px;border-radius:50%;border:3px solid #0A0A0A;
+  display:flex;align-items:center;justify-content:center;
+  font-family:"Arial Black","Arial",sans-serif;font-size:14px;
+}
+.rule-chip.c1{background:#F5FF3D;color:#0A0A0A}
+.rule-chip.c2{background:#00D9FF;color:#0A0A0A}
+.rule-chip.c3{background:#FF00A8;color:#fff}
+.rule p{font-size:15px;font-weight:600;line-height:1.5;color:#0A0A0A}
+
+/* ============================================================
+   RESPONSIVE
+   ============================================================ */
+@media (max-width:1023px){
+  .stack-grid{grid-template-columns:repeat(2,1fr)}
+}
+@media (max-width:979px){
+  .hero-grid{grid-template-columns:1fr;gap:56px}
+  .hero-poster{max-width:340px;margin:0 auto;width:100%}
+  .poster{box-shadow:16px 16px 0 #FF00A8,32px 32px 0 #00D9FF}
+}
+@media (max-width:639px){
+  .stack-grid{grid-template-columns:1fr}
+  .arch-track{flex-basis:100%;max-width:none}
+  .foot-flex{justify-content:center;text-align:center}
+  .hero-hook{box-shadow:4px 4px 0 #F5FF3D}
+  .why-btn{width:100%;justify-content:center}
+}
+</style>
+</head>
+<body>
+
+<!-- ================= MASTHEAD ================= -->
+<header class="masthead">
+  <div class="wrap">
+    <div class="spark-row" aria-hidden="true">&#10022; &#10022; &#10022;</div>
+    <h1 class="mast-glow chrome-text">THE SHELF</h1>
+    <p class="issue">ISSUE 01 - SEPTEMBER 2026</p>
+    <p class="sub">NEW ROMANCE, MONTHLY - SPORT ROMANCE + ROMANTASY - CURATED FOR YOU</p>
+    <div><span class="date-chip">DROPPED 1 SEP 2026</span></div>
+  </div>
+</header>
+<div class="chromebar" aria-hidden="true"></div>
+
+<!-- ================= MONTH NAV ================= -->
+<nav class="monthnav" aria-label="Archive months">
+  <div class="wrap">
+    <div class="tabs" id="tabs">
+      <button type="button" class="tab sel" data-month="sep" aria-pressed="true">SEP 2026</button>
+      <button type="button" class="tab" data-month="aug" aria-pressed="false">AUG 2026</button>
+      <button type="button" class="tab" data-month="jul" aria-pressed="false">JUL 2026</button>
+      <button type="button" class="tab" data-month="jun" aria-pressed="false">JUN 2026</button>
+    </div>
+  </div>
+</nav>
+
+<main>
+<!-- ================= SEP VIEW (current shelf) ================= -->
+<div id="viewSep">
+
+  <!-- HERO -->
+  <section class="hero">
+    <div class="wrap hero-grid">
+      <div class="hero-poster">
+        <div class="poster">
+          <img src="assets/cover-01-iron-crown.jpg" alt="Cover art for ASHES OF THE IRON CROWN by Tamsin Vale">
+        </div>
+        <div class="poster-tag">TOP PICK &#10022;</div>
+        <div class="poster-note">ISSUE 01</div>
+      </div>
+      <div class="hero-copy">
+        <h2>ASHES OF THE<br>IRON CROWN</h2>
+        <p class="hero-author">by Tamsin Vale</p>
+        <span class="hero-genre">ROMANTASY (FAE + DRAGONS)</span>
+        <div class="hero-hook">
+          <span class="streak" aria-hidden="true"></span>
+          <span>The crown burns for her - but the dragon only bows to the girl who intends to kill it.</span>
+        </div>
+        <div class="hero-chips">
+          <span class="chip-out">enemies-to-lovers</span>
+          <span class="chip-out">forced proximity</span>
+          <span class="chip-out">fated mates</span>
+          <span class="chip-out">morally grey crown</span>
+        </div>
+        <div class="hero-meta">
+          <span class="meta-chip"><span class="spark">&#10022;</span><span class="spark">&#10022;</span><span class="spark">&#10022;</span><span class="spark">&#10022;</span><span class="spark off">&#10022;</span>SPICE 4/5</span>
+          <span class="meta-chip cyan">EBOOK + AUDIO</span>
+        </div>
+        <button type="button" class="why-btn" id="whyBtn" aria-expanded="false" aria-controls="whyPanel">
+          <span class="streak" aria-hidden="true"></span>
+          <span class="lab">WHY IT WON</span>
+          <span class="chev" aria-hidden="true">&#9662;</span>
+        </button>
+        <div class="why-panel" id="whyPanel">
+          <div class="why-inner">
+            <div class="why-box">
+              <h4>WHY IT WON</h4>
+              <ul class="why-list">
+                <li><span class="spark">&#10022;</span>dragons+fae matches your Fourth Wing / Moon Hatched track</li>
+                <li><span class="spark">&#10022;</span>enemies-to-lovers is your most-read trope</li>
+                <li><span class="spark">&#10022;</span>proven 4.6 stars, 1.2k early ratings, so it earns the top spot over the fresh reads</li>
+              </ul>
+            </div>
+          </div>
+        </div>
+        <div class="hero-track track" data-key="b1::sep"></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- LINEUP -->
+  <section class="lineup">
+    <div class="wrap">
+      <h2 class="sec-title">NOW ON THE SHELF</h2>
+      <p class="sec-sub">SEVEN FRESH READS - FIT-RANKED FOR YOU</p>
+      <div class="stack-grid" id="stackGrid"></div>
+    </div>
+  </section>
+
+  <!-- COMING SOON -->
+  <section class="soon">
+    <div class="wrap soon-flex">
+      <div class="soon-badge">YOUR SERIES</div>
+      <div class="soon-copy">
+        <h3>EMBER FALLS <span style="color:#06404C">(Dragons of Ember Hollow #4)</span></h3>
+        <p class="soon-sub">Tessa Hale - out 3 OCT</p>
+        <p class="soon-note">you've read all three so far.</p>
+      </div>
+      <div class="soon-pips" aria-hidden="true">
+        <span class="spark on">&#10022;</span><span class="spark on">&#10022;</span><span class="spark on">&#10022;</span>
+        <span class="count">3 OF 3</span>
+      </div>
+    </div>
+  </section>
+</div>
+
+<!-- ================= ARCHIVE VIEW ================= -->
+<section id="viewArchive" class="archive" hidden>
+  <div class="wrap">
+    <h2 class="sec-title dark">FROM THE ARCHIVE</h2>
+    <p class="sec-sub dark" id="archSub"></p>
+    <div class="arch-list" id="archList"></div>
+  </div>
+</section>
+</main>
+
+<!-- ================= FOOTER ================= -->
+<footer class="foot">
+  <div class="wrap foot-flex">
+    <div class="foot-left">
+      <span class="foot-logo chrome-text">THE SHELF</span>
+      <span class="foot-note">- mock data for design review</span>
+    </div>
+    <button type="button" class="btn-mag" id="howBtn">
+      <span class="streak" aria-hidden="true"></span>
+      <span class="lab">HOW PICKS WORK</span>
+    </button>
+  </div>
+</footer>
+
+<!-- ================= MODAL ================= -->
+<div class="modal" id="modal" role="dialog" aria-modal="true" aria-labelledby="howModalTitle" hidden>
+  <div class="modal-card">
+    <div class="modal-head">
+      <h3 id="howModalTitle">HOW PICKS WORK</h3>
+      <button type="button" class="close" id="closeBtn" aria-label="Close">&#215;</button>
+    </div>
+    <div class="rule">
+      <span class="rule-chip c1">1</span>
+      <p>soft quality floor - books early readers disliked get dropped</p>
+    </div>
+    <div class="rule">
+      <span class="rule-chip c2">2</span>
+      <p>FRESH READS badge = new book not yet proven</p>
+    </div>
+    <div class="rule">
+      <span class="rule-chip c3">3</span>
+      <p>fit score ranks by your genres, tropes and spice band, and the tracker feeds next month's picks</p>
+    </div>
+  </div>
+</div>
+
+<script>
+/* ============================================================
+   THE SHELF - mock data + interactions (tracker, months, modal)
+   ============================================================ */
+var STORE_KEY = 'shelf-tracker-c';
+
+var BOOKS = {
+  b1: { rank:1, title:'ASHES OF THE IRON CROWN', author:'Tamsin Vale', genre:'ROMANTASY (FAE + DRAGONS)',
+        cover:'cover-01-iron-crown', hook:'The crown burns for her - but the dragon only bows to the girl who intends to kill it.',
+        tropes:['enemies-to-lovers','forced proximity','fated mates','morally grey crown'],
+        spice:4, fmt:'EBOOK + AUDIO', fit:null, badge:null },
+  b2: { rank:2, title:'FULL THROTTLE HEARTS', author:'Delia Frost', genre:'FORMULA 1',
+        cover:'cover-02-throttle-hearts', hook:"Two paddocks. One seat. The man who took her seat is the only one she can't stop texting.",
+        tropes:['grumpy/sunshine','fake dating','rivals-to-lovers'],
+        spice:3, fmt:'EBOOK ONLY', fit:'F1, grumpy/sunshine', badge:'FRESH READ', badgeType:'fresh' },
+  b3: { rank:3, title:'ICE, LOVE & GAME WEEK', author:'Piper Brooks', genre:'HOCKEY',
+        cover:'cover-03-ice-gameweek', hook:"The league's grumpiest captain is one road-trip weekend from falling for his best friend's little sister.",
+        tropes:['one bed','forbidden','hockey'],
+        spice:4, fmt:'EBOOK + AUDIO', fit:'hockey, forced proximity', badge:'FRESH READ', badgeType:'fresh' },
+  b4: { rank:4, title:'WINGS OF THE STARLESS COURT', author:'Aeli Marchetti', genre:'ROMANTASY (DRAGONS)',
+        cover:'cover-04-starless-court', hook:'Her wings were taken as a punishment. His were given as a curse. Together they can only fly one way.',
+        tropes:['fated mates','slow burn','court intrigue'],
+        spice:3, fmt:'EBOOK + AUDIO', fit:'dragon riders, fated mates', badge:'FRESH READ', badgeType:'fresh' },
+  b5: { rank:5, title:'GRID GIRLS', author:'Sofia Reyes', genre:'FORMULA 1',
+        cover:'cover-05-grid-girls', hook:'She engineered the car. He took the credit. This season, the telemetry never lies.',
+        tropes:['enemies-to-lovers','workplace','banter'],
+        spice:3, fmt:'EBOOK + AUDIO', fit:'F1, enemies-to-lovers', badge:'PROVEN 4.3 stars', badgeType:'proven' },
+  b6: { rank:6, title:'THE DEMON OF THIRD LINE', author:'Jemma Hart', genre:'HOCKEY',
+        cover:'cover-06-demon-third-line', hook:"Everyone fears him on the ice. She's the only one who knows why he loses his temper in the third.",
+        tropes:['grumpy/sunshine','single dad','small town'],
+        spice:4, fmt:'EBOOK + AUDIO', fit:'hockey, single dad', badge:null },
+  b7: { rank:7, title:'A COURT OF EMBER & ASH', author:'Celeste Marchand', genre:'ROMANTASY (FAE)',
+        cover:'cover-07-ember-ash', hook:'The fae court that burned her family will learn why she was raised in the ashes.',
+        tropes:['enemies-to-lovers','revenge','morally grey FMC'],
+        spice:4, fmt:'EBOOK ONLY', fit:'fae, 4/5 spice', badge:'FRESH READ', badgeType:'fresh' },
+  b8: { rank:8, title:'TOUCHDOWN AT ROSEWOOD', author:'Kiley Cross', genre:'COLLEGE FOOTBALL',
+        cover:'cover-08-touchdown-rosewood', hook:"He's the quarterback who blew his scholarship. She's the tutor who can't stand him - or stop watching film.",
+        tropes:['grumpy/sunshine','small town','slow burn'],
+        spice:3, fmt:'EBOOK + AUDIO', fit:'college football, small town', badge:null }
+};
+
+var MONTHS = {
+  sep: { label:'SEP 2026', books:['b1','b2','b3','b4','b5','b6','b7','b8'],
+         states:{ b2:'loved', b5:'read', b7:'skip' } },
+  aug: { label:'AUG 2026', books:['b2','b3','b5','b8'],
+         states:{ b2:'loved', b3:'read', b5:'want', b8:'skip' } },
+  jul: { label:'JUL 2026', books:['b1','b4','b6','b7'],
+         states:{ b1:'read', b4:'loved', b6:'read', b7:'skip' } },
+  jun: { label:'JUN 2026', books:['b2','b4','b7'],
+         states:{ b2:'read', b4:'want', b7:'read' } }
+};
+
+var currentMonth = 'sep';
+var store = {};
+function loadStore(){
+  try { store = JSON.parse(localStorage.getItem(STORE_KEY)) || {}; }
+  catch(e){ store = {}; }
+}
+function saveStore(){
+  try { localStorage.setItem(STORE_KEY, JSON.stringify(store)); } catch(e){ /* storage unavailable */ }
+}
+function stateFor(id, month){
+  var key = id + '::' + month;
+  if (Object.prototype.hasOwnProperty.call(store, key)) return store[key];
+  var m = MONTHS[month];
+  return (m && m.states[id]) ? m.states[id] : null;
+}
+
+/* ---------- piece builders ---------- */
+function pipsHTML(n){
+  var out = '', i;
+  for (i = 0; i < 5; i++){
+    out += '<span class="spark' + (i < n ? '' : ' off') + '" aria-hidden="true">&#10022;</span>';
+  }
+  return out;
+}
+function pillsHTML(id, month, extraClass){
+  var st = stateFor(id, month);
+  var out = '<div class="track ' + (extraClass || '') + '" data-key="' + id + '::' + month + '">';
+  ['want','read','loved','skip'].forEach(function(p){
+    var on = (st === p);
+    out += '<button type="button" class="pill' + (on ? ' sel' : '') + '" data-state="' + p +
+           '" aria-pressed="' + on + '">' + p.toUpperCase() + '</button>';
+  });
+  return out + '</div>';
+}
+function badgeHTML(b){
+  if (!b.badge) return '';
+  return '<span class="badge ' + (b.badgeType || 'fresh') + '" title="' + b.badge + '">' + b.badge.toUpperCase() + '</span>';
+}
+function cardHTML(id){
+  var b = BOOKS[id];
+  var chips = b.tropes.map(function(t){ return '<span class="chip">' + t + '</span>'; }).join('');
+  return '<article class="card">' +
+    '<div class="card-strip"><span class="streak" aria-hidden="true"></span>' +
+    '<span class="rank">NO. ' + b.rank + '</span>' + badgeHTML(b) + '</div>' +
+    '<div class="cover-wrap"><img src="assets/' + b.cover + '.jpg" alt="Cover art for ' + b.title + ' by ' + b.author + '" loading="lazy"></div>' +
+    '<div class="card-body">' +
+      '<h3 class="card-title">' + b.title + '</h3>' +
+      '<p class="card-author">by ' + b.author + '</p>' +
+      '<span class="genre">' + b.genre + '</span>' +
+      '<p class="hook">' + b.hook + '</p>' +
+      '<div class="chips">' + chips + '</div>' +
+      '<div class="meta-row"><span class="spice">' + pipsHTML(b.spice) + ' SPICE ' + b.spice + '/5</span>' +
+      '<span class="fmt">' + b.fmt + '</span></div>' +
+      '<p class="fit"><span class="fit-label">FIT</span>' + b.fit + '</p>' +
+      pillsHTML(id, 'sep') +
+    '</div>' +
+  '</article>';
+}
+function rowHTML(id, month){
+  var b = BOOKS[id];
+  var meta = '<span class="arch-chip cyan">' + b.genre + '</span>' +
+             '<span class="arch-chip">SPICE ' + b.spice + '/5</span>' +
+             '<span class="arch-chip black">' + b.fmt + '</span>';
+  return '<div class="arch-row">' +
+    '<div class="arch-cover"><img src="assets/' + b.cover + '.jpg" alt="Cover art for ' + b.title + '" loading="lazy"></div>' +
+    '<div class="arch-mid">' +
+      '<h3 class="arch-title">' + b.title + '</h3>' +
+      '<p class="arch-author">by ' + b.author + '</p>' +
+      '<div class="arch-meta">' + meta + '</div>' +
+      (b.fit ? '<p class="arch-fit">fit: ' + b.fit + '</p>' : '') +
+    '</div>' +
+    '<div class="arch-track">' + pillsHTML(id, month) + '</div>' +
+  '</div>';
+}
+
+/* ---------- renderers ---------- */
+function renderLineup(){
+  var el = document.getElementById('stackGrid');
+  var html = '';
+  ['b2','b3','b4','b5','b6','b7','b8'].forEach(function(id){ html += cardHTML(id); });
+  el.innerHTML = html;
+  /* hero tracker pills (book 1, sep) */
+  document.querySelector('.hero-track').outerHTML = pillsHTML('b1', 'sep', 'hero-track');
+}
+function renderArchive(month){
+  var m = MONTHS[month];
+  var list = document.getElementById('archList');
+  var html = '';
+  m.books.forEach(function(id){ html += rowHTML(id, month); });
+  list.innerHTML = html;
+  document.getElementById('archSub').textContent = m.label + ' - ' + m.books.length + ' BOOKS';
+}
+
+/* ---------- month switching ---------- */
+function setMonth(month){
+  currentMonth = month;
+  document.querySelectorAll('.tab').forEach(function(t){
+    var on = (t.getAttribute('data-month') === month);
+    t.classList.toggle('sel', on);
+    t.setAttribute('aria-pressed', on ? 'true' : 'false');
+  });
+  var viewSep = document.getElementById('viewSep');
+  var viewArch = document.getElementById('viewArchive');
+  if (month === 'sep'){ viewSep.hidden = false; viewArch.hidden = true; }
+  else { viewSep.hidden = true; viewArch.hidden = false; renderArchive(month); }
+}
+
+/* ---------- modal ---------- */
+function openModal(){
+  document.getElementById('modal').hidden = false;
+  document.getElementById('closeBtn').focus();
+}
+function closeModal(){
+  document.getElementById('modal').hidden = true;
+  document.getElementById('howBtn').focus();
+}
+
+/* ---------- global click delegation (tracker pills, tabs, why, modal) ---------- */
+document.addEventListener('click', function(e){
+  var pill = e.target.closest('.pill');
+  if (pill){
+    var grp = pill.closest('.track');
+    var st = pill.getAttribute('data-state');
+    var key = grp.getAttribute('data-key');
+    if (store[key] === st){ delete store[key]; } else { store[key] = st; }
+    saveStore();
+    grp.querySelectorAll('.pill').forEach(function(p){
+      var on = (p.getAttribute('data-state') === st && store[key] === st);
+      p.classList.toggle('sel', on);
+      p.setAttribute('aria-pressed', on ? 'true' : 'false');
+    });
+    return;
+  }
+  var tab = e.target.closest('.tab');
+  if (tab){ setMonth(tab.getAttribute('data-month')); return; }
+  if (e.target.closest('#whyBtn')){
+    var btn = document.getElementById('whyBtn');
+    var open = btn.classList.toggle('open');
+    btn.setAttribute('aria-expanded', open ? 'true' : 'false');
+    document.getElementById('whyPanel').classList.toggle('open', open);
+    return;
+  }
+  if (e.target.closest('#howBtn')){ openModal(); return; }
+  if (e.target.closest('#closeBtn')){ closeModal(); return; }
+});
+document.getElementById('modal').addEventListener('click', function(e){
+  if (e.target === this) closeModal();
+});
+document.addEventListener('keydown', function(e){
+  if (e.key === 'Escape' && !document.getElementById('modal').hidden) closeModal();
+});
+
+/* ---------- init ---------- */
+loadStore();
+renderLineup();
+setMonth('sep');
+</script>
+</body>
+</html>

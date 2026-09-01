@@ -1,0 +1,666 @@
+{
+  "project": "the-shelf",
+  "generated": "2026-08-31",
+  "description": "Sequel research for every series in seed-reads.json. Status: 'out' = released (TO READ bucket), 'upcoming' = announced with date (RADAR), 'unconfirmed' = announced/no date or unverified. Everything verified against Goodreads series pages, publisher sites (PRH, HarperCollins, Hachette, Pan Macmillan, S&S), and author websites. 'missing_from_shelf' lists volumes in the series that are absent from the seed data (gaps before/around the last read).",
+  "series": [
+    {
+      "series": "The Empyrean",
+      "author": "Rebecca Yarros",
+      "status": "ongoing (5 novels planned; book 4 being written)",
+      "source_url": "https://www.businessinsider.com/empyrean-series-what-rebecca-yarros-has-said-about-fourth-book-2025-1",
+      "next_books": [
+        {"title": "Onyx Storm (#3)", "release_date": "2025-01-21", "status": "out", "publisher": "Red Tower (Entangled)"},
+        {"title": "Threshing Day (Empyrean story collection; confirmed NOT book 4)", "release_date": "2026-09-29", "status": "upcoming", "publisher": "Red Tower (Entangled)"},
+        {"title": "Untitled (#4)", "release_date": "announced (no date; writing began Mar 2026)", "status": "unconfirmed", "publisher": "Red Tower (Entangled)"}
+      ],
+      "missing_from_shelf": [
+        {"title": "Onyx Storm (#3)", "note": "Released Jan 2025 - she has only #1-#2; this is the main next read."}
+      ]
+    },
+    {
+      "series": "Fae & Alchemy",
+      "author": "Callie Hart",
+      "status": "ongoing (3rd book in progress, expected 2027)",
+      "source_url": "https://www.goodreads.com/series/392242-fae-alchemy",
+      "next_books": [
+        {"title": "Brimstone (#2)", "release_date": "2025-11-18", "status": "out", "publisher": "Hachette (Little, Brown) UK"},
+        {"title": "Untitled (#3)", "release_date": "announced (expected 2027)", "status": "unconfirmed", "publisher": ""}
+      ],
+      "missing_from_shelf": [
+        {"title": "Brimstone (#2)", "note": "The seed's 'The Throne of Honor and Blood (#2)' is NOT this series - see corrections. Brimstone is the actual sequel to Quicksilver."}
+      ]
+    },
+    {
+      "series": "The Mortal Fates",
+      "author": "J. Bree",
+      "status": "2 novels + 2 novellas released; no book 3 announced",
+      "source_url": "https://www.goodreads.com/series/355116-the-mortal-fates",
+      "next_books": [],
+      "missing_from_shelf": [
+        {"title": "The Crown of Oaths and Curses (#1, 2023)", "note": "Not in seed data - likely already read (she owns #2)."},
+        {"title": "The Scepter (#0.1, 2023, novella)", "note": "Prequel novella, not in seed data."},
+        {"title": "The Sword (#0.2, 2023, novella)", "note": "Prequel novella, not in seed data."}
+      ]
+    },
+    {
+      "series": "The Moon Hatched (Goodreads series name: Moonfall)",
+      "author": "Sarah A. Parker",
+      "status": "ongoing (book 3 announced, title/date TBA; she is currently reading #2)",
+      "source_url": "https://www.risingshadow.net/book/72652-moonfall-book-3",
+      "next_books": [
+        {"title": "Moonfall Book 3 (untitled)", "release_date": "announced (TBA; 2026+ expected)", "status": "unconfirmed", "publisher": ""}
+      ],
+      "missing_from_shelf": []
+    },
+    {
+      "series": "The Hurricane Wars",
+      "author": "Thea Guanzon",
+      "status": "ongoing (trilogy; finale announced)",
+      "source_url": "https://www.harpercollins.com/products/this-shattered-tempest-thea-guanzon",
+      "next_books": [
+        {"title": "This Shattered Tempest (#3, finale)", "release_date": "2026-10-06", "status": "upcoming", "publisher": "Harper Voyager (HarperCollins)"}
+      ],
+      "missing_from_shelf": []
+    },
+    {
+      "series": "Deadly Divine (Duet)",
+      "author": "Ella Fields",
+      "status": "complete (2-book duet)",
+      "source_url": "https://goodreads.com/series/377527-deadly-divine-duet",
+      "next_books": [],
+      "missing_from_shelf": []
+    },
+    {
+      "series": "Zodiac Academy",
+      "author": "Caroline Peckham & Susanne Valenti",
+      "status": "ongoing - #9 Restless Stars released Mar 2026; no #10 announced",
+      "source_url": "https://cavalierhousebooks.com/book/9781916926110",
+      "next_books": [
+        {"title": "Restless Stars (#9)", "release_date": "2026-03-03", "status": "out", "publisher": "King's Hollow"}
+      ],
+      "missing_from_shelf": [
+        {"title": "Restless Stars (#9)", "note": "The next volume after Beyond the Veil (8.5). Retail listing (Cavalier House Books) dates it 2026-03-03."}
+      ]
+    },
+    {
+      "series": "The Sacred Stones",
+      "author": "Kate Golden",
+      "status": "complete (3-book trilogy)",
+      "source_url": "https://www.penguinrandomhouse.com/books/741658/a-reign-of-rose-by-kate-golden/",
+      "next_books": [
+        {"title": "A Reign of Rose (#3, finale)", "release_date": "2024-10-08", "status": "out", "publisher": "Berkley (Penguin Random House)"}
+      ],
+      "missing_from_shelf": [
+        {"title": "A Reign of Rose (#3)", "note": "She has #1 (A Dawn of Onyx) and #2 (A Promise of Peridot, Apr 2024); the finale is out and missing."}
+      ]
+    },
+    {
+      "series": "Shadows of the Tenebris Court",
+      "author": "Clare Sager",
+      "status": "complete (3-book trilogy)",
+      "source_url": "https://www.goodreads.com/series/371022-shadows-of-the-tenebris-court",
+      "next_books": [
+        {"title": "A Promise of Lies (#3, finale)", "release_date": "2025-01", "status": "out", "publisher": "Indie (Podium Audio audiobook, Jul 2025)"}
+      ],
+      "missing_from_shelf": [
+        {"title": "A Promise of Lies (#3)", "note": "Third and final book; out since Jan 2025."}
+      ]
+    },
+    {
+      "series": "Dragons of Ember Hollow",
+      "author": "Tessa Hale",
+      "status": "complete (3-book trilogy; Dawn of Flames is the finale)",
+      "source_url": "https://www.goodreads.com/series/384119-dragons-of-ember-hollow",
+      "next_books": [],
+      "missing_from_shelf": []
+    },
+    {
+      "series": "Legends of Thezmarr",
+      "author": "Helen Scheuerer",
+      "status": "complete (4 books + 2 prequel novellas)",
+      "source_url": "https://www.goodreads.com/series/363884-the-legends-of-thezmarr",
+      "next_books": [
+        {"title": "Vows & Ruins (#2)", "release_date": "2023", "status": "out", "publisher": "Alchemy Books"},
+        {"title": "Fate & Furies (#3)", "release_date": "2024", "status": "out", "publisher": "Alchemy Books"},
+        {"title": "Shadow & Storms (#4)", "release_date": "2024", "status": "out", "publisher": "Alchemy Books"}
+      ],
+      "missing_from_shelf": [
+        {"title": "Vows & Ruins (#2) / Fate & Furies (#3) / Shadow & Storms (#4)", "note": "She owns only Blood & Steel (#1). Note: Iron & Embers is NOT #3 of this series - it is #1 of 'The Ashes of Thezmarr' (see corrections)."},
+        {"title": "An Alchemist's Vow; Slaying the Shadow Prince", "note": "Prequel novellas in the same world (series page lists them)."}
+      ]
+    },
+    {
+      "series": "The Ashes of Thezmarr",
+      "author": "Helen Scheuerer",
+      "status": "complete (3-book trilogy)",
+      "source_url": "https://helenscheuerer.com/the-ashes-of-thezmarr/",
+      "next_books": [
+        {"title": "Thorns & Fire (#2)", "release_date": "2025-07-29", "status": "out", "publisher": "Alchemy Books (UK: Pan Macmillan, Jul 31 2025)"},
+        {"title": "Silver & Smoke (#3, finale)", "release_date": "2025-11-06", "status": "out", "publisher": "Alchemy Books (UK trad edition: Pan Macmillan, Aug 13 2026)"}
+      ],
+      "missing_from_shelf": [
+        {"title": "Thorns & Fire (#2); Silver & Smoke (#3)", "note": "She owns only Iron & Embers (#1) - both sequels are already out."}
+      ]
+    },
+    {
+      "series": "Crescent City",
+      "author": "Sarah J. Maas",
+      "status": "complete (3-book series; House of Flame and Shadow is the conclusion)",
+      "source_url": "https://www.goodreads.com/en/book/show/52857700-house-of-flame-and-shadow",
+      "next_books": [
+        {"title": "House of Sky and Breath (#2)", "release_date": "2022-02-15", "status": "out", "publisher": "Bloomsbury"},
+        {"title": "House of Flame and Shadow (#3, finale)", "release_date": "2024-01-30", "status": "out", "publisher": "Bloomsbury"}
+      ],
+      "missing_from_shelf": [
+        {"title": "House of Sky and Breath (#2); House of Flame and Shadow (#3)", "note": "She owns only #1; both sequels are out and the series is finished."}
+      ]
+    },
+    {
+      "series": "Blood and Ash (seed label: 'Flesh and Blood')",
+      "author": "Jennifer L. Armentrout",
+      "status": "ongoing - #6 + novella 6.5 out; #7 'The Throne of Bone and Ash' announced without date",
+      "source_url": "https://www.goodreads.com/series/321784-blood-and-ash",
+      "next_books": [
+        {"title": "A Kingdom of Flesh and Fire (#2)", "release_date": "2020-09-01", "status": "out", "publisher": "Blue Box Press"},
+        {"title": "The War of Two Queens (#4)", "release_date": "2022-03-15", "status": "out", "publisher": "Blue Box Press"},
+        {"title": "A Soul of Ash and Blood (#5)", "release_date": "2023-07-18", "status": "out", "publisher": "Blue Box Press"},
+        {"title": "The Primal of Blood and Bone (#6)", "release_date": "2025", "status": "out", "publisher": "Blue Box Press"},
+        {"title": "The Throne of Bone and Ash (#7)", "release_date": "announced (no date)", "status": "unconfirmed", "publisher": ""}
+      ],
+      "missing_from_shelf": [
+        {"title": "A Kingdom of Flesh and Fire (#2, 2020)", "note": "Gap: seed shows #1 and 'Crown of Gilded Bones' (which is #3, not #2) - #2 is missing."},
+        {"title": "The War of Two Queens (#4); A Soul of Ash and Blood (#5); The Primal of Blood and Bone (#6)", "note": "All out; also free novella 'A Crown of Ruin' (#6.5, 2025) bridges #6 to #7."}
+      ]
+    },
+    {
+      "series": "The Bargainer",
+      "author": "Laura Thalassa",
+      "status": "complete (4 primary works: 3 novels + 1 novella)",
+      "source_url": "https://goodreads.com/series/182626-the-bargainer",
+      "next_books": [
+        {"title": "A Strange Hymn (#2)", "release_date": "2017", "status": "out", "publisher": "Indie"},
+        {"title": "Dark Harmony (#4)", "release_date": "2018", "status": "out", "publisher": "Indie"}
+      ],
+      "missing_from_shelf": [
+        {"title": "A Strange Hymn (#2); The Emperor of Evening Stars (#3, novella, 2017); Dark Harmony (#4)", "note": "She owns only Rhapsodic (#1). Series is finished."}
+      ]
+    },
+    {
+      "series": "The Vancouver Agitators",
+      "author": "Meghan Quinn",
+      "status": "complete (5 books)",
+      "source_url": "https://www.goodreads.com/series/341399-the-vancouver-agitators",
+      "next_books": [
+        {"title": "Right Man, Right Time (#3)", "release_date": "2023-03-06", "status": "out", "publisher": "Meghan Quinn (self-pub)"},
+        {"title": "He's Not My Type (#4)", "release_date": "2023-11-28", "status": "out", "publisher": "Meghan Quinn (self-pub)"},
+        {"title": "So This Is War (#5)", "release_date": "2024-06-25", "status": "out", "publisher": "Hot-Lanta Publishing"}
+      ],
+      "missing_from_shelf": [
+        {"title": "Kiss and Don't Tell (#1, 2021-09-22)", "note": "Not in seed data (she owns #2)."},
+        {"title": "Right Man, Right Time (#3); He's Not My Type (#4); So This Is War (#5)", "note": "All released."}
+      ]
+    },
+    {
+      "series": "Playing for Keeps",
+      "author": "Becka Mack",
+      "status": "complete (5 books; Breathe with Me is the final)",
+      "source_url": "https://www.penguinrandomhouseretail.com/book/?isbn=9781638932451",
+      "next_books": [
+        {"title": "Breathe with Me (#5, finale)", "release_date": "2025-10-28", "status": "out", "publisher": "Zando / Slowburn"}
+      ],
+      "missing_from_shelf": [
+        {"title": "Breathe with Me (#5)", "note": "She owns Fall With Me (#4); #5 is out. Books #1-3 (Consider Me, Play with Me, Unravel Me) not in seed data."}
+      ]
+    },
+    {
+      "series": "Cherry Tree Harbor",
+      "author": "Melanie Harlow",
+      "status": "complete (5 books - series finished at #5)",
+      "source_url": "https://www.goodreads.com/series/365707-cherry-tree-harbor",
+      "next_books": [],
+      "missing_from_shelf": [
+        {"title": "Books #1-#4 (ordered #1, #2, Make-Believe Match #3, Small Town Swoon #4)", "note": "Not in seed data; she owns the finale Slap Shot Surprise (#5, 2025). Titles of #1-#2 not verified in this pass."}
+      ]
+    },
+    {
+      "series": "Beyond the Play",
+      "author": "Grace Reilly",
+      "status": "complete (4 books; Wicked Serve Aug 2024 was the last)",
+      "source_url": "https://www.goodreads.com/series/351688-beyond-the-play",
+      "next_books": [
+        {"title": "Breakaway (#2)", "release_date": "2023", "status": "out", "publisher": "Indie"},
+        {"title": "Stealing Home (#3)", "release_date": "2023", "status": "out", "publisher": "Indie"},
+        {"title": "Wicked Serve (#4)", "release_date": "2024-08-13", "status": "out", "publisher": "Avon (HarperCollins)"}
+      ],
+      "missing_from_shelf": [
+        {"title": "Breakaway (#2); Stealing Home (#3); Wicked Serve (#4)", "note": "She owns only First Down (#1)."}
+      ]
+    },
+    {
+      "series": "Strangers in Love",
+      "author": "Ilsa Madden-Mills",
+      "status": "complete (2-book duology)",
+      "source_url": "https://goodreads.com/series/342488-strangers-in-love",
+      "next_books": [],
+      "missing_from_shelf": [
+        {"title": "Beauty and the Baller (#1, 2022)", "note": "She owns Princess and the Player (which is #2, not #1)."}
+      ]
+    },
+    {
+      "series": "Lakes Hockey",
+      "author": "Sloane St. James",
+      "status": "complete (4 books)",
+      "source_url": "https://www.goodreads.com/series/366115-lakes-hockey",
+      "next_books": [
+        {"title": "Stand and Defend (#4)", "release_date": "2024-02-12", "status": "out", "publisher": "Sloane St. James (self-pub)"}
+      ],
+      "missing_from_shelf": [
+        {"title": "Before We Came (#1); Strong and Wild (#2)", "note": "Not in seed data; she owns In the Game (#3)."}
+      ]
+    },
+    {
+      "series": "House of Devils",
+      "author": "Kayla Edwards",
+      "status": "ongoing (6 books planned; #1-#4 out, #5-#6 untitled)",
+      "source_url": "https://www.goodreads.com/series/335398-house-of-devils",
+      "next_books": [
+        {"title": "City of Souls and Sinners (#2)", "release_date": "2023-02-20", "status": "out", "publisher": "Scarlett Press (self-pub)"},
+        {"title": "City of Lies and Legends (#3)", "release_date": "2024", "status": "out", "publisher": "Scarlett Press (self-pub)"},
+        {"title": "City of Smoke and Brimstone (#4)", "release_date": "2025", "status": "out", "publisher": "Scarlett Press (self-pub)"}
+      ],
+      "missing_from_shelf": [
+        {"title": "City of Souls and Sinners (#2); City of Lies and Legends (#3); City of Smoke and Brimstone (#4)", "note": "She owns only #1. Books #5-#6 announced as untitled; new deluxe editions of #1-#4 roll out Jul 2026+."}
+      ]
+    },
+    {
+      "series": "All In",
+      "author": "Helena Hunting",
+      "status": "complete (3 books)",
+      "source_url": "https://www.goodreads.com/series/264633-all-in",
+      "next_books": [
+        {"title": "A Favor for a Favor (#2)", "release_date": "2020", "status": "out", "publisher": "Montlake"},
+        {"title": "A Secret for a Secret (#3)", "release_date": "2021", "status": "out", "publisher": "Montlake"}
+      ],
+      "missing_from_shelf": [
+        {"title": "A Favor for a Favor (#2); A Secret for a Secret (#3)", "note": "She owns only A Lie for a Lie (#1)."}
+      ]
+    },
+    {
+      "series": "Assassins",
+      "author": "Toni Aleo",
+      "status": "long-running 17+ book series (+ 'Assassins: Next Generation' spinoff, 2019-2021); she owns 1 of ~17",
+      "source_url": "https://www.goodreads.com/series/390248-assassins",
+      "next_books": [
+        {"title": "Empty Net (#3)", "release_date": "2012-09-02", "status": "out", "publisher": "Loveswept (self-pub reissues)"}
+      ],
+      "missing_from_shelf": [
+        {"title": "Books #3-#17 (Empty Net, Falling for the Backup, Blue Lines, ...)", "note": "She owns Trying to Score (#2). Series has 17+ entries; 'Next Generation' spinoff continues the universe."}
+      ]
+    },
+    {
+      "series": "Dirty Air",
+      "author": "Lauren Asher",
+      "status": "complete (4 books)",
+      "source_url": "https://www.goodreads.com/series/275267-dirty-air",
+      "next_books": [
+        {"title": "Redeemed (#4)", "release_date": "2021", "status": "out", "publisher": "Indie"}
+      ],
+      "missing_from_shelf": [
+        {"title": "Redeemed (#4)", "note": "She owns Wrecked (which is #3, not #4). #1 Throttled & #2 Collided not in seed data."}
+      ]
+    },
+    {
+      "series": "A Court of Thorns and Roses (ACOTAR)",
+      "author": "Sarah J. Maas",
+      "status": "ongoing - books 6 & 7 announced (new arc: 'The Valkyrie Cycle')",
+      "source_url": "https://www.today.com/popculture/books/acotar-6-7-titles-covers-sarah-j-maas-rcna592962",
+      "next_books": [
+        {"title": "A Court of Mist and Fury (#2)", "release_date": "2016", "status": "out", "publisher": "Bloomsbury"},
+        {"title": "A Court of Wings and Ruin (#3)", "release_date": "2017", "status": "out", "publisher": "Bloomsbury"},
+        {"title": "A Court of Silver Flames (#5)", "release_date": "2021-02-16", "status": "out", "publisher": "Bloomsbury"},
+        {"title": "A Court of Splintered Harmony (#6)", "release_date": "2026-10-27", "status": "upcoming", "publisher": "Bloomsbury"},
+        {"title": "A Court of Forgotten Melody (#7)", "release_date": "2027-01-12", "status": "upcoming", "publisher": "Bloomsbury"}
+      ],
+      "missing_from_shelf": [
+        {"title": "A Court of Mist and Fury (#2); A Court of Wings and Ruin (#3); A Court of Frost and Starlight (#4, 2018); A Court of Silver Flames (#5)", "note": "She owns only #1; #6 (Oct 27, 2026) and #7 (Jan 12, 2027) are announced for the 'Valkyrie Cycle' arc."}
+      ]
+    },
+    {
+      "series": "Crowns of Nyaxia",
+      "author": "Carissa Broadbent",
+      "status": "ongoing - 6 books total planned (3 duologies); #5 released Aug 2026, #6 untitled",
+      "source_url": "https://goodreads.com/series/350054-crowns-of-nyaxia",
+      "next_books": [
+        {"title": "The Ashes & the Star-Cursed King (#2)", "release_date": "2023", "status": "out", "publisher": "Podium Books"},
+        {"title": "The Songbird & the Heart of Stone (#3)", "release_date": "2024", "status": "out", "publisher": "Podium Books"},
+        {"title": "The Fallen & the Kiss of Dusk (#4)", "release_date": "2025", "status": "out", "publisher": "Podium Books"},
+        {"title": "The Lion & the Deathless Dark (#5)", "release_date": "2026-08-04", "status": "out", "publisher": "Podium Books"}
+      ],
+      "missing_from_shelf": [
+        {"title": "Books #2-#5 (plus novellas Six Scorched Roses #1.5 and Slaying the Vampire Conqueror #2.5)", "note": "She owns only #1 (The Serpent and the Wings of Night). #6 (untitled) is the last book of the planned 6."}
+      ]
+    },
+    {
+      "series": "The Bonds that Tie",
+      "author": "J. Bree",
+      "status": "complete (6 books)",
+      "source_url": "https://www.goodreads.com/book/show/60909286/reviews",
+      "next_books": [],
+      "missing_from_shelf": []
+    },
+    {
+      "series": "Letters of Enchantment",
+      "author": "Rebecca Ross",
+      "status": "complete (2-book duology)",
+      "source_url": "https://goodreads.com/book/show/211038286-ruthless-vows-rozdzieleni-przez-wojn",
+      "next_books": [],
+      "missing_from_shelf": []
+    },
+    {
+      "series": "Kingdom of the Wicked / Prince of Sin",
+      "author": "Kerri Maniscalco",
+      "status": "ongoing - Prince of Sin spin-off: 3 books; risingshadow hints a 4th (unconfirmed)",
+      "source_url": "https://www.amazon.com/Throne-Nightmares-Novel-Prince-Sin/dp/0316557927",
+      "next_books": [
+        {"title": "Throne of Secrets (Prince of Sin #2)", "release_date": "2024-09-24", "status": "out", "publisher": "Little, Brown"},
+        {"title": "Throne of Nightmares (Prince of Sin #3)", "release_date": "2026-02-10", "status": "out", "publisher": "Little, Brown"}
+      ],
+      "missing_from_shelf": [
+        {"title": "Throne of Secrets; Throne of Nightmares", "note": "She owns Throne of the Fallen (Prince of Sin #1). The original Kingdom of the Wicked trilogy (Wicked/Cursed/Feared) lives in the same world."}
+      ]
+    },
+    {
+      "series": "The Powerless Trilogy",
+      "author": "Lauren Roberts",
+      "status": "complete (3 books)",
+      "source_url": "https://www.goodreads.com/series/374245-the-powerless-trilogy",
+      "next_books": [
+        {"title": "Reckless (#2)", "release_date": "2024-07-02", "status": "out", "publisher": "Simon & Schuster (BFYR)"},
+        {"title": "Fearless (#3, finale)", "release_date": "2025-04-08", "status": "out", "publisher": "Simon & Schuster (BFYR)"}
+      ],
+      "missing_from_shelf": [
+        {"title": "Reckless (#2); Fearless (#3)", "note": "She owns only Powerless (#1); trilogy complete."}
+      ]
+    },
+    {
+      "series": "Villains & Virtues",
+      "author": "A.K. Caggiano",
+      "status": "main trilogy complete; related 'Bound' books listed in the series (Bound to Fall, Bound and Tide)",
+      "source_url": "https://www.goodreads.com/series/357374-villains-virtues",
+      "next_books": [
+        {"title": "Summoned to the Wilds (#2)", "release_date": "2022", "status": "out", "publisher": "Indie"},
+        {"title": "Eclipse of the Crown (#3)", "release_date": "2023", "status": "out", "publisher": "Indie"}
+      ],
+      "missing_from_shelf": [
+        {"title": "Summoned to the Wilds (#2); Eclipse of the Crown (#3)", "note": "She owns only Throne in the Dark (#1)."},
+        {"title": "Bound to Fall; Bound and Tide", "note": "Continuation books listed on the same Goodreads series page."}
+      ]
+    },
+    {
+      "series": "It Ends with Us",
+      "author": "Colleen Hoover",
+      "status": "complete (2-book duology)",
+      "source_url": "",
+      "next_books": [],
+      "missing_from_shelf": []
+    },
+    {
+      "series": "Part of Your World",
+      "author": "Abby Jimenez",
+      "status": "complete (3 novels + 3.5 novella)",
+      "source_url": "https://www.goodreads.com/series/367913-part-of-your-world",
+      "next_books": [
+        {"title": "Just for the Summer (#3)", "release_date": "2024-04-02", "status": "out", "publisher": "Forever (Grand Central)"},
+        {"title": "The Situationship (#3.5, novella)", "release_date": "2024-09-24", "status": "out", "publisher": "Forever (Grand Central)"}
+      ],
+      "missing_from_shelf": [
+        {"title": "Part of Your World (#1, 2022)", "note": "Not in seed data; she owns Yours Truly (#2)."}
+      ]
+    },
+    {
+      "series": "Vine Mess",
+      "author": "Tessa Bailey",
+      "status": "complete (2-book duology)",
+      "source_url": "https://goodreads.com/book/show/62365892-unfortunately-yours",
+      "next_books": [
+        {"title": "Unfortunately Yours (#2)", "release_date": "2023-06-06", "status": "out", "publisher": "Avon (HarperCollins)"}
+      ],
+      "missing_from_shelf": [
+        {"title": "Unfortunately Yours (#2)", "note": "She owns only Secretly Yours (#1)."}
+      ]
+    },
+    {
+      "series": "Seattle Billionaires",
+      "author": "Olivia Hayle",
+      "status": "complete (4 books)",
+      "source_url": "https://oliviahayle.com/books/billion-dollar-catch",
+      "next_books": [
+        {"title": "Billion Dollar Catch (#3)", "release_date": "2020-12-02", "status": "out", "publisher": "Indie"}
+      ],
+      "missing_from_shelf": [
+        {"title": "Billion Dollar Catch (#3)", "note": "Order is: 1 Billion Dollar Enemy, 2 Billion Dollar Beast, 3 Billion Dollar Catch, 4 Billion Dollar Fiancé - she has 1, 2 and 4, so #3 is the gap."}
+      ]
+    },
+    {
+      "series": "Dreamland Billionaires",
+      "author": "Lauren Asher",
+      "status": "complete (3 books)",
+      "source_url": "https://shereadsromancebooks.com/lauren-asher-books-in-order",
+      "next_books": [
+        {"title": "Terms and Conditions (#2)", "release_date": "2022", "status": "out", "publisher": "Indie"}
+      ],
+      "missing_from_shelf": [
+        {"title": "Terms and Conditions (#2)", "note": "She owns The Fine Print (#1) and Final Offer (#3) - #2 is the gap."}
+      ]
+    },
+    {
+      "series": "Lakefront Billionaires",
+      "author": "Lauren Asher",
+      "status": "complete (3 books + holiday novella)",
+      "source_url": "https://nextnewbooks.com/authors/lauren-asher",
+      "next_books": [],
+      "missing_from_shelf": [
+        {"title": "Love Redesigned (#1, 2023); Love Unwritten (#2, Jun 2024); My December Darling (novella, Nov 2024)", "note": "She owns only Love Arranged (#3, Jan 2025)."}
+      ]
+    },
+    {
+      "series": "Marriage to a Billionaire",
+      "author": "Jennifer Probst",
+      "status": "complete (4 primary works)",
+      "source_url": "https://www.goodreads.com/series/78455-marriage-to-a-billionaire",
+      "next_books": [
+        {"title": "The Marriage Trap (#2)", "release_date": "2012", "status": "out", "publisher": "Gallery (S&S)"},
+        {"title": "The Marriage Mistake (#3)", "release_date": "2012", "status": "out", "publisher": "Gallery (S&S)"},
+        {"title": "The Marriage Merger (#4)", "release_date": "2013", "status": "out", "publisher": "Gallery (S&S)"}
+      ],
+      "missing_from_shelf": [
+        {"title": "Books #2-#4", "note": "She owns only The Marriage Bargain (#1)."}
+      ]
+    },
+    {
+      "series": "Magnolia Ridge",
+      "author": "Logan Chance",
+      "status": "complete (6 books)",
+      "source_url": "https://www.goodreads.com/series/395730-magnolia-ridge",
+      "next_books": [
+        {"title": "Don't Fall for Your Brother's Best Friend (#2)", "release_date": "", "status": "out", "publisher": "Indie"},
+        {"title": "Don't Fall For Your Grumpy Neighbor (#3)", "release_date": "", "status": "out", "publisher": "Indie"},
+        {"title": "Don't Fall For Your Fake Boyfriend (#4)", "release_date": "", "status": "out", "publisher": "Indie"},
+        {"title": "Don't Fall for Your Ex-Boyfriend's Brother (#5)", "release_date": "", "status": "out", "publisher": "Indie"},
+        {"title": "Don't Fall For Your Grumpy Husband (#6)", "release_date": "", "status": "out", "publisher": "Indie"}
+      ],
+      "missing_from_shelf": [
+        {"title": "Books #2-#6", "note": "All released per Goodreads series page; she owns only #1."}
+      ]
+    },
+    {
+      "series": "Anyone But",
+      "author": "Penelope Bloom",
+      "status": "complete (3 books)",
+      "source_url": "https://mostrecommendedbooks.com/series/anyone-but-books-in-order",
+      "next_books": [],
+      "missing_from_shelf": [
+        {"title": "Anyone But Rich (#1, 2019); Anyone But Cade (#2, 2019)", "note": "She owns Anyone But Nick (which is #3, not #1)."}
+      ]
+    },
+    {
+      "series": "Leblanc Brothers",
+      "author": "Layla Hagen",
+      "status": "complete (5 books)",
+      "source_url": "https://laylahagen.com/books/the-leblanc-brothers/",
+      "next_books": [
+        {"title": "The Match (#4)", "release_date": "", "status": "out", "publisher": "Layla Hagen (self-pub)"},
+        {"title": "The Rebel (#5)", "release_date": "2025-10-03", "status": "out", "publisher": "Layla Hagen (self-pub)"}
+      ],
+      "missing_from_shelf": [
+        {"title": "The Flirt (#1); The Charmer (#2); The Match (#4); The Rebel (#5)", "note": "She owns The Grump (which is #3, not #1)."}
+      ]
+    },
+    {
+      "series": "Funny Feelings",
+      "author": "Camilla Isley",
+      "status": "complete (3 books)",
+      "source_url": "https://www.goodreads.com/series/402945-funny-feelings",
+      "next_books": [
+        {"title": "The Roommate Experiment (#3)", "release_date": "", "status": "out", "publisher": "Voyage (self-pub)"}
+      ],
+      "missing_from_shelf": [
+        {"title": "This Is Not a Holiday Romance (#1)", "note": "She owns If the Ring Fits (which is #2, not #1)."},
+        {"title": "The Roommate Experiment (#3)", "note": "Released per Goodreads series page."}
+      ]
+    },
+    {
+      "series": "True Love",
+      "author": "Camilla Isley",
+      "status": "complete (3 books)",
+      "source_url": "https://camillaisley.com/true-love-series",
+      "next_books": [
+        {"title": "Baby, One More Time (#2)", "release_date": "2024", "status": "out", "publisher": "Voyage (self-pub)"},
+        {"title": "The Love Algorithm (#3)", "release_date": "2025", "status": "out", "publisher": "Voyage (self-pub)"}
+      ],
+      "missing_from_shelf": [
+        {"title": "Baby, One More Time (#2); The Love Algorithm (#3)", "note": "She owns only Not in a Billion Years (#1)."}
+      ]
+    },
+    {
+      "series": "Hypothesis (seed labels 'Elements of Chemistry')",
+      "author": "Penny Reid",
+      "status": "complete (3 books; book 3 is titled 'Capture', not 'Caprice')",
+      "source_url": "https://goodreads.com/book/show/55652243-elements-of-chemistry",
+      "next_books": [
+        {"title": "Elements of Chemistry: Capture (#3)", "release_date": "2017", "status": "out", "publisher": "Indie"}
+      ],
+      "missing_from_shelf": [
+        {"title": "Elements of Chemistry: Capture (#3)", "note": "She owns #1 (Elements of Chemistry) and #2 (Heat)."}
+      ]
+    },
+    {
+      "series": "Saltwater Springs",
+      "author": "Tanisha Headley",
+      "status": "ongoing - 2 books + holiday novella released; Amazon lists up to 4 titles",
+      "source_url": "https://www.goodreads.com/series/406522-saltwater-springs",
+      "next_books": [
+        {"title": "Below The Barrel (#2)", "release_date": "", "status": "out", "publisher": "Indie"},
+        {"title": "Blame the Blizzard: A Saltwater Springs Holiday Novella (#2.5)", "release_date": "", "status": "out", "publisher": "Indie"}
+      ],
+      "missing_from_shelf": [
+        {"title": "Below The Barrel (#2); Blame the Blizzard (#2.5)", "note": "She owns only Beyond The Break (#1)."}
+      ]
+    },
+    {
+      "series": "Flame and Thorns",
+      "author": "Marion Blackwood",
+      "status": "complete (5 books; War of Fire and Fury Feb 2026 ended it)",
+      "source_url": "https://www.goodreads.com/series/403426-flame-and-thorns",
+      "next_books": [
+        {"title": "Throne of Ice and Blood (#2)", "release_date": "2025-02-24", "status": "out", "publisher": "Indie"},
+        {"title": "Court of Lies and Deceit (#3)", "release_date": "2025", "status": "out", "publisher": "Indie"},
+        {"title": "Realm of Wind and Vines (#4)", "release_date": "2025", "status": "out", "publisher": "Indie"},
+        {"title": "War of Fire and Fury (#5, finale)", "release_date": "2026-02-23", "status": "out", "publisher": "Indie"}
+      ],
+      "missing_from_shelf": [
+        {"title": "Books #2-#5", "note": "She owns only Empire of Flame and Thorns (#1, 2024)."}
+      ]
+    },
+    {
+      "series": "The Wolf King",
+      "author": "Lauren Palphreyman",
+      "status": "complete (2-book duology)",
+      "source_url": "https://www.goodreads.com/en/book/show/223259676-the-night-prince",
+      "next_books": [],
+      "missing_from_shelf": []
+    },
+    {
+      "series": "The Aurelian Cycle",
+      "author": "Rosaria Munda",
+      "status": "complete (3 books)",
+      "source_url": "https://www.goodreads.com/series/307586-the-aurelian-cycle",
+      "next_books": [
+        {"title": "Flamefall (#2)", "release_date": "2020", "status": "out", "publisher": "G.P. Putnam's Sons"},
+        {"title": "Furysong (#3, finale)", "release_date": "2022", "status": "out", "publisher": "G.P. Putnam's Sons"}
+      ],
+      "missing_from_shelf": [
+        {"title": "Flamefall (#2); Furysong (#3)", "note": "She owns only Fireborne (#1)."}
+      ]
+    },
+    {
+      "series": "The Eating Woods",
+      "author": "Keri Lake",
+      "status": "ongoing (trilogy; book 3 Vasmora confirmed for Oct 2026)",
+      "source_url": "https://www.goodreads.com/series/389166-the-eating-woods",
+      "next_books": [
+        {"title": "Eldritch (#2)", "release_date": "2024", "status": "out", "publisher": "Indie"},
+        {"title": "Vasmora (#3, finale)", "release_date": "2026-10", "status": "upcoming", "publisher": "Indie"}
+      ],
+      "missing_from_shelf": [
+        {"title": "Eldritch (#2)", "note": "Released 2024; she owns only Anathema (#1)."},
+        {"title": "Vasmora (#3)", "note": "Author confirmed for Fall 2026 (RADAR)."}
+      ]
+    },
+    {
+      "series": "The Choosing Chronicles",
+      "author": "Elayna R. Gallea",
+      "status": "ongoing (duet: 2 books; #2 released)",
+      "source_url": "https://www.audible.com/series/The-Choosing-Chronicles-Audiobooks/B0D93QYG3X",
+      "next_books": [
+        {"title": "A Heart of Desire and Deceit (#2)", "release_date": "", "status": "out", "publisher": "Indie"}
+      ],
+      "missing_from_shelf": [
+        {"title": "A Heart of Desire and Deceit (#2)", "note": "Strictly, the seed entry titled 'The Choosing Chronicles' is the series name, not a book title - the book she read is A Game of Love and Betrayal (#1)."}
+      ]
+    },
+    {
+      "series": "Throne of Glass",
+      "author": "Sarah J. Maas",
+      "status": "complete (7 novels + The Assassin's Blade prequel)",
+      "source_url": "https://www.goodreads.com/series/41394-throne-of-glass",
+      "next_books": [
+        {"title": "Crown of Midnight (#2)", "release_date": "2013", "status": "out", "publisher": "Bloomsbury"},
+        {"title": "Heir of Fire (#3)", "release_date": "2014", "status": "out", "publisher": "Bloomsbury"},
+        {"title": "Kingdom of Ash (#7, finale)", "release_date": "2018", "status": "out", "publisher": "Bloomsbury"}
+      ],
+      "missing_from_shelf": [
+        {"title": "Crown of Midnight (#2) through Kingdom of Ash (#7), plus The Assassin's Blade (prequel, 2014)", "note": "She owns only Throne of Glass (#1); series is finished."}
+      ]
+    }
+  ],
+  "corrections": [
+    {"entry": "series_in_progress: Fae & Alchemy — 'last_read: The Throne of Honor and Blood (#2, 2024)'", "correction": "The Throne of Honor and Blood is by J. BREE and is book #2 of 'The Mortal Fates' (Goodreads series 355116), NOT Callie Hart / Fae & Alchemy. The real Fae & Alchemy #2 is 'Brimstone' (Nov 18, 2025); #3 is untitled (expected 2027). The books array entry gets the author right (J Bree) but the series wrong."},
+    {"entry": "series_in_progress / books: Legends of Thezmarr — 'Iron & Embers (#3)'", "correction": "Iron & Embers is NOT #3 of Legends of Thezmarr. Legends of Thezmarr = Blood & Steel (#1), Vows & Ruins (#2), Fate & Furies (#3), Shadow & Storms (#4) — complete. Iron & Embers is #1 of a NEW series, 'The Ashes of Thezmarr' (trilogy: Iron & Embers, Thorns & Fire, Silver & Smoke — all out)."},
+    {"entry": "books: 'The Crown of Gilded Bones' / series_in_progress: Flesh and Blood 'last_read: (#2)'", "correction": "The Crown of Gilded Bones is BLOOD AND ASH #3 (not #2). The seed is missing A Kingdom of Flesh and Fire (#2, 2020). Also: the series' Goodreads name is 'Blood and Ash' — 'Flesh and Fire' is the separate prequel series."},
+    {"entry": "books: 'Princess and the Player' / series_in_progress: Strangers in Love 'last_read: (#1)'", "correction": "Princess and the Player is Strangers in Love #2. Book #1 is Beauty and the Baller (2022) — not in seed data."},
+    {"entry": "books: 'Crowns of Nyaxia' (title) by Carissa Broadbent", "correction": "'Crowns of Nyaxia' is the SERIES name, not a book title; the seed entry duplicates the series. If it represents The Ashes & the Star-Cursed King, that would be #2 — ambiguous, treat shelf as Serpent (#1) only."},
+    {"entry": "series_in_progress: 'The Moon Hatched'", "correction": "Goodreads series name is 'Moonfall' (When the Moon Hatched #1, The Ballad of Falling Dragons #2, May 19 2026)."},
+    {"entry": "books: 'Wrecked' (Dirty Air)", "correction": "Wrecked is Dirty Air #3 (series: Throttled #1, Collided #2, Wrecked #3, Redeemed #4)."},
+    {"entry": "books: 'In The Game' (Lakes Hockey)", "correction": "In the Game is Lakes Hockey #3 (Before We Came #1, Strong and Wild #2, In the Game #3, Stand and Defend #4)."},
+    {"entry": "books: 'Anyone But Nick'", "correction": "Anyone But Nick is Anyone But #3 (Rich #1, Cade #2, Nick #3)."},
+    {"entry": "books: 'The Grump' (Leblanc Brothers)", "correction": "The Grump is Leblanc Brothers #3 (The Flirt #1, The Charmer #2, The Grump #3, The Match #4, The Rebel #5)."},
+    {"entry": "books: 'If the Ring Fits' (Funny Feelings)", "correction": "If the Ring Fits is Funny Feelings #2 (This Is Not a Holiday Romance #1)."},
+    {"entry": "books: 'The Night Prince' (series: null)", "correction": "The Night Prince is The Wolf King #2 (Lauren Palphreyman), not a standalone — the duology is complete."},
+    {"entry": "books: 'Elements of Chemistry' / 'Heat'", "correction": "Series is 'Hypothesis' (Penny Reid); book #3 is 'Elements of Chemistry: Capture' (2017), not 'Caprice'."},
+    {"entry": "books: 'The Choosing Chronicles' (title)", "correction": "'The Choosing Chronicles' is the series name; the book is 'A Game of Love and Betrayal' (#1); sequel 'A Heart of Desire and Deceit' (#2) is out."},
+    {"entry": "series_in_progress: Deadly Divine — 'Wrath of the Damned (#2)'", "correction": "Series is officially the 'Deadly Divine Duet' (2 books) and is COMPLETE — nothing missing."},
+    {"entry": "series_in_progress: Zodiac Academy 'last_read: Sorrow and Starlight (#8); Beyond the Veil (8.5)'", "correction": "A 9th book exists: 'Zodiac Academy 9: Restless Stars' (King's Hollow; retail pub date 2026-03-03) — she is missing it."},
+    {"entry": "books: 'The Throne of Honor and Blood' author", "correction": "Author is J. Bree (correct in the books array), but the entry is also marked series 'Fae & Alchemy' — it belongs to 'The Mortal Fates'."}
+  ]
+}
