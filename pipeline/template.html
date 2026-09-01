@@ -1109,7 +1109,7 @@
   function renderGrid(){
     var m=MONTHS[CURRENT];
     titleEl.textContent='The '+m.name+' Shelf';
-    subEl.textContent=m.books.length+' books · '+(m.topPick&&m.current?'1 top pick':'no top pick');
+    subEl.textContent=m.books.length+' books · '+(m.topPick&&m.current?'1 top pick':'no top pick')+(m.win?' · released '+m.win:'');
     var h='';
     for(var i=0;i<m.books.length;i++){h+=cardHTML(m.books[i],CURRENT,i);}
     grid.innerHTML=h;

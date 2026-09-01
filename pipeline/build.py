@@ -2,13 +2,23 @@
 """The Shelf pipeline — stage 4: build dist/index.html from the curated month.
 Injects the month's data into the design template (the v4 page) and rewrites
 local assets next to it. Pure stdlib; template stays unmodified."""
-import json, os, re, shutil, sys, urllib.request, urllib.parse, hashlib
+import json, os, re, shutil, sys, urllib.request, urllib.parse, hashlib, calendar
 from datetime import datetime
 
 BASE = os.path.dirname(os.path.abspath(__file__))
 ROOT = os.path.dirname(BASE)
 CFG = json.load(open(os.path.join(BASE, 'config.json')))
 TEMPLATE = os.path.join(BASE, 'template.html')
+
+
+def window_label():
+    """e.g. '1 AUG – 30 SEP 2026' — the release window this issue covers."""
+    now = datetime.now()
+    y, m = now.year, now.month
+    py, pm = (y - 1, 12) if m == 1 else (y, m - 1)
+    last = calendar.monthrange(y, m)[1]
+    months = ['JAN','FEB','MAR','APR','MAY','JUN','JUL','AUG','SEP','OCT','NOV','DEC']
+    return '%d %s – %d %s %d' % (1, months[pm-1], last, months[m-1], now.year)
 
 
 def baseline_seqs():
@@ -110,7 +120,7 @@ def main():
     tp = cur.get('top_pick') or (ids[0] if ids else None)
     name = datetime.now().strftime('%B')
     label = datetime.now().strftime('%B %Y')
-    months = {'sep': {'name': name, 'label': label, 'current': True, 'topPick': tp, 'books': ids, 'presets': {}}}
+    months = {'sep': {'name': name, 'label': label, 'current': True, 'topPick': tp, 'books': ids, 'presets': {}, 'win': window_label()}}
     br, bd = baseline_seqs()
     seqread = merge(cur.get('sequels_read', []), br)
     seqradar = merge(cur.get('sequels_radar', []), bd)
