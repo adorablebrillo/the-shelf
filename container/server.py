@@ -108,9 +108,14 @@ def run_pipeline(settings):
     mon = datetime.now().strftime('%Y-%m')
     n = 0
     try:
-        mp = os.path.join(BASE, 'data', 'month-%s.json' % mon)
-        if os.path.exists(mp):
-            n = len(json.load(open(mp)).get('books', []))
+        # count the newest VALID (fully past) month — the same month build.py
+        # treats as CURRENT; pipeline months live in PIPELINE/data
+        files = sorted(glob.glob(os.path.join(PIPELINE, 'data', 'month-*.json')))
+        for mf in reversed(files):
+            ym = os.path.basename(mf)[len('month-'):-len('.json')]
+            if re.match(r'^\d{4}-\d{2}$', ym) and ym < mon:
+                n = len(json.load(open(mf)).get('books', []))
+                break
     except Exception:
         pass
     s = load_settings()

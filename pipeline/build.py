@@ -129,6 +129,29 @@ def main():
         except Exception as e:
             print('could not purge %s: %s' % (mf, e))
     month_files = valid
+    # defensive: an EMPTY month file (e.g. a bad model output that overwrote a
+    # good one) is restored from the baked baseline — never render an empty shelf
+    fixed = []
+    for mf in month_files:
+        try:
+            cur = json.load(open(mf))
+        except Exception:
+            fixed.append(mf)
+            continue
+        if not cur.get('books'):
+            bl = os.path.join(BASE, 'baseline', os.path.basename(mf))
+            if os.path.exists(bl):
+                shutil.copy2(bl, mf)
+                print('restored empty month %s from baseline' % os.path.basename(mf))
+            else:
+                try:
+                    os.remove(mf)
+                    print('removed empty month file %s (no baseline)' % os.path.basename(mf))
+                except Exception:
+                    pass
+                continue
+        fixed.append(mf)
+    month_files = fixed
     if not month_files:
         print('no curated month — run curate.py first (or drop month-*.json in data/)')
         return 1
