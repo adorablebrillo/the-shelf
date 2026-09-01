@@ -6,6 +6,7 @@ services:
       - "8787:8787"
     environment:
       - TZ=Europe/Madrid
+      - CFG_DIR=/config
     volumes:
       - /mnt/user/appdata/the-shelf/config:/config
       - /mnt/user/appdata/the-shelf/data:/app/pipeline/data

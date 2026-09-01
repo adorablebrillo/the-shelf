@@ -29,4 +29,5 @@
   <Config Name="Config" Target="/config" Default="/mnt/user/appdata/the-shelf/config" Mode="rw" Description="settings.json + logs (persisted)" Type="Path" Display="always" Required="true" Mask="false"/>
   <Config Name="Data" Target="/app/pipeline/data" Default="/mnt/user/appdata/the-shelf/data" Mode="rw" Description="candidates + curated month JSON history" Type="Path" Display="always" Required="true" Mask="false"/>
   <Config Name="Timezone" Target="TZ" Default="Europe/Madrid" Mode="" Description="Schedule runs run in this timezone (1st of month, 09:00)" Type="Variable" Display="always" Required="false" Mask="false"/>
+  <Config Name="ConfigDir" Target="CFG_DIR" Default="/config" Mode="" Description="Must match the /config volume (settings.json + logs persist here)" Type="Variable" Display="always" Required="false" Mask="false"/>
 </Container>

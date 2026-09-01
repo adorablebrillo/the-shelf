@@ -10,7 +10,8 @@ from urllib.parse import urlparse
 
 BASE = os.path.join(os.path.dirname(os.path.abspath(__file__)))
 PIPELINE = os.path.join(BASE, 'pipeline')
-CONFIG_DIR = os.environ.get('CFG_DIR', os.path.join(BASE, 'config'))  # volume in docker
+CONFIG_DIR = os.environ.get('CFG_DIR') or (
+    '/config' if (os.path.isdir('/config') and os.access('/config', os.W_OK)) else os.path.join(BASE, 'config'))
 DIST = os.path.join(BASE, 'dist')
 PORT = int(os.environ.get('PORT', 8787))
 SETTINGS = os.path.join(CONFIG_DIR, 'settings.json')
