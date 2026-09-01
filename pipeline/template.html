@@ -722,7 +722,7 @@
 
   var STORE_KEY='shelf-tracker-v4';
   var SEQ_KEY='shelf-tracker-v4-seq';
-  var CURRENT='sep';
+  var CURRENT=(window.THE_SHELF_DATA&&window.THE_SHELF_DATA.CURRENT)||'sep';
 
   /* ---------- SEASON CONFIG: fall ACTIVE for SEP 2026 ----------
      Placeholder variants (kept commented for the future):
@@ -1109,7 +1109,7 @@
   function renderGrid(){
     var m=MONTHS[CURRENT];
     titleEl.textContent='The '+m.name+' Shelf';
-    subEl.textContent=m.books.length+' books · '+(m.topPick&&m.current?'1 top pick':'no top pick')+(m.win?' · released '+m.win:'');
+    subEl.textContent=m.books.length+' books · '+(m.topPick&&m.current?'1 top pick':'no top pick')+(m.win?' · released '+m.win:'')+(m.light?' · light month — only the best made it':'');
     var h='';
     for(var i=0;i<m.books.length;i++){h+=cardHTML(m.books[i],CURRENT,i);}
     grid.innerHTML=h;

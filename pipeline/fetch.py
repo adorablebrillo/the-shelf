@@ -14,15 +14,12 @@ def get(url, timeout=20):
         return r.read().decode('utf-8', 'replace')
 
 def window():
-    """Calendar months to include: the current month + the previous N-1."""
+    """Run for the PREVIOUS month: on Sept 1 we collect the August titles.
+    The 1st-of-month drop shows that specific month's books only."""
     today = date.today()
-    months = []
-    m = today.month; y = today.year
-    for i in range(1, CFG['window_months'] + 1):
-        months.append('%04d-%02d' % (y, m))
-        m -= 1
-        if m == 0: m = 12; y -= 1
-    return months
+    y, m = today.year, today.month
+    py, pm = (y - 1, 12) if m == 1 else (y, m - 1)
+    return ['%04d-%02d' % (py, pm)]
 
 def norm_date(s):
     if not s: return None

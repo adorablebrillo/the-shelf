@@ -24,6 +24,11 @@ def main():
         print('NO OPENROUTER API KEY — set OPENROUTER_API_KEY env var or put it in ~/.config/the-shelf/openrouter.key')
         return 2
     mon = datetime.now().strftime('%Y-%m')
+    # run for the previous month: pick the newest filtered-*.json
+    import glob
+    files = sorted(glob.glob(os.path.join(BASE, CFG['output_dir'], 'filtered-*.json')))
+    if files:
+        mon = os.path.basename(files[-1])[len('filtered-'):-len('.json')]
     fp = os.path.join(BASE, CFG['output_dir'], 'filtered-%s.json' % mon)
     if not os.path.exists(fp):
         print('no filtered candidates — run fetch.py + filter.py first'); return 1

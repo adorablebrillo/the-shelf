@@ -30,7 +30,8 @@ early ratings (4.0+ with a decent vote count on Goodreads) — otherwise drop.
 
 - Pick 6–8 books total; aim for roughly a 50/50 mix of sport romance and
   romantasy. If a month is thin, give 3 great books — never filler.
-- Only books released within the past two months of the print/ebook/audio date
+- Only books released within the specific month being curated (the drop runs
+  for the entire PREVIOUS month: e.g. the September 1st run curates August).
   given. If the date is missing or outside the window, drop it.
 - Sequels are welcome ONLY if they continue a series the reader is already in
   (series names and her read list are below). Mark them `aseq: true`.
