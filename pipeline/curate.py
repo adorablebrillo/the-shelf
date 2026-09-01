@@ -41,7 +41,7 @@ def main():
 
     payload = json.dumps({
         'month': mon,
-        'window_rule': 'released in the past two months',
+        'window_rule': 'only books released in the specific month being curated (the drop runs on the 1st for the entire PREVIOUS month)',
         'candidates': filtered.get('books', []),
         'sequels_map': seq,
     }, indent=1)
@@ -85,6 +85,9 @@ def main():
         return 2
     n = len(cur['books'])
     lo, hi = CFG['target_books']
+    if n == 0:
+        print('CURATE returned 0 books — refusing to overwrite the existing month file (keeping the good shelf)')
+        return 3
     if not (lo <= n <= hi):
         print('WARNING: %d books (expected %d–%d) — check the prompt/model' % (n, lo, hi))
     out = os.path.join(BASE, CFG['output_dir'], 'month-%s.json' % mon)
