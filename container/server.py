@@ -3,7 +3,7 @@
 Serves the built page, holds settings (OpenRouter key, model), schedules the
 monthly run (1st, 09:00), exposes a small JSON API used by the in-page
 Settings pane. Pure stdlib — no pip installs."""
-import json, os, re, shutil, subprocess, threading, time, urllib.request
+import json, os, re, shutil, glob, sys, subprocess, threading, time, urllib.request
 from datetime import datetime
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from urllib.parse import urlparse
@@ -212,11 +212,36 @@ class H(BaseHTTPRequestHandler):
         else:
             self._json({'error': 'not found'}, 404)
 
+def ensure_default():
+    """Never serve a blank page: build from the newest curated month if any,
+    else fall back to the design template (mock shelf + working settings)."""
+    try:
+        if os.path.isfile(os.path.join(DIST, 'index.html')):
+            return
+        months = sorted(glob.glob(os.path.join(PIPELINE, 'data', 'month-*.json')))
+        if months:
+            log('boot: building from %s' % os.path.basename(months[-1]))
+            r = subprocess.run([sys.executable, os.path.join(PIPELINE, 'build.py')],
+                               capture_output=True, text=True, timeout=180, cwd=PIPELINE)
+            if r.returncode == 0 and os.path.isfile(os.path.join(DIST, 'index.html')):
+                return
+            log('boot: build failed (%s)' % (r.stderr or r.stdout or '')[-200:])
+        tpl = os.path.join(PIPELINE, 'template.html')
+        if os.path.isfile(tpl):
+            shutil.copy2(tpl, os.path.join(DIST, 'index.html'))
+            log('boot: serving design placeholder until the first run')
+        else:
+            log('boot: no template found — will 404 until a month is curated')
+    except Exception as e:
+        log('boot: default page error: %s' % e)
+
+
 def main():
     os.makedirs(CONFIG_DIR, exist_ok=True)
     os.makedirs(LOGSD, exist_ok=True)
     if not os.path.isdir(DIST):
         os.makedirs(DIST, exist_ok=True)
+    ensure_default()
     threading.Thread(target=scheduler, daemon=True).start()
     srv = ThreadingHTTPServer(('0.0.0.0', PORT), H)
     log('The Shelf server on 0.0.0.0:%d' % PORT)
