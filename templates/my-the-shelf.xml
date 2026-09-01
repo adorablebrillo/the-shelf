@@ -1,0 +1,32 @@
+<?xml version="1.0"?>
+<Container version="2">
+  <Name>The Shelf</Name>
+  <Repository>ghcr.io/adorablebrillo/the-shelf:latest</Repository>
+  <Registry>ghcr.io</Registry>
+  <Category>Books</Category>
+  <Keywords>the-shelf,books,romance,reading,monthly,openrouter</Keywords>
+  <Overview>Your monthly romance page — new books curated to your taste, every 1st of the month. It finds new sport romance &amp; romantasy releases, OpenAI-.. curates them with your taste profile (trad-pub first, no dark romance, spice 3-5), and serves the page. Add your OpenRouter key and pick your model in the in-page Settings.</Overview>
+  <Description>THE SHELF is a monthly book-discovery app: one page, 6-8 new romance titles (sport romance + romantasy), curated for one reader. It fetches candidates automatically, applies her rules (M/F only, no dark romance, trad-pub first with indie only when proven, spice 3-5, releases from the past two months), curates them with the model of your choice via OpenRouter, and rebuilds the page. Scheduled to run the 1st of every month, plus a manual "run now" button in Settings. All settings (API key, model) live in the page under "shelf settings" - nothing to edit in the container.</Description>
+  <Icon>https://raw.githubusercontent.com/adorablebrillo/the-shelf/main/icon-the-shelf.png</Icon>
+  <GitHub>https://github.com/adorablebrillo/the-shelf</GitHub>
+  <Networking>
+    <Mode>bridge</Mode>
+    <Host>false</Host>
+    <Publish>8787:8787</Publish>
+  </Networking>
+  <Data>
+    <Volume>/config:/config</Volume>
+    <Volume>/app/pipeline/data:/app/pipeline/data</Volume>
+  </Data>
+  <Environment>
+    <Variable Name="TZ" Value="Europe/Madrid"/>
+  </Environment>
+  <ExtraParams>--restart=unless-stopped</ExtraParams>
+  <WebUI>http://[IP]:[PORT:8787]</WebUI>
+  <TemplateURL>https://raw.githubusercontent.com/adorablebrillo/the-shelf/main/templates/my-the-shelf.xml</TemplateURL>
+  <IconFile></IconFile>
+  <Config Name="Web UI" Target="8787" Default="8787" Mode="tcp" Description="The Shelf web UI" Type="Port" Display="always" Required="true" Mask="false"/>
+  <Config Name="Config" Target="/config" Default="/mnt/user/appdata/the-shelf/config" Mode="rw" Description="settings.json + logs (persisted)" Type="Path" Display="always" Required="true" Mask="false"/>
+  <Config Name="Data" Target="/app/pipeline/data" Default="/mnt/user/appdata/the-shelf/data" Mode="rw" Description="candidates + curated month JSON history" Type="Path" Display="always" Required="true" Mask="false"/>
+  <Config Name="Timezone" Target="TZ" Default="Europe/Madrid" Mode="" Description="Schedule runs run in this timezone (1st of month, 09:00)" Type="Variable" Display="always" Required="false" Mask="false"/>
+</Container>

@@ -1,0 +1,106 @@
+{
+  "theme": {
+    "extend": {
+      "colors": {
+        "primary": "#1a1815",
+        "secondary": "#9ba98a",
+        "tertiary": "#c8704a",
+        "neutral": "#f7f1e7",
+        "paper": "#f7f1e7",
+        "card": "#fbf6ec",
+        "ruling": "#f2ebde",
+        "line": "#e4dac7",
+        "rose": "#e8c4c6",
+        "sage": "#cbd6c0",
+        "blue": "#c9d6e0",
+        "butter": "#f0e3c4",
+        "autumn-orange": "#d89a6e",
+        "autumn-rust": "#c8704a",
+        "autumn-sage": "#9ba98a",
+        "autumn-rose": "#b8788a"
+      },
+      "fontFamily": {
+        "h1": [
+          "Bodoni 72, Didot, Bodoni MT, Georgia"
+        ],
+        "heading": [
+          "Bodoni 72, Didot, Bodoni MT, Georgia"
+        ],
+        "kicker": [
+          "Bodoni 72, Didot, Bodoni MT, Georgia"
+        ],
+        "body-md": [
+          "Baskerville, Baskerville Old Face, Georgia"
+        ],
+        "meta": [
+          "Baskerville, Baskerville Old Face, Georgia"
+        ],
+        "hand": [
+          "Bradley Hand, Noteworthy, Chalkboard SE, Marker Felt, cursive"
+        ],
+        "script": [
+          "Snell Roundhand, Apple Chancery, Segoe Script, Bradley Hand, cursive"
+        ]
+      },
+      "fontSize": {
+        "h1": [
+          "80px",
+          {
+            "letterSpacing": "0.045em",
+            "fontWeight": "600"
+          }
+        ],
+        "heading": [
+          "17px",
+          {
+            "letterSpacing": "0.14em",
+            "fontWeight": "600"
+          }
+        ],
+        "kicker": [
+          "11px",
+          {
+            "letterSpacing": "0.38em",
+            "fontWeight": "600"
+          }
+        ],
+        "body-md": [
+          "15px",
+          {
+            "fontWeight": "400"
+          }
+        ],
+        "meta": [
+          "12px",
+          {
+            "letterSpacing": "0.04em",
+            "fontWeight": "400"
+          }
+        ],
+        "hand": [
+          "13.5px",
+          {
+            "fontWeight": "700"
+          }
+        ],
+        "script": [
+          "34px",
+          {
+            "fontWeight": "700"
+          }
+        ]
+      },
+      "borderRadius": {
+        "sm": "0px",
+        "md": "0px",
+        "pill": "999px"
+      },
+      "spacing": {
+        "sm": "8px",
+        "md": "16px",
+        "lg": "24px",
+        "xl": "44px"
+      }
+    }
+  }
+}
