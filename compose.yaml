@@ -1,15 +1,11 @@
 services:
   the-shelf:
-    build:
-      context: .
-      dockerfile: container/Dockerfile
-    image: the-shelf:latest
+    image: ghcr.io/adorablebrillo/the-shelf:latest
     container_name: the-shelf
     ports:
       - "8787:8787"
     environment:
       - TZ=Europe/Madrid
-      - PORT=8787
     volumes:
       - /mnt/user/appdata/the-shelf/config:/config
       - /mnt/user/appdata/the-shelf/data:/app/pipeline/data
