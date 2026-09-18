@@ -100,6 +100,20 @@ def slug(b):
     return s[:60] or hashlib.md5(json.dumps(b, sort_keys=True).encode()).hexdigest()[:12]
 
 
+def book_key(title, author):
+    """THE identity for a book: deterministic from title + author, stable across
+    runs, months and sources. Month picks, series volumes, the archive and the
+    reader's marks all key on this, so one book is one thing everywhere."""
+    def n(s):
+        s = re.sub(r'\([^)]*\)', ' ', s or '')
+        s = s.split(';')[0]
+        return re.sub(r'[^a-z0-9]', '', s.lower())
+    t, a = n(title), n(author)
+    if not t:
+        return ''
+    return ('%s--%s' % (t[:72], a[:30])).rstrip('-')
+
+
 def download_cover(b, covers_dir):
     img = b.get('img') or b.get('cover_url') or ''
     if not img:
@@ -251,7 +265,9 @@ def series_data():
                 if k2 and (k2 in k or k in k2):
                     entry = v2
                     break
-        books = [{'t': t, 'n': '', 'd': 'read', 'state': 'read', 'iso': ''} for t in ls.get('books', [])]
+        author = ls.get('author') or ''
+        books = [{'t': t, 'n': '', 'd': 'read', 'state': 'read', 'iso': '',
+                  'id': book_key(t, author)} for t in ls.get('books', [])]
         publisher = ''
         if entry is not None:
             for k2 in seqmap:
@@ -260,9 +276,11 @@ def series_data():
             for nb in entry.get('next_books', []):
                 if nb.get('publisher') and not publisher:
                     publisher = nb['publisher']
+            ser_author = ls.get('author') or entry.get('author') or ''
             for b in next_books_for(entry, today):
                 if any(x['t'].lower() == b['t'].lower() for x in books):
                     continue
+                b['id'] = b.get('id') or book_key(b['t'], ser_author)
                 books.append(b)
         out.append({'name': name, 'author': ls.get('author') or '', 'publisher': publisher, 'books': books})
 
@@ -277,8 +295,11 @@ def series_data():
         for nb in v2.get('next_books', []):
             if nb.get('publisher') and not publisher:
                 publisher = nb['publisher']
+        nb_list = next_books_for(v2, today)
+        for b in nb_list:
+            b['id'] = b.get('id') or book_key(b['t'], v2.get('author'))
         out.append({'name': nm, 'author': v2.get('author') or '', 'publisher': publisher,
-                    'books': next_books_for(v2, today)})
+                    'books': nb_list})
     return out
 
 
@@ -313,6 +334,7 @@ def hero_data(series):
     else:
         standing = 'A new chapter in a series you already love.'
     return {'title': b['t'], 'num': b.get('n') or '', 'author': s.get('author') or '',
+            'id': b.get('id') or book_key(b['t'], s.get('author')),
             'publisher': s.get('publisher') or '', 'date': pretty_upper(iso), 'iso': iso,
             'seriesRef': s.get('name') or '', 'standing': standing}
 
@@ -332,8 +354,10 @@ def pick_book(b, top_id, img):
         gr = 'GR %s' % rating
     else:
         gr = 'GR —'
+    canon = book_key(b.get('title'), b.get('author')) or b.get('id') or slug(b)
     return {
-        'id': b.get('id') or slug(b),
+        'id': canon,
+        'rawId': b.get('id') or '',
         'img': img or b.get('img') or 'assets/real/cover-01.jpg',
         'title': b.get('title') or '', 'series': b.get('series') or '',
         'author': b.get('author') or '', 'publisher': b.get('publisher') or '',
@@ -453,6 +477,11 @@ def main():
     copy_static()
     # quotes follow the CALENDAR season — same clock the design's coffee art uses
     quotes = QUOTES.get(SEASON_OF.get(datetime.now().month, 'fall'), QUOTES['fall'])
+    # identity guard: every book the app can mark must carry a canonical id
+    orphans = [b['t'] for s in series for b in s['books'] if not b.get('id')]
+    orphans += [b['title'] for b in book_list if not b.get('id')]
+    if orphans:
+        print('WARNING: %d books have no identity: %s' % (len(orphans), orphans[:5]))
     data = {'month': month, 'hero': hero, 'books': book_list, 'series': series,
             'quotes': quotes, 'criteria': CRITERIA}
     os.makedirs(DIST, exist_ok=True)
