@@ -36,9 +36,10 @@ early ratings (4.0+ with a decent vote count on Goodreads) — otherwise drop.
 - Pick 6–8 books total; aim for the three-genre shape: roughly 3 sport romance,
   3 romantasy and 2 contemporary. Never fewer than 2 genres in a month. If a
   month is thin, keep the shape as best you can — never filler.
-- Only books released within the specific month being curated (the drop runs
-  for the entire PREVIOUS month: e.g. the September 1st run curates August).
-  If the date is missing or outside the window, drop it.
+- Only books released inside the window given in the payload's window_rule
+  (the scheduled drop covers the previous calendar month; ad-hoc "curate now"
+  runs cover the last 30 days). If the date is missing or outside the window,
+  drop it.
 - Sequels are welcome ONLY if they continue a series the reader is already in
   (series names and her read list are in the sequels_map below). Mark them
   `aseq: true`.

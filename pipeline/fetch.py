@@ -6,6 +6,9 @@ from datetime import date, datetime, timedelta
 
 BASE = os.path.dirname(os.path.abspath(__file__))
 CFG = json.load(open(os.path.join(BASE, 'config.json')))
+# SHELF_MODE=scheduled -> the 1st-of-month drop curates the PREVIOUS month
+# SHELF_MODE=adhoc     -> "curate now": rolling last 30 days ending today
+MODE = os.environ.get('SHELF_MODE', 'scheduled')
 UA = {'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/125 Safari/537.36'}
 
 def get(url, timeout=20):
@@ -124,9 +127,8 @@ def fetch_romanceio(mon):
 def main():
     if not os.path.isdir(os.path.join(BASE, CFG['output_dir'])):
         os.makedirs(os.path.join(BASE, CFG['output_dir']), exist_ok=True)
-    # the drop curates the PREVIOUS month — name the file for that book month
-    # so filter/curate/build all agree on the window (month-per-drop)
-    mon = window()[0]
+    # scheduled: the book month (previous month) · adhoc: right now (last 30 days)
+    mon = datetime.now().strftime('%Y-%m') if MODE == 'adhoc' else window()[0]
     fetch_apple()
     fetch_reddit(mon)
     fetch_goodreads(mon)
