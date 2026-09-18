@@ -60,18 +60,20 @@ def fetch_apple():
                 n += 1
         except Exception as e:
             print('[apple-rss:%s] skip: %s' % (slug, str(e)[:90]))
+    terms = CFG.get('search_terms') or ['romance']
     for media, entity in (('ebook','ebook'), ('audiobook','audiobook')):
-        try:
-            q = urllib.parse.urlencode({'term': 'romance', 'media': media, 'entity': entity, 'limit': 100, 'country': CFG['apple_country'], 'sortBy': 'recent'})
-            d = json.loads(get('https://itunes.apple.com/search?%s' % q))
-            for it in d.get('results', []):
-                add('apple-search', it.get('trackName',''), it.get('artistName',''),
-                    publisher=it.get('artistName',''), date_s=it.get('releaseDate',''),
-                    genre=' '.join(it.get('genres', [])[:3]), url=it.get('trackViewUrl') or '',
-                    audio=(entity=='audiobook'), ebook=(entity=='ebook'))
-                n += 1
-        except Exception as e:
-            print('[apple-search:%s] skip: %s' % (entity, str(e)[:90]))
+        for term in (terms if entity == 'ebook' else ['romance']):
+            try:
+                q = urllib.parse.urlencode({'term': term, 'media': media, 'entity': entity, 'limit': 100, 'country': CFG['apple_country'], 'sortBy': 'recent'})
+                d = json.loads(get('https://itunes.apple.com/search?%s' % q))
+                for it in d.get('results', []):
+                    add('apple-search', it.get('trackName',''), it.get('artistName',''),
+                        publisher=it.get('artistName',''), date_s=it.get('releaseDate',''),
+                        genre=' '.join(it.get('genres', [])[:3]), url=it.get('trackViewUrl') or '',
+                        audio=(entity=='audiobook'), ebook=(entity=='ebook'))
+                    n += 1
+            except Exception as e:
+                print('[apple-search:%s:%s] skip: %s' % (entity, term, str(e)[:90]))
     print('apple: %d records' % n)
 
 def fetch_reddit(mon):

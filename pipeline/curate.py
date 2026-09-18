@@ -42,6 +42,7 @@ def main():
     payload = json.dumps({
         'month': mon,
         'window_rule': 'only books released in the specific month being curated (the drop runs on the 1st for the entire PREVIOUS month)',
+        'genre_mix': CFG.get('genre_mix', {}),
         'candidates': filtered.get('books', []),
         'sequels_map': seq,
     }, indent=1)

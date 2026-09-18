@@ -12,7 +12,7 @@ WORKDIR /app
 ENV DIST_DIR=/app/dist
 COPY pipeline/ ./pipeline/
 COPY container/server.py ./server.py
-COPY data/sequels.json ./data/sequels.json
+COPY data/ ./data/
 COPY seed-reads.json ./seed-reads.json
 COPY .lavish/assets ./assets
 

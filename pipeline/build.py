@@ -33,8 +33,9 @@ def month_label(ym):
 
 
 def baseline_seqs():
-    """Always-present sequels baseline from data/sequels.json (her 52-series map).
-    Released-and-unread -> to read (cap 12, newest first); announced/future -> radar (cap 8)."""
+    """Always-present sequels baseline from data/sequels.json (her series map).
+    Released-and-unread -> to read (cap 16, newest first); announced/future ->
+    radar (cap 8, soonest first). Undated entries sort to the end of each list."""
     reads, radar = [], []
     try:
         seq = json.load(open(os.path.join(ROOT, 'data', 'sequels.json')))
@@ -51,16 +52,20 @@ def baseline_seqs():
                     t = raw.split(' (')[0].strip()
                     n = str(nb.get('volume') or nb.get('number') or '')
                 dt = str(nb.get('release_date') or '')[:10]
-                disp = dt.replace('-', ' ') if re.match(r'^\d{4}-\d{2}-\d{2}$', dt) else ''
+                # keep partial dates (YYYY-MM) sortable/visible too — otherwise
+                # e.g. "2026-10" ranks with undated announcements and can miss the cap
+                disp = dt.replace('-', ' ') if re.match(r'^\d{4}(-\d{2}){1,2}$', dt) else ''
                 ev = {'s': ser.get('series') or '', 't': t, 'n': n,
                       'a': ser.get('author') or '', 'd': disp, 'p': ''}
                 if dt and dt <= today:
                     reads.append(ev)
                 else:
                     radar.append(ev)
-        reads.sort(key=lambda x: -len(x['d']))
-        radar.sort(key=lambda x: -len(x['d']))
-        reads, radar = reads[:12], radar[:8]
+        # real date ordering (ISO strings sort lexicographically): newest first
+        # for the to-read list, soonest first for the radar; undated last.
+        # NO caps — every waiting sequel shows (the page collapses them anyway).
+        reads.sort(key=lambda x: (x['d'] != '', x['d']), reverse=True)
+        radar.sort(key=lambda x: (x['d'] == '', x['d']))
     except Exception as e:
         print('baseline sequels: %s' % e)
     return reads, radar
@@ -68,12 +73,71 @@ def baseline_seqs():
 
 def merge(base, extra):
     out = [dict(x) for x in base]
-    seen = {x.get('t') for x in out}
+    seen = {(x.get('t'), x.get('s')) for x in out}
     for x in extra:
-        if x.get('t') and x.get('t') not in seen:
+        k = (x.get('t'), x.get('s'))
+        if x.get('t') and k not in seen:
             out.append(x)
-            seen.add(x.get('t'))
+            seen.add(k)
     return out
+
+
+def lanes_data():
+    """Series lanes for the page: EVERY series she is in (from data/library.json)
+    with the books she has read + what's next from the sequels map. Replaces the
+    old hardcoded 4-lane widget so nothing is left off (e.g. The Powerless Trilogy)."""
+    try:
+        lib = json.load(open(os.path.join(ROOT, 'data', 'library.json')))
+    except Exception as e:
+        print('lanes: library.json missing (%s)' % e)
+        return []
+    try:
+        seq = json.load(open(os.path.join(ROOT, 'data', 'sequels.json')))
+    except Exception:
+        seq = {'series': []}
+
+    def norm(s):
+        # parenthetical suffixes ("… (ACOTAR)", "… (Duet)") shouldn't block a match
+        s = re.sub(r'\([^)]*\)', ' ', s or '')
+        return re.sub(r'[^a-z0-9]', '', s.lower())
+
+    seqmap = {}
+    for ser in seq.get('series', []):
+        seqmap[norm(ser.get('series'))] = ser
+
+    used = set()
+    lanes = []
+    for ls in lib.get('series', []):
+        name = ls.get('name') or ''
+        k = norm(name)
+        entry = seqmap.get(k)
+        if entry is None:
+            for k2, v2 in seqmap.items():
+                if k2 and (k2 in k or k in k2):
+                    entry = v2
+                    break
+        match = [name]
+        if entry is not None:
+            used.add(norm(entry['series']))
+        for k2 in seqmap:
+            if k2 and (k2 in k or k in k2):
+                used.add(k2)
+                nm2 = seqmap[k2].get('series')
+                if nm2 and nm2 not in match:
+                    match.append(nm2)
+        lanes.append({
+            'key': re.sub(r'[^a-z0-9]+', '-', name.lower()).strip('-') or 'series',
+            'name': name,
+            'match': match,
+            'base': [{'t': b, 'st': 'read'} for b in ls.get('books', [])],
+        })
+    # any researched series not covered by the library gets a lane too
+    for k2, v2 in seqmap.items():
+        if k2 not in used:
+            nm = v2.get('series') or ''
+            lanes.append({'key': re.sub(r'[^a-z0-9]+', '-', nm.lower()).strip('-') or 'series',
+                          'name': nm, 'match': [nm], 'base': []})
+    return lanes
 
 
 HEADERS = {'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 Chrome/125 Safari/537.36'}
@@ -109,6 +173,14 @@ def month_is_past(ym):
     (e.g. month-2026-09.json written on Sept 1 by an older build) are ignored
     and purged — the legacy two-window run left exactly that behind."""
     return ym < datetime.now().strftime('%Y-%m')
+
+
+def _seq_count():
+    """Number of series in the sequels map (shown as 'N series checked')."""
+    try:
+        return len(json.load(open(os.path.join(ROOT, 'data', 'sequels.json'))).get('series', []))
+    except Exception:
+        return 0
 
 
 def main():
@@ -217,6 +289,8 @@ def main():
         'SPINE_PAL': spine_pal,
         'SEQ_READ': seqread,
         'SEQ_RADAR': seqradar,
+        'SEQ_SERIES': _seq_count(),
+        'LANES': lanes_data(),
     }
     inject = '<script>window.THE_SHELF_DATA=' + json.dumps(data) + ';</script>\n'
 
@@ -230,6 +304,7 @@ def main():
         ("  var SEQ_RADAR=[", "  var SEQ_RADAR=(window.THE_SHELF_DATA&&window.THE_SHELF_DATA.SEQ_RADAR)||["),
         ("  var SPINE_H={", "  var SPINE_H=(window.THE_SHELF_DATA&&window.THE_SHELF_DATA.SPINE_H)||{"),
         ("  var SPINE_PAL={", "  var SPINE_PAL=(window.THE_SHELF_DATA&&window.THE_SHELF_DATA.SPINE_PAL)||{"),
+        ("  var LANES=[", "  var LANES=(window.THE_SHELF_DATA&&window.THE_SHELF_DATA.LANES&&window.THE_SHELF_DATA.LANES.length)?window.THE_SHELF_DATA.LANES:["),
     ]:
         if old not in tpl:
             print('anchor not found: %s' % old)

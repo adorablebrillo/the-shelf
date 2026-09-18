@@ -1,8 +1,10 @@
 # The Shelf 📚
 
 Monthly new-romance page + self-driving pipeline. A cream-journal web app that
-curates **6–8 new sport-romance & romantasy releases** for one reader, every
-1st of the month: fetch → filter → OpenRouter curation → build → serve.
+curates **6–8 new sport-romance, romantasy & contemporary releases** for one
+reader, every 1st of the month: fetch → filter → OpenRouter curation → build →
+serve. The sequels column tracks every series she is reading (all 55+, from
+`data/library.json` + the `data/sequels.json` research) with what's next.
 
 ## What's inside
 
