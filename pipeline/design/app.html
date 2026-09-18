@@ -386,22 +386,81 @@ const BREWS=[
 ];
 
 class Component extends DCLogic {
-  state={ data:(typeof window!=='undefined'&&window.SHELF_DATA)||null, states:{}, open:{}, q:0, view:'shelf', tip:'' };
+  state={ data:(typeof window!=='undefined'&&window.SHELF_DATA)||null, states:{}, ts:{}, open:{}, q:0, view:'shelf', tip:'', sync:'?' };
 
   /* ---- one identity per book ------------------------------------------
      Every book carries the pipeline's canonical id — a month's pick and a
      volume inside a series resolve to the SAME id, so a mark made anywhere
      shows up everywhere. No 'book:'/'seq:' namespaces, no duplicates.     */
-  setBook(id,st){ this.setState(s=>{const n={...s.states}; if(n[id]===st)delete n[id]; else n[id]=st; this.persist(n); return {states:n};}); }
+  /* ---- marks: local first, server of record ----------------------------
+     Every verdict is applied instantly in the browser and pushed to the shelf
+     server, which keeps the durable copy (and merges per mark, so the phone
+     and the desktop can't clobber each other). If the server is unreachable
+     the mark is queued and retried — never dropped.                        */
+  apply(id,val){
+    this.setState(s=>{
+      const st={...s.states}, ts={...s.ts}, now=Date.now();
+      if(val===null)delete st[id]; else st[id]=val;
+      ts[id]=now;
+      const delta={}; delta[id]={s:val,t:now};
+      this.persist(st,ts); this.sync(delta);
+      return {states:st, ts};
+    });
+  }
+  setBook(id,st){ this.apply(id, this.state.states[id]===st?null:st); }
 
-  setVolume(id,vs){ this.setState(s=>{const n={...s.states}; n[id]=(vs==='read')?'unread':'read'; this.persist(n); return {states:n};}); }
+  setVolume(id,vs){ this.apply(id, vs==='read'?'unread':'read'); }
 
-  unreadId(id,isVolume){ this.setState(s=>{const n={...s.states};
-    if(isVolume)n[id]='unread'; else delete n[id];
-    this.persist(n); return {states:n};}); }
+  unreadId(id,isVolume){ this.apply(id, isVolume?'unread':null); }
 
-  persist(states){ try{ localStorage.setItem('shelf.marks',
-    JSON.stringify({v:2,states:states||this.state.states})); }catch(e){} }
+  persist(states,ts){
+    try{ localStorage.setItem('shelf.marks',
+      JSON.stringify({v:2,states:states||this.state.states,ts:ts||this.state.ts})); }catch(e){}
+  }
+
+  sync(delta){
+    const send=(payload)=>fetch('/api/state',{method:'POST',
+      headers:{'Content-Type':'application/json'},body:JSON.stringify({states:payload})})
+      .then(r=>{ if(!r.ok)throw 0; this.setState({sync:'ok'}); return r.json(); });
+    try{ send(delta).then(()=>this.flushOutbox()).catch(()=>this.queue(delta)); }
+    catch(e){ this.queue(delta); }
+  }
+  queue(delta){
+    try{
+      const q=JSON.parse(localStorage.getItem('shelf.outbox')||'{}');
+      Object.keys(delta).forEach(k=>{
+        if(!q[k]||Number(q[k].t||0)<=Number(delta[k].t||0))q[k]=delta[k];});
+      localStorage.setItem('shelf.outbox',JSON.stringify(q));
+      this.setState({sync:'queued'});
+    }catch(e){}
+  }
+  flushOutbox(){
+    try{
+      const q=JSON.parse(localStorage.getItem('shelf.outbox')||'{}');
+      if(!Object.keys(q).length)return;
+      fetch('/api/state',{method:'POST',headers:{'Content-Type':'application/json'},
+        body:JSON.stringify({states:q})})
+        .then(r=>{ if(r.ok){localStorage.removeItem('shelf.outbox'); this.setState({sync:'ok'});} })
+        .catch(()=>{});
+    }catch(e){}
+  }
+  pull(){
+    fetch('/api/state').then(r=>r.json()).then(j=>{
+      const remote=(j&&j.states)||{}, st={...this.state.states}, ts={...this.state.ts}, up={};
+      Object.keys(remote).forEach(k=>{
+        const r=remote[k]||{}, rt=Number(r.t||0), s=(r.s===undefined?null:r.s), lt=Number(ts[k]||0);
+        if(s===null){ if(rt>=lt){delete st[k]; ts[k]=rt;} return; }
+        if(rt>lt){ st[k]=s; ts[k]=rt; }
+        else if(lt>rt){ up[k]={s:st[k],t:lt}; }
+      });
+      Object.keys(st).forEach(k=>{                       // local-only marks (first import)
+        if(!(k in remote)&&!up[k])up[k]={s:st[k],t:Number(ts[k]||0)};
+      });
+      this.setState({states:st, ts, sync:'ok'});
+      this.persist(st,ts);
+      if(Object.keys(up).length)this.sync(up); else this.flushOutbox();
+    }).catch(()=>{ this.setState({sync:'offline'}); this.flushOutbox(); });
+  }
 
   legacySlug(title,author){
     const s=(String(title||'x')+' '+String(author||'y')).toLowerCase()
@@ -441,7 +500,11 @@ class Component extends DCLogic {
           const RANK={loved:4,read:3,want:2,unread:1};
           if(id){ const best=(RANK[out[id]]||0)>(RANK[all[k]]||0)?out[id]:all[k]; out[id]=best; }
         }); }
-        if(Object.keys(out).length){this.setState({states:out}); this.persist(out);}
+        if(Object.keys(out).length){
+          const now=Date.now(), tsf={};
+          Object.keys(out).forEach(k=>{tsf[k]=now;});
+          this.setState({states:out, ts:tsf}); this.persist(out,tsf);
+        }
       }
     }catch(e){}
     if(!this.state.data){
@@ -452,8 +515,12 @@ class Component extends DCLogic {
       },50);
     }
     this._t=setInterval(()=>this.setState(s=>({q:s.q+1})),6500);
+    this.pull();                                   // server is the source of record
+    this._s=setInterval(()=>this.flushOutbox(),20000);
+    if(typeof document!=='undefined')document.addEventListener('visibilitychange',()=>{
+      if(!document.hidden){this.flushOutbox(); this.pull();}});
   }
-  componentWillUnmount(){ clearInterval(this._t); }
+  componentWillUnmount(){ clearInterval(this._t); clearInterval(this._s); }
 
   pill(on){
     return {fontFamily:"'EB Garamond',Georgia,serif",fontSize:'10.5px',letterSpacing:'.22em',textTransform:'uppercase',

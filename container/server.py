@@ -15,6 +15,9 @@ CONFIG_DIR = os.environ.get('CFG_DIR') or (
 DIST = os.path.join(BASE, 'dist')
 PORT = int(os.environ.get('PORT', 8787))
 SETTINGS = os.path.join(CONFIG_DIR, 'settings.json')
+# the reader's own shelves: every verdict, keyed by book identity. Lives beside
+# settings so the mounted volume keeps it across redeploys.
+STATE = os.path.join(CONFIG_DIR, 'reader-state.json')
 LOGSD = os.path.join(CONFIG_DIR, 'logs')
 
 DEFAULTS = {
@@ -193,7 +196,9 @@ class H(BaseHTTPRequestHandler):
 
     def do_GET(self):
         u = urlparse(self.path)
-        if u.path == '/api/status':
+        if u.path == '/api/state':
+            self._json(load_state())
+        elif u.path == '/api/status':
             s = load_settings()
             self._json({'key_set': bool(s.get('api_key')), 'model': s.get('model'),
                         'schedule': s.get('schedule'), 'last_run': s.get('last_run'),
@@ -219,7 +224,15 @@ class H(BaseHTTPRequestHandler):
             body = json.loads(self.rfile.read(int(self.headers.get('Content-Length', 0))))
         except Exception:
             body = {}
-        if u.path == '/api/settings':
+        if u.path == '/api/state':
+            cur = load_state()
+            cur['states'] = merge_states(cur.get('states'), body.get('states') or {})
+            save_state(cur)
+            live = [k for k, v in cur['states'].items() if isinstance(v, dict) and v.get('s')]
+            gone = [k for k, v in cur['states'].items() if isinstance(v, dict) and v.get('s') is None]
+            log('reader state: %d marked, %d cleared' % (len(live), len(gone)))
+            self._json({'ok': True, 'v': 2, 'states': cur['states'], 'updated': cur['updated']})
+        elif u.path == '/api/settings':
             s = load_settings()
             if body.get('api_key') is not None:
                 s['api_key'] = str(body['api_key']).strip()
@@ -239,6 +252,46 @@ class H(BaseHTTPRequestHandler):
             self._json({'ok': True, 'started': True, 'mode': 'adhoc'})
         else:
             self._json({'error': 'not found'}, 404)
+
+def load_state():
+    """The reader's marks. Returns {v, states:{<book id>:{s,t}}, updated}."""
+    try:
+        d = json.load(open(STATE))
+        if isinstance(d.get('states'), dict):
+            return d
+    except Exception:
+        pass
+    return {'v': 2, 'states': {}, 'updated': ''}
+
+
+def save_state(d):
+    """Atomic write — a mark must never be lost to a half-written file."""
+    os.makedirs(CONFIG_DIR, exist_ok=True)
+    d['v'] = 2
+    d['updated'] = datetime.now().strftime('%Y-%m-%dT%H:%M:%S')
+    tmp = STATE + '.tmp'
+    with open(tmp, 'w') as f:
+        json.dump(d, f)
+    os.replace(tmp, STATE)
+
+
+def merge_states(server_states, incoming):
+    """Per-key merge keyed on each mark's own timestamp, so a mark made on the
+    phone and a mark made on the desktop both survive. A null state is a
+    tombstone: an un-mark that has to travel between devices too."""
+    out = dict(server_states or {})
+    for k, v in (incoming or {}).items():
+        if isinstance(v, dict):
+            vs, vt = v.get('s'), int(v.get('t') or 0)
+        else:
+            vs, vt = v, 0
+        cur = out.get(k)
+        cur_t = int((cur or {}).get('t') or 0) if isinstance(cur, dict) else 0
+        if vt < cur_t:
+            continue
+        out[k] = {'s': vs, 't': vt}
+    return out
+
 
 def ensure_default():
     """Never serve a blank page: build from the newest curated month if any,
