@@ -242,6 +242,52 @@
       </div>
     </section>
 
+    <sc-if value="{{ hasWaiting }}">
+      <section aria-label="Still on your list" style="margin-top:56px">
+        <div style="display:flex;align-items:baseline;justify-content:space-between;gap:16px;flex-wrap:wrap">
+          <h2 style="font-family:'Cormorant Garamond',Garamond,serif;font-weight:500;font-size:clamp(26px,3.2vw,38px);letter-spacing:.14em;text-transform:uppercase;margin:0">Still on your list</h2>
+          <span style="font-size:11px;letter-spacing:.28em;text-transform:uppercase;color:#6E6353">{{ waitingLabel }}</span>
+        </div>
+        <div style="height:1px;background:#A8863F;margin:14px 0 0"></div>
+        <p style="margin:16px 0 0;font-family:'Cormorant Garamond',Garamond,serif;font-style:italic;font-size:19px;color:#6E6353">Earlier issues, still undecided. Nothing here expires on its own.</p>
+        <div style="display:flex;flex-direction:column;gap:0">
+          <sc-for list="{{ waiting }}" as="b" hint-placeholder-count="4">
+            <article style="display:grid;grid-template-columns:minmax(0,120px) minmax(0,1fr) minmax(0,190px);gap:28px;align-items:start;padding:26px 0;border-bottom:1px solid #D6CCB6">
+              <div style="min-width:0">
+                <div role="img" aria-label="{{ b.alt }}" style="{{ b.coverStyle }}"></div>
+              </div>
+              <div style="min-width:0">
+                <p style="margin:0;font-size:10.5px;letter-spacing:.3em;text-transform:uppercase;color:#6E2A2A">{{ b.issueChip }}</p>
+                <h3 style="font-family:'Cormorant Garamond',Garamond,serif;font-weight:500;font-size:29px;line-height:1.12;letter-spacing:.02em;margin:7px 0 0;overflow-wrap:anywhere">{{ b.title }}</h3>
+                <sc-if value="{{ b.series }}">
+                  <p style="margin:2px 0 0;font-family:'Cormorant Garamond',Garamond,serif;font-style:italic;font-size:19px;color:#6E2A2A">{{ b.series }}</p>
+                </sc-if>
+                <p style="margin:7px 0 0;font-size:13.5px;letter-spacing:.13em;text-transform:uppercase;color:#6E6353">{{ b.author }} · {{ b.publisher }} · {{ b.gr }}</p>
+                <p style="margin:14px 0 0;font-family:'Cormorant Garamond',Garamond,serif;font-size:21px;line-height:1.45;max-width:56ch">{{ b.hook }}</p>
+                <p style="margin:10px 0 0;font-size:14.5px;line-height:1.6;color:#4A443A">{{ b.tropeLine }}</p>
+                <p style="margin:8px 0 0;font-style:italic;font-size:15px;color:#6E2A2A">{{ b.waitNote }}</p>
+              </div>
+              <div style="min-width:0;display:flex;flex-direction:column;gap:14px">
+                <div style="display:flex;gap:22px;flex-wrap:wrap">
+                  <div><p style="margin:0;font-size:9.5px;letter-spacing:.26em;text-transform:uppercase;color:#6E6353">Spice</p><p style="margin:2px 0 0;font-family:'Cormorant Garamond',Garamond,serif;font-size:21px">{{ b.spiceLabel }}</p></div>
+                  <div><p style="margin:0;font-size:9.5px;letter-spacing:.26em;text-transform:uppercase;color:#6E6353">MMC</p><p style="margin:2px 0 0;font-family:'Cormorant Garamond',Garamond,serif;font-size:21px">{{ b.mmcLabel }}</p></div>
+                </div>
+                <p style="margin:0;font-size:13px;letter-spacing:.1em;text-transform:uppercase;color:#6E6353">{{ b.formatLine }}</p>
+                <div style="display:flex;gap:7px;flex-wrap:wrap">
+                  <sc-for list="{{ b.pills }}" as="p" hint-placeholder-count="4">
+                    <button type="button" onClick="{{ p.onClick }}" aria-pressed="{{ p.on }}" style="{{ p.style }}">{{ p.label }}</button>
+                  </sc-for>
+                </div>
+              </div>
+            </article>
+          </sc-for>
+        </div>
+        <sc-if value="{{ moreWaiting }}">
+          <button type="button" onClick="{{ showAllWaiting }}" style="margin-top:22px;font-size:11px;letter-spacing:.24em;text-transform:uppercase;color:#1E3A2F;border-bottom:1px solid #1E3A2F;padding:0 0 2px" style-hover="color:#6E2A2A;border-color:#6E2A2A">show {{ hiddenWaiting }} more</button>
+        </sc-if>
+      </section>
+    </sc-if>
+
     <section aria-label="Your series" style="margin-top:56px">
       <div style="display:flex;align-items:baseline;justify-content:space-between;gap:16px;flex-wrap:wrap">
         <h2 style="font-family:'Cormorant Garamond',Garamond,serif;font-weight:500;font-size:clamp(26px,3.2vw,38px);letter-spacing:.14em;text-transform:uppercase;margin:0">Your Series</h2>
@@ -400,7 +446,7 @@ function hydrateIds(d){
 }
 
 class Component extends DCLogic {
-  state={ data:(typeof window!=='undefined'&&window.SHELF_DATA)?hydrateIds(window.SHELF_DATA):null, states:{}, ts:{}, open:{}, q:0, view:'shelf', tip:'', sync:'?' };
+  state={ data:(typeof window!=='undefined'&&window.SHELF_DATA)?hydrateIds(window.SHELF_DATA):null, states:{}, ts:{}, open:{}, q:0, view:'shelf', tip:'', sync:'?', pendingAll:false };
 
   /* ---- one identity per book ------------------------------------------
      Every book carries the pipeline's canonical id — a month's pick and a
@@ -551,7 +597,10 @@ class Component extends DCLogic {
       mmcNote:b.lane==='romantasy'?'Xaden · Rhysand · Raihn energy':'same energy, no magic',
       tropeLine:b.tropes.join(' · '),
       formatLine:b.formats.join(' · '),
-      pills:['want','read','loved','skip'].map(p=>({label:p,on:st===p,style:this.pill(st===p),onClick:()=>this.setBook(b.id,p)}))
+      // the verdict she asked for by name: "skip sounds like a browsing gesture;
+      // this is a verdict" -> the stored value stays 'skip', the label does not
+      pills:[['want','want'],['read','read'],['loved','loved'],['skip','not for me']]
+        .map(v=>({label:v[1],on:st===v[0],style:this.pill(st===v[0]),onClick:()=>this.setBook(b.id,v[0])}))
     };
   }
 
@@ -561,7 +610,7 @@ class Component extends DCLogic {
     const S=this.state.states;
     let r=0,l=0,w=0,k=0;
     Object.keys(S).forEach(id=>{const v=S[id];if(v==='read')r++;else if(v==='loved')l++;else if(v==='want')w++;else if(v==='skip')k++;});
-    const parts=[]; if(r)parts.push(r+' read'); if(l)parts.push(l+' loved'); if(w)parts.push(w+' want'); if(k)parts.push(k+' set aside');
+    const parts=[]; if(r)parts.push(r+' read'); if(l)parts.push(l+' loved'); if(w)parts.push(w+' want'); if(k)parts.push(k+' not for me');
 
     const H=d.hero||{};
     const days=(H.iso)?Math.max(0,Math.ceil((new Date(H.iso)-new Date())/86400000)):0;
@@ -608,7 +657,13 @@ class Component extends DCLogic {
     const readBySeries=d.series.map(s=>({name:s.name,author:s.author,
       books:s.books.filter(b=>vstate(s,b)==='read'&&b.id).map(b=>({...b,onUnread:()=>this.unreadId(b.id,true)}))}))
       .filter(s=>s.books.length);
-    const solo=d.books.filter(b=>(S[b.id]==='read'||S[b.id]==='loved')&&!inSeries[b.id]).map(b=>({...b,
+    // every book the app knows about — this month's picks AND everything earlier
+    // issues carried over — so a book resolved from the strip reaches the archive
+    const knownBooks={}, allKnown=[];
+    (d.books||[]).concat(d.pending||[]).forEach(b=>{
+      if(b.id&&!knownBooks[b.id]){knownBooks[b.id]=1; allKnown.push(b);}
+    });
+    const solo=allKnown.filter(b=>(S[b.id]==='read'||S[b.id]==='loved')&&!inSeries[b.id]).map(b=>({...b,
       alt:'Cover of '+b.title,
       coverStyle:{width:'100%',aspectRatio:'2/3',border:'1px solid '+INK,backgroundImage:'url("'+b.img+'")',backgroundSize:'cover',backgroundPosition:'center',backgroundColor:'#D8CFBA'},
       tag:S[b.id]==='loved'?'Loved':'Read',
@@ -632,6 +687,17 @@ class Component extends DCLogic {
       borderBottom:on?'2px solid '+BLOOD:'2px solid transparent',background:on?'rgba(168,134,63,.1)':'transparent'});
 
     const books=d.books.map((b,i)=>this.book(b,i));
+
+    // ---- still on your list: unmarked + wanted books from earlier issues ----
+    const waitingAll=(d.pending||[]).filter(b=>{const v=S[b.id];return v===undefined||v==='want';});
+    const waitingShown=this.state.pendingAll?waitingAll:waitingAll.slice(0,6);
+    const weeksSince=(ym)=>{ if(!ym)return 0;
+      const then=new Date(Number(ym.slice(0,4)),Number(ym.slice(5,7))-1,1);
+      return Math.max(0,Math.round((new Date()-then)/(7*86400000))); };
+    const waiting=waitingShown.map((b,i)=>{const card=this.book(b,i);const w=weeksSince((b.issue||{}).ym);
+      return {...card, rank:'',
+        issueChip:'From the '+((b.issue||{}).label||'earlier issue')+' issue',
+        waitNote:(S[b.id]==='want'?'On your list since then':'You never decided')+' · waiting '+w+(w===1?' week':' weeks')};});
     // hero standing is derived from the LIVE series state (marks included), so
     // marking a volume read/unread updates this line immediately
     let heroStanding=H.standing||'';
@@ -657,6 +723,11 @@ class Component extends DCLogic {
       spines, readBySeries, readSeriesCount:readBySeries.length, solo, soloCount:solo.length,
       hasRead:readBySeries.length>0, noRead:readBySeries.length===0,
       hasSolo:solo.length>0, noSolo:solo.length===0,
+      hasWaiting:waitingAll.length>0, waiting:waiting,
+      waitingLabel:(waitingAll.length===1?'one book still waiting':waitingAll.length+' books still waiting'),
+      moreWaiting:waitingAll.length>waitingShown.length,
+      hiddenWaiting:waitingAll.length-waitingShown.length,
+      showAllWaiting:()=>this.setState({pendingAll:true}),
       shelfLine:shelved.length?('Hover for the title · click to move it back to your shelf · '+shelved.length+' books here'):'Empty. Mark something read and it arrives.',
       stackTip:this.state.tip||'',
       monthLabel:d.month.label, monthShort:d.month.short, criteria:d.criteria,
