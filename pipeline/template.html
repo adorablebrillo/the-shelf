@@ -113,9 +113,12 @@
   /* series lane */
   .lane{border:1px solid var(--ink);background:var(--paper-hi);padding:12px 14px;margin-top:16px}
   .lane-head{display:flex;align-items:center;justify-content:space-between;gap:8px;font-family:var(--mast);font-size:10px;letter-spacing:.22em;text-transform:uppercase;font-weight:600}
-  .lane-chips{display:flex;gap:6px;margin-top:9px;flex-wrap:wrap}
-  .lane-chip{border:1px solid var(--ink);background:var(--paper);font-family:var(--mast);font-size:8.5px;letter-spacing:.1em;text-transform:uppercase;padding:4px 8px;cursor:pointer;font-weight:600}
-  .lane-chip.on{background:var(--butter)}
+  .lane-chips{display:flex;gap:6px;margin-top:9px;flex-wrap:nowrap;overflow-x:auto;padding-bottom:5px;-webkit-overflow-scrolling:touch;scrollbar-width:thin}
+  .lane-chips::-webkit-scrollbar{height:5px}
+  .lane-chips::-webkit-scrollbar-thumb{background:rgba(26,24,21,.28);border-radius:3px}
+  .lane-chips::-webkit-scrollbar-track{background:transparent}
+  .lane-chip{border:1px solid var(--ink);background:var(--paper);font-family:var(--mast);font-size:8.5px;letter-spacing:.1em;text-transform:uppercase;padding:4px 8px;cursor:pointer;font-weight:600;flex:0 0 auto;white-space:nowrap}
+  .lane-chip.on{background:var(--butter);border-width:2px}
   .lane-books{display:flex;gap:6px;margin-top:10px;align-items:stretch;flex-wrap:wrap}
   .lb-chip{border:1px solid var(--ink);padding:5px 8px;font-family:var(--mast);font-size:8px;letter-spacing:.05em;max-width:130px}
   .lb-chip b{display:block;font-size:9.5px;letter-spacing:.04em;font-weight:700}
@@ -563,7 +566,7 @@
         <span class="tape mast-tape" aria-hidden="true"></span>
       </figure>
       <div class="mast-text">
-        <p class="kicker">New Romance, Monthly — Sport Romance + Romantasy <svg class="sprig" aria-hidden="true"><use href="#ic-sprig"/></svg></p>
+        <p class="kicker">New Romance, Monthly — Sport Romance · Romantasy · Contemporary <svg class="sprig" aria-hidden="true"><use href="#ic-sprig"/></svg></p>
         <h1>The Shelf</h1>
         <div class="rule-double"></div>
         <div class="mast-meta">
@@ -658,7 +661,7 @@
         <button class="showmore" id="btn-more-radar">show 3 more</button>
       </div>
 
-      <p class="seq-note">updated from your shelf · 52 series checked</p>
+      <p class="seq-note" id="seq-note">updated from your shelf · 52 series checked</p>
     </aside>
   </main>
 
@@ -676,8 +679,9 @@
       <span class="note-label">Note</span>
       <h2 id="hp-title">how picks work</h2>
     </div>
-    <p class="modal-sub">five rules, written by heart — the shelf updates the 1st of every month</p>
+    <p class="modal-sub">six rules, written by heart — the shelf updates the 1st of every month</p>
     <ul class="rules">
+      <li><svg class="cbox" aria-hidden="true"><use href="#ic-check"/></svg><span>ALL THREE GENRES — sport romance, romantasy and contemporary, every month</span></li>
       <li><svg class="cbox" aria-hidden="true"><use href="#ic-check"/></svg><span>soft quality floor — books early readers disliked get dropped</span></li>
       <li><svg class="cbox" aria-hidden="true"><use href="#ic-check"/></svg><span>a FRESH READ badge means a new book not yet proven</span></li>
       <li><svg class="cbox" aria-hidden="true"><use href="#ic-check"/></svg><span>fit score ranks by your genres, tropes and spice band — and the tracker feeds next month&#39;s picks</span></li>
@@ -721,7 +725,7 @@
   'use strict';
 
   var STORE_KEY='shelf-tracker-v4';
-  var SEQ_KEY='shelf-tracker-v4-seq';
+  var SEQ_KEY='shelf-tracker-v4-seq2';
   var CURRENT=(window.THE_SHELF_DATA&&window.THE_SHELF_DATA.CURRENT)||'sep';
 
   /* ---------- SEASON CONFIG: fall ACTIVE for SEP 2026 ----------
@@ -934,7 +938,7 @@
     try{localStorage.setItem(STORE_KEY,JSON.stringify(tracker));}catch(e){}
   }
   var seqTracker=load(SEQ_KEY);
-  (function(){for(var i=0;i<SEQ_READ.length;i++){if(SEQ_READ[i].t==='Onyx Storm')seqTracker['tr'+(i+1)]='read';}try{localStorage.setItem(SEQ_KEY,JSON.stringify(seqTracker));}catch(e){}})();
+  (function(){try{if(!hasKey(SEQ_KEY)){localStorage.setItem(SEQ_KEY,JSON.stringify({}));}}catch(e){}})();
 
   function stateOf(bid){return tracker[bid]||'none';}
   function setState(bid,s){
@@ -1261,15 +1265,21 @@
     }
   });
 
-  document.getElementById('btn-more-read').addEventListener('click',function(){
+  var btnRead=document.getElementById('btn-more-read');
+  var btnRadar=document.getElementById('btn-more-radar');
+  var moreRead=Math.max(0,SEQ_READ.length-6);
+  var moreRadar=Math.max(0,SEQ_RADAR.length-6);
+  if(moreRead>0){btnRead.textContent='show '+moreRead+' more';}else{btnRead.style.display='none';}
+  if(moreRadar>0){btnRadar.textContent='show '+moreRadar+' more';}else{btnRadar.style.display='none';}
+  btnRead.addEventListener('click',function(){
     var g=document.getElementById('g-read');
     var open=g.classList.toggle('open');
-    this.textContent=open?'hide extras':'show 8 more';
+    this.textContent=open?'hide extras':('show '+moreRead+' more');
   });
-  document.getElementById('btn-more-radar').addEventListener('click',function(){
+  btnRadar.addEventListener('click',function(){
     var g=document.getElementById('g-radar');
     var open=g.classList.toggle('open');
-    this.textContent=open?'hide extras':'show 3 more';
+    this.textContent=open?'hide extras':('show '+moreRadar+' more');
   });
 
   var veil=document.getElementById('veil');
@@ -1335,6 +1345,10 @@
       dropEl.textContent=wl?('Released '+wl):((MONTHS[CURRENT])?('Dropped 1 '+MONTHS[CURRENT].label):'Dropped 1 Sep 2026');
     }
     document.title='THE SHELF — '+(MONTHS[CURRENT]?MONTHS[CURRENT].label:'NEW ROMANCE');
+    if(window.THE_SHELF_DATA&&THE_SHELF_DATA.SEQ_SERIES){
+      var snEl=document.getElementById('seq-note');
+      if(snEl)snEl.textContent='updated from your shelf · '+THE_SHELF_DATA.SEQ_SERIES+' series checked';
+    }
   }catch(e){}
 
   render();
@@ -1363,10 +1377,25 @@
     return out;
   }
   function renderLane(){
+    if(!LANES.length)return;
+    var found=false;
+    for(var f=0;f<LANES.length;f++){if(LANES[f].key===laneCur){found=true;break;}}
+    if(!found)laneCur=LANES[0].key;
     var chips='',bk='';
     for(var i=0;i<LANES.length;i++){chips+='<button class="lane-chip'+(LANES[i].key===laneCur?' on':'')+'" data-lane="'+LANES[i].key+'">'+esc(LANES[i].name)+'</button>';}
-    document.getElementById('lane-chips').innerHTML=chips;
-    var books=laneBooks(laneCur==='empyrean'?LANES[0]:LANES.filter(function(l){return l.key===laneCur;})[0]);
+    var chipsEl=document.getElementById('lane-chips');
+    chipsEl.innerHTML=chips;
+    var onEl=chipsEl.querySelector('.lane-chip.on');
+    if(onEl){
+      try{
+        var r=onEl.getBoundingClientRect(),c=chipsEl.getBoundingClientRect();
+        if(r.left<c.left||r.right>c.right){chipsEl.scrollLeft+=(r.left-c.left)-20;}
+      }catch(e){}
+    }
+    var lane=null;
+    for(var j2=0;j2<LANES.length;j2++){if(LANES[j2].key===laneCur){lane=LANES[j2];break;}}
+    if(!lane)lane=LANES[0];
+    var books=laneBooks(lane);
     for(var k=0;k<books.length;k++){
       var x=books[k];
       bk+='<div class="lb-chip '+x.st+'"><b>'+esc(x.t)+'</b><span class="lb-date">'+esc(x.dt||x.st)+'</span></div>';

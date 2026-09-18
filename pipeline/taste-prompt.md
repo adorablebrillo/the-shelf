@@ -9,7 +9,7 @@ input. Never use emojis.
 
 ## The reader
 
-A woman in her 30s. Reads English romance only. Top genres, in priority order:
+A woman in her 30s. Reads English romance only. Three genres, in priority order:
 
 1. Sport romance — hockey (Kings/college/university, pro), F1, football
    (American + soccer). Baseball and tennis are accepted but score lower.
@@ -19,6 +19,11 @@ A woman in her 30s. Reads English romance only. Top genres, in priority order:
    (Fourth Wing / Iron Flame), ACOTAR, Crescent City, Quicksilver, Crowns of
    Nyaxia. Enemies-to-lovers, fated mates, shadow-magic love interests,
    slow-burn, touch-her-and-die.
+3. Contemporary romance — billionaires, grumpy/sunshine, small town, rom-com,
+   fake dating, one bed, brother's best friend, rockstar. She reads Lauren
+   Asher, Olivia Hayle, Abby Jimenez, Tessa Bailey, Camilla Isley, Melanie
+   Harlow, Meghan Quinn, Lucy Score, Emily Henry. A sharp, funny voice scores
+   higher than drama.
 
 Preferences: spice moderate → explicit (3–5). M/F only. NO dark romance, no
 abuse, no anti-heroes posing as love interests, no bully romance, no
@@ -28,13 +33,15 @@ early ratings (4.0+ with a decent vote count on Goodreads) — otherwise drop.
 
 ## Selection rules
 
-- Pick 6–8 books total; aim for roughly a 50/50 mix of sport romance and
-  romantasy. If a month is thin, give 3 great books — never filler.
+- Pick 6–8 books total; aim for the three-genre shape: roughly 3 sport romance,
+  3 romantasy and 2 contemporary. Never fewer than 2 genres in a month. If a
+  month is thin, keep the shape as best you can — never filler.
 - Only books released within the specific month being curated (the drop runs
   for the entire PREVIOUS month: e.g. the September 1st run curates August).
-  given. If the date is missing or outside the window, drop it.
+  If the date is missing or outside the window, drop it.
 - Sequels are welcome ONLY if they continue a series the reader is already in
-  (series names and her read list are below). Mark them `aseq: true`.
+  (series names and her read list are in the sequels_map below). Mark them
+  `aseq: true`.
 - Every pick must feel like it could be her next favorite — the bar is "good
   and right for her", not "currently popular".
 
@@ -54,6 +61,9 @@ rating >= 4.0) whenever possible. It's the face of the month.
   for romantasy: "Xaden · Rhysand · Raihn energy" (powerful, mysterious,
   shadow-magic, quietly possessive). For sport romance: the same energy with
   no magic — broody captain, dangerous on the ice/track/field, golden heart.
+  For contemporary: same energy, tailored — billionaire with one soft spot,
+  grumpy small-town hero who fixes everything but himself, rockstar who
+  remembers her name. No magic, same devotion.
 - tropes: 2–4 short tags, lower-case ("enemies to lovers", "forbidden",
   "fake dating", "touch-her-and-die").
 
@@ -67,8 +77,9 @@ Return STRICT JSON only (no markdown fences, no commentary), matching:
     {
       "id": "slug-of-title-and-author",
       "title": "...", "author": "...", "publisher": "...",
-      "date": "YYYY-MM-DD", "genre": "sport romance" | "romantasy",
-      "subgenre": "hockey" | "f1" | "football" | "baseball" | "fae" | "dragon" | "urban fantasy",
+      "date": "YYYY-MM-DD",
+      "genre": "sport romance" | "romantasy" | "contemporary romance",
+      "subgenre": "hockey" | "f1" | "football" | "baseball" | "fae" | "dragon" | "urban fantasy" | "billionaire" | "small town" | "rom-com" | "rockstar",
       "spice": 3, "rating": 4.2, "tropes": ["..."],
       "hook": "...", "fresh": false, "aseq": false,
       "mmc": {"score": 4, "archetype": "Xaden · Rhysand · Raihn energy" | "same energy, no magic"},

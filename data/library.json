@@ -1,0 +1,504 @@
+{
+ "project": "the-shelf",
+ "generated": "2026-09-01",
+ "description": "Her Kindle library grouped by series (from the 2026-08-30 screenshots) — read books per series + standalones. Feeds the page series lanes.",
+ "series": [
+  {
+   "name": "The Empyrean",
+   "author": "Rebecca Yarros",
+   "genre": "romantasy",
+   "books": [
+    "Fourth Wing",
+    "Iron Flame"
+   ]
+  },
+  {
+   "name": "A Court of Thorns and Roses",
+   "author": "Sarah J. Maas",
+   "genre": "romantasy",
+   "books": [
+    "A Court of Thorns and Roses"
+   ]
+  },
+  {
+   "name": "Crescent City",
+   "author": "Sarah J. Maas",
+   "genre": "romantasy",
+   "books": [
+    "House of Earth and Blood"
+   ]
+  },
+  {
+   "name": "Throne of Glass",
+   "author": "Sarah J. Maas",
+   "genre": "romantasy",
+   "books": [
+    "Throne of Glass"
+   ]
+  },
+  {
+   "name": "Fae & Alchemy",
+   "author": "Callie Hart",
+   "genre": "romantasy",
+   "books": [
+    "Quicksilver"
+   ]
+  },
+  {
+   "name": "The Mortal Fates",
+   "author": "J. Bree",
+   "genre": "romantasy",
+   "books": [
+    "The Throne of Honor and Blood"
+   ]
+  },
+  {
+   "name": "The Moon Hatched (Moonfall)",
+   "author": "Sarah A. Parker",
+   "genre": "romantasy",
+   "books": [
+    "When the Moon Hatched",
+    "The Ballad of Falling Dragons"
+   ]
+  },
+  {
+   "name": "The Hurricane Wars",
+   "author": "Thea Guanzon",
+   "genre": "romantasy",
+   "books": [
+    "The Hurricane Wars",
+    "A Monsoon Rising"
+   ]
+  },
+  {
+   "name": "Deadly Divine",
+   "author": "Ella Fields",
+   "genre": "romantasy",
+   "books": [
+    "Nectar of the Wicked",
+    "Wrath of the Damned"
+   ]
+  },
+  {
+   "name": "Zodiac Academy",
+   "author": "Caroline Peckham & Susanne Valenti",
+   "genre": "romantasy",
+   "books": [
+    "Zodiac Academy: The Awakening",
+    "Zodiac Academy: Ruthless Fae",
+    "Zodiac Academy: The Reckoning",
+    "Zodiac Academy 4: Shadow Princess",
+    "Zodiac Academy 5: Cursed Fates",
+    "Zodiac Academy: Fated Throne",
+    "Zodiac Academy 7: Heartless Sky",
+    "Zodiac Academy 8: Sorrow and Starlight",
+    "Zodiac Academy 8.5: Beyond The Veil"
+   ]
+  },
+  {
+   "name": "Sins of the Zodiac",
+   "author": "Caroline Peckham & Susanne Valenti",
+   "genre": "romantasy",
+   "books": [
+    "Never Keep"
+   ]
+  },
+  {
+   "name": "The Bonds that Tie",
+   "author": "J. Bree",
+   "genre": "romantasy",
+   "books": [
+    "Broken Bonds",
+    "Savage Bonds",
+    "Blood Bonds",
+    "Forced Bonds",
+    "Tragic Bonds",
+    "Unbroken Bonds"
+   ]
+  },
+  {
+   "name": "The Sacred Stones",
+   "author": "Kate Golden",
+   "genre": "romantasy",
+   "books": [
+    "A Dawn of Onyx",
+    "A Promise of Peridot"
+   ]
+  },
+  {
+   "name": "Shadows of the Tenebris Court",
+   "author": "Clare Sager",
+   "genre": "romantasy",
+   "books": [
+    "A Kiss of Iron",
+    "A Touch of Poison"
+   ]
+  },
+  {
+   "name": "Dragons of Ember Hollow",
+   "author": "Tessa Hale",
+   "genre": "romantasy",
+   "books": [
+    "Twilight of Embers",
+    "Midnight of Ashes",
+    "Dawn of Flames"
+   ]
+  },
+  {
+   "name": "Legends of Thezmarr + The Ashes of Thezmarr",
+   "author": "Helen Scheuerer",
+   "genre": "romantasy",
+   "books": [
+    "Blood & Steel",
+    "Iron & Embers"
+   ]
+  },
+  {
+   "name": "Letters of Enchantment",
+   "author": "Rebecca Ross",
+   "genre": "romantasy",
+   "books": [
+    "Divine Rivals",
+    "Ruthless Vows"
+   ]
+  },
+  {
+   "name": "Kingdom of the Wicked / Prince of Sin",
+   "author": "Kerri Maniscalco",
+   "genre": "romantasy",
+   "books": [
+    "Throne of the Fallen"
+   ]
+  },
+  {
+   "name": "The Powerless Trilogy",
+   "author": "Lauren Roberts",
+   "genre": "romantasy",
+   "books": [
+    "Powerless"
+   ]
+  },
+  {
+   "name": "The Bargainer",
+   "author": "Laura Thalassa",
+   "genre": "romantasy",
+   "books": [
+    "Rhapsodic"
+   ]
+  },
+  {
+   "name": "House of Devils",
+   "author": "Kayla Edwards",
+   "genre": "romantasy",
+   "books": [
+    "City of Gods and Monsters"
+   ]
+  },
+  {
+   "name": "Villains & Virtues",
+   "author": "A.K. Caggiano",
+   "genre": "romantasy",
+   "books": [
+    "Throne in the Dark"
+   ]
+  },
+  {
+   "name": "The Eating Woods",
+   "author": "Keri Lake",
+   "genre": "romantasy",
+   "books": [
+    "Anathema"
+   ]
+  },
+  {
+   "name": "The Aurelian Cycle",
+   "author": "Rosaria Munda",
+   "genre": "romantasy",
+   "books": [
+    "Fireborne"
+   ]
+  },
+  {
+   "name": "The Choosing Chronicles",
+   "author": "Elayna R. Gallea",
+   "genre": "romantasy",
+   "books": [
+    "The Choosing Chronicles"
+   ]
+  },
+  {
+   "name": "Fire & Metal",
+   "author": "Rachel Schneider",
+   "genre": "romantasy",
+   "books": [
+    "Metal Slinger"
+   ]
+  },
+  {
+   "name": "Heavenly Bodies",
+   "author": "Imani Erriu",
+   "genre": "romantasy",
+   "books": [
+    "Heavenly Bodies"
+   ]
+  },
+  {
+   "name": "Starkeeper",
+   "author": "Amalie Howard",
+   "genre": "romantasy",
+   "books": [
+    "The Starlight Heir"
+   ]
+  },
+  {
+   "name": "The Wolf King",
+   "author": "Lauren Palphreyman",
+   "genre": "romantasy",
+   "books": [
+    "The Wolf King",
+    "The Night Prince"
+   ]
+  },
+  {
+   "name": "Flame and Thorns",
+   "author": "Marion Blackwood",
+   "genre": "romantasy",
+   "books": [
+    "Empire of Flame and Thorns"
+   ]
+  },
+  {
+   "name": "All In",
+   "author": "Helena Hunting",
+   "genre": "sport",
+   "books": [
+    "A Lie for a Lie"
+   ]
+  },
+  {
+   "name": "Assassins",
+   "author": "Toni Aleo",
+   "genre": "sport",
+   "books": [
+    "Trying to Score"
+   ]
+  },
+  {
+   "name": "The Vancouver Agitators",
+   "author": "Meghan Quinn",
+   "genre": "sport",
+   "books": [
+    "Those Three Little Words"
+   ]
+  },
+  {
+   "name": "Playing for Keeps",
+   "author": "Becka Mack",
+   "genre": "sport",
+   "books": [
+    "Fall With Me"
+   ]
+  },
+  {
+   "name": "Cherry Tree Harbor",
+   "author": "Melanie Harlow",
+   "genre": "sport",
+   "books": [
+    "Slap Shot Surprise"
+   ]
+  },
+  {
+   "name": "Beyond the Play",
+   "author": "Grace Reilly",
+   "genre": "sport",
+   "books": [
+    "First Down"
+   ]
+  },
+  {
+   "name": "Strangers in Love",
+   "author": "Ilsa Madden-Mills",
+   "genre": "sport",
+   "books": [
+    "Princess and the Player"
+   ]
+  },
+  {
+   "name": "Lakes Hockey",
+   "author": "Sloane St. James",
+   "genre": "sport",
+   "books": [
+    "In The Game"
+   ]
+  },
+  {
+   "name": "Dirty Air",
+   "author": "Lauren Asher",
+   "genre": "sport",
+   "books": [
+    "Wrecked"
+   ]
+  },
+  {
+   "name": "Saltwater Springs",
+   "author": "Tanisha Headley",
+   "genre": "sport",
+   "books": [
+    "Beyond The Break"
+   ]
+  },
+  {
+   "name": "Magnolia Ridge",
+   "author": "Logan Chance",
+   "genre": "sport",
+   "books": [
+    "Don't Fall For Your Best Friend"
+   ]
+  },
+  {
+   "name": "Anyone But",
+   "author": "Penelope Bloom",
+   "genre": "sport",
+   "books": [
+    "Anyone But Nick"
+   ]
+  },
+  {
+   "name": "Leblanc Brothers",
+   "author": "Layla Hagen",
+   "genre": "sport",
+   "books": [
+    "The Grump"
+   ]
+  },
+  {
+   "name": "Crowns of Nyaxia",
+   "author": "Carissa Broadbent",
+   "genre": "romantasy",
+   "books": [
+    "The Serpent and the Wings of Night",
+    "Crowns of Nyaxia"
+   ]
+  },
+  {
+   "name": "Blood and Ash",
+   "author": "Jennifer L. Armentrout",
+   "genre": "romantasy",
+   "books": [
+    "From Blood and Ash",
+    "The Crown of Gilded Bones"
+   ]
+  },
+  {
+   "name": "It Ends with Us",
+   "author": "Colleen Hoover",
+   "genre": "contemporary",
+   "books": [
+    "It Ends with Us",
+    "It Starts with Us"
+   ]
+  },
+  {
+   "name": "Part of Your World",
+   "author": "Abby Jimenez",
+   "genre": "contemporary",
+   "books": [
+    "Yours Truly"
+   ]
+  },
+  {
+   "name": "Vine Mess",
+   "author": "Tessa Bailey",
+   "genre": "contemporary",
+   "books": [
+    "Secretly Yours"
+   ]
+  },
+  {
+   "name": "Seattle Billionaires",
+   "author": "Olivia Hayle",
+   "genre": "contemporary",
+   "books": [
+    "Billion Dollar Beast",
+    "Billion Dollar Enemy",
+    "Billion Dollar Fiancé"
+   ]
+  },
+  {
+   "name": "Dreamland Billionaires",
+   "author": "Lauren Asher",
+   "genre": "contemporary",
+   "books": [
+    "The Fine Print",
+    "Final Offer"
+   ]
+  },
+  {
+   "name": "Lakefront Billionaires",
+   "author": "Lauren Asher",
+   "genre": "contemporary",
+   "books": [
+    "Love Arranged"
+   ]
+  },
+  {
+   "name": "Marriage to a Billionaire",
+   "author": "Jennifer Probst",
+   "genre": "contemporary",
+   "books": [
+    "The Marriage Bargain"
+   ]
+  },
+  {
+   "name": "Funny Feelings",
+   "author": "Camilla Isley",
+   "genre": "contemporary",
+   "books": [
+    "If the Ring Fits"
+   ]
+  },
+  {
+   "name": "True Love",
+   "author": "Camilla Isley",
+   "genre": "contemporary",
+   "books": [
+    "Not in a Billion Years"
+   ]
+  },
+  {
+   "name": "Hypothesis (Elements of Chemistry)",
+   "author": "Penny Reid",
+   "genre": "contemporary",
+   "books": [
+    "Elements of Chemistry",
+    "Heat"
+   ]
+  }
+ ],
+ "standalones": [
+  "The Enemy Trap",
+  "Sidelined Love",
+  "The Wild Card",
+  "Night Shift",
+  "The Summer Playbook",
+  "Mad Love",
+  "The Tides Between Us",
+  "The Kiss of Deception",
+  "In the Ravenous Dark",
+  "On Second Thought",
+  "Ugly Love",
+  "Penthouse Prince",
+  "Baby Daddy",
+  "One Bossy Date",
+  "Ruin.",
+  "Funny Story",
+  "The Proposal",
+  "The Merger",
+  "By a Thread",
+  "Brute & Bossy",
+  "Sweet Regret",
+  "Salty, Spiced, and a Little Bit Nice",
+  "Maid for Each Other",
+  "Meet Me in the Ether"
+ ]
+}

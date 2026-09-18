@@ -1,8 +1,10 @@
 {
   "model": "openai/gpt-4o-mini",
-  "max_candidates": 40,
-  "window_months": 2,
+  "max_candidates": 60,
+  "window_months": 1,
   "target_books": [6, 8],
+  "genre_mix": {"sport romance": 3, "romantasy": 3, "contemporary romance": 2},
+  "search_terms": ["sports romance", "hockey romance", "contemporary romance", "romantasy", "fae romance", "dragon romance"],
   "spice_min": 3,
   "trad_pub_score_rating": 4.0,
   "trad_pub_score_count": 100,
