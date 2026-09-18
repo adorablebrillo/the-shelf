@@ -67,10 +67,15 @@
           <div style="position:relative;padding:30px 34px 28px;display:flex;flex-direction:column;align-items:center">
             <p style="margin:0 0 20px;font-size:10px;letter-spacing:.4em;text-transform:uppercase;color:#6E6353;text-align:center">The stacks — shelved by author</p>
             <div style="display:flex;flex-direction:column;align-items:stretch;width:max-content;max-width:100%">
-              <div style="border:1px solid #A8863F;border-bottom:none;border-radius:190px 190px 0 0;padding:34px 34px 0;background:linear-gradient(rgba(255,253,246,.7),rgba(255,253,246,0))">
+              <div style="border:1px solid #A8863F;border-bottom:none;border-radius:190px 190px 0 0;padding:30px 34px 0;background:linear-gradient(rgba(255,253,246,.7),rgba(255,253,246,0))">
+                <div aria-live="polite" style="margin:0 0 14px;min-height:26px;display:flex;align-items:center;justify-content:center;gap:14px">
+                  <span style="height:1px;width:30px;background:#A8863F;opacity:.45"></span>
+                  <p style="margin:0;max-width:520px;text-align:center;font-family:'Cormorant Garamond',Garamond,serif;font-style:italic;font-size:19px;line-height:1.2;color:#6E2A2A;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">{{ stackTip }}</p>
+                  <span style="height:1px;width:30px;background:#A8863F;opacity:.45"></span>
+                </div>
                 <div style="display:flex;align-items:flex-end;justify-content:center;flex-wrap:wrap;gap:5px;min-height:76px;max-width:760px">
                   <sc-for list="{{ spines }}" as="bk" hint-placeholder-count="18">
-                    <button type="button" onClick="{{ bk.onClick }}" title="{{ bk.tip }}" style="{{ bk.style }}" style-hover="transform:translateY(-6px)"></button>
+                    <button type="button" onClick="{{ bk.onClick }}" onmouseenter="{{ bk.onEnter }}" onmouseleave="{{ bk.onLeave }}" aria-label="{{ bk.tip }}" style="{{ bk.style }}" style-hover="transform:translateY(-9px)"></button>
                   </sc-for>
                 </div>
               </div>
@@ -381,7 +386,7 @@ const BREWS=[
 ];
 
 class Component extends DCLogic {
-  state={ data:(typeof window!=='undefined'&&window.SHELF_DATA)||null, states:{}, marks:{}, open:{}, q:0, view:'shelf' };
+  state={ data:(typeof window!=='undefined'&&window.SHELF_DATA)||null, states:{}, marks:{}, open:{}, q:0, view:'shelf', tip:'' };
 
   unread(key){
     this.setState(s=>{
@@ -511,6 +516,8 @@ class Component extends DCLogic {
     shelved.sort((x,y)=>(x.a||'').split(' ').pop().localeCompare((y.a||'').split(' ').pop()));
     const spines=shelved.map((bk,i)=>({tip:bk.t+' — '+bk.a+' · '+bk.s+' — click to mark unread',
       onClick:()=>this.unread(bk.key),
+      onEnter:()=>this.setState({tip:bk.t+' — '+bk.a+' · '+bk.s}),
+      onLeave:()=>this.setState({tip:''}),
       style:{flex:'0 0 auto',width:'18px',height:(48+((i*13)%22))+'px',padding:0,cursor:'pointer',transition:'transform .18s ease',
         background:CLOTH[i%CLOTH.length],border:'1px solid rgba(33,30,25,.5)',
         boxShadow:'inset 0 -8px 0 rgba(232,220,192,.5), inset 0 3px 0 rgba(232,220,192,.35)'}}));
@@ -546,6 +553,7 @@ class Component extends DCLogic {
       hasRead:readBySeries.length>0, noRead:readBySeries.length===0,
       hasSolo:solo.length>0, noSolo:solo.length===0,
       shelfLine:shelved.length?('Hover for the title · click to move it back to your shelf · '+shelved.length+' books here'):'Empty. Mark something read and it arrives.',
+      stackTip:this.state.tip||'',
       monthLabel:d.month.label, monthShort:d.month.short, criteria:d.criteria,
       counts:parts.length?parts.join(' · '):'nothing marked yet',
       heroTitle:H.title||'', heroSub:[H.num,H.author].filter(Boolean).join(' · '), heroDays:days, heroDate:H.date||'', heroStanding:heroStanding, heroCoverStyle:heroCoverStyle, noHeroCover:!H.cover, heroCoverAlt:'Cover of '+(H.title||''),
