@@ -124,7 +124,9 @@ def fetch_romanceio(mon):
 def main():
     if not os.path.isdir(os.path.join(BASE, CFG['output_dir'])):
         os.makedirs(os.path.join(BASE, CFG['output_dir']), exist_ok=True)
-    mon = datetime.now().strftime('%Y-%m')
+    # the drop curates the PREVIOUS month — name the file for that book month
+    # so filter/curate/build all agree on the window (month-per-drop)
+    mon = window()[0]
     fetch_apple()
     fetch_reddit(mon)
     fetch_goodreads(mon)

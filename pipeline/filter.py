@@ -36,16 +36,19 @@ def in_window(d, mon):
 
 def main():
     from datetime import date
-    mon_prefix = None
-    # run for the previous month: accept the newest candidates-*.json
     import glob
-    files = sorted(glob.glob(os.path.join(BASE, CFG['output_dir'], 'candidates-*.json')))
-    if files:
-        mon_prefix = os.path.basename(files[-1])[len('candidates-'):-len('.json')]
-    mon = mon_prefix or datetime.now().strftime('%Y-%m')
+    # the drop curates the PREVIOUS month: resolve the book month explicitly so
+    # leftover files from other months can never shift the window
+    today = date.today()
+    py, pm = (today.year - 1, 12) if today.month == 1 else (today.year, today.month - 1)
+    mon = '%04d-%02d' % (py, pm)
     src_path = os.path.join(BASE, CFG['output_dir'], 'candidates-%s.json' % mon)
     if not os.path.exists(src_path):
-        print('no candidates file — run fetch.py first'); return 1
+        files = sorted(glob.glob(os.path.join(BASE, CFG['output_dir'], 'candidates-*.json')))
+        if not files:
+            print('no candidates file — run fetch.py first'); return 1
+        mon = os.path.basename(files[-1])[len('candidates-'):-len('.json')]
+        src_path = files[-1]
     cands = json.load(open(src_path)).get('books', [])
     kept = []
     for b in cands:
