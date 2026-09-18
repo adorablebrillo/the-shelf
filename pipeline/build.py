@@ -499,6 +499,9 @@ def main():
         'titles': WORDS.get(len(book_list), str(len(book_list))) + (' title' if len(book_list) == 1 else ' titles'),
     }
 
+    for b in book_list:                      # this issue's own provenance
+        b['issue'] = {'n': month['issue'], 'label': ml['label'], 'ym': cur_ym}
+
     copy_static()
     # quotes follow the CALENDAR season — same clock the design's coffee art uses
     quotes = QUOTES.get(SEASON_OF.get(datetime.now().month, 'fall'), QUOTES['fall'])
