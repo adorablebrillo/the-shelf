@@ -460,6 +460,31 @@ def main():
     src = sorted(cur.get('books', []), key=lambda b: 0 if b.get('id') == top_id else 1)
     book_list = [pick_book(b, top_id, ensure_cover(b.get('img'), b.get('title'), b.get('author'), covers_dir)) for b in src]
 
+    # ---- still on your list: unresolved books from EARLIER issues ----------
+    # Every earlier issue's picks ship so the app can carry forward whatever she
+    # never decided on. Resolution belongs to the app: it owns the reader state.
+    # Newest issue first, one entry per book (a re-recommendation wins).
+    pending, seen_pending = [], set()
+    for mf in reversed(month_files):
+        ym = os.path.basename(mf)[len('month-'):-len('.json')]
+        if ym == cur_ym:
+            continue
+        try:
+            body = json.load(open(mf))
+        except Exception:
+            continue
+        mlp = month_label(ym)
+        for b in body.get('books', []):
+            pb = pick_book(b, None, ensure_cover(b.get('img'), b.get('title'), b.get('author'), covers_dir))
+            if not pb['id'] or pb['id'] in seen_pending:
+                continue
+            seen_pending.add(pb['id'])
+            pb['issue'] = {'n': (order.index(ym) + 1) if ym in order else 0,
+                           'label': mlp['label'], 'ym': ym}
+            pending.append(pb)
+    print('carried over: %d unresolved books from %d earlier issues'
+          % (len(pending), len(set(p['issue']['ym'] for p in pending))))
+
     series = series_data()
     hero = hero_data(series)
     if hero:
@@ -482,8 +507,8 @@ def main():
     orphans += [b['title'] for b in book_list if not b.get('id')]
     if orphans:
         print('WARNING: %d books have no identity: %s' % (len(orphans), orphans[:5]))
-    data = {'month': month, 'hero': hero, 'books': book_list, 'series': series,
-            'quotes': quotes, 'criteria': CRITERIA}
+    data = {'month': month, 'hero': hero, 'books': book_list, 'pending': pending,
+            'series': series, 'quotes': quotes, 'criteria': CRITERIA}
     os.makedirs(DIST, exist_ok=True)
     open(os.path.join(DIST, 'shelf-data.js'), 'w').write(
         'window.SHELF_DATA=' + json.dumps(data, ensure_ascii=False) + ';\n')
