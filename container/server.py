@@ -157,27 +157,30 @@ class H(BaseHTTPRequestHandler):
         self.end_headers()
         self.wfile.write(b)
 
+    KINDS = {'.html': 'text/html; charset=utf-8', '.js': 'application/javascript; charset=utf-8',
+             '.css': 'text/css; charset=utf-8', '.png': 'image/png', '.jpg': 'image/jpeg',
+             '.jpeg': 'image/jpeg', '.svg': 'image/svg+xml', '.webp': 'image/webp',
+             '.ico': 'image/x-icon', '.woff2': 'font/woff2', '.woff': 'font/woff'}
+
     def _static(self, path):
         path = path.lstrip('/') or 'index.html'
-        if path.startswith('assets/') or path.endswith('.html') or path == '':
-            if '..' in path:
-                return self._json({'error': 'bad path'}, 400)
-            full = os.path.join(DIST, path)
-            if not os.path.isfile(full):
-                full = os.path.join(DIST, 'index.html')
-            try:
-                data = open(full, 'rb').read()
-            except Exception:
-                return self._json({'error': 'no build yet'}, 404)
-            kind = 'image/png' if path.endswith('.png') else 'image/jpeg' if path.endswith(('.jpg', '.jpeg')) else 'text/html; charset=utf-8'
-            self.send_response(200)
-            self.send_header('Content-Type', kind)
-            self.send_header('Content-Length', str(len(data)))
-            self.end_headers()
-            self.wfile.write(data)
-            return
-        self.send_response(404)
+        if '..' in path:
+            return self._json({'error': 'bad path'}, 400)
+        ext = os.path.splitext(path)[1].lower()
+        full = os.path.join(DIST, path)
+        if ext not in self.KINDS or not os.path.isfile(full):
+            # unknown route or missing file -> the page itself (single-page app)
+            full = os.path.join(DIST, 'index.html')
+            ext = '.html'
+        try:
+            data = open(full, 'rb').read()
+        except Exception:
+            return self._json({'error': 'no build yet'}, 404)
+        self.send_response(200)
+        self.send_header('Content-Type', self.KINDS[ext])
+        self.send_header('Content-Length', str(len(data)))
         self.end_headers()
+        self.wfile.write(data)
 
     def do_GET(self):
         u = urlparse(self.path)

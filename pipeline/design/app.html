@@ -1,0 +1,545 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>__SHELF_TITLE__</title>
+<!-- vendor remap: load React locally (no CDN) — the dc-runtime reads these keys -->
+<script>window.__resources = {
+  "https://unpkg.com/react@18.3.1/umd/react.production.min.js": "assets/vendor/react.production.min.js",
+  "https://unpkg.com/react-dom@18.3.1/umd/react-dom.production.min.js": "assets/vendor/react-dom.production.min.js"
+};</script>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="anonymous"/>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,500;0,600;1,300;1,500&family=EB+Garamond:ital,wght@0,400;0,500;1,400&display=swap" rel="stylesheet"/>
+<script src="shelf-data.js"></script>
+<style>
+  body{margin:0;background:#EDE6D8;color:#211E19}
+  a{color:#6E2A2A;text-decoration:none;border-bottom:1px solid #A8863F}
+  a:hover{color:#1E3A2F}
+  button{font-family:inherit;color:inherit;background:none;border:none;cursor:pointer}
+  @keyframes spin{from{transform:rotate(0)}to{transform:rotate(360deg)}}
+</style>
+</helmet>
+<div style="background:#EDE6D8;color:#211E19;font-family:'EB Garamond',Georgia,serif;font-size:16px;line-height:1.6;padding:0 0 72px">
+  <div style="max-width:1120px;margin:0 auto;padding:0 32px">
+
+    <header style="text-align:center;padding:56px 0 0">
+      <p style="margin:0;font-family:'EB Garamond',Georgia,serif;font-size:11px;letter-spacing:.42em;text-transform:uppercase;color:#6E6353">Sport Romance &amp; Romantasy — for one reader</p>
+      <div style="height:1px;background:#A8863F;max-width:120px;margin:18px auto"></div>
+      <h1 style="font-family:'Cormorant Garamond',Garamond,serif;font-weight:300;font-size:clamp(52px,8vw,104px);line-height:1;letter-spacing:.12em;text-transform:uppercase;margin:0">The Shelf</h1>
+      <p style="margin:16px 0 0;font-family:'Cormorant Garamond',Garamond,serif;font-style:italic;font-size:20px;color:#6E2A2A">No. {{ issueNo }} · {{ monthLabel }} · {{ titleCount }}</p>
+      <div style="height:1px;background:#A8863F;margin:24px 0 0"></div>
+    </header>
+
+    <section aria-label="My reading corner" style="display:grid;grid-template-columns:minmax(0,150px) minmax(0,1fr);gap:28px;align-items:center;padding:20px 0 22px;border-bottom:1px solid #A8863F">
+      <div style="position:relative;width:146px;height:146px;margin:0 auto">
+        <svg viewBox="0 0 200 200" aria-hidden="true" style="position:absolute;inset:0;width:146px;height:146px;animation:spin 52s linear infinite">
+          <circle cx="100" cy="100" r="96" fill="none" stroke="#A8863F" stroke-width="1"/>
+          <circle cx="100" cy="100" r="88" fill="none" stroke="#A8863F" stroke-width="2"/>
+          <path id="lib-ring" d="M100,100 m0,-74 a74,74 0 1,1 0,148 a74,74 0 1,1 0,-148" fill="none"/>
+          <text fill="#A8863F" font-family="'EB Garamond',Georgia,serif" font-size="11" letter-spacing="1.6" textLength="462" lengthAdjust="spacingAndGlyphs">
+            <textPath href="#lib-ring" startOffset="0%">THE READING ROOM · ONE CUP, ONE CHAPTER · THE SHELF ·</textPath>
+          </text>
+        </svg>
+        <div role="img" aria-label="{{ brew.alt }}" style="{{ brew.style }}"></div>
+      </div>
+      <div style="min-width:0">
+        <p style="margin:0;font-size:10px;letter-spacing:.34em;text-transform:uppercase;color:#6E6353">My reading corner — {{ brew.season }}</p>
+        <p style="margin:10px 0 0;max-width:34ch;font-family:'Cormorant Garamond',Garamond,serif;font-style:italic;font-size:clamp(21px,2.8vw,30px);line-height:1.3">{{ quote }}</p>
+      </div>
+    </section>
+
+    <nav aria-label="Views" style="display:flex;justify-content:center;gap:0;border-bottom:1px solid #A8863F">
+      <button type="button" onClick="{{ showShelf }}" aria-pressed="{{ isShelf }}" style="{{ tabShelf }}">This month</button>
+      <button type="button" onClick="{{ showArchive }}" aria-pressed="{{ isArchive }}" style="{{ tabArchive }}">The archive — {{ archiveCount }}</button>
+    </nav>
+
+    <sc-if value="{{ isArchive }}">
+      <section aria-label="The reading room" style="margin-top:34px;background:#E5DCCA;padding:6px">
+        <div style="position:relative;border:1px solid #A8863F;overflow:hidden;background:radial-gradient(120% 82% at 50% 2%,#FBF6E9 0%,#F2EADA 42%,#E2D7BF 100%)">
+          <div style="position:absolute;top:0;left:50%;transform:translateX(-50%);width:46%;height:126px;border-radius:0 0 50% 50%/0 0 100% 100%;background:linear-gradient(#FFFDF6,rgba(255,253,246,0))"></div>
+          <div style="position:relative;padding:30px 34px 28px;display:flex;flex-direction:column;align-items:center">
+            <p style="margin:0 0 20px;font-size:10px;letter-spacing:.4em;text-transform:uppercase;color:#6E6353;text-align:center">The stacks — shelved by author</p>
+            <div style="display:flex;flex-direction:column;align-items:stretch;width:max-content;max-width:100%">
+              <div style="border:1px solid #A8863F;border-bottom:none;border-radius:190px 190px 0 0;padding:34px 34px 0;background:linear-gradient(rgba(255,253,246,.7),rgba(255,253,246,0))">
+                <div style="display:flex;align-items:flex-end;justify-content:center;flex-wrap:wrap;gap:5px;min-height:76px;max-width:760px">
+                  <sc-for list="{{ spines }}" as="bk" hint-placeholder-count="18">
+                    <button type="button" onClick="{{ bk.onClick }}" title="{{ bk.tip }}" style="{{ bk.style }}" style-hover="transform:translateY(-6px)"></button>
+                  </sc-for>
+                </div>
+              </div>
+              <div style="height:18px;border:1px solid #6E5A2E;background:repeating-linear-gradient(90deg,#B49A5E 0 2px,#E0CE9E 2px 7px,#B49A5E 7px 9px,rgba(110,90,46,.3) 9px 12px), linear-gradient(#E0CE9E,#A8863F)"></div>
+              <div style="height:14px;margin:0 36px;background:linear-gradient(#D8CBAC,#BCAD8A);border:1px solid #A8863F;border-top:none"></div>
+            </div>
+            <p style="margin:14px 0 0;font-size:11.5px;letter-spacing:.2em;text-transform:uppercase;color:#6E6353">{{ shelfLine }}</p>
+          </div>
+        </div>
+      </section>
+
+      <section aria-label="Everything read" style="margin-top:56px">
+        <div style="display:flex;align-items:baseline;justify-content:space-between;gap:16px;flex-wrap:wrap">
+          <h2 style="font-family:'Cormorant Garamond',Garamond,serif;font-weight:500;font-size:clamp(24px,3vw,34px);letter-spacing:.14em;text-transform:uppercase;margin:0">Everything I have read</h2>
+          <span style="font-size:11px;letter-spacing:.28em;text-transform:uppercase;color:#6E6353">{{ readSeriesCount }} series represented</span>
+        </div>
+        <div style="height:1px;background:#A8863F;margin:14px 0 0"></div>
+        <sc-if value="{{ noRead }}">
+          <p style="margin:18px 0 0;font-family:'Cormorant Garamond',Garamond,serif;font-style:italic;font-size:20px;color:#6E6353">Nothing here yet. Mark a volume read on this month's shelf and it arrives.</p>
+        </sc-if>
+        <sc-for list="{{ readBySeries }}" as="s" hint-placeholder-count="8">
+          <div style="display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.5fr);gap:28px;align-items:start;padding:18px 0;border-bottom:1px solid #D6CCB6">
+            <div style="min-width:0">
+              <p style="margin:0;font-family:'Cormorant Garamond',Garamond,serif;font-size:22px;line-height:1.16;letter-spacing:.04em">{{ s.name }}</p>
+              <p style="margin:3px 0 0;font-size:11.5px;letter-spacing:.14em;text-transform:uppercase;color:#6E6353">{{ s.author }}</p>
+            </div>
+            <ul style="list-style:none;margin:0;padding:0;min-width:0">
+              <sc-for list="{{ s.books }}" as="bk" hint-placeholder-count="2">
+                <li style="display:flex;align-items:baseline;gap:10px;padding:4px 0">
+                  <span style="flex:0 0 14px;font-size:11px;color:#A8863F">✓</span>
+                  <span style="flex:1;min-width:0;font-family:'Cormorant Garamond',Garamond,serif;font-size:19px;line-height:1.3">{{ bk.t }} <span style="font-size:13.5px;color:#6E6353">{{ bk.n }}</span></span>
+                  <button type="button" onClick="{{ bk.onUnread }}" style="flex:0 0 auto;font-size:10.5px;letter-spacing:.2em;text-transform:uppercase;color:#6E2A2A;border-bottom:1px solid #A8863F;padding:0 0 1px" style-hover="color:#1E3A2F">mark unread</button>
+                </li>
+              </sc-for>
+            </ul>
+          </div>
+        </sc-for>
+      </section>
+
+      <section aria-label="Standalones read" style="margin-top:56px">
+        <div style="display:flex;align-items:baseline;justify-content:space-between;gap:16px;flex-wrap:wrap">
+          <h2 style="font-family:'Cormorant Garamond',Garamond,serif;font-weight:500;font-size:clamp(24px,3vw,34px);letter-spacing:.14em;text-transform:uppercase;margin:0">Standalones</h2>
+          <span style="font-size:11px;letter-spacing:.28em;text-transform:uppercase;color:#6E6353">{{ soloCount }} read outside a series</span>
+        </div>
+        <div style="height:1px;background:#A8863F;margin:14px 0 0"></div>
+        <sc-if value="{{ noSolo }}">
+          <p style="margin:18px 0 0;font-family:'Cormorant Garamond',Garamond,serif;font-style:italic;font-size:20px;color:#6E6353">Nothing yet. Press <em>read</em> or <em>loved</em> on one of this month's picks and it lands here.</p>
+        </sc-if>
+        <sc-for list="{{ solo }}" as="b" hint-placeholder-count="3">
+          <div style="display:grid;grid-template-columns:minmax(0,78px) minmax(0,1fr) minmax(0,190px);gap:24px;align-items:center;padding:20px 0;border-bottom:1px solid #D6CCB6">
+            <div role="img" aria-label="{{ b.alt }}" style="{{ b.coverStyle }}"></div>
+            <div style="min-width:0">
+              <p style="margin:0;font-family:'Cormorant Garamond',Garamond,serif;font-size:24px;line-height:1.16">{{ b.title }}</p>
+              <p style="margin:4px 0 0;font-size:12.5px;letter-spacing:.14em;text-transform:uppercase;color:#6E6353">{{ b.author }} · {{ b.publisher }} · {{ b.genre }}</p>
+            </div>
+            <div style="display:flex;align-items:center;justify-content:flex-end;gap:16px">
+              <span style="{{ b.tagStyle }}">{{ b.tag }}</span>
+              <button type="button" onClick="{{ b.onUnread }}" style="font-size:10.5px;letter-spacing:.2em;text-transform:uppercase;color:#6E2A2A;border-bottom:1px solid #A8863F;padding:0 0 1px" style-hover="color:#1E3A2F">mark unread</button>
+            </div>
+          </div>
+        </sc-for>
+      </section>
+    </sc-if>
+
+    <sc-if value="{{ isShelf }}" hint-placeholder-val="{{ true }}">
+    <sc-if value="{{ hasHero }}">
+    <section aria-label="Coming soon in your series" style="margin-top:36px;background:#1E3A2F;color:#F3EDE1;padding:6px">
+      <div style="border:1px solid #A8863F;padding:34px 36px;display:grid;grid-template-columns:minmax(0,200px) minmax(0,1fr);gap:36px;align-items:center">
+        <div style="min-width:0">
+          <div style="border:1px solid #A8863F;padding:7px">
+            <div style="position:relative;width:100%;aspect-ratio:2/3;background:repeating-linear-gradient(90deg,#25493A 0 7px,#2A5241 7px 14px);display:flex;align-items:flex-end;padding:12px">
+              <span style="font-family:'SFMono-Regular',Menlo,Consolas,monospace;font-size:9px;line-height:1.5;letter-spacing:.06em;color:#BFD3C6">cover art:<br/>Threshing Day</span>
+            </div>
+          </div>
+        </div>
+        <div style="min-width:0">
+          <p style="margin:0;font-size:11px;letter-spacing:.38em;text-transform:uppercase;color:#C8B27A">Arriving in your series</p>
+          <h2 style="font-family:'Cormorant Garamond',Garamond,serif;font-weight:500;font-size:clamp(38px,5.6vw,68px);line-height:1.04;letter-spacing:.02em;margin:12px 0 0">{{ heroTitle }}</h2>
+          <p style="margin:8px 0 0;font-family:'Cormorant Garamond',Garamond,serif;font-style:italic;font-size:21px;color:#D8E0D4">{{ heroSub }}</p>
+          <div style="display:flex;align-items:center;gap:26px;flex-wrap:wrap;margin-top:26px;border-top:1px solid #3F6153;padding-top:22px">
+            <div style="text-align:center">
+              <p style="margin:0;font-family:'Cormorant Garamond',Garamond,serif;font-size:56px;line-height:.9;color:#C8B27A">{{ heroDays }}</p>
+              <p style="margin:4px 0 0;font-size:10px;letter-spacing:.3em;text-transform:uppercase;color:#BFD3C6">days</p>
+            </div>
+            <div style="flex:1;min-width:240px">
+              <p style="margin:0;font-size:11px;letter-spacing:.3em;text-transform:uppercase;color:#C8B27A">{{ heroDate }}</p>
+              <p style="margin:8px 0 0;font-size:17px;line-height:1.5;color:#E6E0D2">{{ heroStanding }}</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+    </sc-if>
+
+    <section aria-label="The month's picks" style="margin-top:56px">
+      <div style="display:flex;align-items:baseline;justify-content:space-between;gap:16px;flex-wrap:wrap">
+        <h2 style="font-family:'Cormorant Garamond',Garamond,serif;font-weight:500;font-size:clamp(26px,3.2vw,38px);letter-spacing:.14em;text-transform:uppercase;margin:0">The Month's Picks</h2>
+        <span style="font-size:11px;letter-spacing:.28em;text-transform:uppercase;color:#6E6353">{{ counts }}</span>
+      </div>
+      <div style="height:1px;background:#A8863F;margin:14px 0 0"></div>
+
+      <article style="margin-top:30px;background:#E5DCCA;padding:6px">
+        <div style="border:1px solid #A8863F;padding:30px;display:grid;grid-template-columns:minmax(0,214px) minmax(0,1fr);gap:32px;align-items:start">
+          <div style="min-width:0">
+            <div role="img" aria-label="{{ lead.alt }}" style="{{ lead.coverStyle }}"></div>
+            <p style="margin:12px 0 0;text-align:center;font-size:10px;letter-spacing:.3em;text-transform:uppercase;color:#6E2A2A">Top pick — proven</p>
+          </div>
+          <div style="min-width:0">
+            <p style="margin:0;font-size:11px;letter-spacing:.3em;text-transform:uppercase;color:#6E6353">{{ lead.genre }} · {{ lead.date }}</p>
+            <h3 style="font-family:'Cormorant Garamond',Garamond,serif;font-weight:500;font-size:clamp(30px,4.2vw,50px);line-height:1.06;letter-spacing:.02em;margin:10px 0 0">{{ lead.title }}</h3>
+            <p style="margin:8px 0 0;font-size:15px;letter-spacing:.14em;text-transform:uppercase;color:#6E6353">{{ lead.author }} · {{ lead.publisher }} · {{ lead.gr }}</p>
+            <p style="margin:18px 0 0;font-family:'Cormorant Garamond',Garamond,serif;font-size:25px;line-height:1.42;max-width:52ch">{{ lead.hook }}</p>
+            <p style="margin:14px 0 0;font-style:italic;font-size:16px;color:#4A443A;max-width:56ch">Why it won — {{ lead.why }}</p>
+            <div style="display:flex;gap:30px;flex-wrap:wrap;margin-top:22px;padding-top:18px;border-top:1px solid #C6BBA3">
+              <div><p style="margin:0;font-size:10px;letter-spacing:.3em;text-transform:uppercase;color:#6E6353">Spice</p><p style="margin:4px 0 0;font-family:'Cormorant Garamond',Garamond,serif;font-size:24px">{{ lead.spiceLabel }}</p></div>
+              <div><p style="margin:0;font-size:10px;letter-spacing:.3em;text-transform:uppercase;color:#6E6353">MMC vibe</p><p style="margin:4px 0 0;font-family:'Cormorant Garamond',Garamond,serif;font-size:24px">{{ lead.mmcLabel }}</p><p style="margin:0;font-style:italic;font-size:14px">{{ lead.mmcNote }}</p></div>
+              <div style="flex:1;min-width:220px"><p style="margin:0;font-size:10px;letter-spacing:.3em;text-transform:uppercase;color:#6E6353">Tropes</p><p style="margin:4px 0 0;font-size:15px;line-height:1.6">{{ lead.tropeLine }}</p></div>
+            </div>
+            <div style="display:flex;gap:9px;flex-wrap:wrap;margin-top:20px">
+              <sc-for list="{{ lead.pills }}" as="p" hint-placeholder-count="4">
+                <button type="button" onClick="{{ p.onClick }}" aria-pressed="{{ p.on }}" style="{{ p.style }}">{{ p.label }}</button>
+              </sc-for>
+            </div>
+          </div>
+        </div>
+      </article>
+
+      <div style="display:flex;flex-direction:column;gap:0;margin-top:14px">
+        <sc-for list="{{ rest }}" as="b" hint-placeholder-count="7">
+          <article style="display:grid;grid-template-columns:minmax(0,120px) minmax(0,1fr) minmax(0,190px);gap:28px;align-items:start;padding:26px 0;border-bottom:1px solid #D6CCB6">
+            <div style="min-width:0">
+              <div role="img" aria-label="{{ b.alt }}" style="{{ b.coverStyle }}"></div>
+            </div>
+            <div style="min-width:0">
+              <p style="margin:0;font-size:10.5px;letter-spacing:.3em;text-transform:uppercase;color:#6E6353">{{ b.rank }} · {{ b.genre }} · {{ b.date }}</p>
+              <h3 style="font-family:'Cormorant Garamond',Garamond,serif;font-weight:500;font-size:29px;line-height:1.12;letter-spacing:.02em;margin:7px 0 0;overflow-wrap:anywhere">{{ b.title }}</h3>
+              <sc-if value="{{ b.series }}">
+                <p style="margin:2px 0 0;font-family:'Cormorant Garamond',Garamond,serif;font-style:italic;font-size:19px;color:#6E2A2A">{{ b.series }}</p>
+              </sc-if>
+              <p style="margin:7px 0 0;font-size:13.5px;letter-spacing:.13em;text-transform:uppercase;color:#6E6353">{{ b.author }} · {{ b.publisher }} · {{ b.gr }}</p>
+              <p style="margin:14px 0 0;font-family:'Cormorant Garamond',Garamond,serif;font-size:21px;line-height:1.45;max-width:56ch">{{ b.hook }}</p>
+              <p style="margin:10px 0 0;font-size:14.5px;line-height:1.6;color:#4A443A">{{ b.tropeLine }}</p>
+              <p style="margin:8px 0 0;font-style:italic;font-size:15px;color:#6E2A2A">{{ b.fit }}</p>
+            </div>
+            <div style="min-width:0;display:flex;flex-direction:column;gap:14px">
+              <sc-if value="{{ b.fresh }}">
+                <p style="margin:0;align-self:flex-start;border:1px solid #A8863F;font-size:9.5px;letter-spacing:.24em;text-transform:uppercase;padding:4px 9px;color:#6E2A2A">Fresh read</p>
+              </sc-if>
+              <div style="display:flex;gap:22px;flex-wrap:wrap">
+                <div><p style="margin:0;font-size:9.5px;letter-spacing:.26em;text-transform:uppercase;color:#6E6353">Spice</p><p style="margin:2px 0 0;font-family:'Cormorant Garamond',Garamond,serif;font-size:21px">{{ b.spiceLabel }}</p></div>
+                <div><p style="margin:0;font-size:9.5px;letter-spacing:.26em;text-transform:uppercase;color:#6E6353">MMC</p><p style="margin:2px 0 0;font-family:'Cormorant Garamond',Garamond,serif;font-size:21px">{{ b.mmcLabel }}</p></div>
+              </div>
+              <p style="margin:0;font-size:13px;letter-spacing:.1em;text-transform:uppercase;color:#6E6353">{{ b.formatLine }}</p>
+              <div style="display:flex;gap:7px;flex-wrap:wrap">
+                <sc-for list="{{ b.pills }}" as="p" hint-placeholder-count="4">
+                  <button type="button" onClick="{{ p.onClick }}" aria-pressed="{{ p.on }}" style="{{ p.style }}">{{ p.label }}</button>
+                </sc-for>
+              </div>
+            </div>
+          </article>
+        </sc-for>
+      </div>
+    </section>
+
+    <section aria-label="Your series" style="margin-top:56px">
+      <div style="display:flex;align-items:baseline;justify-content:space-between;gap:16px;flex-wrap:wrap">
+        <h2 style="font-family:'Cormorant Garamond',Garamond,serif;font-weight:500;font-size:clamp(26px,3.2vw,38px);letter-spacing:.14em;text-transform:uppercase;margin:0">Your Series</h2>
+        <span style="font-size:11px;letter-spacing:.28em;text-transform:uppercase;color:#6E6353">{{ seriesCount }} series · every volume shown</span>
+      </div>
+      <div style="height:1px;background:#A8863F;margin:14px 0 20px"></div>
+
+      <div style="display:flex;flex-direction:column;gap:0">
+        <sc-for list="{{ seriesList }}" as="s" hint-placeholder-count="8">
+          <div style="padding:18px 0;border-bottom:1px solid #D6CCB6">
+            <div style="display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.25fr);gap:30px;align-items:center">
+              <div style="min-width:0">
+                <p style="margin:0;font-family:'Cormorant Garamond',Garamond,serif;font-size:23px;line-height:1.16;letter-spacing:.04em">{{ s.name }}</p>
+                <p style="margin:3px 0 0;font-size:11.5px;letter-spacing:.14em;text-transform:uppercase;color:#6E6353">{{ s.author }} · {{ s.progress }}</p>
+                <div style="display:flex;align-items:flex-end;gap:4px;margin-top:12px">
+                  <sc-for list="{{ s.vols }}" as="v" hint-placeholder-count="4">
+                    <span title="{{ v.tip }}" style="{{ v.style }}"></span>
+                  </sc-for>
+                </div>
+                <div style="display:flex;gap:18px;flex-wrap:wrap;margin-top:12px">
+                  <button type="button" onClick="{{ s.onToggle }}" style="font-size:11px;letter-spacing:.24em;text-transform:uppercase;color:#6E2A2A;border-bottom:1px solid #A8863F;padding:0 0 2px" style-hover="color:#1E3A2F">{{ s.toggleLabel }}</button>
+                  <sc-if value="{{ s.canMark }}">
+                    <button type="button" onClick="{{ s.onMarkNext }}" style="font-size:11px;letter-spacing:.24em;text-transform:uppercase;color:#1E3A2F;border-bottom:1px solid #1E3A2F;padding:0 0 2px;text-align:left" style-hover="color:#6E2A2A;border-color:#6E2A2A">{{ s.markLabel }}</button>
+                  </sc-if>
+                </div>
+              </div>
+              <div style="{{ s.nextStyle }}">
+                <p style="margin:0;font-size:9.5px;letter-spacing:.28em;text-transform:uppercase">{{ s.nextKind }}</p>
+                <p style="margin:6px 0 0;font-family:'Cormorant Garamond',Garamond,serif;font-size:22px;line-height:1.16">{{ s.nextTitle }}</p>
+                <p style="margin:3px 0 0;font-size:12.5px;letter-spacing:.1em;text-transform:uppercase">{{ s.nextMeta }}</p>
+              </div>
+            </div>
+            <sc-if value="{{ s.open }}">
+              <ul style="list-style:none;margin:14px 0 0;padding:0;max-width:640px">
+                <sc-for list="{{ s.books }}" as="bk" hint-placeholder-count="3">
+                  <li style="{{ bk.style }}">
+                    <span style="{{ bk.markStyle }}">{{ bk.mark }}</span>
+                    <span style="flex:1;min-width:0;font-family:'Cormorant Garamond',Garamond,serif;font-size:19px;line-height:1.3">{{ bk.t }} <span style="font-size:14px;color:#6E6353">{{ bk.n }}</span></span>
+                    <span style="font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:#6E6353;white-space:nowrap">{{ bk.d }}</span>
+                  </li>
+                </sc-for>
+              </ul>
+            </sc-if>
+          </div>
+        </sc-for>
+      </div>
+      <p style="margin:16px 0 0;font-size:11px;letter-spacing:.18em;text-transform:uppercase;color:#6E6353">Gold = read · oxblood = out and unread · green outline = coming · hollow = announced. Finish every volume and the series moves to the archive ({{ archivedCount }} closed).</p>
+    </section>
+    </sc-if>
+
+    <footer style="margin-top:52px;text-align:center">
+      <div style="height:1px;background:#A8863F;max-width:220px;margin:0 auto 18px"></div>
+      <p style="margin:0;font-size:11.5px;letter-spacing:.14em;line-height:1.9;color:#6E6353;max-width:76ch;margin:0 auto">Filtered on — {{ criteria }}</p>
+      <p style="margin:14px 0 0;font-size:10px;letter-spacing:.34em;text-transform:uppercase;color:#6E6353">The Shelf · {{ monthShort }}</p>
+      <p style="margin:12px 0 0"><button type="button" id="set-open" style="font-family:'EB Garamond',Georgia,serif;font-size:10.5px;letter-spacing:.32em;text-transform:uppercase;color:#6E6353;border-bottom:1px solid #A8863F;padding:0 0 2px">shelf settings</button></p>
+    </footer>
+  </div>
+</div>
+</x-dc>
+
+<!-- ============ SHELF SETTINGS (app-only, outside the dc root) ============ -->
+<div id="set-veil" style="display:none;position:fixed;inset:0;background:rgba(33,30,25,.55);z-index:60;align-items:flex-start;justify-content:center;padding:56px 16px;overflow:auto">
+  <div style="max-width:560px;width:100%;background:#F6F1E4;border:1px solid #A8863F;box-shadow:0 24px 60px rgba(20,18,14,.35);padding:34px 36px;position:relative">
+    <button type="button" id="set-x" aria-label="Close" style="position:absolute;top:8px;right:12px;font-size:22px;color:#6E6353;cursor:pointer">×</button>
+    <p style="margin:0;font-size:10px;letter-spacing:.38em;text-transform:uppercase;color:#6E6353">Setup</p>
+    <h2 style="font-family:'Cormorant Garamond',Garamond,serif;font-weight:500;font-size:36px;letter-spacing:.05em;margin:8px 0 0">shelf settings</h2>
+    <p style="margin:10px 0 0;font-size:15px;line-height:1.6;color:#4A443A">Your OpenRouter key lives on your server in the appdata volume — it survives redeploys.</p>
+    <p style="margin:20px 0 0;font-size:10px;letter-spacing:.3em;text-transform:uppercase;color:#6E6353">OpenRouter key · <span id="key-state" style="color:#6E2A2A">…</span></p>
+    <input id="set-key" type="password" placeholder="sk-or-v1-…" autocomplete="off" style="margin-top:8px;width:100%;box-sizing:border-box;background:transparent;border:1px solid #C6BBA3;padding:10px 12px;font-family:'EB Garamond',Georgia,serif;font-size:16px;color:#211E19"/>
+    <p style="margin:18px 0 0;font-size:10px;letter-spacing:.3em;text-transform:uppercase;color:#6E6353">Model · <button type="button" id="set-refresh" style="font-size:10px;letter-spacing:.2em;text-transform:uppercase;color:#6E2A2A;border-bottom:1px solid #A8863F">refresh</button></p>
+    <select id="set-model" style="margin-top:8px;width:100%;background:transparent;border:1px solid #C6BBA3;padding:10px 12px;font-family:'EB Garamond',Georgia,serif;font-size:15px;color:#211E19"></select>
+    <p id="model-hint" style="margin:6px 0 0;font-size:13px;font-style:italic;color:#6E6353">prices come live from OpenRouter</p>
+    <div style="display:flex;gap:14px;flex-wrap:wrap;margin-top:24px">
+      <button type="button" id="set-save" style="font-size:10.5px;letter-spacing:.28em;text-transform:uppercase;padding:11px 18px;border:1px solid #1E3A2F;background:#1E3A2F;color:#F3EDE1;cursor:pointer">save</button>
+      <button type="button" id="set-run" style="font-size:10.5px;letter-spacing:.28em;text-transform:uppercase;padding:11px 18px;border:1px solid #6E2A2A;background:transparent;color:#6E2A2A;cursor:pointer">run monthly pipeline now</button>
+    </div>
+    <p id="run-state" style="margin:16px 0 0;font-size:15px;color:#1E3A2F"></p>
+    <p id="status-line" style="margin:6px 0 0;font-size:14px;color:#6E6353"></p>
+  </div>
+</div>
+<script>
+(function(){
+  'use strict';
+  var veil=document.getElementById('set-veil');
+  if(!veil)return;
+  function open(){veil.style.display='flex';loadStatus();if(!document.getElementById('set-model').options.length){loadModels();}startPolling();}
+  function close(){veil.style.display='none';stopPolling();}
+  document.addEventListener('click',function(e){if(e.target&&e.target.id==='set-open'){open();}});
+  document.getElementById('set-x').addEventListener('click',close);
+  veil.addEventListener('click',function(e){if(e.target===veil)close();});
+  document.addEventListener('keydown',function(e){if(e.key==='Escape')close();});
+  function j(path,opts){return fetch(path,opts).then(function(r){return r.json();});}
+  function loadStatus(){
+    j('/api/status').then(function(s){
+      document.getElementById('key-state').textContent=s.key_set?'yes — key saved':'no key yet';
+      var m=document.getElementById('set-model');
+      if(s.model&&!m.options.length){var o=document.createElement('option');o.value=s.model;o.textContent=s.model+' (current)';m.appendChild(o);}
+      var last=s.last_run?(new Date(s.last_run)).toLocaleString():'never';
+      document.getElementById('status-line').textContent='monthly job: '+s.schedule+' · last run: '+last+(s.last_result?(' · '+s.last_result+(s.last_books?(' · '+s.last_books+' books'):'')):'');
+      document.getElementById('run-state').textContent=s.running?'running…':(s.last_result?('done — '+s.last_result+(s.last_books?(' ('+s.last_books+' books)'):'')):'');
+    }).catch(function(){
+      document.getElementById('key-state').textContent='container offline';
+      document.getElementById('status-line').textContent='settings live in the container build (port 8787)';
+    });
+  }
+  var pollTimer=null;
+  function startPolling(){if(!pollTimer){pollTimer=setInterval(loadStatus,6000);}}
+  function stopPolling(){if(pollTimer){clearInterval(pollTimer);pollTimer=null;}}
+  function loadModels(sel){
+    j('/api/models').then(function(d){
+      var m=document.getElementById('set-model');m.innerHTML='';
+      (d.models||[]).forEach(function(x){
+        var o=document.createElement('option');o.value=x.id;
+        o.textContent=x.id+' — $'+x.in_mtok+'/$'+x.out_mtok+' per 1M · '+x.why;
+        m.appendChild(o);
+      });
+      if(sel){m.value=sel;}
+    }).catch(function(){document.getElementById('model-hint').textContent='could not reach the openrouter list — model stays as set on the server';});
+  }
+  document.getElementById('set-save').addEventListener('click',function(){
+    j('/api/settings',{method:'POST',headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({api_key:document.getElementById('set-key').value,model:document.getElementById('set-model').value})})
+    .then(function(r){document.getElementById('key-state').textContent=r.key_set?'yes — key saved':'no key yet';loadStatus();})
+    .catch(function(){document.getElementById('key-state').textContent='save failed — is the container running?';});
+  });
+  document.getElementById('set-refresh').addEventListener('click',function(){loadModels();});
+  document.getElementById('set-run').addEventListener('click',function(){
+    j('/api/run',{method:'POST'}).then(function(r){document.getElementById('run-state').textContent=r.error||'started — watch status';}).catch(function(){document.getElementById('run-state').textContent='could not start — container offline?';});
+    setTimeout(loadStatus,3000);
+  });
+})();
+</script>
+<script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;:{&quot;width&quot;:1120}}">
+const INK='#211E19', GOLD='#A8863F', BLOOD='#6E2A2A', FOREST='#1E3A2F', MID='#6E6353', LINE='#C6BBA3';
+
+const BREWS=[
+  {m:[11,0,1],img:'assets/coffee-winter-b.png',alt:'Ink drawing of a winter cocoa',season:'cocoa season'},
+  {m:[2,3,4],img:'assets/coffee-spring-a.png',alt:'Ink drawing of a blossom latte',season:'blossom season'},
+  {m:[5,6,7],img:'assets/coffee-summer-b.png',alt:'Ink drawing of an iced coffee',season:'iced coffee season'},
+  {m:[8,9,10],img:'assets/coffee-2.png',alt:'Ink drawing of a spiced latte',season:'pumpkin spice season'}
+];
+
+class Component extends DCLogic {
+  state={ data:(typeof window!=='undefined'&&window.SHELF_DATA)||null, states:{}, marks:{}, open:{}, q:0, view:'shelf' };
+
+  unread(key){
+    this.setState(s=>{
+      const marks={...s.marks}, books={...s.states};
+      if(key.indexOf('book:')===0) delete books[key.slice(5)]; else marks[key]='unread';
+      this.persist({marks,books});
+      return {marks,states:books};
+    });
+  }
+  componentDidMount(){
+    try{
+      const raw=localStorage.getItem('shelf.marks');
+      if(raw){const all=JSON.parse(raw),books={},marks={};
+        Object.keys(all).forEach(k=>{ if(k.indexOf('book:')===0)books[k.slice(5)]=all[k]; else marks[k]=all[k]; });
+        this.setState({states:books,marks});}
+    }catch(e){}
+    if(!this.state.data){
+      let n=0;
+      const poll=setInterval(()=>{ n++;
+        if(window.SHELF_DATA){clearInterval(poll);this.setState({data:window.SHELF_DATA});}
+        else if(n>60)clearInterval(poll);
+      },50);
+    }
+    this._t=setInterval(()=>this.setState(s=>({q:s.q+1})),6500);
+  }
+  componentWillUnmount(){ clearInterval(this._t); }
+  setBook(id,st){ this.setState(s=>{const n={...s.states}; if(n[id]===st)delete n[id]; else n[id]=st; this.persist({books:n}); return {states:n};}); }
+
+  markVolume(series,title){
+    this.setState(s=>{
+      const k='seq:'+series+':'+title, n={...s.marks};
+      n[k]=n[k]==='read'?'unread':'read';
+      this.persist({marks:n});
+      return {marks:n};
+    });
+  }
+
+  persist(part){
+    try{
+      const books=part.books||this.state.states, marks=part.marks||this.state.marks, out={};
+      Object.keys(marks).forEach(k=>{out[k]=marks[k];});
+      Object.keys(books).forEach(id=>{out['book:'+id]=books[id];});
+      localStorage.setItem('shelf.marks',JSON.stringify(out));
+    }catch(e){}
+  }
+
+  pill(on){
+    return {fontFamily:"'EB Garamond',Georgia,serif",fontSize:'10.5px',letterSpacing:'.22em',textTransform:'uppercase',
+      padding:'6px 12px',border:'1px solid '+(on?FOREST:GOLD),background:on?FOREST:'transparent',color:on?'#F3EDE1':INK,cursor:'pointer'};
+  }
+  book(b,i){
+    const st=this.state.states[b.id];
+    return {...b,
+      alt:'Cover of '+b.title+' by '+b.author,
+      coverStyle:{width:'100%',aspectRatio:'2/3',border:'1px solid '+INK,backgroundImage:'url("'+b.img+'")',backgroundSize:'cover',backgroundPosition:'center',backgroundColor:'#D8CFBA'},
+      rank:'No. '+(i+1),
+      spiceLabel:b.spice+' / 5',
+      mmcLabel:b.mmc+' / 5',
+      mmcNote:b.lane==='romantasy'?'Xaden · Rhysand · Raihn energy':'same energy, no magic',
+      tropeLine:b.tropes.join(' · '),
+      formatLine:b.formats.join(' · '),
+      pills:['want','read','loved','skip'].map(p=>({label:p,on:st===p,style:this.pill(st===p),onClick:()=>this.setBook(b.id,p)}))
+    };
+  }
+
+  renderVals(){
+    const d=this.state.data;
+    if(!d) return {};
+    const S=this.state.states;
+    let r=0,l=0,w=0,k=0;
+    Object.keys(S).forEach(id=>{const v=S[id];if(v==='read')r++;else if(v==='loved')l++;else if(v==='want')w++;else if(v==='skip')k++;});
+    const parts=[]; if(r)parts.push(r+' read'); if(l)parts.push(l+' loved'); if(w)parts.push(w+' want'); if(k)parts.push(k+' set aside');
+
+    const H=d.hero||{};
+    const days=(H.iso)?Math.max(0,Math.ceil((new Date(H.iso)-new Date())/86400000)):0;
+    const mark={read:{ch:'\u2713',c:MID},out:{ch:'\u25C6',c:BLOOD},soon:{ch:'\u25CB',c:FOREST},tba:{ch:'\u00B7',c:MID}};
+
+    const marks=this.state.marks;
+    const vstate=(s,b)=>{const m=marks['seq:'+s.name+':'+b.t];
+      if(m==='unread')return b.state==='read'?'out':b.state;
+      if(m==='read')return 'read';
+      return b.state;};
+    const seriesList=d.series.filter(s=>!s.books.every(b=>vstate(s,b)==='read')).map(s=>{
+      const open=!!this.state.open[s.name];
+      const next=s.books.filter(b=>vstate(s,b)!=='read')[0];
+      const readN=s.books.filter(b=>vstate(s,b)==='read').length;
+      const ns=next?vstate(s,next):null;
+      const hot=ns==='out';
+      return {name:s.name,author:s.author,progress:readN+' of '+s.books.length+' read',
+        nextKind:next?(ns==='out'?'Out now, unread':ns==='soon'?'Coming':'Announced'):'Caught up',
+        nextTitle:next?next.t:'Nothing waiting',
+        nextMeta:next?(next.n+' · '+(next.d==='read'||next.d==='reading'?'on your shelf, unread':next.d)):'complete on your shelf',
+        nextStyle:{marginTop:'16px',padding:'14px 16px',border:'1px solid '+(hot?BLOOD:LINE),background:hot?'#F3EAE2':'transparent',color:hot?BLOOD:INK},
+        toggleLabel:open?'close the run':'the full run ('+s.books.length+')',
+        open,
+        markLabel:ns==='out'?'mark '+next.t+' read':'',
+        canMark:ns==='out',
+        onMarkNext:()=>{ if(next) this.markVolume(s.name,next.t); },
+        vols:s.books.map(b=>{const vs=vstate(s,b);return {tip:b.t+' '+b.n+' — '+(vs==='read'?'read':b.d),
+          style:{flex:'0 0 auto',width:'11px',
+            height:({read:34,out:46,soon:42,tba:30})[vs]+'px',
+            background:({read:GOLD,out:BLOOD,soon:'transparent',tba:'transparent'})[vs],
+            border:'1px solid '+({read:GOLD,out:BLOOD,soon:FOREST,tba:LINE})[vs]}};}),
+        onToggle:()=>this.setState(st=>({open:{...st.open,[s.name]:!st.open[s.name]}})),
+        books:s.books.map(b=>{const vs=vstate(s,b);return {...b,
+          d:vs==='read'&&b.state!=='read'?'read':b.d,
+          mark:mark[vs].ch,
+          markStyle:{flex:'0 0 14px',fontSize:'11px',color:mark[vs].c,lineHeight:'1.9'},
+          style:{display:'flex',alignItems:'baseline',gap:'10px',padding:'8px 0',borderTop:'1px solid #D6CCB6',opacity:vs==='read'?.55:1}
+        };})};
+    });
+
+    const CLOTH=['#6E2A2A','#2B3F38','#7A5A2A','#3E3630','#5A2F2A','#33443E','#6B4A25','#42382C'];
+    const readBySeries=d.series.map(s=>({name:s.name,author:s.author,
+      books:s.books.filter(b=>vstate(s,b)==='read').map(b=>({...b,onUnread:()=>this.unread('seq:'+s.name+':'+b.t)}))}))
+      .filter(s=>s.books.length);
+    const solo=d.books.filter(b=>S[b.id]==='read'||S[b.id]==='loved').map(b=>({...b,
+      alt:'Cover of '+b.title,
+      coverStyle:{width:'100%',aspectRatio:'2/3',border:'1px solid '+INK,backgroundImage:'url("'+b.img+'")',backgroundSize:'cover',backgroundPosition:'center',backgroundColor:'#D8CFBA'},
+      tag:S[b.id]==='loved'?'Loved':'Read',
+      tagStyle:{fontSize:'10px',letterSpacing:'.24em',textTransform:'uppercase',color:S[b.id]==='loved'?BLOOD:MID},
+      onUnread:()=>this.unread('book:'+b.id)}));
+
+    const shelved=[];
+    readBySeries.forEach(s=>s.books.forEach(b=>shelved.push({t:b.t,a:s.author,s:s.name,key:'seq:'+s.name+':'+b.t})));
+    solo.forEach(b=>shelved.push({t:b.title,a:b.author,s:'standalone',key:'book:'+b.id}));
+    shelved.sort((x,y)=>(x.a||'').split(' ').pop().localeCompare((y.a||'').split(' ').pop()));
+    const spines=shelved.map((bk,i)=>({tip:bk.t+' — '+bk.a+' · '+bk.s+' — click to mark unread',
+      onClick:()=>this.unread(bk.key),
+      style:{flex:'0 0 auto',width:'18px',height:(48+((i*13)%22))+'px',padding:0,cursor:'pointer',transition:'transform .18s ease',
+        background:CLOTH[i%CLOTH.length],border:'1px solid rgba(33,30,25,.5)',
+        boxShadow:'inset 0 -8px 0 rgba(232,220,192,.5), inset 0 3px 0 rgba(232,220,192,.35)'}}));
+
+    const tab=on=>({fontFamily:"'EB Garamond',Georgia,serif",fontSize:'11px',letterSpacing:'.28em',textTransform:'uppercase',
+      padding:'14px 26px',cursor:'pointer',color:on?INK:MID,
+      borderBottom:on?'2px solid '+BLOOD:'2px solid transparent',background:on?'rgba(168,134,63,.1)':'transparent'});
+
+    const books=d.books.map((b,i)=>this.book(b,i));
+    return {
+      isShelf:this.state.view==='shelf', isArchive:this.state.view==='archive',
+      showShelf:()=>this.setState({view:'shelf'}), showArchive:()=>this.setState({view:'archive'}),
+      tabShelf:tab(this.state.view==='shelf'), tabArchive:tab(this.state.view==='archive'),
+      archiveCount:shelved.length,
+      spines, readBySeries, readSeriesCount:readBySeries.length, solo, soloCount:solo.length,
+      hasRead:readBySeries.length>0, noRead:readBySeries.length===0,
+      hasSolo:solo.length>0, noSolo:solo.length===0,
+      shelfLine:shelved.length?('Hover for the title · click to move it back to your shelf · '+shelved.length+' books here'):'Empty. Mark something read and it arrives.',
+      monthLabel:d.month.label, monthShort:d.month.short, criteria:d.criteria,
+      counts:parts.length?parts.join(' · '):'nothing marked yet',
+      heroTitle:H.title||'', heroSub:[H.num,H.author].filter(Boolean).join(' · '), heroDays:days, heroDate:H.date||'', heroStanding:H.standing||'',
+      issueNo:d.month.issue||1, titleCount:d.month.titles||(d.books.length+((d.books.length===1)?' title':' titles')), hasHero:!!(H.iso),
+      brew:(function(){const b=BREWS.filter(x=>x.m.indexOf(new Date().getMonth())>-1)[0]||BREWS[3];
+        return {...b,style:{position:'absolute',left:'50%',top:'50%',transform:'translate(-50%,-50%)',width:'104px',height:'104px',
+          backgroundImage:'url("'+b.img+'")',backgroundSize:'contain',backgroundRepeat:'no-repeat',backgroundPosition:'center',mixBlendMode:'multiply'}};})(),
+      lead:books[0], rest:books.slice(1),
+      seriesList, seriesCount:seriesList.length,
+      archivedCount:d.series.length-seriesList.length,
+      quote:d.quotes[this.state.q%d.quotes.length]
+    };
+  }
+}
+</script>
+</body>
+</html>
