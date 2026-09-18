@@ -24,8 +24,8 @@ links its ticket with `Closes #<n>` so merging closes the issue and unblocks
 whatever depended on it.
 
 **Every PR body shows the change visually.** Use the `before-and-after` skill
-(`~/.hermes/.agents/skills/before-and-after`) to attach media and keep exactly one
-marked block in the description:
+(`~/.hermes/.agents/skills/before-and-after`) to format the media and keep exactly
+one marked block in the description:
 
 - **Front-end / UI work**: a real before/after pair of the same view — same
   viewport, same state, and equal pixel height so the tops align in the rendered
@@ -37,5 +37,11 @@ marked block in the description:
   never rewrite the surrounding prose — the formatter replaces only its own
   `<!-- before-and-after:start/end -->` block.
 
-Captures are staging only (`captures/` is git-ignored); publishing uploads them
-and rewrites the references to GitHub attachment URLs.
+**Publishing the media (this machine's gh is 2.96):** it has **no `--attach`** on
+`pr create`, `pr edit`, or `pr comment`, so the skill's publish step cannot run as
+written. Instead, commit the captures under `docs/evidence/` (downscaled, equal
+height) and reference them from the marked block by **commit-SHA raw URL** —
+`https://raw.githubusercontent.com/adorablebrillo/the-shelf/<sha>/docs/evidence/<file>.png`.
+Pin the SHA of the commit that adds the files (not a branch name): the images then
+render in the PR immediately and survive branch deletion. Scratch captures stay in
+`captures/`, which is git-ignored.
