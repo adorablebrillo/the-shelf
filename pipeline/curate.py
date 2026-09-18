@@ -23,15 +23,18 @@ def main():
     if not key:
         print('NO OPENROUTER API KEY — set OPENROUTER_API_KEY env var or put it in ~/.config/the-shelf/openrouter.key')
         return 2
-    mon = datetime.now().strftime('%Y-%m')
-    # run for the previous month: pick the newest filtered-*.json
+    # the drop curates the PREVIOUS month — resolve the book month explicitly
+    # (same window every stage uses; leftover files can't shift it)
     import glob
-    files = sorted(glob.glob(os.path.join(BASE, CFG['output_dir'], 'filtered-*.json')))
-    if files:
-        mon = os.path.basename(files[-1])[len('filtered-'):-len('.json')]
+    py, pm = (datetime.now().year - 1, 12) if datetime.now().month == 1 else (datetime.now().year, datetime.now().month - 1)
+    mon = '%04d-%02d' % (py, pm)
     fp = os.path.join(BASE, CFG['output_dir'], 'filtered-%s.json' % mon)
     if not os.path.exists(fp):
-        print('no filtered candidates — run fetch.py + filter.py first'); return 1
+        files = sorted(glob.glob(os.path.join(BASE, CFG['output_dir'], 'filtered-*.json')))
+        if not files:
+            print('no filtered candidates — run fetch.py + filter.py first'); return 1
+        mon = os.path.basename(files[-1])[len('filtered-'):-len('.json')]
+        fp = files[-1]
     filtered = json.load(open(fp))
     taste = open(os.path.join(BASE, 'taste-prompt.md')).read()
     seq = {}
