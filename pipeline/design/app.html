@@ -141,8 +141,10 @@
       <div style="border:1px solid #A8863F;padding:34px 36px;display:grid;grid-template-columns:minmax(0,200px) minmax(0,1fr);gap:36px;align-items:center">
         <div style="min-width:0">
           <div style="border:1px solid #A8863F;padding:7px">
-            <div style="position:relative;width:100%;aspect-ratio:2/3;background:repeating-linear-gradient(90deg,#25493A 0 7px,#2A5241 7px 14px);display:flex;align-items:flex-end;padding:12px">
-              <span style="font-family:'SFMono-Regular',Menlo,Consolas,monospace;font-size:9px;line-height:1.5;letter-spacing:.06em;color:#BFD3C6">cover art:<br/>Threshing Day</span>
+            <div role="img" aria-label="{{ heroCoverAlt }}" style="{{ heroCoverStyle }}">
+              <sc-if value="{{ noHeroCover }}">
+                <span style="font-family:'SFMono-Regular',Menlo,Consolas,monospace;font-size:9px;line-height:1.5;letter-spacing:.06em;color:#BFD3C6">cover art:<br/>{{ heroTitle }}</span>
+              </sc-if>
             </div>
           </div>
         </div>
@@ -518,6 +520,23 @@ class Component extends DCLogic {
       borderBottom:on?'2px solid '+BLOOD:'2px solid transparent',background:on?'rgba(168,134,63,.1)':'transparent'});
 
     const books=d.books.map((b,i)=>this.book(b,i));
+    // hero standing is derived from the LIVE series state (marks included), so
+    // marking a volume read/unread updates this line immediately
+    let heroStanding=H.standing||'';
+    if(H.seriesRef){
+      const hs=d.series.filter(s=>s.name===H.seriesRef)[0];
+      if(hs){
+        const jn=(a)=>a.length>1?(a.slice(0,-1).join(', ')+' and '+a[a.length-1]):(a[0]||'');
+        const rd=hs.books.filter(b=>vstate(hs,b)==='read').map(b=>b.t);
+        const un=hs.books.filter(b=>vstate(hs,b)==='out')[0];
+        let s2='';
+        if(rd.length)s2='You have read '+jn(rd.slice(0,4))+'.';
+        if(un)s2+=(s2?' ':'')+un.t+(un.n?' ('+un.n+')':'')+' is still unread.';
+        else if(rd.length)s2+=' You are up to date.';
+        if(s2)heroStanding=s2;
+      }
+    }
+    const heroCoverStyle=(H.cover)?{position:'relative',width:'100%',aspectRatio:'2/3',backgroundImage:'url("'+H.cover+'")',backgroundSize:'cover',backgroundPosition:'center',backgroundColor:'#25493A',display:'flex',alignItems:'flex-end',padding:'12px'}:{position:'relative',width:'100%',aspectRatio:'2/3',background:'repeating-linear-gradient(90deg,#25493A 0 7px,#2A5241 7px 14px)',display:'flex',alignItems:'flex-end',padding:'12px'};
     return {
       isShelf:this.state.view==='shelf', isArchive:this.state.view==='archive',
       showShelf:()=>this.setState({view:'shelf'}), showArchive:()=>this.setState({view:'archive'}),
@@ -529,7 +548,7 @@ class Component extends DCLogic {
       shelfLine:shelved.length?('Hover for the title · click to move it back to your shelf · '+shelved.length+' books here'):'Empty. Mark something read and it arrives.',
       monthLabel:d.month.label, monthShort:d.month.short, criteria:d.criteria,
       counts:parts.length?parts.join(' · '):'nothing marked yet',
-      heroTitle:H.title||'', heroSub:[H.num,H.author].filter(Boolean).join(' · '), heroDays:days, heroDate:H.date||'', heroStanding:H.standing||'',
+      heroTitle:H.title||'', heroSub:[H.num,H.author].filter(Boolean).join(' · '), heroDays:days, heroDate:H.date||'', heroStanding:heroStanding, heroCoverStyle:heroCoverStyle, noHeroCover:!H.cover, heroCoverAlt:'Cover of '+(H.title||''),
       issueNo:d.month.issue||1, titleCount:d.month.titles||(d.books.length+((d.books.length===1)?' title':' titles')), hasHero:!!(H.iso),
       brew:(function(){const b=BREWS.filter(x=>x.m.indexOf(new Date().getMonth())>-1)[0]||BREWS[3];
         return {...b,style:{position:'absolute',left:'50%',top:'50%',transform:'translate(-50%,-50%)',width:'104px',height:'104px',

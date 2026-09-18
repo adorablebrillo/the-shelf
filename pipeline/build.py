@@ -119,6 +119,78 @@ def download_cover(b, covers_dir):
     return img
 
 
+def _get_json(url, timeout=25):
+    req = urllib.request.Request(url, headers=HEADERS)
+    with urllib.request.urlopen(req, timeout=timeout) as r:
+        return json.loads(r.read().decode('utf-8', 'replace'))
+
+
+def lookup_cover_url(title, author):
+    """Real cover art for a book: iTunes ebooks -> Google Books -> Open Library.
+    No API keys needed; returns a full-size-ish image URL or ''."""
+    t = (title or '').strip()
+    a = (author or '').strip()
+    if not t:
+        return ''
+    tl = t.lower()
+    try:
+        q = urllib.parse.urlencode({'term': ('%s %s' % (t, a)).strip(), 'media': 'ebook',
+                                    'entity': 'ebook', 'limit': 8, 'country': CFG.get('apple_country', 'us')})
+        results = _get_json('https://itunes.apple.com/search?' + q).get('results', [])
+        for it in results:
+            name = (it.get('trackName') or '').lower()
+            art = it.get('artworkUrl100') or it.get('artworkUrl60') or ''
+            if art and (name.startswith(tl[:24]) or tl[:24] in name or name[:24] in tl):
+                return art.replace('100x100bb', '600x600bb').replace('60x60bb', '600x600bb').replace('100x100', '600x600')
+        if results and results[0].get('artworkUrl100'):
+            last = a.split()[-1].lower() if a else ''
+            if last and last in (results[0].get('artistName') or '').lower():
+                return results[0]['artworkUrl100'].replace('100x100bb', '600x600bb')
+    except Exception as e:
+        print('cover lookup (itunes): %s' % str(e)[:70])
+    try:
+        q = urllib.parse.quote('intitle:"%s"%s' % (t, (' inauthor:"%s"' % a) if a else ''))
+        d = _get_json('https://www.googleapis.com/books/v1/volumes?q=%s&maxResults=5&country=US' % q)
+        for it in d.get('items', []):
+            links = ((it.get('volumeInfo') or {}).get('imageLinks') or {})
+            u = links.get('thumbnail') or links.get('smallThumbnail')
+            if u:
+                return u.replace('http://', 'https://').replace('&edge=curl', '')
+    except Exception as e:
+        print('cover lookup (google): %s' % str(e)[:70])
+    try:
+        q = urllib.parse.quote(('%s %s' % (t, a)).strip())
+        d = _get_json('https://openlibrary.org/search.json?q=%s&limit=3&fields=cover_i,title' % q)
+        for doc in d.get('docs', []):
+            if doc.get('cover_i'):
+                return 'https://covers.openlibrary.org/b/id/%s-L.jpg' % doc['cover_i']
+    except Exception as e:
+        print('cover lookup (openlibrary): %s' % str(e)[:70])
+    return ''
+
+
+def ensure_cover(img, title, author, covers_dir):
+    """A usable LOCAL cover path — the declared image when it works, otherwise
+    fetched real cover art (cached by slug so rebuilds stay offline)."""
+    if img:
+        if img.startswith('assets/') and os.path.isfile(os.path.join(DIST, img)):
+            return img
+        if img.startswith('http'):
+            local = download_cover({'img': img, 'title': title, 'author': author}, covers_dir)
+            if local:
+                return local
+    name = slug({'title': title or 'x', 'author': author or 'y'}) + '.jpg'
+    if os.path.isfile(os.path.join(covers_dir, name)):
+        return 'assets/covers/%s' % name
+    url = lookup_cover_url(title, author)
+    if url:
+        local = download_cover({'img': url, 'title': title, 'author': author}, covers_dir)
+        if local:
+            print('cover fetched: %s' % (title or '')[:44])
+            return local
+    return img or ''
+
+
 def next_books_for(entry, today):
     """sequels.json entry -> [{t,n,d,state,iso}] in series order."""
     out = []
@@ -222,11 +294,19 @@ def hero_data(series):
     iso, s, b = min(cands, key=lambda x: x[0])
     reads = [x['t'] for x in s['books'] if x['state'] == 'read']
     unread = next((x for x in s['books'] if x['state'] == 'out'), None)
+
+    def _join(names):
+        if len(names) > 1:
+            return ', '.join(names[:-1]) + ' and ' + names[-1]
+        return names[0] if names else ''
+
     if reads:
-        standing = 'You have read %s.' % ' and '.join(reads[:2])
+        standing = 'You have read %s.' % _join(reads[:4])
         if unread:
             n = (' (%s)' % unread['n']) if unread.get('n') else ''
             standing += ' %s%s is still unread.' % (unread['t'], n)
+        else:
+            standing += ' You are up to date.'
     elif unread:
         n = (' (%s)' % unread['n']) if unread.get('n') else ''
         standing = '%s%s is still unread.' % (unread['t'], n)
@@ -234,7 +314,7 @@ def hero_data(series):
         standing = 'A new chapter in a series you already love.'
     return {'title': b['t'], 'num': b.get('n') or '', 'author': s.get('author') or '',
             'publisher': s.get('publisher') or '', 'date': pretty_upper(iso), 'iso': iso,
-            'standing': standing}
+            'seriesRef': s.get('name') or '', 'standing': standing}
 
 
 def pick_book(b, top_id, img):
@@ -354,10 +434,12 @@ def main():
     covers_dir = os.path.join(DIST, 'assets', 'covers')
     top_id = cur.get('top_pick')
     src = sorted(cur.get('books', []), key=lambda b: 0 if b.get('id') == top_id else 1)
-    book_list = [pick_book(b, top_id, download_cover(b, covers_dir)) for b in src]
+    book_list = [pick_book(b, top_id, ensure_cover(b.get('img'), b.get('title'), b.get('author'), covers_dir)) for b in src]
 
     series = series_data()
     hero = hero_data(series)
+    if hero:
+        hero['cover'] = ensure_cover('', hero.get('title'), hero.get('author'), covers_dir)
     y, m = int(cur_ym[:4]), int(cur_ym[5:7])
     month = {
         'label': '%s %d' % (ml['name'].upper(), y),
