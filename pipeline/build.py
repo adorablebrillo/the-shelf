@@ -1,26 +1,60 @@
 #!/usr/bin/env python3
-"""The Shelf pipeline — stage 4: build dist/index.html from curated months.
-One page = one month (the 1st-of-month drop for the PREVIOUS month's books).
-Rolls up every month-*.json in data/ into the archive; the newest is current.
-Pure stdlib; template stays unmodified."""
+"""The Shelf pipeline — stage 4: build dist/ for the redesigned app.
+
+The page (pipeline/design/app.html) is a design-component runtime page; this
+script feeds it live data via dist/shelf-data.js:
+
+  month   — the current drop (label, issue number, count)
+  hero    — the soonest upcoming release in ANY series she is reading
+  books   — this month's picks (top pick first)
+  series  — EVERY series she is in: read volumes (data/library.json) merged
+            with released-unread / upcoming / announced (data/sequels.json)
+  quotes  — seasonal coffee-corner lines for the book month
+  criteria — the filtering rules, shown in the footer
+
+Pure stdlib; assets + vendored runtime are copied into dist/ here too, so the
+same code path runs at image-bake time and after every pipeline run.
+"""
 import json, os, re, shutil, sys, urllib.request, urllib.parse, hashlib, calendar, glob
 from datetime import datetime
 
 BASE = os.path.dirname(os.path.abspath(__file__))
 ROOT = os.path.dirname(BASE)
 CFG = json.load(open(os.path.join(BASE, 'config.json')))
-TEMPLATE = os.path.join(BASE, 'template.html')
-# In the container, the SERVER serves /app/dist (server.py lives at /app).
+DESIGN = os.path.join(BASE, 'design')
+# In the container the SERVER serves /app/dist (server.py lives at /app).
 # Docker COPY flattens the repo's container/dist -> pipeline/dist symlink, so
 # the pipeline and server MUST share one dist dir via DIST_DIR (set in the
 # Dockerfile). Locally it stays pipeline/dist for repo layout compat.
 DIST = os.environ.get('DIST_DIR') or os.path.join(BASE, 'dist')
 
 MONTH_NAMES = ['JAN', 'FEB', 'MAR', 'APR', 'MAY', 'JUN', 'JUL', 'AUG', 'SEP', 'OCT', 'NOV', 'DEC']
+WORDS = {1: 'one', 2: 'two', 3: 'three', 4: 'four', 5: 'five', 6: 'six', 7: 'seven', 8: 'eight', 9: 'nine', 10: 'ten'}
+CRITERIA = ('M/F only · no dark romance · spice 3–5 · trad-pub first, indie with proof · '
+            'released last month · sequels only for series you are already in')
+
+QUOTES = {
+    'winter': ['cocoa swirl, two marshmallows, one more chapter.',
+               'snow outside — a whole shelf inside.',
+               'hot cocoa, cold nights, warm plots.'],
+    'spring': ['cherry-blossom latte and a fresh TBR.',
+               'bloom season is plot season.',
+               'petals fall — you fall into books.'],
+    'summer': ['lemon ice, a lounger, a slow-burn.',
+               'the sun is up — so is your TBR.',
+               'iced hands, warmer pages.'],
+    'fall': ['september: pumpkin spice on the shelf, spice on the page.',
+             "a good book, a warm cup — that's the whole agenda.",
+             'curl up. the leaves changed, so did your TBR.'],
+}
+SEASON_OF = {12: 'winter', 1: 'winter', 2: 'winter', 3: 'spring', 4: 'spring', 5: 'spring',
+             6: 'summer', 7: 'summer', 8: 'summer', 9: 'fall', 10: 'fall', 11: 'fall'}
+
+HEADERS = {'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 Chrome/125 Safari/537.36'}
 
 
 def month_label(ym):
-    """('2026-08', 31) -> {'name':'August','label':'August 2026','win':'1 AUG – 31 AUG 2026','key':'aug'}"""
+    """('2026-08',) -> {'name':'August','label':'August 2026','win':'1 AUG – 31 AUG 2026','key':'aug'}"""
     y, m = int(ym[:4]), int(ym[5:7])
     last = calendar.monthrange(y, m)[1]
     full = datetime.strptime(ym, '%Y-%m').strftime('%B')
@@ -32,121 +66,38 @@ def month_label(ym):
     }
 
 
-def baseline_seqs():
-    """Always-present sequels baseline from data/sequels.json (her series map).
-    Released-and-unread -> to read (cap 16, newest first); announced/future ->
-    radar (cap 8, soonest first). Undated entries sort to the end of each list."""
-    reads, radar = [], []
+def norm_name(s):
+    """Series keys for matching: parentheticals dropped, alphanumerics only."""
+    s = re.sub(r'\([^)]*\)', ' ', s or '')
+    return re.sub(r'[^a-z0-9]', '', s.lower())
+
+
+def pretty_date(iso, title=False):
     try:
-        seq = json.load(open(os.path.join(ROOT, 'data', 'sequels.json')))
-        today = datetime.now().strftime('%Y-%m-%d')
-        for ser in seq.get('series', []):
-            for nb in ser.get('next_books', []):
-                raw = nb.get('title') or ''
-                if not raw:
-                    continue
-                m = re.match(r'^(.*?)\s*\((#[^)]*)\)\s*$', raw)
-                if m:
-                    t, n = m.group(1).strip(), m.group(2)
-                else:
-                    t = raw.split(' (')[0].strip()
-                    n = str(nb.get('volume') or nb.get('number') or '')
-                dt = str(nb.get('release_date') or '')[:10]
-                # keep partial dates (YYYY-MM) sortable/visible too — otherwise
-                # e.g. "2026-10" ranks with undated announcements and can miss the cap
-                disp = dt.replace('-', ' ') if re.match(r'^\d{4}(-\d{2}){1,2}$', dt) else ''
-                ev = {'s': ser.get('series') or '', 't': t, 'n': n,
-                      'a': ser.get('author') or '', 'd': disp, 'p': ''}
-                if dt and dt <= today:
-                    reads.append(ev)
-                else:
-                    radar.append(ev)
-        # real date ordering (ISO strings sort lexicographically): newest first
-        # for the to-read list, soonest first for the radar; undated last.
-        # NO caps — every waiting sequel shows (the page collapses them anyway).
-        reads.sort(key=lambda x: (x['d'] != '', x['d']), reverse=True)
-        radar.sort(key=lambda x: (x['d'] == '', x['d']))
-    except Exception as e:
-        print('baseline sequels: %s' % e)
-    return reads, radar
-
-
-def merge(base, extra):
-    out = [dict(x) for x in base]
-    seen = {(x.get('t'), x.get('s')) for x in out}
-    for x in extra:
-        k = (x.get('t'), x.get('s'))
-        if x.get('t') and k not in seen:
-            out.append(x)
-            seen.add(k)
-    return out
-
-
-def lanes_data():
-    """Series lanes for the page: EVERY series she is in (from data/library.json)
-    with the books she has read + what's next from the sequels map. Replaces the
-    old hardcoded 4-lane widget so nothing is left off (e.g. The Powerless Trilogy)."""
-    try:
-        lib = json.load(open(os.path.join(ROOT, 'data', 'library.json')))
-    except Exception as e:
-        print('lanes: library.json missing (%s)' % e)
-        return []
-    try:
-        seq = json.load(open(os.path.join(ROOT, 'data', 'sequels.json')))
+        d = datetime.strptime(iso[:10], '%Y-%m-%d')
+        mon = MONTH_NAMES[d.month - 1]
+        if title:
+            mon = mon.capitalize()
+        return '%d %s %d' % (d.day, mon, d.year)
     except Exception:
-        seq = {'series': []}
-
-    def norm(s):
-        # parenthetical suffixes ("… (ACOTAR)", "… (Duet)") shouldn't block a match
-        s = re.sub(r'\([^)]*\)', ' ', s or '')
-        return re.sub(r'[^a-z0-9]', '', s.lower())
-
-    seqmap = {}
-    for ser in seq.get('series', []):
-        seqmap[norm(ser.get('series'))] = ser
-
-    used = set()
-    lanes = []
-    for ls in lib.get('series', []):
-        name = ls.get('name') or ''
-        k = norm(name)
-        entry = seqmap.get(k)
-        if entry is None:
-            for k2, v2 in seqmap.items():
-                if k2 and (k2 in k or k in k2):
-                    entry = v2
-                    break
-        match = [name]
-        if entry is not None:
-            used.add(norm(entry['series']))
-        for k2 in seqmap:
-            if k2 and (k2 in k or k in k2):
-                used.add(k2)
-                nm2 = seqmap[k2].get('series')
-                if nm2 and nm2 not in match:
-                    match.append(nm2)
-        lanes.append({
-            'key': re.sub(r'[^a-z0-9]+', '-', name.lower()).strip('-') or 'series',
-            'name': name,
-            'match': match,
-            'base': [{'t': b, 'st': 'read'} for b in ls.get('books', [])],
-        })
-    # any researched series not covered by the library gets a lane too
-    for k2, v2 in seqmap.items():
-        if k2 not in used:
-            nm = v2.get('series') or ''
-            lanes.append({'key': re.sub(r'[^a-z0-9]+', '-', nm.lower()).strip('-') or 'series',
-                          'name': nm, 'match': [nm], 'base': []})
-    return lanes
+        return iso or ''
 
 
-HEADERS = {'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 Chrome/125 Safari/537.36'}
+def pretty_upper(iso):
+    return pretty_date(iso, title=False)
+
+
+def month_is_past(ym):
+    """A month file is only valid once that month is fully over. Junk files
+    (e.g. month-2026-09.json written on Sept 1 by an older build) are ignored
+    and purged — the legacy two-window run left exactly that behind."""
+    return ym < datetime.now().strftime('%Y-%m')
 
 
 def slug(b):
     s = ('%s %s' % (b.get('title', 'x'), b.get('author', 'y'))).lower()
     s = re.sub(r'[^a-z0-9]+', '-', s).strip('-')
-    return s[:40]
+    return s[:60] or hashlib.md5(json.dumps(b, sort_keys=True).encode()).hexdigest()[:12]
 
 
 def download_cover(b, covers_dir):
@@ -168,26 +119,177 @@ def download_cover(b, covers_dir):
     return img
 
 
-def month_is_past(ym):
-    """A month file is only valid once that month is fully over. Junk files
-    (e.g. month-2026-09.json written on Sept 1 by an older build) are ignored
-    and purged — the legacy two-window run left exactly that behind."""
-    return ym < datetime.now().strftime('%Y-%m')
+def next_books_for(entry, today):
+    """sequels.json entry -> [{t,n,d,state,iso}] in series order."""
+    out = []
+    for nb in (entry or {}).get('next_books', []):
+        raw = (nb.get('title') or '').strip()
+        if not raw:
+            continue
+        m = re.match(r'^(.*?)\s*\((#[^)]*)\)\s*$', raw)
+        if m:
+            t, n = m.group(1).strip(), m.group(2)
+        else:
+            t, n = raw.split(' (')[0].strip(), ''
+        if ';' in n:
+            n = n.split(';')[0].strip()
+        dt = str(nb.get('release_date') or '')[:10]
+        iso = dt if re.match(r'^\d{4}-\d{2}-\d{2}$', dt) else (dt + '-01' if re.match(r'^\d{4}-\d{2}$', dt) else '')
+        if nb.get('status') == 'out' or (iso and iso <= today):
+            state = 'out'
+        elif iso:
+            state = 'soon'
+        else:
+            state = 'tba'
+        if state == 'out':
+            d = ('out ' + pretty_date(iso, title=True)) if iso else 'out'
+        elif state == 'soon':
+            d = pretty_upper(iso)
+        else:
+            d = 'announced, no date'
+        out.append({'t': t, 'n': n, 'd': d, 'state': state, 'iso': iso})
+    return out
 
 
-def _seq_count():
-    """Number of series in the sequels map (shown as 'N series checked')."""
+def series_data():
+    """EVERY series she is in: reads from data/library.json + what's next from
+    data/sequels.json. Powers both 'Your Series' and the archive views."""
     try:
-        return len(json.load(open(os.path.join(ROOT, 'data', 'sequels.json'))).get('series', []))
+        lib = json.load(open(os.path.join(ROOT, 'data', 'library.json')))
+    except Exception as e:
+        print('series: library.json missing (%s)' % e)
+        lib = {'series': []}
+    try:
+        seq = json.load(open(os.path.join(ROOT, 'data', 'sequels.json')))
     except Exception:
-        return 0
+        seq = {'series': []}
+    today = datetime.now().strftime('%Y-%m-%d')
+    seqmap = {}
+    for ser in seq.get('series', []):
+        seqmap[norm_name(ser.get('series'))] = ser
+
+    used = set()
+    out = []
+    for ls in lib.get('series', []):
+        name = ls.get('name') or ''
+        k = norm_name(name)
+        entry = seqmap.get(k)
+        if entry is None:
+            for k2, v2 in seqmap.items():
+                if k2 and (k2 in k or k in k2):
+                    entry = v2
+                    break
+        books = [{'t': t, 'n': '', 'd': 'read', 'state': 'read', 'iso': ''} for t in ls.get('books', [])]
+        publisher = ''
+        if entry is not None:
+            for k2 in seqmap:
+                if k2 and (k2 in k or k in k2):
+                    used.add(k2)
+            for nb in entry.get('next_books', []):
+                if nb.get('publisher') and not publisher:
+                    publisher = nb['publisher']
+            for b in next_books_for(entry, today):
+                if any(x['t'].lower() == b['t'].lower() for x in books):
+                    continue
+                books.append(b)
+        out.append({'name': name, 'author': ls.get('author') or '', 'publisher': publisher, 'books': books})
+
+    # researched series the library never listed (safety net — nothing gets lost)
+    for k2, v2 in seqmap.items():
+        if k2 in used:
+            continue
+        nm = v2.get('series') or ''
+        if not nm:
+            continue
+        publisher = ''
+        for nb in v2.get('next_books', []):
+            if nb.get('publisher') and not publisher:
+                publisher = nb['publisher']
+        out.append({'name': nm, 'author': v2.get('author') or '', 'publisher': publisher,
+                    'books': next_books_for(v2, today)})
+    return out
+
+
+def hero_data(series):
+    """The soonest upcoming release across every series — the dark-green hero."""
+    cands = []
+    for s in series:
+        for b in s['books']:
+            if b.get('state') == 'soon' and b.get('iso'):
+                cands.append((b['iso'], s, b))
+    if not cands:
+        return None
+    iso, s, b = min(cands, key=lambda x: x[0])
+    reads = [x['t'] for x in s['books'] if x['state'] == 'read']
+    unread = next((x for x in s['books'] if x['state'] == 'out'), None)
+    if reads:
+        standing = 'You have read %s.' % ' and '.join(reads[:2])
+        if unread:
+            n = (' (%s)' % unread['n']) if unread.get('n') else ''
+            standing += ' %s%s is still unread.' % (unread['t'], n)
+    elif unread:
+        n = (' (%s)' % unread['n']) if unread.get('n') else ''
+        standing = '%s%s is still unread.' % (unread['t'], n)
+    else:
+        standing = 'A new chapter in a series you already love.'
+    return {'title': b['t'], 'num': b.get('n') or '', 'author': s.get('author') or '',
+            'publisher': s.get('publisher') or '', 'date': pretty_upper(iso), 'iso': iso,
+            'standing': standing}
+
+
+def pick_book(b, top_id, img):
+    genre = (b.get('genre') or '').strip()
+    if re.search(r'fae|dragon|fantasy|romantasy|vampire|fairy|witch', genre, re.I):
+        lane = 'romantasy'
+    elif re.search(r'hockey|f1|formula|football|baseball|sport|tennis|golf|soccer|racing', genre, re.I):
+        lane = 'sport'
+    else:
+        lane = 'contemporary'
+    rating = b.get('rating')
+    if isinstance(rating, str):
+        gr = rating
+    elif isinstance(rating, (int, float)):
+        gr = 'GR %s' % rating
+    else:
+        gr = 'GR —'
+    return {
+        'id': b.get('id') or slug(b),
+        'img': img or b.get('img') or 'assets/real/cover-01.jpg',
+        'title': b.get('title') or '', 'series': b.get('series') or '',
+        'author': b.get('author') or '', 'publisher': b.get('publisher') or '',
+        'date': b.get('date') or '', 'genre': genre, 'lane': lane,
+        'spice': int(b.get('spice') or 3), 'mmc': int((b.get('mmc') or {}).get('score') or 3),
+        'fresh': bool(b.get('fresh')), 'gr': gr,
+        'rating': rating if isinstance(rating, (int, float)) else None, 'count': '',
+        'formats': b.get('formats') or ['Ebook'], 'tropes': b.get('tropes') or [],
+        'hook': b.get('hook') or '', 'fit': b.get('fit') or '',
+        'why': b.get('why') or b.get('fit') or '',
+        'top': b.get('id') == top_id,
+    }
+
+
+def copy_static():
+    """Design runtime + art into dist (support.js, vendored React, .lavish assets)."""
+    os.makedirs(os.path.join(DIST, 'assets', 'vendor'), exist_ok=True)
+    pairs = [
+        (os.path.join(DESIGN, 'support.js'), os.path.join(DIST, 'support.js')),
+        (os.path.join(DESIGN, 'vendor', 'react.production.min.js'), os.path.join(DIST, 'assets', 'vendor', 'react.production.min.js')),
+        (os.path.join(DESIGN, 'vendor', 'react-dom.production.min.js'), os.path.join(DIST, 'assets', 'vendor', 'react-dom.production.min.js')),
+    ]
+    for src, dst in pairs:
+        if os.path.exists(src):
+            shutil.copy2(src, dst)
+        else:
+            print('missing static: %s' % src)
+    for cand in (os.path.join(ROOT, 'assets'), os.path.join(ROOT, '.lavish', 'assets')):
+        if os.path.isdir(cand):
+            shutil.copytree(cand, os.path.join(DIST, 'assets'), dirs_exist_ok=True)
+            break
 
 
 def main():
-    now_ym = datetime.now().strftime('%Y-%m')
     month_files = sorted(glob.glob(os.path.join(BASE, 'data', 'month-*.json')))
-    stale = []
-    valid = []
+    stale, valid = [], []
     for mf in month_files:
         ym = os.path.basename(mf)[len('month-'):-len('.json')]
         if re.match(r'^\d{4}-\d{2}$', ym) and not month_is_past(ym):
@@ -228,92 +330,44 @@ def main():
         print('no curated month — run curate.py first (or drop month-*.json in data/)')
         return 1
 
-    books, ids_all, spine_h, spine_pal = {}, {}, {}, {}
-    months, order = {}, []
+    order = [os.path.basename(mf)[len('month-'):-len('.json')] for mf in month_files]
+    cur_ym = order[-1]
+    ml = month_label(cur_ym)
+    cur = json.load(open(os.path.join(BASE, 'data', 'month-%s.json' % cur_ym)))
 
-    for mf in month_files:
-        try:
-            cur = json.load(open(mf))
-        except Exception as e:
-            print('skip %s: %s' % (mf, e))
-            continue
-        ym = os.path.basename(mf)[len('month-'):-len('.json')]
-        if not re.match(r'^\d{4}-\d{2}$', ym):
-            print('skip %s (bad name)' % mf)
-            continue
-        ml = month_label(ym)
-        ids = []
-        for i, b in enumerate(cur.get('books', [])):
-            bid = b.get('id') or slug(b)
-            img = download_cover(b, os.path.join(DIST, 'assets', 'covers'))
-            spice = int(b.get('spice', 3) or 3)
-            books[bid] = {
-                'title': b.get('title'), 'author': b.get('author'),
-                'publisher': b.get('publisher') or '', 'spine': b.get('title', '')[:18],
-                'date': b.get('date') or '', 'gr': (b.get('rating') or 0), 'genre': b.get('genre') or '',
-                'hook': b.get('hook') or '', 'tropes': b.get('tropes') or [],
-                'spice': spice, 'formats': b.get('formats') or ['ebook'],
-                'img': img or 'assets/real/cover-01.jpg',
-                'fit': 'fit score %d — %s' % (98 - i * 3, b.get('genre') or ''),
-                'mmc': b.get('mmc') or {'score': 3, 'archetype': 'same energy, no magic'},
-                'fresh': bool(b.get('fresh')), 'aseq': bool(b.get('aseq')), 'url': b.get('url') or '',
-            }
-            ids.append(bid)
-            spine_h[bid] = 132 + (i % 5) * 7
-            spine_pal[bid] = ['#E8C4C6', '#CBD6C0', '#C9D6E0', '#F0E3C4'][i % 4]
+    # ---- this month's picks: top pick first ----
+    os.makedirs(os.path.join(DIST, 'assets', 'covers'), exist_ok=True)
+    covers_dir = os.path.join(DIST, 'assets', 'covers')
+    top_id = cur.get('top_pick')
+    src = sorted(cur.get('books', []), key=lambda b: 0 if b.get('id') == top_id else 1)
+    book_list = [pick_book(b, top_id, download_cover(b, covers_dir)) for b in src]
 
-        target_min = int(CFG.get('target_books', [6, 8])[0])
-        months[ml['key']] = {
-            'name': ml['name'], 'label': ml['label'], 'current': False,
-            'topPick': cur.get('top_pick') or (ids[0] if ids else None),
-            'books': ids, 'presets': {}, 'win': ml['win'],
-            'light': len(ids) < target_min,
-        }
-        order.append(ml['key'])
-
-    order.reverse()
-    months[order[0]]['current'] = True
-
-    br, bd = baseline_seqs()
-    seqsort = sorted(glob.glob(os.path.join(BASE, 'data', 'month-*.json')))
-    cur_latest = json.load(open(month_files[-1])) if month_files else {}
-    seqread = merge(cur_latest.get('sequels_read', []), br)
-    seqradar = merge(cur_latest.get('sequels_radar', []), bd)
-
-    data = {
-        'CURRENT': order[0],
-        'BOOKS': books,
-        'MONTHS': months,
-        'ORDER': order,
-        'SPINE_H': spine_h,
-        'SPINE_PAL': spine_pal,
-        'SEQ_READ': seqread,
-        'SEQ_RADAR': seqradar,
-        'SEQ_SERIES': _seq_count(),
-        'LANES': lanes_data(),
+    series = series_data()
+    hero = hero_data(series)
+    y, m = int(cur_ym[:4]), int(cur_ym[5:7])
+    month = {
+        'label': '%s %d' % (ml['name'].upper(), y),
+        'short': '%s %d' % (MONTH_NAMES[m - 1], y),
+        'drop': 'Dropped 1 %s %d' % (ml['name'], y),
+        'count': len(book_list),
+        'issue': len(order),
+        'titles': WORDS.get(len(book_list), str(len(book_list))) + (' title' if len(book_list) == 1 else ' titles'),
     }
-    inject = '<script>window.THE_SHELF_DATA=' + json.dumps(data) + ';</script>\n'
 
-    tpl = open(TEMPLATE).read()
-    for old, new in [
-        ("<script>\n(function(){", inject + "<script>\n(function(){"),
-        ("  var BOOKS={", "  var BOOKS=(window.THE_SHELF_DATA&&window.THE_SHELF_DATA.BOOKS)||{"),
-        ("  var MONTHS={", "  var MONTHS=(window.THE_SHELF_DATA&&window.THE_SHELF_DATA.MONTHS)||{"),
-        ("  var ORDER=['sep','aug','jul','jun'];", "  var ORDER=(window.THE_SHELF_DATA&&window.THE_SHELF_DATA.ORDER)||['sep','aug','jul','jun'];"),
-        ("  var SEQ_READ=[", "  var SEQ_READ=(window.THE_SHELF_DATA&&window.THE_SHELF_DATA.SEQ_READ)||["),
-        ("  var SEQ_RADAR=[", "  var SEQ_RADAR=(window.THE_SHELF_DATA&&window.THE_SHELF_DATA.SEQ_RADAR)||["),
-        ("  var SPINE_H={", "  var SPINE_H=(window.THE_SHELF_DATA&&window.THE_SHELF_DATA.SPINE_H)||{"),
-        ("  var SPINE_PAL={", "  var SPINE_PAL=(window.THE_SHELF_DATA&&window.THE_SHELF_DATA.SPINE_PAL)||{"),
-        ("  var LANES=[", "  var LANES=(window.THE_SHELF_DATA&&window.THE_SHELF_DATA.LANES&&window.THE_SHELF_DATA.LANES.length)?window.THE_SHELF_DATA.LANES:["),
-    ]:
-        if old not in tpl:
-            print('anchor not found: %s' % old)
-            return 1
-        tpl = tpl.replace(old, new, 1)
-
+    copy_static()
+    # quotes follow the CALENDAR season — same clock the design's coffee art uses
+    quotes = QUOTES.get(SEASON_OF.get(datetime.now().month, 'fall'), QUOTES['fall'])
+    data = {'month': month, 'hero': hero, 'books': book_list, 'series': series,
+            'quotes': quotes, 'criteria': CRITERIA}
     os.makedirs(DIST, exist_ok=True)
+    open(os.path.join(DIST, 'shelf-data.js'), 'w').write(
+        'window.SHELF_DATA=' + json.dumps(data, ensure_ascii=False) + ';\n')
+
+    tpl = open(os.path.join(DESIGN, 'app.html')).read()
+    tpl = tpl.replace('__SHELF_TITLE__', 'The Shelf — %s' % ml['label'])
     open(os.path.join(DIST, 'index.html'), 'w').write(tpl)
-    print('built dist/index.html (%d months, current: %s, %d books total)' % (len(months), order[0], len(books)))
+    print('built dist (current: %s, %d books, %d series, issue no. %d)'
+          % (cur_ym, len(book_list), len(series), month['issue']))
     return 0
 
 
