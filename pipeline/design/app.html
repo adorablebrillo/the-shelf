@@ -61,6 +61,11 @@
     </nav>
 
     <sc-if value="{{ isArchive }}">
+      <div role="tablist" aria-label="Archive views" style="display:flex;justify-content:center;margin-top:26px;border:1px solid #A8863F;background:rgba(168,134,63,.05)">
+        <button type="button" role="tab" aria-selected="{{ archiveReadOn }}" onClick="{{ showRead }}" style="{{ segRead }}">Everything you've read</button>
+        <button type="button" role="tab" aria-selected="{{ archiveSetAsideOn }}" onClick="{{ showSetAside }}" style="{{ segSetAside }}">Set aside ({{ setAsideCount }})</button>
+      </div>
+      <sc-if value="{{ archiveRead }}">
       <section aria-label="The reading room" style="margin-top:34px;background:#E5DCCA;padding:6px">
         <div style="position:relative;border:1px solid #A8863F;overflow:hidden;background:radial-gradient(120% 82% at 50% 2%,#FBF6E9 0%,#F2EADA 42%,#E2D7BF 100%)">
           <div style="position:absolute;top:0;left:50%;transform:translateX(-50%);width:46%;height:126px;border-radius:0 0 50% 50%/0 0 100% 100%;background:linear-gradient(#FFFDF6,rgba(255,253,246,0))"></div>
@@ -130,6 +135,9 @@
             <div style="min-width:0">
               <p style="margin:0;font-family:'Cormorant Garamond',Garamond,serif;font-size:24px;line-height:1.16">{{ b.title }}</p>
               <p style="margin:4px 0 0;font-size:12.5px;letter-spacing:.14em;text-transform:uppercase;color:#6E6353">{{ b.author }} · {{ b.publisher }} · {{ b.genre }}</p>
+              <sc-if value="{{ b.issueChip }}">
+                <p style="margin:6px 0 0;font-size:10px;letter-spacing:.26em;text-transform:uppercase;color:#6E6353">{{ b.issueChip }}</p>
+              </sc-if>
             </div>
             <div style="display:flex;align-items:center;justify-content:flex-end;gap:16px">
               <span style="{{ b.tagStyle }}">{{ b.tag }}</span>
@@ -138,6 +146,33 @@
           </div>
         </sc-for>
       </section>
+      </sc-if>
+      <sc-if value="{{ archiveSetAside }}">
+      <section aria-label="Set aside" style="margin-top:34px">
+        <div style="display:flex;align-items:baseline;justify-content:space-between;gap:16px;flex-wrap:wrap">
+          <h2 style="font-family:'Cormorant Garamond',Garamond,serif;font-weight:500;font-size:clamp(24px,3vw,34px);letter-spacing:.14em;text-transform:uppercase;margin:0">Set aside</h2>
+          <span style="font-size:11px;letter-spacing:.28em;text-transform:uppercase;color:#6E6353">{{ setAsideLabel }}</span>
+        </div>
+        <div style="height:1px;background:#A8863F;margin:14px 0 0"></div>
+        <p style="margin:16px 0 0;font-family:'Cormorant Garamond',Garamond,serif;font-style:italic;font-size:19px;color:#6E6353">Books you decided against. Put one back and it returns to your list.</p>
+        <sc-if value="{{ noSetAside }}">
+          <p style="margin:22px 0 0;font-family:'Cormorant Garamond',Garamond,serif;font-style:italic;font-size:20px;color:#6E6353">Nothing set aside. Press <em>not for me</em> on a book and it waits here.</p>
+        </sc-if>
+        <sc-for list="{{ setAside }}" as="b" hint-placeholder-count="3">
+          <div style="display:grid;grid-template-columns:minmax(0,78px) minmax(0,1fr) minmax(0,190px);gap:24px;align-items:center;padding:20px 0;border-bottom:1px solid #D6CCB6">
+            <div role="img" aria-label="{{ b.alt }}" style="{{ b.coverStyle }}"></div>
+            <div style="min-width:0">
+              <p style="margin:0;font-family:'Cormorant Garamond',Garamond,serif;font-size:24px;line-height:1.16">{{ b.title }}</p>
+              <p style="margin:4px 0 0;font-size:12.5px;letter-spacing:.14em;text-transform:uppercase;color:#6E6353">{{ b.author }} · {{ b.publisher }}</p>
+              <p style="margin:6px 0 0;font-size:10px;letter-spacing:.26em;text-transform:uppercase;color:#6E2A2A">{{ b.issueChip }}</p>
+            </div>
+            <div style="display:flex;align-items:center;justify-content:flex-end">
+              <button type="button" onClick="{{ b.onRestore }}" style="font-size:10.5px;letter-spacing:.2em;text-transform:uppercase;color:#1E3A2F;border-bottom:1px solid #A8863F;padding:0 0 1px" style-hover="color:#6E2A2A">put it back</button>
+            </div>
+          </div>
+        </sc-for>
+      </section>
+      </sc-if>
     </sc-if>
 
     <sc-if value="{{ isShelf }}" hint-placeholder-val="{{ true }}">
@@ -446,7 +481,7 @@ function hydrateIds(d){
 }
 
 class Component extends DCLogic {
-  state={ data:(typeof window!=='undefined'&&window.SHELF_DATA)?hydrateIds(window.SHELF_DATA):null, states:{}, ts:{}, open:{}, q:0, view:'shelf', tip:'', sync:'?', pendingAll:false };
+  state={ data:(typeof window!=='undefined'&&window.SHELF_DATA)?hydrateIds(window.SHELF_DATA):null, states:{}, ts:{}, open:{}, q:0, view:'shelf', tip:'', sync:'?', pendingAll:false, archiveView:'read' };
 
   /* ---- one identity per book ------------------------------------------
      Every book carries the pipeline's canonical id — a month's pick and a
@@ -663,7 +698,16 @@ class Component extends DCLogic {
     (d.books||[]).concat(d.pending||[]).forEach(b=>{
       if(b.id&&!knownBooks[b.id]){knownBooks[b.id]=1; allKnown.push(b);}
     });
+    const issueChipOf=(b)=>(b.issue&&b.issue.label)?('From the '+b.issue.label+' issue'):'';
+    const setAsideList=allKnown.filter(b=>S[b.id]==='skip').map(b=>{const card=this.book(b,0);
+      return {...card, title:b.title, author:b.author, publisher:b.publisher||'', issueChip:issueChipOf(b),
+        coverStyle:{width:'100%',aspectRatio:'2/3',border:'1px solid '+INK,backgroundImage:'url("'+b.img+'")',backgroundSize:'cover',backgroundPosition:'center',backgroundColor:'#D8CFBA'},
+        alt:'Cover of '+b.title, onRestore:()=>this.apply(b.id,null)};});
+    const seg=on=>({fontFamily:"'EB Garamond',Georgia,serif",fontSize:'11px',letterSpacing:'.26em',textTransform:'uppercase',
+      padding:'14px 26px',cursor:'pointer',color:on?INK:MID,background:on?'rgba(168,134,63,.18)':'transparent',
+      borderRight:'1px solid #A8863F'});
     const solo=allKnown.filter(b=>(S[b.id]==='read'||S[b.id]==='loved')&&!inSeries[b.id]).map(b=>({...b,
+      issueChip:issueChipOf(b),
       alt:'Cover of '+b.title,
       coverStyle:{width:'100%',aspectRatio:'2/3',border:'1px solid '+INK,backgroundImage:'url("'+b.img+'")',backgroundSize:'cover',backgroundPosition:'center',backgroundColor:'#D8CFBA'},
       tag:S[b.id]==='loved'?'Loved':'Read',
@@ -723,6 +767,13 @@ class Component extends DCLogic {
       spines, readBySeries, readSeriesCount:readBySeries.length, solo, soloCount:solo.length,
       hasRead:readBySeries.length>0, noRead:readBySeries.length===0,
       hasSolo:solo.length>0, noSolo:solo.length===0,
+      setAside:setAsideList, setAsideCount:setAsideList.length, noSetAside:setAsideList.length===0,
+      setAsideLabel:(setAsideList.length===1?'one book set aside':setAsideList.length+' books set aside'),
+      archiveRead:this.state.archiveView!=='setAside', archiveSetAside:this.state.archiveView==='setAside',
+      archiveReadOn:this.state.archiveView!=='setAside', archiveSetAsideOn:this.state.archiveView==='setAside',
+      showRead:()=>this.setState({archiveView:'read'}),
+      showSetAside:()=>this.setState({archiveView:'setAside'}),
+      segRead:seg(this.state.archiveView!=='setAside'), segSetAside:seg(this.state.archiveView==='setAside'),
       hasWaiting:waitingAll.length>0, waiting:waiting,
       waitingLabel:(waitingAll.length===1?'one book still waiting':waitingAll.length+' books still waiting'),
       moreWaiting:waitingAll.length>waitingShown.length,
