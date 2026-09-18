@@ -386,22 +386,63 @@ const BREWS=[
 ];
 
 class Component extends DCLogic {
-  state={ data:(typeof window!=='undefined'&&window.SHELF_DATA)||null, states:{}, marks:{}, open:{}, q:0, view:'shelf', tip:'' };
+  state={ data:(typeof window!=='undefined'&&window.SHELF_DATA)||null, states:{}, open:{}, q:0, view:'shelf', tip:'' };
 
-  unread(key){
-    this.setState(s=>{
-      const marks={...s.marks}, books={...s.states};
-      if(key.indexOf('book:')===0) delete books[key.slice(5)]; else marks[key]='unread';
-      this.persist({marks,books});
-      return {marks,states:books};
-    });
+  /* ---- one identity per book ------------------------------------------
+     Every book carries the pipeline's canonical id — a month's pick and a
+     volume inside a series resolve to the SAME id, so a mark made anywhere
+     shows up everywhere. No 'book:'/'seq:' namespaces, no duplicates.     */
+  setBook(id,st){ this.setState(s=>{const n={...s.states}; if(n[id]===st)delete n[id]; else n[id]=st; this.persist(n); return {states:n};}); }
+
+  setVolume(id,vs){ this.setState(s=>{const n={...s.states}; n[id]=(vs==='read')?'unread':'read'; this.persist(n); return {states:n};}); }
+
+  unreadId(id,isVolume){ this.setState(s=>{const n={...s.states};
+    if(isVolume)n[id]='unread'; else delete n[id];
+    this.persist(n); return {states:n};}); }
+
+  persist(states){ try{ localStorage.setItem('shelf.marks',
+    JSON.stringify({v:2,states:states||this.state.states})); }catch(e){} }
+
+  legacySlug(title,author){
+    const s=(String(title||'x')+' '+String(author||'y')).toLowerCase()
+      .replace(/[^a-z0-9]+/g,'-').replace(/^-+|-+$/g,'');
+    return s.slice(0,60);
+  }
+  resolveLegacy(old,d){
+    const books=(d&&d.books)||[];
+    for(let i=0;i<books.length;i++){const b=books[i];
+      if(b.id===old||b.rawId===old||this.legacySlug(b.title,b.author)===old)return b.id;}
+    return old;            // an older month's pick: keep it, never drop a mark
+  }
+  resolveVolume(series,title,d){
+    const list=(d&&d.series)||[];
+    for(let i=0;i<list.length;i++){const s=list[i];
+      if(s.name===series){const bs=s.books||[];
+        for(let j=0;j<bs.length;j++){ if(bs[j].t===title) return bs[j].id||''; }}}
+    return '';
   }
   componentDidMount(){
+    const d=this.state.data||(typeof window!=='undefined'&&window.SHELF_DATA)||{};
     try{
       const raw=localStorage.getItem('shelf.marks');
-      if(raw){const all=JSON.parse(raw),books={},marks={};
-        Object.keys(all).forEach(k=>{ if(k.indexOf('book:')===0)books[k.slice(5)]=all[k]; else marks[k]=all[k]; });
-        this.setState({states:books,marks});}
+      if(raw){
+        const all=JSON.parse(raw), out={};
+        if(all&&all.v===2&&all.states){ Object.keys(all.states).forEach(k=>{out[k]=all.states[k];}); }
+        else{ Object.keys(all||{}).forEach(k=>{            // v1: book:<id> | seq:<series>:<title>
+          let id='';
+          if(k.indexOf('book:')===0){ id=this.resolveLegacy(k.slice(5),d); }
+          else if(k.indexOf('seq:')===0){
+            const rest=k.slice(4), i=rest.lastIndexOf(':');
+            id=this.resolveVolume(rest.slice(0,i), rest.slice(i+1), d);
+          }
+          // the old app could hold TWO verdicts for one book (once as a pick,
+          // once as a volume). They now share an identity, so merge them by
+          // weight instead of letting whichever key came last win.
+          const RANK={loved:4,read:3,want:2,unread:1};
+          if(id){ const best=(RANK[out[id]]||0)>(RANK[all[k]]||0)?out[id]:all[k]; out[id]=best; }
+        }); }
+        if(Object.keys(out).length){this.setState({states:out}); this.persist(out);}
+      }
     }catch(e){}
     if(!this.state.data){
       let n=0;
@@ -413,25 +454,6 @@ class Component extends DCLogic {
     this._t=setInterval(()=>this.setState(s=>({q:s.q+1})),6500);
   }
   componentWillUnmount(){ clearInterval(this._t); }
-  setBook(id,st){ this.setState(s=>{const n={...s.states}; if(n[id]===st)delete n[id]; else n[id]=st; this.persist({books:n}); return {states:n};}); }
-
-  markVolume(series,title){
-    this.setState(s=>{
-      const k='seq:'+series+':'+title, n={...s.marks};
-      n[k]=n[k]==='read'?'unread':'read';
-      this.persist({marks:n});
-      return {marks:n};
-    });
-  }
-
-  persist(part){
-    try{
-      const books=part.books||this.state.states, marks=part.marks||this.state.marks, out={};
-      Object.keys(marks).forEach(k=>{out[k]=marks[k];});
-      Object.keys(books).forEach(id=>{out['book:'+id]=books[id];});
-      localStorage.setItem('shelf.marks',JSON.stringify(out));
-    }catch(e){}
-  }
 
   pill(on){
     return {fontFamily:"'EB Garamond',Georgia,serif",fontSize:'10.5px',letterSpacing:'.22em',textTransform:'uppercase',
@@ -464,10 +486,11 @@ class Component extends DCLogic {
     const days=(H.iso)?Math.max(0,Math.ceil((new Date(H.iso)-new Date())/86400000)):0;
     const mark={read:{ch:'\u2713',c:MID},out:{ch:'\u25C6',c:BLOOD},soon:{ch:'\u25CB',c:FOREST},tba:{ch:'\u00B7',c:MID}};
 
-    const marks=this.state.marks;
-    const vstate=(s,b)=>{const m=marks['seq:'+s.name+':'+b.t];
+    const vstate=(s,b)=>{const m=S[b.id];
       if(m==='unread')return b.state==='read'?'out':b.state;
-      if(m==='read')return 'read';
+      // 'loved' means she read it and loved it — it outranks a volume that is
+      // only out-and-unread (otherwise a loved pick would vanish from the archive)
+      if(m==='read'||m==='loved')return 'read';
       return b.state;};
     const seriesList=d.series.filter(s=>!s.books.every(b=>vstate(s,b)==='read')).map(s=>{
       const open=!!this.state.open[s.name];
@@ -484,7 +507,7 @@ class Component extends DCLogic {
         open,
         markLabel:ns==='out'?'mark '+next.t+' read':'',
         canMark:ns==='out',
-        onMarkNext:()=>{ if(next) this.markVolume(s.name,next.t); },
+        onMarkNext:()=>{ if(next) this.setVolume(next.id,ns); },
         vols:s.books.map(b=>{const vs=vstate(s,b);return {tip:b.t+' '+b.n+' — '+(vs==='read'?'read':b.d),
           style:{flex:'0 0 auto',width:'11px',
             height:({read:34,out:46,soon:42,tba:30})[vs]+'px',
@@ -500,22 +523,23 @@ class Component extends DCLogic {
     });
 
     const CLOTH=['#6E2A2A','#2B3F38','#7A5A2A','#3E3630','#5A2F2A','#33443E','#6B4A25','#42382C'];
+    const inSeries={}; d.series.forEach(s=>s.books.forEach(b=>{ if(b.id) inSeries[b.id]=1; }));
     const readBySeries=d.series.map(s=>({name:s.name,author:s.author,
-      books:s.books.filter(b=>vstate(s,b)==='read').map(b=>({...b,onUnread:()=>this.unread('seq:'+s.name+':'+b.t)}))}))
+      books:s.books.filter(b=>vstate(s,b)==='read'&&b.id).map(b=>({...b,onUnread:()=>this.unreadId(b.id,true)}))}))
       .filter(s=>s.books.length);
-    const solo=d.books.filter(b=>S[b.id]==='read'||S[b.id]==='loved').map(b=>({...b,
+    const solo=d.books.filter(b=>(S[b.id]==='read'||S[b.id]==='loved')&&!inSeries[b.id]).map(b=>({...b,
       alt:'Cover of '+b.title,
       coverStyle:{width:'100%',aspectRatio:'2/3',border:'1px solid '+INK,backgroundImage:'url("'+b.img+'")',backgroundSize:'cover',backgroundPosition:'center',backgroundColor:'#D8CFBA'},
       tag:S[b.id]==='loved'?'Loved':'Read',
       tagStyle:{fontSize:'10px',letterSpacing:'.24em',textTransform:'uppercase',color:S[b.id]==='loved'?BLOOD:MID},
-      onUnread:()=>this.unread('book:'+b.id)}));
+      onUnread:()=>this.unreadId(b.id,false)}));
 
     const shelved=[];
-    readBySeries.forEach(s=>s.books.forEach(b=>shelved.push({t:b.t,a:s.author,s:s.name,key:'seq:'+s.name+':'+b.t})));
-    solo.forEach(b=>shelved.push({t:b.title,a:b.author,s:'standalone',key:'book:'+b.id}));
+    readBySeries.forEach(s=>s.books.forEach(b=>shelved.push({t:b.t,a:s.author,s:s.name,id:b.id,vol:true})));
+    solo.forEach(b=>shelved.push({t:b.title,a:b.author,s:'standalone',id:b.id,vol:false}));
     shelved.sort((x,y)=>(x.a||'').split(' ').pop().localeCompare((y.a||'').split(' ').pop()));
     const spines=shelved.map((bk,i)=>({tip:bk.t+' — '+bk.a+' · '+bk.s+' — click to mark unread',
-      onClick:()=>this.unread(bk.key),
+      onClick:()=>this.unreadId(bk.id,bk.vol),
       onEnter:()=>this.setState({tip:bk.t+' — '+bk.a+' · '+bk.s}),
       onLeave:()=>this.setState({tip:''}),
       style:{flex:'0 0 auto',width:'18px',height:(48+((i*13)%22))+'px',padding:0,cursor:'pointer',transition:'transform .18s ease',
