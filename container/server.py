@@ -191,6 +191,12 @@ class H(BaseHTTPRequestHandler):
         self.send_response(200)
         self.send_header('Content-Type', self.KINDS[ext])
         self.send_header('Content-Length', str(len(data)))
+        # The page and its data must never come from a stale cache: a redeploy
+        # pairs a NEW app with the data file it shipped, and an old cached
+        # shelf-data.js blanks the archive (no book identities in it). Cover art
+        # and the vendored runtime are static enough to cache briefly.
+        self.send_header('Cache-Control',
+                         'no-store' if ext in ('.html', '.js') else 'public, max-age=3600')
         self.end_headers()
         self.wfile.write(data)
 

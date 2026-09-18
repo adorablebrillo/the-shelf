@@ -385,8 +385,22 @@ const BREWS=[
   {m:[8,9,10],img:'assets/coffee-2.png',alt:'Ink drawing of a spiced latte',season:'pumpkin spice season'}
 ];
 
+/* An older (cached) shelf-data.js predates canonical book ids. Derive the same
+   identity client-side so a stale data file degrades to a working archive
+   instead of an empty one. Mirrors build.py book_key(). */
+function hydrateIds(d){
+  if(!d) return d;
+  const norm=(s)=>String(s||'').toLowerCase().replace(/\([^)]*\)/g,' ').split(';')[0].replace(/[^a-z0-9]/g,'');
+  const fb=(b)=>norm(b.t||b.title)+(norm(b.t||b.title)?'--'+norm(b.author):'');
+  const fill=(arr)=>{ (arr||[]).forEach(b=>{ if(b&&!b.id&&b.title!==undefined||b&&!b.id&&b.t!==undefined){ b.id=fb(b).replace(/-+$/,''); } }); };
+  (d.series||[]).forEach(s=>fill(s.books));
+  fill(d.books); fill(d.pending);
+  if(d.hero&&!d.hero.id) d.hero.id=fb({t:d.hero.title,author:d.hero.author}).replace(/-+$/,'');
+  return d;
+}
+
 class Component extends DCLogic {
-  state={ data:(typeof window!=='undefined'&&window.SHELF_DATA)||null, states:{}, ts:{}, open:{}, q:0, view:'shelf', tip:'', sync:'?' };
+  state={ data:(typeof window!=='undefined'&&window.SHELF_DATA)?hydrateIds(window.SHELF_DATA):null, states:{}, ts:{}, open:{}, q:0, view:'shelf', tip:'', sync:'?' };
 
   /* ---- one identity per book ------------------------------------------
      Every book carries the pipeline's canonical id — a month's pick and a
@@ -510,7 +524,7 @@ class Component extends DCLogic {
     if(!this.state.data){
       let n=0;
       const poll=setInterval(()=>{ n++;
-        if(window.SHELF_DATA){clearInterval(poll);this.setState({data:window.SHELF_DATA});}
+        if(window.SHELF_DATA){clearInterval(poll);this.setState({data:hydrateIds(window.SHELF_DATA)});}
         else if(n>60)clearInterval(poll);
       },50);
     }
