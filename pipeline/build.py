@@ -289,17 +289,31 @@ def copy_static():
 
 def main():
     month_files = sorted(glob.glob(os.path.join(BASE, 'data', 'month-*.json')))
+    cur_ym = datetime.now().strftime('%Y-%m')
     stale, valid = [], []
     for mf in month_files:
         ym = os.path.basename(mf)[len('month-'):-len('.json')]
-        if re.match(r'^\d{4}-\d{2}$', ym) and not month_is_past(ym):
-            stale.append(mf)
-        else:
+        if not re.match(r'^\d{4}-\d{2}$', ym):
             valid.append(mf)
+            continue
+        if ym > cur_ym:
+            stale.append(mf)   # future month — never valid
+            continue
+        if ym == cur_ym:
+            # a CURRENT-month file is legit only when an ad-hoc rolling run
+            # wrote it (mode: adhoc); anything else is legacy junk
+            try:
+                body = json.load(open(mf))
+            except Exception:
+                body = {}
+            if body.get('mode') != 'adhoc':
+                stale.append(mf)
+                continue
+        valid.append(mf)
     for mf in stale:
         try:
             os.remove(mf)
-            print('purged stale month file: %s (month not over yet)' % os.path.basename(mf))
+            print('purged stale month file: %s' % os.path.basename(mf))
         except Exception as e:
             print('could not purge %s: %s' % (mf, e))
     month_files = valid

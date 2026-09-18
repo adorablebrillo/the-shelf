@@ -79,12 +79,14 @@ def fetch_models():
         raise RuntimeError('no models')
     return out
 
-def run_pipeline(settings):
-    """fetch → filter → curate → build. Uses the in-container pipeline dir."""
+def run_pipeline(settings, mode='adhoc'):
+    """fetch → filter → curate → build. Uses the in-container pipeline dir.
+    mode='adhoc'     — "curate now": rolling last-30-days window (manual button)
+    mode='scheduled' — the 1st-of-month drop: the previous month's books"""
     settings['running'] = True
     settings['last_result'] = ''
     save_settings(settings)
-    env = dict(os.environ, OPENROUTER_API_KEY=settings.get('api_key', ''))
+    env = dict(os.environ, OPENROUTER_API_KEY=settings.get('api_key', ''), SHELF_MODE=mode)
     # seed any missing baseline months into the mounted data dir so the archive
     # (June/July) survives the volume shadowing the image's baked files
     try:
@@ -98,7 +100,7 @@ def run_pipeline(settings):
     steps = ['fetch.py', 'filter.py', 'curate.py', 'build.py']
     code = 0
     for s in steps:
-        log('stage: %s' % s)
+        log('stage: %s (%s)' % (s, mode))
         r = subprocess.run(['python3', os.path.join(PIPELINE, s)], capture_output=True,
                            text=True, env=env, timeout=1500, cwd=PIPELINE)
         log((r.stdout or '')[-800:] + (r.stderr or '')[-400:])
@@ -108,14 +110,21 @@ def run_pipeline(settings):
     mon = datetime.now().strftime('%Y-%m')
     n = 0
     try:
-        # count the newest VALID (fully past) month — the same month build.py
-        # treats as CURRENT; pipeline months live in PIPELINE/data
+        # count the newest VALID month the page actually shows: past months
+        # always count; a current-month file only when an ad-hoc run wrote it
         files = sorted(glob.glob(os.path.join(PIPELINE, 'data', 'month-*.json')))
         for mf in reversed(files):
             ym = os.path.basename(mf)[len('month-'):-len('.json')]
-            if re.match(r'^\d{4}-\d{2}$', ym) and ym < mon:
-                n = len(json.load(open(mf)).get('books', []))
-                break
+            if not re.match(r'^\d{4}-\d{2}$', ym) or ym > mon:
+                continue
+            if ym == mon:
+                try:
+                    if json.load(open(mf)).get('mode') != 'adhoc':
+                        continue
+                except Exception:
+                    continue
+            n = len(json.load(open(mf)).get('books', []))
+            break
     except Exception:
         pass
     s = load_settings()
@@ -139,7 +148,7 @@ def scheduler():
                         log('monthly run due — no API key saved yet, add it in shelf settings')
                         break
                     log('monthly run triggered')
-                    threading.Thread(target=run_pipeline, args=(s,), daemon=True).start()
+                    threading.Thread(target=run_pipeline, args=(s, 'scheduled'), daemon=True).start()
         except Exception as e:
             log('scheduler err: %s' % str(e)[:100])
         time.sleep(60)
@@ -226,8 +235,8 @@ class H(BaseHTTPRequestHandler):
                 return self._json({'error': 'add your OpenRouter key in Settings first'}, 400)
             if s.get('running'):
                 return self._json({'error': 'a run is already in progress'}, 409)
-            threading.Thread(target=run_pipeline, args=(s,), daemon=True).start()
-            self._json({'ok': True, 'started': True})
+            threading.Thread(target=run_pipeline, args=(s, 'adhoc'), daemon=True).start()
+            self._json({'ok': True, 'started': True, 'mode': 'adhoc'})
         else:
             self._json({'error': 'not found'}, 404)
 

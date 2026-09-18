@@ -4,10 +4,13 @@ Calls an LLM (any model available via OpenRouter) with the taste profile and
 the filtered candidates. Strict JSON in, curated month out. No Hermes, no
 other dependencies — just an API key."""
 import json, os, sys, base64, urllib.request
-from datetime import datetime
+from datetime import datetime, timedelta
 
 BASE = os.path.dirname(os.path.abspath(__file__))
 CFG = json.load(open(os.path.join(BASE, 'config.json')))
+# SHELF_MODE=scheduled -> the 1st-of-month drop curates the PREVIOUS month
+# SHELF_MODE=adhoc     -> "curate now": rolling last 30 days ending today
+MODE = os.environ.get('SHELF_MODE', 'scheduled')
 
 def api_key():
     k = os.environ.get('OPENROUTER_API_KEY')
@@ -23,11 +26,13 @@ def main():
     if not key:
         print('NO OPENROUTER API KEY — set OPENROUTER_API_KEY env var or put it in ~/.config/the-shelf/openrouter.key')
         return 2
-    # the drop curates the PREVIOUS month — resolve the book month explicitly
-    # (same window every stage uses; leftover files can't shift it)
+    # target month by mode: adhoc = now (rolling 30 days) · scheduled = previous month
     import glob
-    py, pm = (datetime.now().year - 1, 12) if datetime.now().month == 1 else (datetime.now().year, datetime.now().month - 1)
-    mon = '%04d-%02d' % (py, pm)
+    if MODE == 'adhoc':
+        mon = datetime.now().strftime('%Y-%m')
+    else:
+        py, pm = (datetime.now().year - 1, 12) if datetime.now().month == 1 else (datetime.now().year, datetime.now().month - 1)
+        mon = '%04d-%02d' % (py, pm)
     fp = os.path.join(BASE, CFG['output_dir'], 'filtered-%s.json' % mon)
     if not os.path.exists(fp):
         files = sorted(glob.glob(os.path.join(BASE, CFG['output_dir'], 'filtered-*.json')))
@@ -42,9 +47,15 @@ def main():
     if os.path.exists(sp):
         seq = json.load(open(sp))
 
+    if MODE == 'adhoc':
+        window_rule = ('released within the last 30 days — a rolling window ending today (%s). '
+                       'This is an ad-hoc "curate now" run.' % datetime.now().strftime('%Y-%m-%d'))
+    else:
+        window_rule = ('only books released in the specific month being curated (the drop runs on the '
+                       '1st for the entire PREVIOUS month)')
     payload = json.dumps({
         'month': mon,
-        'window_rule': 'only books released in the specific month being curated (the drop runs on the 1st for the entire PREVIOUS month)',
+        'window_rule': window_rule,
         'genre_mix': CFG.get('genre_mix', {}),
         'candidates': filtered.get('books', []),
         'sequels_map': seq,
@@ -95,8 +106,14 @@ def main():
     if not (lo <= n <= hi):
         print('WARNING: %d books (expected %d–%d) — check the prompt/model' % (n, lo, hi))
     out = os.path.join(BASE, CFG['output_dir'], 'month-%s.json' % mon)
+    cur['mode'] = MODE
+    if MODE == 'adhoc':
+        cur['window'] = {'from': (datetime.now() - timedelta(days=30)).strftime('%Y-%m-%d'),
+                         'to': datetime.now().strftime('%Y-%m-%d')}
+    else:
+        cur['window'] = {'month': mon}
     json.dump(cur, open(out, 'w'), indent=1)
-    print('curated: %d books, top pick "%s" -> %s' % (n, cur.get('top_pick', '?'), out))
+    print('curated (%s): %d books, top pick "%s" -> %s' % (MODE, n, cur.get('top_pick', '?'), out))
     return 0
 
 if __name__ == '__main__':

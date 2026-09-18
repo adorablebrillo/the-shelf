@@ -1,10 +1,35 @@
 #!/usr/bin/env python3
 """The Shelf pipeline — stage 2: apply the reader's hard rules to candidates."""
 import json, os, sys
-from datetime import datetime
+from datetime import datetime, date, timedelta
+
+# SHELF_MODE=scheduled -> the 1st-of-month drop curates the PREVIOUS month
+# SHELF_MODE=adhoc     -> "curate now": a rolling window of the last 30 days
+MODE = os.environ.get('SHELF_MODE', 'scheduled')
 
 BASE = os.path.dirname(os.path.abspath(__file__))
 CFG = json.load(open(os.path.join(BASE, 'config.json')))
+
+
+def target_month():
+    """Which month file this run writes (and windows against)."""
+    if MODE == 'adhoc':
+        return date.today().strftime('%Y-%m')
+    today = date.today()
+    py, pm = (today.year - 1, 12) if today.month == 1 else (today.year, today.month - 1)
+    return '%04d-%02d' % (py, pm)
+
+
+def adhoc_window_ok(d):
+    """Ad-hoc runs accept anything released within the last 30 days (rolling)."""
+    if not d:
+        return True  # unknown date -> let the LLM judge
+    try:
+        day = date.fromisoformat(str(d)[:10])
+    except Exception:
+        return True
+    today = date.today()
+    return (today - timedelta(days=30)) <= day <= today
 
 NO_DARK = ('dark', 'academy', 'bully', 'anti-hero', 'morally gray')
 NO_QUEER = ('mm romance', 'male/male', 'mlm', 'gay romance', 'ff romance', 'female/female', 'wlw', 'queer', 'nonbinary')
@@ -35,13 +60,9 @@ def in_window(d, mon):
         return True
 
 def main():
-    from datetime import date
     import glob
-    # the drop curates the PREVIOUS month: resolve the book month explicitly so
-    # leftover files from other months can never shift the window
-    today = date.today()
-    py, pm = (today.year - 1, 12) if today.month == 1 else (today.year, today.month - 1)
-    mon = '%04d-%02d' % (py, pm)
+    # resolve the target month from the mode (leftover files can't shift it)
+    mon = target_month()
     src_path = os.path.join(BASE, CFG['output_dir'], 'candidates-%s.json' % mon)
     if not os.path.exists(src_path):
         files = sorted(glob.glob(os.path.join(BASE, CFG['output_dir'], 'candidates-*.json')))
@@ -58,7 +79,10 @@ def main():
         if any(k in title for k in NO_QUEER): continue
         # dark-romance signal: let the LLM make the final call, but tag it
         b['dark_flag'] = any(k in title or k in genre for k in NO_DARK)
-        if not in_window(b.get('date'), mon): continue
+        if MODE == 'adhoc':
+            if not adhoc_window_ok(b.get('date')): continue
+        else:
+            if not in_window(b.get('date'), mon): continue
         pub = b.get('publisher') or ''
         trad = is_trad(pub); indie = is_indie(pub)
         r = b.get('ratings')
@@ -69,10 +93,10 @@ def main():
         kept.append(b)
     kept = kept[:CFG['max_candidates']]
     out = os.path.join(BASE, CFG['output_dir'], 'filtered-%s.json' % mon)
-    json.dump({'month': mon, 'books': kept, 'rules': {
+    json.dump({'month': mon, 'mode': MODE, 'books': kept, 'rules': {
         'mf_only': True, 'no_dark': True, 'spice_min': CFG['spice_min'],
         'trad_first_indie_with_proof': True}}, open(out, 'w'), indent=1)
-    print('filtered: %d / %d -> %s' % (len(kept), len(cands), out))
+    print('filtered: %d / %d -> %s (%s)' % (len(kept), len(cands), out, MODE))
     return 0
 
 if __name__ == '__main__':
