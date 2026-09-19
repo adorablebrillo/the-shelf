@@ -30,7 +30,8 @@ Preferences: spice moderate → explicit (3–5). M/F only. NO dark romance, no
 abuse, no anti-heroes posing as love interests, no bully romance, no
 humiliations/torture in a romantic frame. No LGBTQ+ pairings. Trad-published
 first; indie/self-published books are allowed ONLY if they already have solid
-early ratings (4.0+ with a decent vote count on Goodreads) — otherwise drop.
+early ratings (4.0+ with a decent vote count — see `rating` / `rating_count`
+on the candidate) — otherwise drop.
 
 ## Selection rules
 
