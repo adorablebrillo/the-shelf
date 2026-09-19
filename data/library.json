@@ -1,0 +1,5 @@
+{
+  "project": "the-shelf",
+  "description": "Reader library grouped by series. This repo ships blank — a deployed shelf keeps its own copy in /config/library.json (see README: Bring your own data).",
+  "series": []
+}

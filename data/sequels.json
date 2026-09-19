@@ -1,0 +1,5 @@
+{
+  "project": "the-shelf",
+  "description": "Sequel map for the reader's tracked series. This repo ships blank — a deployed shelf keeps its own copy in /config/sequels.json.",
+  "series": []
+}
