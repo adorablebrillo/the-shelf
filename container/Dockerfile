@@ -22,7 +22,7 @@ COPY .lavish/assets ./assets
 # at runtime, but dist/ is baked and served until the first real run.
 RUN mkdir -p /app/dist/assets /app/pipeline/data && \
     cp -r /app/assets/. /app/dist/assets/ 2>/dev/null || true && \
-    cp /app/pipeline/baseline/month-*.json /app/pipeline/data/ && \
+    if ls /app/pipeline/baseline/month-*.json >/dev/null 2>&1; then cp /app/pipeline/baseline/month-*.json /app/pipeline/data/; fi && \
     python3 /app/pipeline/build.py && \
     python3 -m py_compile /app/server.py /app/pipeline/*.py && \
     echo "BUILD OK"

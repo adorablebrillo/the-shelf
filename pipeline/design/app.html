@@ -214,6 +214,7 @@
       </div>
       <div style="height:1px;background:#A8863F;margin:14px 0 0"></div>
 
+      <sc-if value="{{ hasLead }}">
       <article style="margin-top:30px;background:#E5DCCA;padding:6px">
         <div style="border:1px solid #A8863F;padding:30px;display:grid;grid-template-columns:minmax(0,214px) minmax(0,1fr);gap:32px;align-items:start">
           <div style="min-width:0">
@@ -239,6 +240,11 @@
           </div>
         </div>
       </article>
+      </sc-if>
+
+      <sc-if value="{{ noPicks }}">
+        <p style="margin:34px 0 0;text-align:center;font-family:'Cormorant Garamond',Garamond,serif;font-style:italic;font-size:22px;line-height:1.5;color:#6E6353">No issue yet — press <em>curate now</em> in shelf settings, or wait for the 1st of the month.</p>
+      </sc-if>
 
       <div style="display:flex;flex-direction:column;gap:0;margin-top:14px">
         <sc-for list="{{ rest }}" as="b" hint-placeholder-count="7">
@@ -788,7 +794,7 @@ class Component extends DCLogic {
       brew:(function(){const b=BREWS.filter(x=>x.m.indexOf(new Date().getMonth())>-1)[0]||BREWS[3];
         return {...b,style:{position:'absolute',left:'50%',top:'50%',transform:'translate(-50%,-50%)',width:'104px',height:'104px',
           backgroundImage:'url("'+b.img+'")',backgroundSize:'contain',backgroundRepeat:'no-repeat',backgroundPosition:'center',mixBlendMode:'multiply'}};})(),
-      lead:books[0], rest:books.slice(1),
+      lead:books[0], rest:books.slice(1), hasLead:books.length>0, noPicks:books.length===0,
       seriesList, seriesCount:seriesList.length,
       archivedCount:d.series.length-seriesList.length,
       quote:d.quotes[this.state.q%d.quotes.length]

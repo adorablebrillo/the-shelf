@@ -14,10 +14,9 @@ archive* (the reading room bookcase + everything she has read).
 | `pipeline/` | fetch.py / filter.py / curate.py / build.py + `taste-prompt.md` (the curator's brief) |
 | `container/` | server.py (web UI + settings API + scheduler) and Dockerfile |
 | `templates/` | Unraid Community Applications template (`my-the-shelf.xml`) + icon |
-| `.lavish/assets/` | the design's images (covers, coffee art, stickers, reader art) |
-| `.lavish/the-shelf-v4.html` | the approved design (reference) |
-| `DESIGN.md` | Google-format design spec — the visual identity, lint-clean |
-| `docker-compose.yml` | Unraid-friendly compose (port 8787, appdata volumes) |
+| `.lavish/assets/` | the design's art — the seasonal coffee illustrations |
+| `pipeline/design/` | the live design (`app.html` + `support.js` + vendored React) |
+| `compose.yaml` | Unraid-friendly compose (port 8787, appdata volumes) |
 
 ## Deploy on Unraid
 
@@ -28,6 +27,21 @@ key, pick a model, save. It runs the 1st of every month at 09:00 (TZ) and
 rebuilds the page.
 
 Full steps: [`UNRAID-INSTALL.md`](UNRAID-INSTALL.md)
+
+## Bring your own data
+
+This repo ships **blank** — no reader data in the tree or the image. A deployed
+shelf keeps its reader data on the config volume (`/config`):
+
+| File | What it is |
+|---|---|
+| `library.json` · `sequels.json` | the series you're in and their next books |
+| `seed-reads.json` | your starting library + taste profile |
+| `taste-prompt.md` | the curator's brief for your shelf |
+
+Every run resolves these volume-first (a boot seeder copies them in once, only
+from non-blank sources, and never overwrites). A fresh install stays blank until
+you bring your own data.
 
 ## How it works
 

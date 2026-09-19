@@ -16,6 +16,13 @@ Five canonical triage roles, label strings equal to their names (`needs-triage`,
 
 Single-context: `CONTEXT.md` and `docs/adr/` at the repo root. See `docs/agents/domain.md`.
 
+## Privacy
+
+This repo ships **blank**: never commit reader data (`library.json`,
+`sequels.json`, `seed-reads.json`, `taste-prompt.md`) or captures showing a
+real shelf. Personal files live on the config volume (`/config`) at runtime;
+prefer blank/UI-only views in evidence.
+
 ## Pull requests
 
 Every ticket ships as a **pull request** — do not push straight to `main`. Branch

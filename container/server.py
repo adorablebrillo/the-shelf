@@ -404,12 +404,13 @@ def ensure_default():
                 return
         if os.path.isfile(os.path.join(DIST, 'index.html')):
             return
-        tpl = os.path.join(PIPELINE, 'template.html')
-        if os.path.isfile(tpl):
-            shutil.copy2(tpl, os.path.join(DIST, 'index.html'))
-            log('boot: serving design placeholder until the first run')
-        else:
-            log('boot: no page yet — press curate now in shelf settings, or wait for the 1st')
+        # nothing baked and nothing on the volume: build the blank-state page
+        r = subprocess.run([sys.executable, os.path.join(PIPELINE, 'build.py')],
+                           capture_output=True, text=True, timeout=300, cwd=PIPELINE)
+        if r.returncode == 0 and os.path.isfile(os.path.join(DIST, 'index.html')):
+            log('boot: built the blank-state page')
+            return
+        log('boot: no page yet — press curate now in shelf settings, or wait for the 1st')
     except Exception as e:
         log('boot: default page error: %s' % e)
 

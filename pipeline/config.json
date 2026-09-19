@@ -9,12 +9,7 @@
     "romantasy": ["romantasy", "fae romance", "dragon romance", "fantasy romance"],
     "contemporary romance": ["small town romance", "rom com", "billionaire romance", "rockstar romance", "opposites attract romance", "workplace romance"]
   },
-  "author_lane_extra": [
-    {"name": "Emily Henry", "lane": "contemporary romance"},
-    {"name": "Lucy Score", "lane": "contemporary romance"},
-    {"name": "Ali Hazelwood", "lane": "contemporary romance"},
-    {"name": "Hannah Grace", "lane": "sport romance"}
-  ],
+  "author_lane_extra": [],
   "pool_back_days": 120,
   "pool_forward_days": 60,
   "spice_min": 3,

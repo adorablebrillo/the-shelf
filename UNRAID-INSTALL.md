@@ -26,6 +26,6 @@ or just re-Apply the template).
   (container TZ — set `Europe/Madrid` in the template, already there). Also a
   manual "run monthly pipeline now" button in Settings.
 - **Where things live**:
-  - `/config` → `settings.json` (your key + model) and `logs/monthly.log`
-  - `/app/pipeline/data` → candidates, filtered lists, curated month JSON (history)
+  - `/config` → `settings.json` (your key + model), `reader-state.json`, `logs/monthly.log`, and your reader data (`library.json`, `sequels.json`, `seed-reads.json`, `taste-prompt.md`)
+  - `/app/pipeline/data` → candidates, filtered lists, curated month JSON (history), cover art cache
 - **Reset**: delete the two appdata folders and re-add the key — clean slate.
