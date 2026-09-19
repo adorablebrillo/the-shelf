@@ -362,7 +362,7 @@ def pick_book(b, top_id, img):
     return {
         'id': canon,
         'rawId': b.get('id') or '',
-        'img': img or b.get('img') or 'assets/real/cover-01.jpg',
+        'img': img or b.get('img') or '',
         'title': b.get('title') or '', 'series': b.get('series') or '',
         'author': b.get('author') or '', 'publisher': b.get('publisher') or '',
         'date': b.get('date') or '', 'genre': genre, 'lane': lane,
@@ -449,8 +449,22 @@ def main():
         fixed.append(mf)
     month_files = fixed
     if not month_files:
-        print('no curated month — run curate.py first (or drop month-*.json in data/)')
-        return 1
+        # A blank install (the repo ships blank): a valid, quiet page — never a
+        # 404, never a crash. The app renders its own empty states from this.
+        copy_static()
+        data = {'month': {'label': 'Awaiting first run', 'short': '\u2014', 'drop': '', 'count': 0,
+                          'issue': 0, 'titles': 'no titles yet'},
+                'hero': None, 'books': [], 'pending': [], 'series': [],
+                'quotes': QUOTES.get(SEASON_OF.get(datetime.now().month, 'fall'), QUOTES['fall']),
+                'criteria': CRITERIA}
+        os.makedirs(DIST, exist_ok=True)
+        open(os.path.join(DIST, 'shelf-data.js'), 'w').write(
+            'window.SHELF_DATA=' + json.dumps(data, ensure_ascii=False) + ';\n')
+        tpl = open(os.path.join(DESIGN, 'app.html')).read()
+        tpl = tpl.replace('__SHELF_TITLE__', 'The Shelf \u2014 awaiting first run')
+        open(os.path.join(DIST, 'index.html'), 'w').write(tpl)
+        print('built blank-state page (no months yet)')
+        return 0
 
     order = [os.path.basename(mf)[len('month-'):-len('.json')] for mf in month_files]
     cur_ym = order[-1]

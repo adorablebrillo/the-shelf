@@ -9,13 +9,14 @@ involved: the only external call is one OpenRouter LLM request per month.
 ```
 pipeline/
 ├── config.json        # model, rules, deploy target
-├── taste-prompt.md    # the curator brain — the reader's profile + rules
+├── taste-prompt.md    # the curator brain — the reader's profile + rules (repo ships a generic default; a deployed shelf keeps its own in /config)
 ├── fetch.py           # Apple Books: lane terms + the author lane; publisher & language per book
 ├── filter.py          # hard rules: M/F, no dark, spice band, window, trad/pub-first
 ├── curate.py          # OpenRouter call → curated month JSON
-├── build.py           # month JSON → dist/index.html (from DESIGN.md template)
+├── build.py           # month JSON → dist/index.html (the live design in design/app.html; blank installs get a valid empty-state page)
+├── paths.py           # personal files: config volume first, repo copy as fallback
+├── design/            # the live design — app.html + support.js + vendored React
 ├── run.sh             # one-shot: fetch → filter → curate → build [--deploy]
-├── template.html      # the approved v4 design (data injected at build time)
 └── data/              # candidates-*.json, filtered-*.json, month-*.json (history)
 ```
 
@@ -26,8 +27,7 @@ pipeline/
    export OPENROUTER_API_KEY=sk-or-v1-...          # env, or
    mkdir -p ~/.config/the-shelf && echo 'sk-or-...' > ~/.config/the-shelf/openrouter.key
    ```
-2. **Template** (already done): `cp ../.lavish/the-shelf-v4.html template.html`
-3. **Deploy** (optional): edit `config.json → deploy` (host, path, enabled: true),
+2. **Deploy** (optional): edit `config.json → deploy` (host, path, enabled: true),
    make sure you can `ssh host` without a password (key auth).
 
 ## Run
@@ -55,7 +55,7 @@ pipeline/
   <key>ProgramArguments</key><array>
     <string>/bin/bash</string>
     <string>-lc</string>
-    <string>cd /home/user/Documents/HermesApps/the-shelf/pipeline && ./run.sh --deploy &gt;&gt; monthly.log 2&gt;&amp;1</string>
+    <string>cd /path/to/the-shelf/pipeline && ./run.sh --deploy &gt;&gt; monthly.log 2&gt;&amp;1</string>
   </array>
   <key>StartCalendarInterval</key><dict><key>Hour</key><integer>9</integer><key>Minute</key><integer>0</integer><key>Day</key><integer>1</integer></dict>
 </dict></plist>
@@ -64,11 +64,8 @@ pipeline/
 launchctl load ~/Library/LaunchAgents/com.theshelf.monthly.plist
 ```
 
-**GitHub Actions** — if you push this repo to GitHub (private), the included
-`.github/workflows/monthly.yml` fires on the 1st, needs the key as a repo
-secret `OPENROUTER_API_KEY`, and publishes a ready-to-serve `dist/` artifact.
-(Deployed to your server still needs `rsync` on the runner — or set
-`RU_DEPLOY` creds; simplest: Actions builds, then your server pulls.)
+**GitHub Actions** — the included `.github/workflows/docker.yml` builds the
+container image to GHCR on every push to `main`; the Unraid template pulls it.
 
 ## Troubleshooting
 
