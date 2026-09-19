@@ -9,6 +9,9 @@ from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from urllib.parse import urlparse
 
 BASE = os.path.join(os.path.dirname(os.path.abspath(__file__)))
+# repo root: /app in the image; the checkout root locally (container/ holds the
+# server + symlinks there). data/ + seed-reads.json + pipeline/ hang off it.
+REPO = BASE if os.path.isdir(os.path.join(BASE, 'data')) else os.path.dirname(BASE)
 PIPELINE = os.path.join(BASE, 'pipeline')
 CONFIG_DIR = os.environ.get('CFG_DIR') or (
     '/config' if (os.path.isdir('/config') and os.access('/config', os.W_OK)) else os.path.join(BASE, 'config'))
@@ -19,6 +22,81 @@ SETTINGS = os.path.join(CONFIG_DIR, 'settings.json')
 # settings so the mounted volume keeps it across redeploys.
 STATE = os.path.join(CONFIG_DIR, 'reader-state.json')
 LOGSD = os.path.join(CONFIG_DIR, 'logs')
+
+# ---- personal data lives on the VOLUME -----------------------------------
+# The repo ships blank defaults; a real shelf keeps its reader data in /config:
+# library.json, sequels.json, seed-reads.json, taste-prompt.md. The pipeline
+# resolves /config first (pipeline/paths.py); on the first boot of an install
+# whose image still carries real data, ensure_personal_data() copies it in
+# once. A blank image (fresh install) seeds nothing.
+PERSONAL_SEEDS = [
+    ('library.json', os.path.join('data', 'library.json'), 'series'),
+    ('sequels.json', os.path.join('data', 'sequels.json'), 'series'),
+    ('seed-reads.json', 'seed-reads.json', 'books'),
+    ('taste-prompt.md', os.path.join('pipeline', 'taste-prompt.md'), 'text'),
+]
+GENERIC_TASTE_MARKER = 'generic default'
+
+
+def _personal_meaningful(src, kind):
+    """True when a seed source carries real data (never copies blanks)."""
+    if not os.path.isfile(src):
+        return False
+    try:
+        if kind == 'text':
+            txt = open(src, encoding='utf-8', errors='replace').read()
+            return len(txt) > 400 and GENERIC_TASTE_MARKER not in txt
+        d = json.load(open(src))
+        return bool(isinstance(d, dict) and d.get(kind))
+    except Exception:
+        return False
+
+
+def ensure_personal_data():
+    """Copy image -> volume once, never overwriting what is already there."""
+    seeded, missing = [], []
+    for name, rel, kind in PERSONAL_SEEDS:
+        dst = os.path.join(CONFIG_DIR, name)
+        if os.path.exists(dst):
+            continue
+        src = os.path.join(REPO, rel)
+        if _personal_meaningful(src, kind):
+            try:
+                shutil.copy2(src, dst)
+                seeded.append(name)
+            except Exception as e:
+                log('personal seed %s failed: %s' % (name, str(e)[:80]))
+        else:
+            missing.append(name)
+    if seeded:
+        log('personal data seeded into /config: ' + ', '.join(seeded))
+    if 'library.json' in missing:
+        log('note: no reader library yet — series lanes stay empty until /config/library.json exists (README: Bring your own data)')
+
+
+def data_origins():
+    """Where each personal file resolved from — the redeploy sanity check."""
+    out = {}
+    for name, rel, kind in PERSONAL_SEEDS:
+        if os.path.exists(os.path.join(CONFIG_DIR, name)):
+            out[name] = 'config'
+        else:
+            src = os.path.join(REPO, rel)
+            out[name] = ('image' if _personal_meaningful(src, kind) else ('blank' if os.path.exists(src) else 'missing'))
+    out['months'] = len(glob.glob(os.path.join(PIPELINE, 'data', 'month-*.json')))
+    return out
+
+
+def seed_baselines():
+    """Bake-time baseline months -> the volume (same rule as run_pipeline's re-seed)."""
+    try:
+        for mf in glob.glob(os.path.join(PIPELINE, 'baseline', 'month-*.json')):
+            dst = os.path.join(PIPELINE, 'data', os.path.basename(mf))
+            if not os.path.exists(dst):
+                shutil.copy2(mf, dst)
+                log('baseline seeded: %s' % os.path.basename(mf))
+    except Exception as e:
+        log('baseline seed: %s' % str(e)[:80])
 
 DEFAULTS = {
     'api_key': '', 'model': 'openai/gpt-4o-mini',
@@ -209,7 +287,8 @@ class H(BaseHTTPRequestHandler):
             self._json({'key_set': bool(s.get('api_key')), 'model': s.get('model'),
                         'schedule': s.get('schedule'), 'last_run': s.get('last_run'),
                         'last_result': s.get('last_result'), 'last_books': s.get('last_books'),
-                        'running': s.get('running'), 'cron': 'in-container scheduler'})
+                        'running': s.get('running'), 'cron': 'in-container scheduler',
+                        'data': data_origins()})
         elif u.path == '/api/models':
             try:
                 self._json({'models': fetch_models()})
@@ -300,19 +379,20 @@ def merge_states(server_states, incoming):
 
 
 def ensure_default():
-    """Never serve a blank page: build from the newest curated month if any,
-    else fall back to the design template (mock shelf + working settings)."""
+    """Never serve a blank page: rebuild from the volume's months at boot when
+    any exist (a redeploy must never serve a stale baked page over live data),
+    else fall back to the baked page or the design placeholder."""
     try:
-        if os.path.isfile(os.path.join(DIST, 'index.html')):
-            return
         months = sorted(glob.glob(os.path.join(PIPELINE, 'data', 'month-*.json')))
         if months:
-            log('boot: building from %s' % os.path.basename(months[-1]))
             r = subprocess.run([sys.executable, os.path.join(PIPELINE, 'build.py')],
-                               capture_output=True, text=True, timeout=180, cwd=PIPELINE)
+                               capture_output=True, text=True, timeout=300, cwd=PIPELINE)
             if r.returncode == 0 and os.path.isfile(os.path.join(DIST, 'index.html')):
+                log('boot: rebuilt the page from %d volume months' % len(months))
                 return
-            log('boot: build wrote to pipeline dist? mirroring into served dist')
+            log('boot: rebuild failed — keeping the baked page (%s)'
+                % (r.stderr or r.stdout or '')[-160:])
+            # the writer may have targeted pipeline/dist instead (flattened layouts)
             bd = os.path.join(PIPELINE, 'dist', 'index.html')
             if os.path.isfile(bd):
                 shutil.copy2(bd, os.path.join(DIST, 'index.html'))
@@ -322,13 +402,14 @@ def ensure_default():
                     shutil.copytree(ba, da, dirs_exist_ok=True)
                 log('boot: mirrored pipeline dist into served dist')
                 return
-            log('boot: build failed (%s)' % (r.stderr or r.stdout or '')[-200:])
+        if os.path.isfile(os.path.join(DIST, 'index.html')):
+            return
         tpl = os.path.join(PIPELINE, 'template.html')
         if os.path.isfile(tpl):
             shutil.copy2(tpl, os.path.join(DIST, 'index.html'))
             log('boot: serving design placeholder until the first run')
         else:
-            log('boot: no template found — will 404 until a month is curated')
+            log('boot: no page yet — press curate now in shelf settings, or wait for the 1st')
     except Exception as e:
         log('boot: default page error: %s' % e)
 
@@ -338,6 +419,8 @@ def main():
     os.makedirs(LOGSD, exist_ok=True)
     if not os.path.isdir(DIST):
         os.makedirs(DIST, exist_ok=True)
+    ensure_personal_data()
+    seed_baselines()
     ensure_default()
     threading.Thread(target=scheduler, daemon=True).start()
     srv = ThreadingHTTPServer(('0.0.0.0', PORT), H)

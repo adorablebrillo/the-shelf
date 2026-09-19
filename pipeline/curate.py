@@ -4,6 +4,7 @@ Calls an LLM (any model available via OpenRouter) with the taste profile and
 the filtered candidates. Strict JSON in, curated month out. No Hermes, no
 other dependencies — just an API key."""
 import json, os, sys, base64, urllib.request
+import paths  # shared resolver: reader data lives on the volume (CFG_DIR)
 from datetime import datetime, timedelta
 
 BASE = os.path.dirname(os.path.abspath(__file__))
@@ -41,11 +42,13 @@ def main():
         mon = os.path.basename(files[-1])[len('filtered-'):-len('.json')]
         fp = files[-1]
     filtered = json.load(open(fp))
-    taste = open(os.path.join(BASE, 'taste-prompt.md')).read()
+    taste_path, taste_src = paths.personal('taste-prompt.md')
+    taste = open(taste_path).read()
+    seq_path, seq_src = paths.personal('sequels.json')
+    print('data: taste-prompt.md <- %s · sequels.json <- %s' % (taste_src, seq_src))
     seq = {}
-    sp = os.path.join(BASE, os.pardir, 'data', 'sequels.json')
-    if os.path.exists(sp):
-        seq = json.load(open(sp))
+    if os.path.exists(seq_path):
+        seq = json.load(open(seq_path))
 
     if MODE == 'adhoc':
         window_rule = ('released within the last 30 days — a rolling window ending today (%s). '

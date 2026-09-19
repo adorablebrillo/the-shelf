@@ -17,6 +17,7 @@ same code path runs at image-bake time and after every pipeline run.
 """
 import json, os, re, shutil, sys, urllib.request, urllib.parse, hashlib, calendar, glob
 from datetime import datetime
+import paths  # shared resolver: reader data lives on the volume (CFG_DIR)
 
 BASE = os.path.dirname(os.path.abspath(__file__))
 ROOT = os.path.dirname(BASE)
@@ -240,13 +241,16 @@ def next_books_for(entry, today):
 def series_data():
     """EVERY series she is in: reads from data/library.json + what's next from
     data/sequels.json. Powers both 'Your Series' and the archive views."""
+    lib_path, lib_src = paths.personal('library.json')
+    seq_path, seq_src = paths.personal('sequels.json')
+    print('data: library.json <- %s · sequels.json <- %s' % (lib_src, seq_src))
     try:
-        lib = json.load(open(os.path.join(ROOT, 'data', 'library.json')))
+        lib = json.load(open(lib_path))
     except Exception as e:
         print('series: library.json missing (%s)' % e)
         lib = {'series': []}
     try:
-        seq = json.load(open(os.path.join(ROOT, 'data', 'sequels.json')))
+        seq = json.load(open(seq_path))
     except Exception:
         seq = {'series': []}
     today = datetime.now().strftime('%Y-%m-%d')
@@ -454,8 +458,11 @@ def main():
     cur = json.load(open(os.path.join(BASE, 'data', 'month-%s.json' % cur_ym)))
 
     # ---- this month's picks: top pick first ----
+    # the cover cache lives on the VOLUME so a redeploy never re-downloads art;
+    # it is mirrored into the served dist at the end of every build
+    covers_dir = os.path.join(BASE, 'data', 'covers')
+    os.makedirs(covers_dir, exist_ok=True)
     os.makedirs(os.path.join(DIST, 'assets', 'covers'), exist_ok=True)
-    covers_dir = os.path.join(DIST, 'assets', 'covers')
     top_id = cur.get('top_pick')
     src = sorted(cur.get('books', []), key=lambda b: 0 if b.get('id') == top_id else 1)
     book_list = [pick_book(b, top_id, ensure_cover(b.get('img'), b.get('title'), b.get('author'), covers_dir)) for b in src]
@@ -503,6 +510,11 @@ def main():
         b['issue'] = {'n': month['issue'], 'label': ml['label'], 'ym': cur_ym}
 
     copy_static()
+    # mirror the volume cover cache into the served dist
+    try:
+        shutil.copytree(covers_dir, os.path.join(DIST, 'assets', 'covers'), dirs_exist_ok=True)
+    except Exception as e:
+        print('covers mirror: %s' % str(e)[:80])
     # quotes follow the CALENDAR season — same clock the design's coffee art uses
     quotes = QUOTES.get(SEASON_OF.get(datetime.now().month, 'fall'), QUOTES['fall'])
     # identity guard: every book the app can mark must carry a canonical id
