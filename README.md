@@ -31,7 +31,7 @@ Full steps: [`UNRAID-INSTALL.md`](UNRAID-INSTALL.md)
 
 ## How it works
 
-1. **fetch** — Apple Books (charts + recent releases), best-effort Goodreads/Reddit/romance.io
+1. **fetch** — Apple Books only: a query per lane term + a query per author (the authors of every series you track + the authors you watch), then each book's real publisher, language and audiobook availability read from its page
 2. **filter** — the reader's hard rules: M/F only, no dark romance, spice 3–5, past-two-months window, trad-pub first (indie only with proven ratings)
 3. **curate** — one OpenRouter LLM call (`taste-prompt.md`) → 6–8 books, hooks, top pick, MMC vibe scores
 4. **build** — injects the month into the approved template → `index.html`
