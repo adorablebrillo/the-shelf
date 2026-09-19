@@ -10,7 +10,7 @@ involved: the only external call is one OpenRouter LLM request per month.
 pipeline/
 ├── config.json        # model, rules, deploy target
 ├── taste-prompt.md    # the curator brain — the reader's profile + rules
-├── fetch.py           # Apple Books + Goodreads + Reddit + romance.io (best-effort)
+├── fetch.py           # Apple Books: lane terms + the author lane; publisher & language per book
 ├── filter.py          # hard rules: M/F, no dark, spice band, window, trad/pub-first
 ├── curate.py          # OpenRouter call → curated month JSON
 ├── build.py           # month JSON → dist/index.html (from DESIGN.md template)
@@ -72,8 +72,9 @@ secret `OPENROUTER_API_KEY`, and publishes a ready-to-serve `dist/` artifact.
 
 ## Troubleshooting
 
-- **romance.io fetch skips** → Cloudflare shield; normal. Apple + Goodreads
-  usually carry the month.
+- **fetch prints failed calls** → Apple Books search is the only discovery
+  source left (charts-RSS, Reddit, Goodreads, romance.io are dead and removed).
+  Every call is counted and the report at the end of a fetch run shows it.
 - **`NO OPENROUTER API KEY`** → step 1 above.
 - **curate HTTP 401** → key wrong or expired (check `data/curate-*.error.json`).
 - **curate JSON error** → model wrapped text oddly; bump the model in `config.json`

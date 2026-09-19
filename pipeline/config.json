@@ -4,12 +4,23 @@
   "window_months": 1,
   "target_books": [6, 8],
   "genre_mix": {"sport romance": 3, "romantasy": 3, "contemporary romance": 2},
-  "search_terms": ["sports romance", "hockey romance", "contemporary romance", "romantasy", "fae romance", "dragon romance"],
+  "lane_terms": {
+    "sport romance": ["hockey romance", "sports romance", "football romance", "formula 1 romance", "baseball romance"],
+    "romantasy": ["romantasy", "fae romance", "dragon romance", "fantasy romance"],
+    "contemporary romance": ["small town romance", "rom com", "billionaire romance", "rockstar romance", "opposites attract romance", "workplace romance"]
+  },
+  "author_lane_extra": [
+    {"name": "an anchor author", "lane": "contemporary romance"},
+    {"name": "an anchor author", "lane": "contemporary romance"},
+    {"name": "an anchor author", "lane": "contemporary romance"},
+    {"name": "an anchor author", "lane": "sport romance"}
+  ],
+  "pool_back_days": 120,
+  "pool_forward_days": 60,
   "spice_min": 3,
   "trad_pub_score_rating": 4.0,
   "trad_pub_score_count": 100,
   "apple_country": "us",
-  "reddit_subs": ["fantasyromance", "RomanceBooks"],
   "deploy": {
     "enabled": false,
     "host": "user@example.com",
