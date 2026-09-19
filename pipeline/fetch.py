@@ -25,6 +25,7 @@ in the run's window and over the rolling 30 days).
 """
 import json, os, re, sys, time, urllib.request, urllib.parse, html as htmllib
 from datetime import date, datetime, timedelta
+import paths  # shared resolver: reader data lives on the volume (CFG_DIR)
 
 BASE = os.path.dirname(os.path.abspath(__file__))
 CFG = json.load(open(os.path.join(BASE, 'config.json')))
@@ -38,14 +39,8 @@ POOL_FWD = TODAY + timedelta(days=int(CFG.get('pool_forward_days', 60)))
 
 
 def cfg_dir():
-    """Where settings/state live — mirrors container/server.py exactly:
-    CFG_DIR env -> /config (the Unraid volume) -> local container/config."""
-    d = os.environ.get('CFG_DIR')
-    if d:
-        return d
-    if os.path.isdir('/config') and os.access('/config', os.W_OK):
-        return '/config'
-    return os.path.join(BASE, os.pardir, 'container', 'config')
+    """Where settings/state live — the shared resolver (volume first)."""
+    return paths.cfg_dir()
 
 
 # ---------- throttled, counted fetching ----------
@@ -209,26 +204,32 @@ def author_lane():
                 seen[k]['why'].append('watched')
     except Exception:
         pass
-    # 2) authors of every tracked series
-    try:
-        lib = json.load(open(os.path.join(BASE, os.pardir, 'data', 'library.json')))
-        for s in lib.get('series', []):
-            put(s.get('author'), lane_for(s.get('genre')))
-    except Exception as e:
-        STATS['failures'].append('library.json: %s' % str(e)[:60])
-    try:
-        seq = json.load(open(os.path.join(BASE, os.pardir, 'data', 'sequels.json')))
-        for s in seq.get('series', []):
-            put(s.get('author'))
-    except Exception as e:
-        STATS['failures'].append('sequels.json: %s' % str(e)[:60])
+    # 2) authors of every tracked series (volume first; blank installs stay quiet)
+    lib_path, lib_src = paths.personal('library.json')
+    if lib_src != 'missing':
+        try:
+            lib = json.load(open(lib_path))
+            for s in lib.get('series', []):
+                put(s.get('author'), lane_for(s.get('genre')))
+        except Exception as e:
+            STATS['failures'].append('library.json: %s' % str(e)[:60])
+    seq_path, seq_src = paths.personal('sequels.json')
+    if seq_src != 'missing':
+        try:
+            seq = json.load(open(seq_path))
+            for s in seq.get('series', []):
+                put(s.get('author'))
+        except Exception as e:
+            STATS['failures'].append('sequels.json: %s' % str(e)[:60])
     # 3) authors she reads 2+ books from (taste profile)
-    try:
-        seed = json.load(open(os.path.join(BASE, os.pardir, 'seed-reads.json')))
-        for a in (seed.get('taste_profile') or {}).get('authors_with_multiple_books', []):
-            put(a)
-    except Exception as e:
-        STATS['failures'].append('seed-reads.json: %s' % str(e)[:60])
+    seed_path, seed_src = paths.personal('seed-reads.json')
+    if seed_src != 'missing':
+        try:
+            seed = json.load(open(seed_path))
+            for a in (seed.get('taste_profile') or {}).get('authors_with_multiple_books', []):
+                put(a)
+        except Exception as e:
+            STATS['failures'].append('seed-reads.json: %s' % str(e)[:60])
     # 4) the editorial extras (anchor authors outside the data files)
     for a in CFG.get('author_lane_extra', []):
         if isinstance(a, dict):
