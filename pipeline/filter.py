@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """The Shelf pipeline — stage 2: apply the reader's hard rules to candidates."""
-import json, os, sys
+import json, os, re, sys
 from datetime import datetime, date, timedelta
 
 # SHELF_MODE=scheduled -> the 1st-of-month drop curates the PREVIOUS month
@@ -33,18 +33,34 @@ def adhoc_window_ok(d):
 
 NO_DARK = ('dark', 'academy', 'bully', 'anti-hero', 'morally gray')
 NO_QUEER = ('mm romance', 'male/male', 'mlm', 'gay romance', 'ff romance', 'female/female', 'wlw', 'queer', 'nonbinary')
-TRAD_HINTS = ('avon', 'berkley', 'dell', 'forever', 'kensington', "st. martin's", 'penguin',
-              'random house', 'little brown', 'tor', 'orbit', 'bloom books', 'quercus',
-              'harlequin', 'mira', 'cornerstone', 'simon & schuster', 'hachette', 'pan macmillan')
-INDIE_HINTS = ('t. howard', 'montlake', 'amazon publishing', 'smashwords', 'kdp', 'self-pub')
+# Trad-pub detection now runs against the REAL publisher (fetch resolves it from
+# each book's Apple page; the old code compared the author name to itself and
+# never fired). Substring hints are safe; short hints need word boundaries
+# ('tor' hides inside 'Editora', 'mira' inside 'Miraculous').
+TRAD_HINTS = ('avon', 'berkley', 'grand central', "st. martin", 'random house', 'little brown',
+              'bloom books', 'quercus', 'harlequin', 'cornerstone', 'simon & schuster', 'hachette',
+              'pan macmillan', 'red tower', 'entangled', 'piatkus', 'headline', 'hodder', 'orion',
+              'sourcebooks', 'celadon', 'putnam', 'dutton', 'bantam', 'bookouture', 'michael joseph',
+              'flatiron', 'gallery books', 'atria', 'forever', 'sphere', 'orbit')
+TRAD_WORDS = ('tor', 'dell', 'mira')
+INDIE_HINTS = ('montlake', 'amazon publishing', 'kdp', 'smashwords', 't. howard',
+               'independently published', 'draft2digital')
 
-def is_trad(pub):
-    p = (pub or '').lower()
-    return any(h in p for h in TRAD_HINTS)
 
-def is_indie(pub):
-    p = (pub or '').lower()
-    return any(h in p for h in INDIE_HINTS) or (not is_trad(p) and p != '')
+def pub_class(pub):
+    """trad | indie | unknown — three states, because 'no publisher resolved'
+    must never masquerade as indie."""
+    p = (pub or '').lower().strip()
+    if not p:
+        return 'unknown'
+    if any(h in p for h in TRAD_HINTS):
+        return 'trad'
+    for w in TRAD_WORDS:
+        if re.search(r'\b' + re.escape(w) + r'\b', p):
+            return 'trad'
+    if any(h in p for h in INDIE_HINTS):
+        return 'indie'
+    return 'unknown'
 
 def in_window(d, mon):
     if not d: return True  # unknown date -> keep for LLM to judge
@@ -84,18 +100,43 @@ def main():
         else:
             if not in_window(b.get('date'), mon): continue
         pub = b.get('publisher') or ''
-        trad = is_trad(pub); indie = is_indie(pub)
-        r = b.get('ratings')
-        ok_ratings = isinstance(r, (int, float)) and r >= CFG['trad_pub_score_rating']
-        b['trad'] = trad
-        b['indie'] = indie and not trad
-        b['indie_proven'] = bool(indie and ok_ratings)
+        cls = pub_class(pub)
+        r = b.get('rating')
+        rc = b.get('rating_count') or 0
+        proven = isinstance(r, (int, float)) and r >= CFG['trad_pub_score_rating'] \
+            and rc >= CFG.get('trad_pub_score_count', 100)
+        b['trad'] = (cls == 'trad')
+        b['indie'] = (cls == 'indie')
+        b['pub_known'] = bool(pub)
+        b['indie_proven'] = bool(cls == 'indie' and proven)
         kept.append(b)
-    kept = kept[:CFG['max_candidates']]
+    # newest first — the curator reads top-down
+    kept.sort(key=lambda b: (b.get('date') or '0000-00-00'), reverse=True)
+    total = len(kept)
+    cap = CFG['max_candidates']
+    if total > cap:
+        # keep every lane fairly represented: round-robin across lanes instead of
+        # truncating in insertion order (a late search lane used to lose wholesale)
+        buckets = {}
+        for b in kept:
+            buckets.setdefault(b.get('lane') or 'unknown', []).append(b)
+        picked = []
+        while len(picked) < cap and any(buckets.values()):
+            for lane in list(buckets):
+                if buckets[lane] and len(picked) < cap:
+                    picked.append(buckets[lane].pop(0))
+        dropped = {lane: len(v) for lane, v in buckets.items() if v}
+        print('cap: kept %d of %d — dropped per lane: %s (round-robin, never insertion order)'
+              % (len(picked), total, dropped))
+        kept = picked
+    else:
+        print('cap: kept %d of %d — under the %d cap, nothing dropped' % (total, total, cap))
     out = os.path.join(BASE, CFG['output_dir'], 'filtered-%s.json' % mon)
-    json.dump({'month': mon, 'mode': MODE, 'books': kept, 'rules': {
-        'mf_only': True, 'no_dark': True, 'spice_min': CFG['spice_min'],
-        'trad_first_indie_with_proof': True}}, open(out, 'w'), indent=1)
+    json.dump({'month': mon, 'mode': MODE, 'books': kept,
+               'cap': {'pool': total, 'kept': len(kept), 'max': cap},
+               'rules': {
+                   'mf_only': True, 'no_dark': True, 'spice_min': CFG['spice_min'],
+                   'trad_first_indie_with_proof': True}}, open(out, 'w'), indent=1)
     print('filtered: %d / %d -> %s (%s)' % (len(kept), len(cands), out, MODE))
     return 0
 
