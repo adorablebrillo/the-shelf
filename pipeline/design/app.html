@@ -24,20 +24,53 @@
   a:hover{color:#1E3A2F}
   button{font-family:inherit;color:inherit;background:none;border:none;cursor:pointer}
   @keyframes spin{from{transform:rotate(0)}to{transform:rotate(360deg)}}
+  /* ---- phone pass (ticket #10): stack, wrap, thumb targets; desktop untouched ---- */
+  @media (max-width:700px){
+    [data-m="page"]{padding:0 0 56px !important}
+    [data-m="shell"]{padding:0 18px !important}
+    [data-m="kicker"]{font-size:10px !important;letter-spacing:.3em !important}
+    [data-m="title"]{font-size:42px !important;letter-spacing:.08em !important}
+    [data-m="issue"]{font-size:17px !important}
+    [data-m="corner"]{grid-template-columns:1fr !important;gap:14px !important;justify-items:center !important;text-align:center !important}
+    [data-m="corner"] p{max-width:none !important}
+    [data-m="tabs"] button{flex:1 1 0 !important;min-height:48px !important;padding:14px 8px !important;font-size:11px !important;letter-spacing:.2em !important}
+    [data-m="heroGrid"]{grid-template-columns:1fr !important;gap:20px !important;padding:24px 18px !important}
+    [data-m="heroCover"]{max-width:200px;width:100%;margin:0 auto}
+    [data-m="heroStats"]{gap:16px !important}
+    [data-m="heroStanding"]{min-width:0 !important;flex-basis:100% !important}
+    [data-m="shead"] h2{font-size:23px !important;letter-spacing:.1em !important}
+    [data-m="shead"] span{font-size:10px !important}
+    [data-m="lead"]{grid-template-columns:1fr !important;gap:20px !important;padding:22px 18px !important}
+    [data-m="leadCover"]{max-width:210px;margin:0 auto}
+    [data-m="leadTropes"]{min-width:0 !important;flex-basis:100% !important}
+    [data-m="row"]{grid-template-columns:92px minmax(0,1fr) !important;gap:14px 16px !important;padding:20px 0 !important}
+    [data-m="row"] > :nth-child(3){grid-column:1 / -1}
+    [data-m="row"] h3{font-size:24px !important}
+    [data-m="readrow"]{grid-template-columns:1fr !important;gap:8px !important;padding:16px 0 !important}
+    [data-m="sblock"]{grid-template-columns:1fr !important;gap:14px !important;align-items:start !important}
+    [data-m="actions"] button{min-height:44px !important;padding:12px 0 10px !important;font-size:11.5px !important}
+    [data-m="moreBtn"]{min-height:44px !important;padding:12px 0 10px !important;font-size:11.5px !important}
+    [data-m="pills"] button{min-height:44px !important;padding:11px 16px !important;font-size:11.5px !important;letter-spacing:.14em !important}
+    [data-m="pills"]{gap:8px !important}
+    [data-m="stackCase"]{padding:20px 12px 0 !important}
+    [data-m="stackTip"]{max-width:62vw !important}
+    [data-m="setVeil"]{padding:18px 10px !important}
+    [data-m="settingsBox"]{padding:26px 18px !important}
+  }
 </style>
 </helmet>
-<div style="background:#EDE6D8;color:#211E19;font-family:'EB Garamond',Georgia,serif;font-size:16px;line-height:1.6;padding:0 0 72px">
-  <div style="max-width:1120px;margin:0 auto;padding:0 32px">
+<div data-m="page" style="background:#EDE6D8;color:#211E19;font-family:'EB Garamond',Georgia,serif;font-size:16px;line-height:1.6;padding:0 0 72px">
+  <div data-m="shell" style="max-width:1120px;margin:0 auto;padding:0 32px">
 
     <header style="text-align:center;padding:56px 0 0">
-      <p style="margin:0;font-family:'EB Garamond',Georgia,serif;font-size:11px;letter-spacing:.42em;text-transform:uppercase;color:#6E6353">Sport Romance &amp; Romantasy — for one reader</p>
+      <p data-m="kicker" style="margin:0;font-family:'EB Garamond',Georgia,serif;font-size:11px;letter-spacing:.42em;text-transform:uppercase;color:#6E6353">Sport Romance &amp; Romantasy — for one reader</p>
       <div style="height:1px;background:#A8863F;max-width:120px;margin:18px auto"></div>
-      <h1 style="font-family:'Cormorant Garamond',Garamond,serif;font-weight:300;font-size:clamp(52px,8vw,104px);line-height:1;letter-spacing:.12em;text-transform:uppercase;margin:0">The Shelf</h1>
-      <p style="margin:16px 0 0;font-family:'Cormorant Garamond',Garamond,serif;font-style:italic;font-size:20px;color:#6E2A2A">No. {{ issueNo }} · {{ monthLabel }} · {{ titleCount }}</p>
+      <h1 data-m="title" style="font-family:'Cormorant Garamond',Garamond,serif;font-weight:300;font-size:clamp(52px,8vw,104px);line-height:1;letter-spacing:.12em;text-transform:uppercase;margin:0">The Shelf</h1>
+      <p data-m="issue" style="margin:16px 0 0;font-family:'Cormorant Garamond',Garamond,serif;font-style:italic;font-size:20px;color:#6E2A2A">No. {{ issueNo }} · {{ monthLabel }} · {{ titleCount }}</p>
       <div style="height:1px;background:#A8863F;margin:24px 0 0"></div>
     </header>
 
-    <section aria-label="My reading corner" style="display:grid;grid-template-columns:minmax(0,150px) minmax(0,1fr);gap:28px;align-items:center;padding:20px 0 22px;border-bottom:1px solid #A8863F">
+    <section data-m="corner" aria-label="My reading corner" style="display:grid;grid-template-columns:minmax(0,150px) minmax(0,1fr);gap:28px;align-items:center;padding:20px 0 22px;border-bottom:1px solid #A8863F">
       <div style="position:relative;width:146px;height:146px;margin:0 auto">
         <svg viewBox="0 0 200 200" aria-hidden="true" style="position:absolute;inset:0;width:146px;height:146px;animation:spin 52s linear infinite">
           <circle cx="100" cy="100" r="96" fill="none" stroke="#A8863F" stroke-width="1"/>
@@ -55,7 +88,7 @@
       </div>
     </section>
 
-    <nav aria-label="Views" style="display:flex;justify-content:center;gap:0;border-bottom:1px solid #A8863F">
+    <nav data-m="tabs" aria-label="Views" style="display:flex;justify-content:center;gap:0;border-bottom:1px solid #A8863F">
       <button type="button" onClick="{{ showShelf }}" aria-pressed="{{ isShelf }}" style="{{ tabShelf }}">This month</button>
       <button type="button" onClick="{{ showArchive }}" aria-pressed="{{ isArchive }}" style="{{ tabArchive }}">The archive — {{ archiveCount }}</button>
     </nav>
@@ -72,10 +105,10 @@
           <div style="position:relative;padding:30px 34px 28px;display:flex;flex-direction:column;align-items:center">
             <p style="margin:0 0 20px;font-size:10px;letter-spacing:.4em;text-transform:uppercase;color:#6E6353;text-align:center">The stacks — shelved by author</p>
             <div style="display:flex;flex-direction:column;align-items:stretch;width:max-content;max-width:100%">
-              <div style="border:1px solid #A8863F;border-bottom:none;border-radius:190px 190px 0 0;padding:30px 34px 0;background:linear-gradient(rgba(255,253,246,.7),rgba(255,253,246,0))">
+              <div data-m="stackCase" style="border:1px solid #A8863F;border-bottom:none;border-radius:190px 190px 0 0;padding:30px 34px 0;background:linear-gradient(rgba(255,253,246,.7),rgba(255,253,246,0))">
                 <div aria-live="polite" style="margin:0 0 14px;min-height:26px;display:flex;align-items:center;justify-content:center;gap:14px">
                   <span style="height:1px;width:30px;background:#A8863F;opacity:.45"></span>
-                  <p style="margin:0;max-width:520px;text-align:center;font-family:'Cormorant Garamond',Garamond,serif;font-style:italic;font-size:19px;line-height:1.2;color:#6E2A2A;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">{{ stackTip }}</p>
+                  <p data-m="stackTip" style="margin:0;max-width:520px;text-align:center;font-family:'Cormorant Garamond',Garamond,serif;font-style:italic;font-size:19px;line-height:1.2;color:#6E2A2A;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">{{ stackTip }}</p>
                   <span style="height:1px;width:30px;background:#A8863F;opacity:.45"></span>
                 </div>
                 <div style="display:flex;align-items:flex-end;justify-content:center;flex-wrap:wrap;gap:5px;min-height:76px;max-width:760px">
@@ -102,7 +135,7 @@
           <p style="margin:18px 0 0;font-family:'Cormorant Garamond',Garamond,serif;font-style:italic;font-size:20px;color:#6E6353">Nothing here yet. Mark a volume read on this month's shelf and it arrives.</p>
         </sc-if>
         <sc-for list="{{ readBySeries }}" as="s" hint-placeholder-count="8">
-          <div style="display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.5fr);gap:28px;align-items:start;padding:18px 0;border-bottom:1px solid #D6CCB6">
+          <div data-m="readrow" style="display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.5fr);gap:28px;align-items:start;padding:18px 0;border-bottom:1px solid #D6CCB6">
             <div style="min-width:0">
               <p style="margin:0;font-family:'Cormorant Garamond',Garamond,serif;font-size:22px;line-height:1.16;letter-spacing:.04em">{{ s.name }}</p>
               <p style="margin:3px 0 0;font-size:11.5px;letter-spacing:.14em;text-transform:uppercase;color:#6E6353">{{ s.author }}</p>
@@ -130,7 +163,7 @@
           <p style="margin:18px 0 0;font-family:'Cormorant Garamond',Garamond,serif;font-style:italic;font-size:20px;color:#6E6353">Nothing yet. Press <em>read</em> or <em>loved</em> on one of this month's picks and it lands here.</p>
         </sc-if>
         <sc-for list="{{ solo }}" as="b" hint-placeholder-count="3">
-          <div style="display:grid;grid-template-columns:minmax(0,78px) minmax(0,1fr) minmax(0,190px);gap:24px;align-items:center;padding:20px 0;border-bottom:1px solid #D6CCB6">
+          <div data-m="row" style="display:grid;grid-template-columns:minmax(0,78px) minmax(0,1fr) minmax(0,190px);gap:24px;align-items:center;padding:20px 0;border-bottom:1px solid #D6CCB6">
             <div role="img" aria-label="{{ b.alt }}" style="{{ b.coverStyle }}"></div>
             <div style="min-width:0">
               <p style="margin:0;font-family:'Cormorant Garamond',Garamond,serif;font-size:24px;line-height:1.16">{{ b.title }}</p>
@@ -159,7 +192,7 @@
           <p style="margin:22px 0 0;font-family:'Cormorant Garamond',Garamond,serif;font-style:italic;font-size:20px;color:#6E6353">Nothing set aside. Press <em>not for me</em> on a book and it waits here.</p>
         </sc-if>
         <sc-for list="{{ setAside }}" as="b" hint-placeholder-count="3">
-          <div style="display:grid;grid-template-columns:minmax(0,78px) minmax(0,1fr) minmax(0,190px);gap:24px;align-items:center;padding:20px 0;border-bottom:1px solid #D6CCB6">
+          <div data-m="row" style="display:grid;grid-template-columns:minmax(0,78px) minmax(0,1fr) minmax(0,190px);gap:24px;align-items:center;padding:20px 0;border-bottom:1px solid #D6CCB6">
             <div role="img" aria-label="{{ b.alt }}" style="{{ b.coverStyle }}"></div>
             <div style="min-width:0">
               <p style="margin:0;font-family:'Cormorant Garamond',Garamond,serif;font-size:24px;line-height:1.16">{{ b.title }}</p>
@@ -177,9 +210,9 @@
 
     <sc-if value="{{ isShelf }}" hint-placeholder-val="{{ true }}">
     <sc-if value="{{ hasHero }}">
-    <section aria-label="Coming soon in your series" style="margin-top:36px;background:#1E3A2F;color:#F3EDE1;padding:6px">
-      <div style="border:1px solid #A8863F;padding:34px 36px;display:grid;grid-template-columns:minmax(0,200px) minmax(0,1fr);gap:36px;align-items:center">
-        <div style="min-width:0">
+    <section data-m="hero" aria-label="Coming soon in your series" style="margin-top:36px;background:#1E3A2F;color:#F3EDE1;padding:6px">
+      <div data-m="heroGrid" style="border:1px solid #A8863F;padding:34px 36px;display:grid;grid-template-columns:minmax(0,200px) minmax(0,1fr);gap:36px;align-items:center">
+        <div data-m="heroCover" style="min-width:0">
           <div style="border:1px solid #A8863F;padding:7px">
             <div role="img" aria-label="{{ heroCoverAlt }}" style="{{ heroCoverStyle }}">
               <sc-if value="{{ noHeroCover }}">
@@ -192,12 +225,12 @@
           <p style="margin:0;font-size:11px;letter-spacing:.38em;text-transform:uppercase;color:#C8B27A">Arriving in your series</p>
           <h2 style="font-family:'Cormorant Garamond',Garamond,serif;font-weight:500;font-size:clamp(38px,5.6vw,68px);line-height:1.04;letter-spacing:.02em;margin:12px 0 0">{{ heroTitle }}</h2>
           <p style="margin:8px 0 0;font-family:'Cormorant Garamond',Garamond,serif;font-style:italic;font-size:21px;color:#D8E0D4">{{ heroSub }}</p>
-          <div style="display:flex;align-items:center;gap:26px;flex-wrap:wrap;margin-top:26px;border-top:1px solid #3F6153;padding-top:22px">
+          <div data-m="heroStats" style="display:flex;align-items:center;gap:26px;flex-wrap:wrap;margin-top:26px;border-top:1px solid #3F6153;padding-top:22px">
             <div style="text-align:center">
               <p style="margin:0;font-family:'Cormorant Garamond',Garamond,serif;font-size:56px;line-height:.9;color:#C8B27A">{{ heroDays }}</p>
               <p style="margin:4px 0 0;font-size:10px;letter-spacing:.3em;text-transform:uppercase;color:#BFD3C6">days</p>
             </div>
-            <div style="flex:1;min-width:240px">
+            <div data-m="heroStanding" style="flex:1;min-width:240px">
               <p style="margin:0;font-size:11px;letter-spacing:.3em;text-transform:uppercase;color:#C8B27A">{{ heroDate }}</p>
               <p style="margin:8px 0 0;font-size:17px;line-height:1.5;color:#E6E0D2">{{ heroStanding }}</p>
             </div>
@@ -208,7 +241,7 @@
     </sc-if>
 
     <section aria-label="The month's picks" style="margin-top:56px">
-      <div style="display:flex;align-items:baseline;justify-content:space-between;gap:16px;flex-wrap:wrap">
+      <div data-m="shead" style="display:flex;align-items:baseline;justify-content:space-between;gap:16px;flex-wrap:wrap">
         <h2 style="font-family:'Cormorant Garamond',Garamond,serif;font-weight:500;font-size:clamp(26px,3.2vw,38px);letter-spacing:.14em;text-transform:uppercase;margin:0">The Month's Picks</h2>
         <span style="font-size:11px;letter-spacing:.28em;text-transform:uppercase;color:#6E6353">{{ counts }}</span>
       </div>
@@ -216,8 +249,8 @@
 
       <sc-if value="{{ hasLead }}">
       <article style="margin-top:30px;background:#E5DCCA;padding:6px">
-        <div style="border:1px solid #A8863F;padding:30px;display:grid;grid-template-columns:minmax(0,214px) minmax(0,1fr);gap:32px;align-items:start">
-          <div style="min-width:0">
+        <div data-m="lead" style="border:1px solid #A8863F;padding:30px;display:grid;grid-template-columns:minmax(0,214px) minmax(0,1fr);gap:32px;align-items:start">
+          <div data-m="leadCover" style="min-width:0">
             <div role="img" aria-label="{{ lead.alt }}" style="{{ lead.coverStyle }}"></div>
             <p style="margin:12px 0 0;text-align:center;font-size:10px;letter-spacing:.3em;text-transform:uppercase;color:#6E2A2A">Top pick — proven</p>
           </div>
@@ -230,9 +263,9 @@
             <div style="display:flex;gap:30px;flex-wrap:wrap;margin-top:22px;padding-top:18px;border-top:1px solid #C6BBA3">
               <div><p style="margin:0;font-size:10px;letter-spacing:.3em;text-transform:uppercase;color:#6E6353">Spice</p><p style="margin:4px 0 0;font-family:'Cormorant Garamond',Garamond,serif;font-size:24px">{{ lead.spiceLabel }}</p></div>
               <div><p style="margin:0;font-size:10px;letter-spacing:.3em;text-transform:uppercase;color:#6E6353">MMC vibe</p><p style="margin:4px 0 0;font-family:'Cormorant Garamond',Garamond,serif;font-size:24px">{{ lead.mmcLabel }}</p><p style="margin:0;font-style:italic;font-size:14px">{{ lead.mmcNote }}</p></div>
-              <div style="flex:1;min-width:220px"><p style="margin:0;font-size:10px;letter-spacing:.3em;text-transform:uppercase;color:#6E6353">Tropes</p><p style="margin:4px 0 0;font-size:15px;line-height:1.6">{{ lead.tropeLine }}</p></div>
+              <div data-m="leadTropes" style="flex:1;min-width:220px"><p style="margin:0;font-size:10px;letter-spacing:.3em;text-transform:uppercase;color:#6E6353">Tropes</p><p style="margin:4px 0 0;font-size:15px;line-height:1.6">{{ lead.tropeLine }}</p></div>
             </div>
-            <div style="display:flex;gap:9px;flex-wrap:wrap;margin-top:20px">
+            <div data-m="pills" style="display:flex;gap:9px;flex-wrap:wrap;margin-top:20px">
               <sc-for list="{{ lead.pills }}" as="p" hint-placeholder-count="4">
                 <button type="button" onClick="{{ p.onClick }}" aria-pressed="{{ p.on }}" style="{{ p.style }}">{{ p.label }}</button>
               </sc-for>
@@ -248,7 +281,7 @@
 
       <div style="display:flex;flex-direction:column;gap:0;margin-top:14px">
         <sc-for list="{{ rest }}" as="b" hint-placeholder-count="7">
-          <article style="display:grid;grid-template-columns:minmax(0,120px) minmax(0,1fr) minmax(0,190px);gap:28px;align-items:start;padding:26px 0;border-bottom:1px solid #D6CCB6">
+          <article data-m="row" style="display:grid;grid-template-columns:minmax(0,120px) minmax(0,1fr) minmax(0,190px);gap:28px;align-items:start;padding:26px 0;border-bottom:1px solid #D6CCB6">
             <div style="min-width:0">
               <div role="img" aria-label="{{ b.alt }}" style="{{ b.coverStyle }}"></div>
             </div>
@@ -272,7 +305,7 @@
                 <div><p style="margin:0;font-size:9.5px;letter-spacing:.26em;text-transform:uppercase;color:#6E6353">MMC</p><p style="margin:2px 0 0;font-family:'Cormorant Garamond',Garamond,serif;font-size:21px">{{ b.mmcLabel }}</p></div>
               </div>
               <p style="margin:0;font-size:13px;letter-spacing:.1em;text-transform:uppercase;color:#6E6353">{{ b.formatLine }}</p>
-              <div style="display:flex;gap:7px;flex-wrap:wrap">
+              <div data-m="pills" style="display:flex;gap:7px;flex-wrap:wrap">
                 <sc-for list="{{ b.pills }}" as="p" hint-placeholder-count="4">
                   <button type="button" onClick="{{ p.onClick }}" aria-pressed="{{ p.on }}" style="{{ p.style }}">{{ p.label }}</button>
                 </sc-for>
@@ -285,7 +318,7 @@
 
     <sc-if value="{{ hasWaiting }}">
       <section aria-label="Still on your list" style="margin-top:56px">
-        <div style="display:flex;align-items:baseline;justify-content:space-between;gap:16px;flex-wrap:wrap">
+        <div data-m="shead" style="display:flex;align-items:baseline;justify-content:space-between;gap:16px;flex-wrap:wrap">
           <h2 style="font-family:'Cormorant Garamond',Garamond,serif;font-weight:500;font-size:clamp(26px,3.2vw,38px);letter-spacing:.14em;text-transform:uppercase;margin:0">Still on your list</h2>
           <span style="font-size:11px;letter-spacing:.28em;text-transform:uppercase;color:#6E6353">{{ waitingLabel }}</span>
         </div>
@@ -293,7 +326,7 @@
         <p style="margin:16px 0 0;font-family:'Cormorant Garamond',Garamond,serif;font-style:italic;font-size:19px;color:#6E6353">Earlier issues, still undecided. Nothing here expires on its own.</p>
         <div style="display:flex;flex-direction:column;gap:0">
           <sc-for list="{{ waiting }}" as="b" hint-placeholder-count="4">
-            <article style="display:grid;grid-template-columns:minmax(0,120px) minmax(0,1fr) minmax(0,190px);gap:28px;align-items:start;padding:26px 0;border-bottom:1px solid #D6CCB6">
+            <article data-m="row" style="display:grid;grid-template-columns:minmax(0,120px) minmax(0,1fr) minmax(0,190px);gap:28px;align-items:start;padding:26px 0;border-bottom:1px solid #D6CCB6">
               <div style="min-width:0">
                 <div role="img" aria-label="{{ b.alt }}" style="{{ b.coverStyle }}"></div>
               </div>
@@ -314,7 +347,7 @@
                   <div><p style="margin:0;font-size:9.5px;letter-spacing:.26em;text-transform:uppercase;color:#6E6353">MMC</p><p style="margin:2px 0 0;font-family:'Cormorant Garamond',Garamond,serif;font-size:21px">{{ b.mmcLabel }}</p></div>
                 </div>
                 <p style="margin:0;font-size:13px;letter-spacing:.1em;text-transform:uppercase;color:#6E6353">{{ b.formatLine }}</p>
-                <div style="display:flex;gap:7px;flex-wrap:wrap">
+                <div data-m="pills" style="display:flex;gap:7px;flex-wrap:wrap">
                   <sc-for list="{{ b.pills }}" as="p" hint-placeholder-count="4">
                     <button type="button" onClick="{{ p.onClick }}" aria-pressed="{{ p.on }}" style="{{ p.style }}">{{ p.label }}</button>
                   </sc-for>
@@ -324,22 +357,22 @@
           </sc-for>
         </div>
         <sc-if value="{{ moreWaiting }}">
-          <button type="button" onClick="{{ showAllWaiting }}" style="margin-top:22px;font-size:11px;letter-spacing:.24em;text-transform:uppercase;color:#1E3A2F;border-bottom:1px solid #1E3A2F;padding:0 0 2px" style-hover="color:#6E2A2A;border-color:#6E2A2A">show {{ hiddenWaiting }} more</button>
+          <button type="button" data-m="moreBtn" onClick="{{ showAllWaiting }}" style="margin-top:22px;font-size:11px;letter-spacing:.24em;text-transform:uppercase;color:#1E3A2F;border-bottom:1px solid #1E3A2F;padding:0 0 2px" style-hover="color:#6E2A2A;border-color:#6E2A2A">show {{ hiddenWaiting }} more</button>
         </sc-if>
       </section>
     </sc-if>
 
     <section aria-label="Your series" style="margin-top:56px">
-      <div style="display:flex;align-items:baseline;justify-content:space-between;gap:16px;flex-wrap:wrap">
+      <div data-m="shead" style="display:flex;align-items:baseline;justify-content:space-between;gap:16px;flex-wrap:wrap">
         <h2 style="font-family:'Cormorant Garamond',Garamond,serif;font-weight:500;font-size:clamp(26px,3.2vw,38px);letter-spacing:.14em;text-transform:uppercase;margin:0">Your Series</h2>
-        <span style="font-size:11px;letter-spacing:.28em;text-transform:uppercase;color:#6E6353">{{ seriesCount }} series · every volume shown</span>
+        <span style="font-size:11px;letter-spacing:.28em;text-transform:uppercase;color:#6E6353">{{ seriesMeta }}</span>
       </div>
       <div style="height:1px;background:#A8863F;margin:14px 0 20px"></div>
 
       <div style="display:flex;flex-direction:column;gap:0">
         <sc-for list="{{ seriesList }}" as="s" hint-placeholder-count="8">
           <div style="padding:18px 0;border-bottom:1px solid #D6CCB6">
-            <div style="display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.25fr);gap:30px;align-items:center">
+            <div data-m="sblock" style="display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.25fr);gap:30px;align-items:center">
               <div style="min-width:0">
                 <p style="margin:0;font-family:'Cormorant Garamond',Garamond,serif;font-size:23px;line-height:1.16;letter-spacing:.04em">{{ s.name }}</p>
                 <p style="margin:3px 0 0;font-size:11.5px;letter-spacing:.14em;text-transform:uppercase;color:#6E6353">{{ s.author }} · {{ s.progress }}</p>
@@ -348,14 +381,14 @@
                     <span title="{{ v.tip }}" style="{{ v.style }}"></span>
                   </sc-for>
                 </div>
-                <div style="display:flex;gap:18px;flex-wrap:wrap;margin-top:12px">
+                <div data-m="actions" style="display:flex;gap:18px;flex-wrap:wrap;margin-top:12px">
                   <button type="button" onClick="{{ s.onToggle }}" style="font-size:11px;letter-spacing:.24em;text-transform:uppercase;color:#6E2A2A;border-bottom:1px solid #A8863F;padding:0 0 2px" style-hover="color:#1E3A2F">{{ s.toggleLabel }}</button>
                   <sc-if value="{{ s.canMark }}">
                     <button type="button" onClick="{{ s.onMarkNext }}" style="font-size:11px;letter-spacing:.24em;text-transform:uppercase;color:#1E3A2F;border-bottom:1px solid #1E3A2F;padding:0 0 2px;text-align:left" style-hover="color:#6E2A2A;border-color:#6E2A2A">{{ s.markLabel }}</button>
                   </sc-if>
                 </div>
               </div>
-              <div style="{{ s.nextStyle }}">
+              <div data-m="next" style="{{ s.nextStyle }}">
                 <p style="margin:0;font-size:9.5px;letter-spacing:.28em;text-transform:uppercase">{{ s.nextKind }}</p>
                 <p style="margin:6px 0 0;font-family:'Cormorant Garamond',Garamond,serif;font-size:22px;line-height:1.16">{{ s.nextTitle }}</p>
                 <p style="margin:3px 0 0;font-size:12.5px;letter-spacing:.1em;text-transform:uppercase">{{ s.nextMeta }}</p>
@@ -375,6 +408,9 @@
           </div>
         </sc-for>
       </div>
+      <sc-if value="{{ moreSeries }}">
+        <button type="button" data-m="moreBtn" onClick="{{ showAllSeries }}" style="margin-top:22px;font-size:11px;letter-spacing:.24em;text-transform:uppercase;color:#1E3A2F;border-bottom:1px solid #1E3A2F;padding:0 0 2px" style-hover="color:#6E2A2A;border-color:#6E2A2A">show all {{ seriesCount }} series</button>
+      </sc-if>
       <p style="margin:16px 0 0;font-size:11px;letter-spacing:.18em;text-transform:uppercase;color:#6E6353">Gold = read · oxblood = out and unread · green outline = coming · hollow = announced. Finish every volume and the series moves to the archive ({{ archivedCount }} closed).</p>
     </section>
     </sc-if>
@@ -390,8 +426,8 @@
 </x-dc>
 
 <!-- ============ SHELF SETTINGS (app-only, outside the dc root) ============ -->
-<div id="set-veil" style="display:none;position:fixed;inset:0;background:rgba(33,30,25,.55);z-index:60;align-items:flex-start;justify-content:center;padding:56px 16px;overflow:auto">
-  <div style="max-width:560px;width:100%;background:#F6F1E4;border:1px solid #A8863F;box-shadow:0 24px 60px rgba(20,18,14,.35);padding:34px 36px;position:relative">
+<div id="set-veil" data-m="setVeil" style="display:none;position:fixed;inset:0;background:rgba(33,30,25,.55);z-index:60;align-items:flex-start;justify-content:center;padding:56px 16px;overflow:auto">
+  <div data-m="settingsBox" style="max-width:560px;width:100%;background:#F6F1E4;border:1px solid #A8863F;box-shadow:0 24px 60px rgba(20,18,14,.35);padding:34px 36px;position:relative">
     <button type="button" id="set-x" aria-label="Close" style="position:absolute;top:8px;right:12px;font-size:22px;color:#6E6353;cursor:pointer">×</button>
     <p style="margin:0;font-size:10px;letter-spacing:.38em;text-transform:uppercase;color:#6E6353">Setup</p>
     <h2 style="font-family:'Cormorant Garamond',Garamond,serif;font-weight:500;font-size:36px;letter-spacing:.05em;margin:8px 0 0">shelf settings</h2>
@@ -487,7 +523,7 @@ function hydrateIds(d){
 }
 
 class Component extends DCLogic {
-  state={ data:(typeof window!=='undefined'&&window.SHELF_DATA)?hydrateIds(window.SHELF_DATA):null, states:{}, ts:{}, open:{}, q:0, view:'shelf', tip:'', sync:'?', pendingAll:false, archiveView:'read' };
+  state={ data:(typeof window!=='undefined'&&window.SHELF_DATA)?hydrateIds(window.SHELF_DATA):null, states:{}, ts:{}, open:{}, q:0, view:'shelf', tip:'', sync:'?', pendingAll:false, archiveView:'read', seriesAll:false, mobile:(typeof window!=='undefined'&&window.matchMedia)?window.matchMedia('(max-width:700px)').matches:false };
 
   /* ---- one identity per book ------------------------------------------
      Every book carries the pipeline's canonical id — a month's pick and a
@@ -582,6 +618,12 @@ class Component extends DCLogic {
     return '';
   }
   componentDidMount(){
+    // phone pass (ticket #10): the series lane collapses to six at phone widths
+    if(typeof window!=='undefined'&&window.matchMedia){
+      this._mq=window.matchMedia('(max-width:700px)');
+      this._mqListener=()=>this.setState({mobile:this._mq.matches});
+      this._mq.addEventListener('change',this._mqListener);
+    }
     const d=this.state.data||(typeof window!=='undefined'&&window.SHELF_DATA)||{};
     try{
       const raw=localStorage.getItem('shelf.marks');
@@ -621,7 +663,7 @@ class Component extends DCLogic {
     if(typeof document!=='undefined')document.addEventListener('visibilitychange',()=>{
       if(!document.hidden){this.flushOutbox(); this.pull();}});
   }
-  componentWillUnmount(){ clearInterval(this._t); clearInterval(this._s); }
+  componentWillUnmount(){ clearInterval(this._t); clearInterval(this._s); if(this._mq&&this._mqListener)this._mq.removeEventListener('change',this._mqListener); }
 
   pill(on){
     return {fontFamily:"'EB Garamond',Georgia,serif",fontSize:'10.5px',letterSpacing:'.22em',textTransform:'uppercase',
@@ -692,6 +734,8 @@ class Component extends DCLogic {
           style:{display:'flex',alignItems:'baseline',gap:'10px',padding:'8px 0',borderTop:'1px solid #D6CCB6',opacity:vs==='read'?.55:1}
         };})};
     });
+    const seriesShown=(this.state.mobile&&!this.state.seriesAll)?seriesList.slice(0,6):seriesList;
+    const moreSeries=seriesShown.length<seriesList.length;
 
     const CLOTH=['#6E2A2A','#2B3F38','#7A5A2A','#3E3630','#5A2F2A','#33443E','#6B4A25','#42382C'];
     const inSeries={}; d.series.forEach(s=>s.books.forEach(b=>{ if(b.id) inSeries[b.id]=1; }));
@@ -771,6 +815,9 @@ class Component extends DCLogic {
       tabShelf:tab(this.state.view==='shelf'), tabArchive:tab(this.state.view==='archive'),
       archiveCount:shelved.length,
       spines, readBySeries, readSeriesCount:readBySeries.length, solo, soloCount:solo.length,
+      moreSeries, hiddenSeries:seriesList.length-seriesShown.length,
+      seriesMeta:seriesList.length+' series'+(moreSeries?' · six shown':' · every volume shown'),
+      showAllSeries:()=>this.setState({seriesAll:true}),
       hasRead:readBySeries.length>0, noRead:readBySeries.length===0,
       hasSolo:solo.length>0, noSolo:solo.length===0,
       setAside:setAsideList, setAsideCount:setAsideList.length, noSetAside:setAsideList.length===0,
@@ -795,7 +842,7 @@ class Component extends DCLogic {
         return {...b,style:{position:'absolute',left:'50%',top:'50%',transform:'translate(-50%,-50%)',width:'104px',height:'104px',
           backgroundImage:'url("'+b.img+'")',backgroundSize:'contain',backgroundRepeat:'no-repeat',backgroundPosition:'center',mixBlendMode:'multiply'}};})(),
       lead:books[0], rest:books.slice(1), hasLead:books.length>0, noPicks:books.length===0,
-      seriesList, seriesCount:seriesList.length,
+      seriesList:seriesShown, seriesCount:seriesList.length,
       archivedCount:d.series.length-seriesList.length,
       quote:d.quotes[this.state.q%d.quotes.length]
     };
