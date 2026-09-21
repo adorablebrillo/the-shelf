@@ -54,8 +54,9 @@
     [data-m="pills"]{gap:8px !important}
     [data-m="stackCase"]{padding:20px 12px 0 !important}
     [data-m="stackTip"]{max-width:62vw !important}
-    [data-m="setVeil"]{padding:18px 10px !important}
-    [data-m="settingsBox"]{padding:26px 18px !important}
+    [data-m="setVeil"]{padding:0 !important;align-items:stretch !important}
+    [data-m="settingsBox"]{padding:24px 18px 44px !important;max-width:none !important;min-height:100%;border-left:none !important;border-right:none !important;border-top:none !important}
+    [data-m="settingsBox"] input,[data-m="settingsBox"] select,[data-m="settingsBox"] button{min-height:44px !important}
   }
 </style>
 </helmet>
@@ -431,16 +432,21 @@
 
 <!-- ============ SHELF SETTINGS (app-only, outside the dc root) ============ -->
 <div id="set-veil" data-m="setVeil" style="display:none;position:fixed;inset:0;background:rgba(33,30,25,.55);z-index:60;align-items:flex-start;justify-content:center;padding:56px 16px;overflow:auto">
-  <div data-m="settingsBox" style="max-width:560px;width:100%;background:#F6F1E4;border:1px solid #A8863F;box-shadow:0 24px 60px rgba(20,18,14,.35);padding:34px 36px;position:relative">
-    <button type="button" id="set-x" aria-label="Close" style="position:absolute;top:8px;right:12px;font-size:22px;color:#6E6353;cursor:pointer">×</button>
+  <div id="settings-box" data-m="settingsBox" role="dialog" aria-modal="true" aria-labelledby="set-title" style="max-width:560px;width:100%;background:#F6F1E4;border:1px solid #A8863F;box-shadow:0 24px 60px rgba(20,18,14,.35);padding:34px 36px;position:relative">
+    <button type="button" id="set-x" aria-label="Close settings" style="position:absolute;top:8px;right:12px;font-size:22px;color:#6E6353;cursor:pointer;background:transparent;border:none;min-width:44px;min-height:44px">×</button>
     <p style="margin:0;font-size:10px;letter-spacing:.38em;text-transform:uppercase;color:#6E6353">Setup</p>
-    <h2 style="font-family:'Cormorant Garamond',Garamond,serif;font-weight:500;font-size:36px;letter-spacing:.05em;margin:8px 0 0">shelf settings</h2>
+    <h2 id="set-title" style="font-family:'Cormorant Garamond',Garamond,serif;font-weight:500;font-size:36px;letter-spacing:.05em;margin:8px 0 0">shelf settings</h2>
     <p style="margin:6px 0 0;font-size:10px;letter-spacing:.3em;text-transform:uppercase;color:#6E6353">Sport Romance · Romantasy · Contemporary Romance</p>
+    <div role="tablist" aria-label="settings sections" style="display:flex;margin-top:20px;border-bottom:1px solid #C6BBA3">
+      <button type="button" id="tab-shelf" role="tab" aria-selected="true" aria-controls="panel-shelf" style="font-size:10.5px;letter-spacing:.28em;text-transform:uppercase;padding:12px 18px 11px;background:transparent;border:none;border-bottom:2px solid #1E3A2F;color:#211E19;cursor:pointer;min-height:44px">Shelf</button>
+      <button type="button" id="tab-authors" role="tab" aria-selected="false" aria-controls="panel-authors" style="font-size:10.5px;letter-spacing:.28em;text-transform:uppercase;padding:12px 18px 11px;background:transparent;border:none;border-bottom:2px solid transparent;color:#6E6353;cursor:pointer;min-height:44px">Authors</button>
+    </div>
+    <div id="panel-shelf" role="tabpanel" aria-labelledby="tab-shelf">
     <p style="margin:10px 0 0;font-size:15px;line-height:1.6;color:#4A443A">Your OpenRouter key lives on your server in the appdata volume — it survives redeploys.</p>
     <p style="margin:20px 0 0;font-size:10px;letter-spacing:.3em;text-transform:uppercase;color:#6E6353">OpenRouter key · <span id="key-state" style="color:#6E2A2A">…</span></p>
     <input id="set-key" type="password" placeholder="sk-or-v1-…" autocomplete="off" style="margin-top:8px;width:100%;box-sizing:border-box;background:transparent;border:1px solid #C6BBA3;padding:10px 12px;font-family:'EB Garamond',Georgia,serif;font-size:16px;color:#211E19"/>
     <p style="margin:18px 0 0;font-size:10px;letter-spacing:.3em;text-transform:uppercase;color:#6E6353">Model · <button type="button" id="set-refresh" style="font-size:10px;letter-spacing:.2em;text-transform:uppercase;color:#6E2A2A;border-bottom:1px solid #A8863F">refresh</button></p>
-    <select id="set-model" style="margin-top:8px;width:100%;background:transparent;border:1px solid #C6BBA3;padding:10px 12px;font-family:'EB Garamond',Georgia,serif;font-size:15px;color:#211E19"></select>
+    <select id="set-model" style="margin-top:8px;width:100%;background:transparent;border:1px solid #C6BBA3;padding:10px 12px;font-family:'EB Garamond',Georgia,serif;font-size:15px;color:#211E19;text-overflow:ellipsis"></select>
     <p id="model-hint" style="margin:6px 0 0;font-size:13px;font-style:italic;color:#6E6353">prices come live from OpenRouter</p>
     <div style="display:flex;gap:14px;flex-wrap:wrap;margin-top:24px">
       <button type="button" id="set-save" style="font-size:10.5px;letter-spacing:.28em;text-transform:uppercase;padding:11px 18px;border:1px solid #1E3A2F;background:#1E3A2F;color:#F3EDE1;cursor:pointer">save</button>
@@ -449,6 +455,23 @@
     <p style="margin:10px 0 0;font-size:13.5px;font-style:italic;color:#6E6353">curate now re-runs for the last 30 days of releases. the 1st of every month still drops the full previous month.</p>
     <p id="run-state" style="margin:16px 0 0;font-size:15px;color:#1E3A2F"></p>
     <p id="status-line" style="margin:6px 0 0;font-size:14px;color:#6E6353"></p>
+    </div>
+    <div id="panel-authors" role="tabpanel" aria-labelledby="tab-authors" hidden>
+      <p style="margin:14px 0 0;font-size:15px;line-height:1.6;color:#4A443A">Watched authors — every run looks for their new releases. The lane is optional; it steers which lane their books join.</p>
+      <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:14px">
+        <input id="auth-name" type="text" placeholder="author name" autocomplete="off" aria-label="author name" style="flex:1 1 150px;min-height:44px;box-sizing:border-box;background:transparent;border:1px solid #C6BBA3;padding:10px 12px;font-family:'EB Garamond',Georgia,serif;font-size:16px;color:#211E19"/>
+        <select id="auth-lane" aria-label="lane (optional)" style="min-height:44px;background:transparent;border:1px solid #C6BBA3;padding:10px 8px;font-family:'EB Garamond',Georgia,serif;font-size:15px;color:#211E19">
+          <option value="">any lane</option>
+          <option value="sport romance">sport romance</option>
+          <option value="romantasy">romantasy</option>
+          <option value="contemporary romance">contemporary romance</option>
+        </select>
+        <button type="button" id="auth-add" style="min-height:44px;font-size:10.5px;letter-spacing:.28em;text-transform:uppercase;padding:11px 18px;border:1px solid #1E3A2F;background:#1E3A2F;color:#F3EDE1;cursor:pointer">add</button>
+      </div>
+      <p id="auth-msg" role="status" aria-live="polite" style="margin:10px 0 0;font-size:14px;font-style:italic;color:#6E6353;min-height:20px"></p>
+      <div id="auth-list" style="margin-top:4px"></div>
+      <p style="margin:16px 0 0;font-size:13px;color:#6E6353">The watch list feeds the monthly run — this month's page changes on the next curate.</p>
+    </div>
   </div>
 </div>
 <script>
@@ -456,12 +479,73 @@
   'use strict';
   var veil=document.getElementById('set-veil');
   if(!veil)return;
-  function open(){veil.style.display='flex';loadStatus();if(!document.getElementById('set-model').options.length){loadModels();}startPolling();}
+  function open(){veil.style.display='flex';loadStatus();loadAuthors();if(!document.getElementById('set-model').options.length){loadModels();}startPolling();var x=document.getElementById('set-x');if(x)x.focus();}
   function close(){veil.style.display='none';stopPolling();}
   document.addEventListener('click',function(e){if(e.target&&e.target.id==='set-open'){open();}});
   document.getElementById('set-x').addEventListener('click',close);
   veil.addEventListener('click',function(e){if(e.target===veil)close();});
-  document.addEventListener('keydown',function(e){if(e.key==='Escape')close();});
+  document.addEventListener('keydown',function(e){if(e.key==='Escape'&&veil.style.display!=='none')close();});
+  function tab(which){
+    var on=which==='authors';
+    document.getElementById('panel-shelf').hidden=on;
+    document.getElementById('panel-authors').hidden=!on;
+    document.getElementById('tab-shelf').setAttribute('aria-selected',String(!on));
+    document.getElementById('tab-authors').setAttribute('aria-selected',String(on));
+    document.getElementById('tab-shelf').style.borderBottomColor=on?'transparent':'#1E3A2F';
+    document.getElementById('tab-shelf').style.color=on?'#6E6353':'#211E19';
+    document.getElementById('tab-authors').style.borderBottomColor=on?'#1E3A2F':'transparent';
+    document.getElementById('tab-authors').style.color=on?'#211E19':'#6E6353';
+  }
+  document.getElementById('tab-shelf').addEventListener('click',function(){tab('shelf');});
+  document.getElementById('tab-authors').addEventListener('click',function(){tab('authors');});
+  function msg(t){document.getElementById('auth-msg').textContent=t||'';}
+  function renderAuthors(lst){
+    var host=document.getElementById('auth-list');host.innerHTML='';
+    if(!lst||!lst.length){
+      var p=document.createElement('p');
+      p.style.cssText='margin:6px 0 0;font-size:14px;color:#6E6353';
+      p.textContent='no watched authors yet — add one above.';
+      host.appendChild(p);return;
+    }
+    lst.forEach(function(a){
+      var row=document.createElement('div');
+      row.style.cssText='display:flex;align-items:center;gap:10px;flex-wrap:wrap;padding:8px 0;border-bottom:1px solid #E3DAC6';
+      var nm=document.createElement('span');
+      nm.textContent=a.name;
+      nm.style.cssText="font-family:'Cormorant Garamond',Garamond,serif;font-size:20px;color:#211E19";
+      row.appendChild(nm);
+      if(a.lane){
+        var ch=document.createElement('span');
+        ch.textContent=a.lane;
+        ch.style.cssText='font-size:9.5px;letter-spacing:.22em;text-transform:uppercase;color:#6E6353;border:1px solid #C6BBA3;padding:3px 8px';
+        row.appendChild(ch);
+      }
+      var rm=document.createElement('button');
+      rm.type='button';rm.textContent='remove';rm.setAttribute('aria-label','remove '+a.name);
+      rm.style.cssText='margin-left:auto;min-height:44px;font-size:10px;letter-spacing:.24em;text-transform:uppercase;color:#6E2A2A;border:1px solid #6E2A2A;background:transparent;padding:9px 14px;cursor:pointer';
+      rm.addEventListener('click',function(){
+        j('/api/authors',{method:'DELETE',headers:{'Content-Type':'application/json'},body:JSON.stringify({name:a.name})})
+        .then(function(r){renderAuthors(r.authors||[]);msg('removed — '+a.name);})
+        .catch(function(){msg('could not remove — container offline?');});
+      });
+      row.appendChild(rm);
+      host.appendChild(row);
+    });
+  }
+  function loadAuthors(){j('/api/authors').then(function(d){renderAuthors(d.authors||[]);}).catch(function(){msg('could not load the list — container offline?');});}
+  function addAuthor(){
+    var inp=document.getElementById('auth-name');
+    var n=inp.value;
+    if(!n.trim()){msg('give the author a name');return;}
+    j('/api/authors',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({name:n,lane:document.getElementById('auth-lane').value})})
+    .then(function(r){
+      if(r.error){renderAuthors(r.authors||[]);msg(r.error);return;}
+      renderAuthors(r.authors||[]);msg('added — the next run will watch for their releases.');inp.value='';
+    })
+    .catch(function(){msg('could not add — container offline?');});
+  }
+  document.getElementById('auth-add').addEventListener('click',addAuthor);
+  document.getElementById('auth-name').addEventListener('keydown',function(e){if(e.key==='Enter')addAuthor();});
   function j(path,opts){return fetch(path,opts).then(function(r){return r.json();});}
   function loadStatus(){
     j('/api/status').then(function(s){
@@ -482,9 +566,10 @@
   function loadModels(sel){
     j('/api/models').then(function(d){
       var m=document.getElementById('set-model');m.innerHTML='';
+      var fm=function(v){v=+v;return '$'+(v===Math.round(v)?v:v.toFixed(2));};
       (d.models||[]).forEach(function(x){
         var o=document.createElement('option');o.value=x.id;
-        o.textContent=x.id+' — $'+x.in_mtok+'/$'+x.out_mtok+' per 1M · '+x.why;
+        o.textContent=x.id+' — '+fm(x.in_mtok)+'/'+fm(x.out_mtok)+' per 1M · '+x.why;
         m.appendChild(o);
       });
       if(sel){m.value=sel;}

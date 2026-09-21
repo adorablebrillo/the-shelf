@@ -21,6 +21,9 @@ SETTINGS = os.path.join(CONFIG_DIR, 'settings.json')
 # the reader's own shelves: every verdict, keyed by book identity. Lives beside
 # settings so the mounted volume keeps it across redeploys.
 STATE = os.path.join(CONFIG_DIR, 'reader-state.json')
+# the author watch list the Authors tab (ticket #8) writes; fetch.py reads it
+# every run (missing file is fine — nothing watched yet)
+AUTHORS = os.path.join(CONFIG_DIR, 'authors.json')
 LOGSD = os.path.join(CONFIG_DIR, 'logs')
 
 # ---- personal data lives on the VOLUME -----------------------------------
@@ -282,6 +285,8 @@ class H(BaseHTTPRequestHandler):
         u = urlparse(self.path)
         if u.path == '/api/state':
             self._json(load_state())
+        elif u.path == '/api/authors':
+            self._json({'authors': load_authors()['authors']})
         elif u.path == '/api/status':
             s = load_settings()
             self._json({'key_set': bool(s.get('api_key')), 'model': s.get('model'),
@@ -327,6 +332,12 @@ class H(BaseHTTPRequestHandler):
             log('settings saved (key %s, model %s)' %
                 ('set' if s['api_key'] else 'cleared', s['model']))
             self._json({'ok': True, 'key_set': bool(s['api_key']), 'model': s['model']})
+        elif u.path == '/api/authors':
+            lst, err = authors_add(body.get('name'), body.get('lane'))
+            if err:
+                return self._json({'error': err, 'authors': lst}, 400)
+            log('author watch added: %s' % lst[-1]['name'])
+            self._json({'ok': True, 'authors': lst})
         elif u.path == '/api/run':
             s = load_settings()
             if not s.get('api_key'):
@@ -335,6 +346,19 @@ class H(BaseHTTPRequestHandler):
                 return self._json({'error': 'a run is already in progress'}, 409)
             threading.Thread(target=run_pipeline, args=(s, 'adhoc'), daemon=True).start()
             self._json({'ok': True, 'started': True, 'mode': 'adhoc'})
+        else:
+            self._json({'error': 'not found'}, 404)
+
+    def do_DELETE(self):
+        u = urlparse(self.path)
+        try:
+            body = json.loads(self.rfile.read(int(self.headers.get('Content-Length', 0))))
+        except Exception:
+            body = {}
+        if u.path == '/api/authors':
+            lst = authors_remove(body.get('name'))
+            log('author watch removed: %s' % str(body.get('name'))[:60])
+            self._json({'ok': True, 'authors': lst})
         else:
             self._json({'error': 'not found'}, 404)
 
@@ -376,6 +400,55 @@ def merge_states(server_states, incoming):
             continue
         out[k] = {'s': vs, 't': vt}
     return out
+
+
+def norm_author(name):
+    """The fetch's normalization: lowercase, non-alphanumerics dropped."""
+    return re.sub(r'[^a-z0-9]', '', str(name or '').lower())
+
+
+def load_authors():
+    """The watch list — only the authors she added. {v, authors:[{name,lane}]}."""
+    try:
+        d = json.load(open(AUTHORS))
+        if isinstance(d.get('authors'), list):
+            return d
+    except Exception:
+        pass
+    return {'v': 1, 'authors': []}
+
+
+def save_authors(d):
+    os.makedirs(CONFIG_DIR, exist_ok=True)
+    tmp = AUTHORS + '.tmp'
+    with open(tmp, 'w') as f:
+        json.dump(d, f, indent=1)
+    os.replace(tmp, AUTHORS)
+
+
+def authors_add(name, lane):
+    """(authors, error). A duplicate answers 'author already on the list'."""
+    name = ' '.join(str(name or '').split())
+    if not name:
+        return load_authors()['authors'], 'give the author a name'
+    d = load_authors()
+    key = norm_author(name)
+    if any(norm_author(a.get('name')) == key for a in d['authors']):
+        return d['authors'], 'author already on the list'
+    lane = str(lane or '').strip() or None
+    d['authors'].append({'name': name, 'lane': lane})
+    save_authors(d)
+    return d['authors'], None
+
+
+def authors_remove(name):
+    d = load_authors()
+    key = norm_author(name)
+    keep = [a for a in d['authors'] if norm_author(a.get('name')) != key]
+    if len(keep) != len(d['authors']):
+        d['authors'] = keep
+        save_authors(d)
+    return d['authors']
 
 
 def ensure_default():
