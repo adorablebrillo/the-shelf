@@ -47,7 +47,7 @@ you bring your own data.
 ## How it works
 
 1. **fetch** — Apple Books only: a query per lane term + a query per author (the authors of every series you track + the authors you watch), then each book's real publisher, language and audiobook availability read from its page
-2. **filter** — the reader's hard rules: M/F only, no dark romance, spice 3–5, a widening pool (thin lanes may look 30 → 60 → 90 days back), trad-pub first (indie only with proven ratings)
+2. **filter** — the reader's hard rules (M/F only, no dark romance, spice 3–5, a widening pool, trad-pub first) and **your shelf's verdicts**: not-for-me and already-read books never come back; every run reports how many candidates your shelf excluded
 3. **curate** — one curation call per run, up to three when a thin lane widens (`taste-prompt.md`) → up to 9 books shaped 3/3/3 (floor two per lane; thin lanes widen 30→60→90 days before being dropped), hooks, top pick, MMC vibe scores
 4. **build** — injects the month into the approved template → `index.html`
 5. **serve + schedule** — Python-stdlib server, settings in `/config`, cron in-container

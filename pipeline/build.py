@@ -19,6 +19,7 @@ import json, os, re, shutil, sys, urllib.request, urllib.parse, hashlib, calenda
 from datetime import datetime
 import paths  # shared resolver: reader data lives on the volume (CFG_DIR)
 from lanes import lane_of, counts as lane_counts, shape_str, shape_line
+from bookids import book_key
 
 BASE = os.path.dirname(os.path.abspath(__file__))
 ROOT = os.path.dirname(BASE)
@@ -100,20 +101,6 @@ def slug(b):
     s = ('%s %s' % (b.get('title', 'x'), b.get('author', 'y'))).lower()
     s = re.sub(r'[^a-z0-9]+', '-', s).strip('-')
     return s[:60] or hashlib.md5(json.dumps(b, sort_keys=True).encode()).hexdigest()[:12]
-
-
-def book_key(title, author):
-    """THE identity for a book: deterministic from title + author, stable across
-    runs, months and sources. Month picks, series volumes, the archive and the
-    reader's marks all key on this, so one book is one thing everywhere."""
-    def n(s):
-        s = re.sub(r'\([^)]*\)', ' ', s or '')
-        s = s.split(';')[0]
-        return re.sub(r'[^a-z0-9]', '', s.lower())
-    t, a = n(title), n(author)
-    if not t:
-        return ''
-    return ('%s--%s' % (t[:72], a[:30])).rstrip('-')
 
 
 def download_cover(b, covers_dir):
