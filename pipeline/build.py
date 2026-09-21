@@ -227,6 +227,49 @@ def next_books_for(entry, today):
     return out
 
 
+def author_upcoming(tracked, today, path=None):
+    """Watched authors feed the tracked series (ticket #9): a candidates-file
+    book whose Apple page names a series she tracks and whose release is still
+    ahead becomes that series' next_books entry — the radar lane and the hero
+    countdown pick it up like any other upcoming volume. Released books are
+    never radar (they are picks once the window opens). Returns
+    {normalized series name: [next_books entry]}."""
+    if path is None:
+        fs = sorted(glob.glob(os.path.join(BASE, 'data', 'candidates-*.json')))
+        path = fs[-1] if fs else None
+    if not path or not os.path.exists(path):
+        return {}
+    try:
+        cands = json.load(open(path)).get('books', [])
+    except Exception as e:
+        print('watched authors: candidates unreadable (%s) — series lane unchanged' % str(e)[:60])
+        return {}
+    out = {}
+    for b in cands:
+        ser = (b.get('series') or '').strip()
+        if not ser:
+            continue
+        dt = str(b.get('date') or '')[:10]
+        if not re.match(r'^\d{4}-\d{2}-\d{2}$', dt) or dt <= today:
+            continue  # released -> a pick, never radar (#9)
+        k = norm_name(ser)
+        hit = k if k in tracked else None
+        if hit is None:
+            for k2 in tracked:
+                if k2 and (k2 in k or k in k2):
+                    hit = k2
+                    break
+        if hit is None:
+            continue  # not a series she tracks
+        title = b.get('title') or ''
+        num = str(b.get('series_num') or '').strip()
+        if num:
+            title = '%s (#%s)' % (title, num)
+        out.setdefault(hit, []).append({'title': title, 'release_date': dt,
+                                        'status': 'soon', 'publisher': b.get('publisher') or ''})
+    return out
+
+
 def series_data():
     """EVERY series she is in: reads from data/library.json + what's next from
     data/sequels.json. Powers both 'Your Series' and the archive views."""
@@ -247,6 +290,18 @@ def series_data():
     for ser in seq.get('series', []):
         seqmap[norm_name(ser.get('series'))] = ser
 
+    upcoming = author_upcoming(seqmap, today)  # #9: watched authors feed the tracked series
+    merged_n = [0]
+
+    def merge_upcoming(entry, keys):
+        have = {norm_name(re.sub(r'\s*\([^)]*\)\s*$', '', x.get('title') or ''))
+                for x in (entry.get('next_books') or [])}
+        for k2 in keys:
+            for up in upcoming.get(k2, []):
+                if norm_name(re.sub(r'\s*\([^)]*\)\s*$', '', up['title'])) not in have:
+                    entry.setdefault('next_books', []).append(up)
+                    merged_n[0] += 1
+
     used = set()
     out = []
     for ls in lib.get('series', []):
@@ -263,9 +318,10 @@ def series_data():
                   'id': book_key(t, author)} for t in ls.get('books', [])]
         publisher = ''
         if entry is not None:
-            for k2 in seqmap:
-                if k2 and (k2 in k or k in k2):
-                    used.add(k2)
+            keys = [k2 for k2 in seqmap if k2 and (k2 in k or k in k2)]
+            for k2 in keys:
+                used.add(k2)
+            merge_upcoming(entry, keys)
             for nb in entry.get('next_books', []):
                 if nb.get('publisher') and not publisher:
                     publisher = nb['publisher']
@@ -284,6 +340,7 @@ def series_data():
         nm = v2.get('series') or ''
         if not nm:
             continue
+        merge_upcoming(v2, [k2])
         publisher = ''
         for nb in v2.get('next_books', []):
             if nb.get('publisher') and not publisher:
@@ -293,6 +350,8 @@ def series_data():
             b['id'] = b.get('id') or book_key(b['t'], v2.get('author'))
         out.append({'name': nm, 'author': v2.get('author') or '', 'publisher': publisher,
                     'books': nb_list})
+    if merged_n[0]:
+        print('watched authors: %d upcoming series book(s) merged into the series lane' % merged_n[0])
     return out
 
 
