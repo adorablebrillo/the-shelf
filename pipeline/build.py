@@ -20,6 +20,7 @@ from datetime import datetime
 import paths  # shared resolver: reader data lives on the volume (CFG_DIR)
 from lanes import lane_of, counts as lane_counts, shape_str, shape_line
 from bookids import book_key
+from shelf_state import exclusion_set
 
 BASE = os.path.dirname(os.path.abspath(__file__))
 ROOT = os.path.dirname(BASE)
@@ -474,6 +475,8 @@ def main():
     # never decided on. Resolution belongs to the app: it owns the reader state.
     # Newest issue first, one entry per book (a re-recommendation wins).
     pending, seen_pending = [], set()
+    shelf_ex = exclusion_set()  # your verdicts steer the carry-over too (#7)
+    held_back = 0
     for mf in reversed(month_files):
         ym = os.path.basename(mf)[len('month-'):-len('.json')]
         if ym == cur_ym:
@@ -487,12 +490,15 @@ def main():
             pb = pick_book(b, None, ensure_cover(b.get('img'), b.get('title'), b.get('author'), covers_dir))
             if not pb['id'] or pb['id'] in seen_pending:
                 continue
+            if pb['id'] in shelf_ex:
+                held_back += 1
+                continue
             seen_pending.add(pb['id'])
             pb['issue'] = {'n': (order.index(ym) + 1) if ym in order else 0,
                            'label': mlp['label'], 'ym': ym}
             pending.append(pb)
-    print('carried over: %d unresolved books from %d earlier issues'
-          % (len(pending), len(set(p['issue']['ym'] for p in pending))))
+    print('carried over: %d unresolved books from %d earlier issues (%d held back by your shelf)'
+          % (len(pending), len(set(p['issue']['ym'] for p in pending)), held_back))
 
     series = series_data()
     hero = hero_data(series)

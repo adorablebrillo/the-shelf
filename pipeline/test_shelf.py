@@ -49,7 +49,7 @@ class ExclusionSetTests(unittest.TestCase):
         write(self.d, 'library.json', {'series': [{'name': 'S', 'author': 'Lib Author',
                                                    'books': ['A Read Volume (#1)']}]})
         ex = exclusion_set(self.d)
-        self.assertEqual(ex['skipped--author'], 'not for me')
+        self.assertEqual(ex['skipped--author'], 'not_for_me')
         self.assertEqual(ex['readbook--author'], 'read')
         self.assertEqual(ex['lovedbook--author'], 'read')
         self.assertNotIn('wanted--author', ex)
@@ -59,10 +59,27 @@ class ExclusionSetTests(unittest.TestCase):
     def test_blank_volume_excludes_nothing(self):
         self.assertEqual(exclusion_set(self.d), {})
 
+    def test_authorless_series_falls_back_to_the_sequels_author(self):
+        write(self.d, 'library.json', {'series': [{'name': 'Nameless Cycle',
+                                                   'books': ['The Nameless First (#1)']}]})
+        write(self.d, 'sequels.json', {'series': [{'series': 'Nameless Cycle',
+                                                   'author': 'Fallback Author', 'next_books': []}]})
+        ex = exclusion_set(self.d)
+        self.assertIn(book_key('The Nameless First', 'Fallback Author'), ex)
+
+    def test_corrupt_files_warn_and_exclude_nothing(self):
+        open(self.d + '/reader-state.json', 'w').write('{nope')
+        import contextlib, io
+        buf = io.StringIO()
+        with contextlib.redirect_stdout(buf):
+            ex = exclusion_set(self.d)
+        self.assertEqual(ex, {})
+        self.assertIn('unreadable', buf.getvalue())
+
 
 class ExcludeTests(unittest.TestCase):
     def test_counts_and_keeps_the_clean(self):
-        ex = {'skipped--author': 'not for me', 'readbook--author': 'read'}
+        ex = {'skipped--author': 'not_for_me', 'readbook--author': 'read'}
         books = [{'title': 'Skipped', 'author': 'Author'},
                  {'title': 'Readbook', 'author': 'Author'},
                  {'title': 'Fresh', 'author': 'Author'}]
@@ -92,7 +109,7 @@ class ExcludeTests(unittest.TestCase):
         if not books:
             self.skipTest('empty candidates')
         b = books[0]
-        ex = {book_key(b['title'], b['author']): 'not for me'}
+        ex = {book_key(b['title'], b['author']): 'not_for_me'}
         kept, c = exclude_by_shelf(books, ex)
         self.assertEqual(len(kept), len(books) - 1)
         self.assertEqual(c['not_for_me'], 1)

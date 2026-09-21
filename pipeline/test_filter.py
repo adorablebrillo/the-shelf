@@ -14,8 +14,8 @@ class PairingScreenTests(unittest.TestCase):
 
     def test_standalone_markers(self):
         # the leak: these slipped through the substring list on 2026-09-21
-        self.assertTrue(queer_screen('Thawing the Ice for him: MM Hockey Romance', 'Romance Books Contemporary Romance'))
-        self.assertTrue(queer_screen('Pucking Revenge: A Dark MM Hockey Romance', 'Romance for Young Adults Books'))
+        self.assertTrue(queer_screen('Hockey Hearts: An MM Hockey Romance', 'Romance Books Contemporary Romance'))
+        self.assertTrue(queer_screen('Icebound: A Dark MM Romance', 'Romance for Young Adults Books'))
         self.assertTrue(queer_screen('A Match M/M Style', 'romance'))
         self.assertTrue(queer_screen('title', 'm x m pairing'))
 
