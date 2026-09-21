@@ -11,13 +11,7 @@ BASE = os.path.dirname(os.path.abspath(__file__))
 CFG = json.load(open(os.path.join(BASE, 'config.json')))
 
 
-def target_month():
-    """Which month file this run writes (and windows against)."""
-    if MODE == 'adhoc':
-        return date.today().strftime('%Y-%m')
-    today = date.today()
-    py, pm = (today.year - 1, 12) if today.month == 1 else (today.year, today.month - 1)
-    return '%04d-%02d' % (py, pm)
+from windows import target_month, window_end  # one definition, shared with curate
 
 
 def adhoc_window_ok(d):
@@ -71,12 +65,7 @@ def pool_ok(d, mon):
         day = date.fromisoformat(str(d)[:10])
     except Exception:
         return True
-    if MODE == 'adhoc':
-        end = date.today()
-    else:
-        import calendar
-        y, m = map(int, mon.split('-'))
-        end = date(y, m, calendar.monthrange(y, m)[1])
+    end = window_end(MODE, mon)
     return (end - timedelta(days=CFG.get('pool_back_days', 120))) <= day <= end
 
 
@@ -96,7 +85,7 @@ def in_window(d, mon):
 def main():
     import glob
     # resolve the target month from the mode (leftover files can't shift it)
-    mon = target_month()
+    mon = target_month(MODE)
     src_path = os.path.join(BASE, CFG['output_dir'], 'candidates-%s.json' % mon)
     if not os.path.exists(src_path):
         files = sorted(glob.glob(os.path.join(BASE, CFG['output_dir'], 'candidates-*.json')))

@@ -14,6 +14,7 @@ import json, os, sys, re, base64, urllib.request
 import paths  # shared resolver: reader data lives on the volume (CFG_DIR)
 from datetime import datetime, date, timedelta
 from lanes import LANES, lane_of, counts, shape_str, shape_line
+from windows import target_month, window_end
 
 BASE = os.path.dirname(os.path.abspath(__file__))
 CFG = json.load(open(os.path.join(BASE, 'config.json')))
@@ -32,16 +33,6 @@ def api_key():
     return None
 
 
-def window_end():
-    """The last day a pick may be released in (the window's end)."""
-    if MODE == 'adhoc':
-        return date.today()
-    import calendar
-    t = date.today()
-    py, pm = (t.year - 1, 12) if t.month == 1 else (t.year, t.month - 1)
-    return date(py, pm, calendar.monthrange(py, pm)[1])
-
-
 def age_days(d, end):
     """Days between a release date and the window end. None = unknown date
     (kept — the curator judges those, same as before)."""
@@ -55,12 +46,11 @@ def lane_availability(cands, end, attempts):
     """Per lane, per widening window: how many candidates exist. Lets the
     retry loop skip pointless calls (a lane that cannot fill even at 90d is
     dropped honestly, not retried)."""
+    aged = [(b, age_days(b.get('date'), end)) for b in cands]
     av = {}
     for l in LANES:
-        av[l] = {}
-        for d in attempts:
-            av[l][d] = sum(1 for b in cands if lane_of(b) == l and
-                           (age_days(b.get('date'), end) is None or age_days(b.get('date'), end) <= d))
+        av[l] = {d: sum(1 for b, a in aged if lane_of(b) == l and (a is None or a <= d))
+                 for d in attempts}
     return av
 
 
@@ -68,10 +58,13 @@ def _key(b):
     return ((b.get('title') or '').lower().strip(), (b.get('author') or '').lower().strip())
 
 
-def gap_fill(picks, cands, hi):
+def gap_fill(picks, cands, hi, lane_days, end):
     """Fill remaining slots from the strongest leftovers across ALL lanes —
-    only books that earn it (rating >= 4.0). Never filler."""
+    only books that earn it: inside their lane's window (the widening ladder
+    bounds every fill), rating >= 4.0, and indie/unknown publishers need the
+    same proof the filter demands. Never filler."""
     have = {_key(p) for p in picks}
+    earn = CFG.get('trad_pub_score_rating', 4.0)
     leftovers = [c for c in cands if _key(c) not in have]
     leftovers.sort(key=lambda c: (c.get('rating') if isinstance(c.get('rating'), (int, float)) else 0,
                                   c.get('rating_count') or 0), reverse=True)
@@ -79,9 +72,14 @@ def gap_fill(picks, cands, hi):
     for c in leftovers:
         if len(picks) + len(out) >= hi:
             break
+        age = age_days(c.get('date'), end)
+        if age is not None and age > lane_days[lane_of(c)]:
+            continue  # outside its lane's window
         r = c.get('rating')
-        if not (isinstance(r, (int, float)) and r >= CFG.get('trad_pub_score_rating', 4.0)):
-            continue
+        if not (isinstance(r, (int, float)) and r >= earn):
+            continue  # the earn-it bar
+        if not (c.get('trad') or c.get('indie_proven')):
+            continue  # indie/unknown need proven ratings (the filter's rule)
         out.append(c)
     return out
 
@@ -126,19 +124,21 @@ def build_payload(mon, window_rule, lane_days, av, cands, seq):
     }, indent=1)
 
 
-def curate(key, filtered, taste, seq, mon, window_rule, log=print):
-    """The widening loop + shape enforcement. Returns the curated dict."""
+def curate(key, filtered, taste, seq, mon, window_rule, call=None, log=print):
+    """The widening loop + shape enforcement. Returns the curated dict.
+    `call` is the model seam (tests inject a deterministic fake)."""
+    call = call or call_model
     cands = filtered.get('books', [])
     attempts = CFG.get('lane_widen_days', [30, 60, 90])
     floor = CFG.get('lane_floor', 2)
     hi = CFG['target_books'][1]
-    end = window_end()
+    end = window_end(MODE)
     av = lane_availability(cands, end, attempts)
     lane_days = {l: attempts[0] for l in LANES}
     cur = None
     for i, d in enumerate(attempts):
         payload = build_payload(mon, window_rule, lane_days, av, cands, seq)
-        cur = call_model(key, payload, taste)
+        cur = call(key, payload, taste)
         if not cur or 'books' not in cur:
             log('CURATE output not valid JSON — try another model in config.json')
             return None
@@ -150,26 +150,30 @@ def curate(key, filtered, taste, seq, mon, window_rule, log=print):
             break
         widened = False
         for l in deficient:
-            if i + 1 < len(attempts) and av[l][attempts[i + 1]] >= floor:
-                lane_days[l] = attempts[i + 1]
-                widened = True
+            # find the first rung at or beyond the next one that can reach the
+            # floor — a lane whose candidates sit at 80 days still widens to 90
+            for nxt in attempts[i + 1:]:
+                if av[l][nxt] >= floor:
+                    lane_days[l] = nxt
+                    widened = True
+                    break
         if not widened:
             break
     picks = cur['books']
-    dropped = [l for l in LANES if counts(picks)[l] < floor]
-    if dropped:
-        log('lane(s) dropped (could not fill floor within 90 days): %s' % ', '.join(dropped))
-    fills = gap_fill(picks, cands, hi)
+    fills = gap_fill(picks, cands, hi, lane_days, end)
     if fills:
         log('gap fill: +%d from the strongest leftovers (%s)' %
             (len(fills), ', '.join(lane_of(f) for f in fills)))
         picks = picks + fills
     c = counts(picks)
+    dropped = [l for l in LANES if c[l] < floor]
+    if dropped:
+        log('lane(s) below floor after widening + fill: %s' % ', '.join(dropped))
     cur['books'] = picks
     cur['lanes'] = c
     cur['shape'] = shape_str(c)
     cur['shape_line'] = shape_line(c)
-    cur['light'] = len(picks) < 6
+    cur['light'] = len(picks) < CFG['target_books'][0]
     cur['dropped_lanes'] = dropped
     cur['widen'] = {l: lane_days[l] for l in LANES if lane_days[l] > attempts[0]}
     return cur
@@ -182,11 +186,7 @@ def main():
         return 2
     # target month by mode: adhoc = now (rolling 30 days) · scheduled = previous month
     import glob
-    if MODE == 'adhoc':
-        mon = datetime.now().strftime('%Y-%m')
-    else:
-        py, pm = (datetime.now().year - 1, 12) if datetime.now().month == 1 else (datetime.now().year, datetime.now().month - 1)
-        mon = '%04d-%02d' % (py, pm)
+    mon = target_month(MODE)
     fp = os.path.join(BASE, CFG['output_dir'], 'filtered-%s.json' % mon)
     if not os.path.exists(fp):
         files = sorted(glob.glob(os.path.join(BASE, CFG['output_dir'], 'filtered-*.json')))

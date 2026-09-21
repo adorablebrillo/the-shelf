@@ -523,7 +523,7 @@ def main():
     _lc = lane_counts(book_list)
     month['shape'] = shape_str(_lc)          # the shape it shipped (ticket #6)
     month['shapeLine'] = shape_line(_lc)
-    month['light'] = len(book_list) < 6
+    month['light'] = len(book_list) < CFG['target_books'][0]  # under the floor -> light month
 
     for b in book_list:                      # this issue's own provenance
         b['issue'] = {'n': month['issue'], 'label': ml['label'], 'ym': cur_ym}
