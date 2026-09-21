@@ -4,6 +4,15 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>__SHELF_TITLE__</title>
+<!-- home-screen app (ticket #12): installed once from Safari; the manifest
+     and apple meta make it open full-screen, themed to the design -->
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="apple-touch-icon" href="assets/app-icon-180.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="The Shelf">
+<meta name="theme-color" content="#1E3A2F">
 <!-- vendor remap: load React locally (no CDN) — the dc-runtime reads these keys -->
 <script>window.__resources = {
   "https://unpkg.com/react@18.3.1/umd/react.production.min.js": "assets/vendor/react.production.min.js",

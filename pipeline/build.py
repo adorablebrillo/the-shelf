@@ -447,6 +447,11 @@ def copy_static():
     os.makedirs(os.path.join(DIST, 'assets', 'vendor'), exist_ok=True)
     pairs = [
         (os.path.join(DESIGN, 'support.js'), os.path.join(DIST, 'support.js')),
+        (os.path.join(DESIGN, 'manifest.webmanifest'), os.path.join(DIST, 'manifest.webmanifest')),
+        (os.path.join(DESIGN, 'assets', 'app-icon-180.png'), os.path.join(DIST, 'assets', 'app-icon-180.png')),
+        (os.path.join(DESIGN, 'assets', 'app-icon-192.png'), os.path.join(DIST, 'assets', 'app-icon-192.png')),
+        (os.path.join(DESIGN, 'assets', 'app-icon-512.png'), os.path.join(DIST, 'assets', 'app-icon-512.png')),
+        (os.path.join(DESIGN, 'assets', 'app-icon-maskable-512.png'), os.path.join(DIST, 'assets', 'app-icon-maskable-512.png')),
         (os.path.join(DESIGN, 'vendor', 'react.production.min.js'), os.path.join(DIST, 'assets', 'vendor', 'react.production.min.js')),
         (os.path.join(DESIGN, 'vendor', 'react-dom.production.min.js'), os.path.join(DIST, 'assets', 'vendor', 'react-dom.production.min.js')),
     ]
