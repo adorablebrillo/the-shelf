@@ -16,7 +16,7 @@ archive* (the reading room bookcase + everything she has read).
 | `container/` | server.py (web UI + settings API + scheduler) and Dockerfile |
 | `templates/` | Unraid Community Applications template (`my-the-shelf.xml`) + icon |
 | `.lavish/assets/` | the design's art — the seasonal coffee illustrations |
-| `pipeline/design/` | the live design (`app.html` + `support.js` + vendored React) |
+| `pipeline/design/` | the live design (`app.html` + `support.js` + vendored React + the home-screen manifest and icons) |
 | `compose.yaml` | Unraid-friendly compose (port 8787, appdata volumes) |
 
 ## Deploy on Unraid
@@ -28,6 +28,23 @@ key, pick a model, save. It runs the 1st of every month at 09:00 (TZ) and
 rebuilds the page.
 
 Full steps: [`UNRAID-INSTALL.md`](UNRAID-INSTALL.md)
+
+## Install it on your phone
+
+The page is also a home-screen app: its own gold **S** icon and the name
+"The Shelf", opening full-screen with no browser chrome.
+
+1. On the phone, open the shelf's address in **Safari**
+   (`http://[unraid-ip]:8787`).
+2. Tap **Share → Add to Home Screen**, then **Add**.
+3. Open it from the home screen — it launches full-screen, no browser
+   chrome. The page stays cream; Android tints the bar forest (`theme-color`),
+   iOS keeps its light status bar over the cream.
+
+iOS only gives a true full-screen app when it is installed from Safari — keep
+browsing day-to-day in Chrome if you like, the icon is independent of the
+browser. The app points at the same LAN address, so it keeps working across
+redeploys (the `/config` volume survives every image update).
 
 ## Bring your own data
 

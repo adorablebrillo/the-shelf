@@ -14,7 +14,7 @@ pipeline/
 ├── fetch.py           # Apple Books search (lane terms + author lane), publisher/language/series per book
 ├── filter.py          # hard rules + your shelf's verdicts (read/not-for-me never return)
 ├── curate.py          # OpenRouter call(s) → curated month JSON, shaped 3/3/3 (ticket #6)
-├── build.py           # month JSON → dist/index.html (the live design in design/app.html; blank installs get a valid empty-state page)
+├── build.py           # month JSON → dist/index.html (design/app.html + manifest.webmanifest + assets/app-icon-*.png; blank installs get a valid empty-state page)
 ├── lanes.py           # one lane mapping shared by curate/build/tests
 ├── windows.py         # target month + window end, shared by filter/curate
 ├── bookids.py         # the canonical book identity (book_key), shared by engine + app

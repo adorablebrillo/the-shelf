@@ -251,6 +251,7 @@ class H(BaseHTTPRequestHandler):
         self.wfile.write(b)
 
     KINDS = {'.html': 'text/html; charset=utf-8', '.js': 'application/javascript; charset=utf-8',
+             '.webmanifest': 'application/manifest+json; charset=utf-8',
              '.css': 'text/css; charset=utf-8', '.png': 'image/png', '.jpg': 'image/jpeg',
              '.jpeg': 'image/jpeg', '.svg': 'image/svg+xml', '.webp': 'image/webp',
              '.ico': 'image/x-icon', '.woff2': 'font/woff2', '.woff': 'font/woff'}
@@ -470,6 +471,9 @@ def ensure_default():
             bd = os.path.join(PIPELINE, 'dist', 'index.html')
             if os.path.isfile(bd):
                 shutil.copy2(bd, os.path.join(DIST, 'index.html'))
+                bm = os.path.join(PIPELINE, 'dist', 'manifest.webmanifest')
+                if os.path.isfile(bm):  # ticket #12 — install metadata rides along
+                    shutil.copy2(bm, os.path.join(DIST, 'manifest.webmanifest'))
                 ba = os.path.join(PIPELINE, 'dist', 'assets')
                 da = os.path.join(DIST, 'assets')
                 if os.path.isdir(ba):
