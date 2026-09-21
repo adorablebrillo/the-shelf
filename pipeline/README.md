@@ -12,13 +12,17 @@ pipeline/
 ├── config.json        # model, rules, deploy target
 ├── taste-prompt.md    # the curator brain — the reader's profile + rules (repo ships a generic default; a deployed shelf keeps its own in /config)
 ├── fetch.py           # Apple Books: lane terms + the author lane; publisher & language per book
-├── filter.py          # hard rules: M/F, no dark, spice band, a widening pool, trad/pub-first
+├── filter.py          # hard rules + your shelf's verdicts (read/not-for-me never return)
 ├── curate.py          # OpenRouter call(s) → curated month JSON, shaped 3/3/3 (ticket #6)
 ├── build.py           # month JSON → dist/index.html (the live design in design/app.html; blank installs get a valid empty-state page)
 ├── lanes.py           # one lane mapping shared by curate/build/tests
 ├── windows.py         # target month + window end, shared by filter/curate
+├── bookids.py         # the canonical book identity (book_key), shared by engine + app
+├── shelf_state.py     # your verdicts: the exclusion set + split (ticket #7)
 ├── paths.py           # personal files: config volume first, repo copy as fallback
-├── test_shape.py      # the shape rule's deterministic tests (python3 -m unittest test_shape)
+├── test_shape.py      # the shape rule's deterministic tests
+├── test_shelf.py      # your-shelf exclusion tests
+├── test_filter.py     # the pairing screen's tests
 ├── design/            # the live design — app.html + support.js + vendored React
 ├── run.sh             # one-shot: fetch → filter → curate → build [--deploy]
 └── data/              # candidates-*.json, filtered-*.json, month-*.json (history)

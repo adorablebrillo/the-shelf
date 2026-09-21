@@ -7,6 +7,8 @@ from datetime import datetime, date, timedelta
 # SHELF_MODE=adhoc     -> "curate now": a rolling window of the last 30 days
 MODE = os.environ.get('SHELF_MODE', 'scheduled')
 
+from shelf_state import exclusion_set, exclude_by_shelf
+
 BASE = os.path.dirname(os.path.abspath(__file__))
 CFG = json.load(open(os.path.join(BASE, 'config.json')))
 
@@ -27,6 +29,9 @@ def adhoc_window_ok(d):
 
 NO_DARK = ('dark', 'academy', 'bully', 'anti-hero', 'morally gray')
 NO_QUEER = ('mm romance', 'male/male', 'mlm', 'gay romance', 'ff romance', 'female/female', 'wlw', 'queer', 'nonbinary')
+# standalone pairing markers the substring list misses ("MM Hockey Romance",
+# "M/M", "m x m") — a real run let three MM titles through on 2026-09-21
+NO_QUEER_WORDS = (r'\bmm\b', r'\bm/m\b', r'\bm\s*x\s*m\b')
 # Trad-pub detection now runs against the REAL publisher (fetch resolves it from
 # each book's Apple page; the old code compared the author name to itself and
 # never fired). Substring hints are safe; short hints need word boundaries
@@ -69,6 +74,13 @@ def pool_ok(d, mon):
     return (end - timedelta(days=CFG.get('pool_back_days', 120))) <= day <= end
 
 
+def queer_screen(title, genre):
+    """True = excluded by the M/F-only rule (substring list + word markers)."""
+    if any(k in genre for k in NO_QUEER): return True
+    if any(k in title for k in NO_QUEER): return True
+    return any(re.search(w, title, re.I) or re.search(w, genre, re.I) for w in NO_QUEER_WORDS)
+
+
 def in_window(d, mon):
     if not d: return True  # unknown date -> keep for LLM to judge
     try:
@@ -98,8 +110,7 @@ def main():
     for b in cands:
         title = (b.get('title') or '').lower()
         genre = (b.get('genre') or '').lower()
-        if any(k in genre for k in NO_QUEER): continue
-        if any(k in title for k in NO_QUEER): continue
+        if queer_screen(title, genre): continue
         # dark-romance signal: let the LLM make the final call, but tag it
         b['dark_flag'] = any(k in title or k in genre for k in NO_DARK)
         # keep the whole widening pool; in_window tags the base window
@@ -119,6 +130,10 @@ def main():
         b['pub_known'] = bool(pub)
         b['indie_proven'] = bool(cls == 'indie' and proven)
         kept.append(b)
+    # your shelf steers the engine (ticket #7): resolved books never return
+    kept, shelf_counts = exclude_by_shelf(kept, exclusion_set())
+    print('shelf: excluded %d candidate(s) — %d not for me · %d already read'
+          % (shelf_counts['total'], shelf_counts['not_for_me'], shelf_counts['read']))
     # newest first — the curator reads top-down
     kept.sort(key=lambda b: (b.get('date') or '0000-00-00'), reverse=True)
     total = len(kept)
@@ -142,6 +157,7 @@ def main():
         print('cap: kept %d of %d — under the %d cap, nothing dropped' % (total, total, cap))
     out = os.path.join(BASE, CFG['output_dir'], 'filtered-%s.json' % mon)
     json.dump({'month': mon, 'mode': MODE, 'books': kept,
+               'shelf_excluded': shelf_counts,
                'cap': {'pool': total, 'kept': len(kept), 'max': cap},
                'rules': {
                    'mf_only': True, 'no_dark': True, 'spice_min': CFG['spice_min'],

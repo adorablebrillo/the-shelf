@@ -519,11 +519,11 @@ const BREWS=[
 function hydrateIds(d){
   if(!d) return d;
   const norm=(s)=>String(s||'').toLowerCase().replace(/\([^)]*\)/g,' ').split(';')[0].replace(/[^a-z0-9]/g,'');
-  const fb=(b)=>norm(b.t||b.title)+(norm(b.t||b.title)?'--'+norm(b.author):'');
-  const fill=(arr)=>{ (arr||[]).forEach(b=>{ if(b&&!b.id&&b.title!==undefined||b&&!b.id&&b.t!==undefined){ b.id=fb(b).replace(/-+$/,''); } }); };
+  const fb=(b)=>{const t=norm(b.t||b.title).slice(0,72),a=norm(b.author).slice(0,30);return (t+(t?'--'+a:'')).replace(/-+$/,'');};
+  const fill=(arr)=>{ (arr||[]).forEach(b=>{ if(b&&!b.id&&b.title!==undefined||b&&!b.id&&b.t!==undefined){ b.id=fb(b); } }); };
   (d.series||[]).forEach(s=>fill(s.books));
   fill(d.books); fill(d.pending);
-  if(d.hero&&!d.hero.id) d.hero.id=fb({t:d.hero.title,author:d.hero.author}).replace(/-+$/,'');
+  if(d.hero&&!d.hero.id) d.hero.id=fb({t:d.hero.title,author:d.hero.author});
   return d;
 }
 
