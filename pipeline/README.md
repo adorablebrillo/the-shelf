@@ -11,7 +11,7 @@ up to three when a thin lane needs its window widened (the shape rule).
 pipeline/
 ├── config.json        # model, rules, deploy target
 ├── taste-prompt.md    # the curator brain — the reader's profile + rules (repo ships a generic default; a deployed shelf keeps its own in /config)
-├── fetch.py           # Apple Books: lane terms + the author lane; publisher & language per book
+├── fetch.py           # Apple Books search (lane terms + author lane), publisher/language/series per book
 ├── filter.py          # hard rules + your shelf's verdicts (read/not-for-me never return)
 ├── curate.py          # OpenRouter call(s) → curated month JSON, shaped 3/3/3 (ticket #6)
 ├── build.py           # month JSON → dist/index.html (the live design in design/app.html; blank installs get a valid empty-state page)
@@ -23,6 +23,7 @@ pipeline/
 ├── test_shape.py      # the shape rule's deterministic tests
 ├── test_shelf.py      # your-shelf exclusion tests
 ├── test_filter.py     # the pairing screen's tests
+├── test_watches.py    # author watches: page series extraction + the radar merge
 ├── design/            # the live design — app.html + support.js + vendored React
 ├── run.sh             # one-shot: fetch → filter → curate → build [--deploy]
 └── data/              # candidates-*.json, filtered-*.json, month-*.json (history)

@@ -67,7 +67,8 @@ class AuthorUpcomingTests(unittest.TestCase):
     def test_upcoming_in_a_tracked_series_becomes_next(self):
         p = self.write([
             {'title': 'Some Future Book', 'author': 'Rebecca Yarros', 'series': 'The Empyrean',
-             'series_num': '4', 'date': '2026-11-03', 'publisher': 'Red Tower'},
+             'series_num': '4', 'date': '2026-11-03', 'publisher': 'Red Tower',
+             'found_by': ['author:Rebecca Yarros']},
         ])
         got = build.author_upcoming(self.tracked, self.today, path=p)
         entry = got[build.norm_name('The Empyrean')][0]
@@ -76,15 +77,38 @@ class AuthorUpcomingTests(unittest.TestCase):
         self.assertEqual(entry['status'], 'soon')
 
     def test_released_book_is_never_radar(self):
-        p = self.write([{'title': 'Out Already', 'series': 'The Empyrean', 'date': '2026-09-01'}])
+        p = self.write([{'title': 'Out Already', 'series': 'The Empyrean', 'date': '2026-09-01',
+                         'found_by': ['author:Rebecca Yarros']}])
         self.assertEqual(build.author_upcoming(self.tracked, self.today, path=p), {})
 
     def test_standalone_and_untracked_are_skipped(self):
         p = self.write([
-            {'title': 'No Series', 'date': '2026-11-01'},
-            {'title': 'Other Series Book', 'series': 'Some Other Cycle', 'date': '2026-11-01'},
+            {'title': 'No Series', 'date': '2026-11-01', 'found_by': ['author:X']},
+            {'title': 'Other Series Book', 'series': 'Some Other Cycle', 'date': '2026-11-01',
+             'found_by': ['author:X']},
         ])
         self.assertEqual(build.author_upcoming(self.tracked, self.today, path=p), {})
+
+    def test_lane_term_hits_do_not_merge(self):
+        p = self.write([
+            {'title': 'Found By A Term', 'series': 'The Empyrean', 'date': '2026-11-01',
+             'found_by': ['hockey romance']},
+        ])
+        self.assertEqual(build.author_upcoming(self.tracked, self.today, path=p), {})
+
+    def test_lookalike_series_does_not_merge(self):
+        p = self.write([
+            {'title': 'Legacy Book', 'series': 'The Empyrean Legacy', 'date': '2026-11-01',
+             'found_by': ['author:Rebecca Yarros']},
+        ])
+        self.assertEqual(build.author_upcoming(self.tracked, self.today, path=p), {})
+
+    def test_series_key_match_rules(self):
+        tracked = {'theempyrean': 1, 'acourtofthornsandroses': 1}
+        self.assertEqual(build.series_key_match('theempyrean', tracked), 'theempyrean')
+        self.assertEqual(build.series_key_match('empyrean', tracked), 'theempyrean')
+        self.assertIsNone(build.series_key_match('theempyreanlegacy', tracked))
+        self.assertIsNone(build.series_key_match('somethingelse', tracked))
 
     def test_missing_file_is_quiet(self):
         self.assertEqual(build.author_upcoming(self.tracked, self.today, path='/nonexistent.json'), {})
@@ -112,15 +136,40 @@ class SeriesMergeTests(unittest.TestCase):
             build.norm_name('The Empyrean'): [
                 {'title': 'Fresh Book (#3)', 'release_date': '2026-11-03', 'status': 'soon', 'publisher': ''},
                 {'title': 'Known Book (#2)', 'release_date': '2026-12-01', 'status': 'soon', 'publisher': ''},
+                {'title': 'Fresh Book (#3)', 'release_date': '2026-11-03', 'status': 'soon', 'publisher': ''},
             ]}
         series = build.series_data()
         emp = [s for s in series if s['name'] == 'The Empyrean'][0]
         titles = [b['t'] for b in emp['books']]
-        self.assertIn('Fresh Book', titles)          # merged
-        self.assertEqual(titles.count('Known Book'), 1)  # deduped
+        self.assertIn('Fresh Book', titles)              # merged
+        self.assertEqual(titles.count('Fresh Book'), 1)  # same-title twice in one batch -> one entry
+        self.assertEqual(titles.count('Known Book'), 1)  # deduped against the sequels map
         fresh = [b for b in emp['books'] if b['t'] == 'Fresh Book'][0]
         self.assertEqual(fresh['state'], 'soon')
-        self.assertTrue(fresh['d'])                  # the countdown label exists
+        self.assertTrue(fresh['d'])                      # the countdown label exists
+
+
+class PageCacheTests(unittest.TestCase):
+    """Entries cached before #9 carry no series — resolve_product must refetch
+    them once instead of silently returning a seriesless record."""
+
+    def test_old_cache_entry_refetches_and_heals(self):
+        rec = {'url': 'https://books.apple.com/us/book/onyx-storm/id6480186648'}
+        calls = []
+        orig = fetch._get
+        fetch._get = lambda url, gap, kind: (calls.append(url), PAGE_WITH_SERIES)[1]
+        try:
+            cache = {'6480186648': {'publisher': 'Red Tower', 'language': 'en-US',
+                                    'isbn': '1', 'audio': True, 'at': '2026-01-01'}}
+            info = fetch.resolve_product(rec, cache)
+            self.assertEqual(len(calls), 1)                 # refetched, not served stale
+            self.assertEqual(info['series'], 'The Empyrean')
+            self.assertEqual(cache['6480186648']['series'], 'The Empyrean')
+            info2 = fetch.resolve_product(rec, cache)
+            self.assertEqual(len(calls), 1)                 # second call: pure cache hit
+            self.assertEqual(info2['series'], 'The Empyrean')
+        finally:
+            fetch._get = orig
 
 
 class FutureNeverPicksTests(unittest.TestCase):

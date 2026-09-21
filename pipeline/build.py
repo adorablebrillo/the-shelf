@@ -227,6 +227,22 @@ def next_books_for(entry, today):
     return out
 
 
+def series_key_match(k, tracked):
+    """A candidate's series name against the tracked map: exact, or a bare
+    'the'-prefix variant. Deliberately NOT open substring matching — 'The
+    Empyrean Legacy' must never merge into 'The Empyrean'."""
+    if k in tracked:
+        return k
+    for k2 in tracked:
+        if not k2 or len(k2) < 5 or len(k) < 5:
+            continue
+        if k2.endswith(k) and len(k2) - len(k) <= 3:
+            return k2
+        if k.endswith(k2) and len(k) - len(k2) <= 3:
+            return k2
+    return None
+
+
 def author_upcoming(tracked, today, path=None):
     """Watched authors feed the tracked series (ticket #9): a candidates-file
     book whose Apple page names a series she tracks and whose release is still
@@ -249,16 +265,12 @@ def author_upcoming(tracked, today, path=None):
         ser = (b.get('series') or '').strip()
         if not ser:
             continue
+        if not any((f or '').startswith('author:') for f in b.get('found_by') or []):
+            continue  # author watches feed the engine — lane-term hits don't merge (#9)
         dt = str(b.get('date') or '')[:10]
         if not re.match(r'^\d{4}-\d{2}-\d{2}$', dt) or dt <= today:
             continue  # released -> a pick, never radar (#9)
-        k = norm_name(ser)
-        hit = k if k in tracked else None
-        if hit is None:
-            for k2 in tracked:
-                if k2 and (k2 in k or k in k2):
-                    hit = k2
-                    break
+        hit = series_key_match(norm_name(ser), tracked)
         if hit is None:
             continue  # not a series she tracks
         title = b.get('title') or ''
@@ -290,17 +302,23 @@ def series_data():
     for ser in seq.get('series', []):
         seqmap[norm_name(ser.get('series'))] = ser
 
-    upcoming = author_upcoming(seqmap, today)  # #9: watched authors feed the tracked series
-    merged_n = [0]
+    upcoming = author_upcoming(seqmap, today)  # #9: author watches feed the tracked series
+    merged_total = 0
 
     def merge_upcoming(entry, keys):
-        have = {norm_name(re.sub(r'\s*\([^)]*\)\s*$', '', x.get('title') or ''))
-                for x in (entry.get('next_books') or [])}
+        """Append upcoming entries this series does not already know.
+        Returns how many landed (the set is updated on append — two same-title
+        candidates in one batch must not both land)."""
+        have = {norm_name(x.get('title') or '') for x in (entry.get('next_books') or [])}
+        n = 0
         for k2 in keys:
             for up in upcoming.get(k2, []):
-                if norm_name(re.sub(r'\s*\([^)]*\)\s*$', '', up['title'])) not in have:
+                t = norm_name(up['title'])
+                if t not in have:
                     entry.setdefault('next_books', []).append(up)
-                    merged_n[0] += 1
+                    have.add(t)
+                    n += 1
+        return n
 
     used = set()
     out = []
@@ -321,7 +339,7 @@ def series_data():
             keys = [k2 for k2 in seqmap if k2 and (k2 in k or k in k2)]
             for k2 in keys:
                 used.add(k2)
-            merge_upcoming(entry, keys)
+            merged_total += merge_upcoming(entry, keys)
             for nb in entry.get('next_books', []):
                 if nb.get('publisher') and not publisher:
                     publisher = nb['publisher']
@@ -340,7 +358,7 @@ def series_data():
         nm = v2.get('series') or ''
         if not nm:
             continue
-        merge_upcoming(v2, [k2])
+        merged_total += merge_upcoming(v2, [k2])
         publisher = ''
         for nb in v2.get('next_books', []):
             if nb.get('publisher') and not publisher:
@@ -350,8 +368,8 @@ def series_data():
             b['id'] = b.get('id') or book_key(b['t'], v2.get('author'))
         out.append({'name': nm, 'author': v2.get('author') or '', 'publisher': publisher,
                     'books': nb_list})
-    if merged_n[0]:
-        print('watched authors: %d upcoming series book(s) merged into the series lane' % merged_n[0])
+    if merged_total:
+        print('author watches: %d upcoming series book(s) merged into the series lane' % merged_total)
     return out
 
 
