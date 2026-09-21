@@ -62,6 +62,24 @@ def pub_class(pub):
         return 'indie'
     return 'unknown'
 
+def pool_ok(d, mon):
+    """The pool curate can draw from: the window's end back pool_back_days.
+    Curate widens thin lanes 30 -> 60 -> 90 days; a stage that hard-windows
+    here leaves curate nothing to widen into."""
+    if not d: return True  # unknown date -> let the LLM judge
+    try:
+        day = date.fromisoformat(str(d)[:10])
+    except Exception:
+        return True
+    if MODE == 'adhoc':
+        end = date.today()
+    else:
+        import calendar
+        y, m = map(int, mon.split('-'))
+        end = date(y, m, calendar.monthrange(y, m)[1])
+    return (end - timedelta(days=CFG.get('pool_back_days', 120))) <= day <= end
+
+
 def in_window(d, mon):
     if not d: return True  # unknown date -> keep for LLM to judge
     try:
@@ -95,10 +113,12 @@ def main():
         if any(k in title for k in NO_QUEER): continue
         # dark-romance signal: let the LLM make the final call, but tag it
         b['dark_flag'] = any(k in title or k in genre for k in NO_DARK)
+        # keep the whole widening pool; in_window tags the base window
         if MODE == 'adhoc':
-            if not adhoc_window_ok(b.get('date')): continue
+            b['in_window'] = adhoc_window_ok(b.get('date'))
         else:
-            if not in_window(b.get('date'), mon): continue
+            b['in_window'] = in_window(b.get('date'), mon)
+        if not pool_ok(b.get('date'), mon): continue
         pub = b.get('publisher') or ''
         cls = pub_class(pub)
         r = b.get('rating')
@@ -136,8 +156,12 @@ def main():
                'cap': {'pool': total, 'kept': len(kept), 'max': cap},
                'rules': {
                    'mf_only': True, 'no_dark': True, 'spice_min': CFG['spice_min'],
-                   'trad_first_indie_with_proof': True}}, open(out, 'w'), indent=1)
-    print('filtered: %d / %d -> %s (%s)' % (len(kept), len(cands), out, MODE))
+                   'trad_first_indie_with_proof': True,
+                   'pool_back_days': CFG.get('pool_back_days', 120)}}, open(out, 'w'), indent=1)
+    nwin = sum(1 for b in kept if b.get('in_window'))
+    print('filtered: %d / %d -> %s (%s; %d in-window + %d widened-pool, pool %dd)'
+          % (len(kept), len(cands), out, MODE, nwin, len(kept) - nwin,
+             CFG.get('pool_back_days', 120)))
     return 0
 
 if __name__ == '__main__':

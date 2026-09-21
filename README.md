@@ -1,8 +1,9 @@
 # The Shelf 📚
 
 Monthly new-romance page + self-driving pipeline. An editorial cream-and-gold
-web app (Cormorant Garamond, forest-green hero panels) that curates **6–8 new
-sport-romance, romantasy & contemporary releases** for one reader, every 1st of
+web app (Cormorant Garamond, forest-green hero panels) that curates **up to 9 new
+releases across three lanes — sport romance, romantasy & contemporary romance**
+— for one reader, every 1st of
 the month: fetch → filter → OpenRouter curation → build → serve. Two views —
 *This month* (the drop, the series hero, every series she is in) and *The
 archive* (the reading room bookcase + everything she has read).
@@ -46,8 +47,8 @@ you bring your own data.
 ## How it works
 
 1. **fetch** — Apple Books only: a query per lane term + a query per author (the authors of every series you track + the authors you watch), then each book's real publisher, language and audiobook availability read from its page
-2. **filter** — the reader's hard rules: M/F only, no dark romance, spice 3–5, past-two-months window, trad-pub first (indie only with proven ratings)
-3. **curate** — one OpenRouter LLM call (`taste-prompt.md`) → 6–8 books, hooks, top pick, MMC vibe scores
+2. **filter** — the reader's hard rules: M/F only, no dark romance, spice 3–5, a widening pool (thin lanes may look 30 → 60 → 90 days back), trad-pub first (indie only with proven ratings)
+3. **curate** — one OpenRouter LLM call (`taste-prompt.md`) → up to 9 books shaped 3/3/3 (floor two per lane; thin lanes widen 30→60→90 days before being dropped), hooks, top pick, MMC vibe scores
 4. **build** — injects the month into the approved template → `index.html`
 5. **serve + schedule** — Python-stdlib server, settings in `/config`, cron in-container
 
