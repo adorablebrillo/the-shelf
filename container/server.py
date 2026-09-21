@@ -471,6 +471,9 @@ def ensure_default():
             bd = os.path.join(PIPELINE, 'dist', 'index.html')
             if os.path.isfile(bd):
                 shutil.copy2(bd, os.path.join(DIST, 'index.html'))
+                bm = os.path.join(PIPELINE, 'dist', 'manifest.webmanifest')
+                if os.path.isfile(bm):  # ticket #12 — install metadata rides along
+                    shutil.copy2(bm, os.path.join(DIST, 'manifest.webmanifest'))
                 ba = os.path.join(PIPELINE, 'dist', 'assets')
                 da = os.path.join(DIST, 'assets')
                 if os.path.isdir(ba):
