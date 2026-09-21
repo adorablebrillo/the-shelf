@@ -308,12 +308,15 @@ class H(BaseHTTPRequestHandler):
         else:
             self._static(u.path)
 
+    def _body(self):
+        try:
+            return json.loads(self.rfile.read(int(self.headers.get('Content-Length', 0))))
+        except Exception:
+            return {}
+
     def do_POST(self):
         u = urlparse(self.path)
-        try:
-            body = json.loads(self.rfile.read(int(self.headers.get('Content-Length', 0))))
-        except Exception:
-            body = {}
+        body = self._body()
         if u.path == '/api/state':
             cur = load_state()
             cur['states'] = merge_states(cur.get('states'), body.get('states') or {})
@@ -351,10 +354,7 @@ class H(BaseHTTPRequestHandler):
 
     def do_DELETE(self):
         u = urlparse(self.path)
-        try:
-            body = json.loads(self.rfile.read(int(self.headers.get('Content-Length', 0))))
-        except Exception:
-            body = {}
+        body = self._body()
         if u.path == '/api/authors':
             lst = authors_remove(body.get('name'))
             log('author watch removed: %s' % str(body.get('name'))[:60])
@@ -403,7 +403,8 @@ def merge_states(server_states, incoming):
 
 
 def norm_author(name):
-    """The fetch's normalization: lowercase, non-alphanumerics dropped."""
+    """The fetch's normalization (fetch.py normkey — keep the two in step):
+    lowercase, non-alphanumerics dropped."""
     return re.sub(r'[^a-z0-9]', '', str(name or '').lower())
 
 
@@ -415,7 +416,7 @@ def load_authors():
             return d
     except Exception:
         pass
-    return {'v': 1, 'authors': []}
+    return {'authors': []}
 
 
 def save_authors(d):

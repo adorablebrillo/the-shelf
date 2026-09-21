@@ -54,8 +54,8 @@
     [data-m="pills"]{gap:8px !important}
     [data-m="stackCase"]{padding:20px 12px 0 !important}
     [data-m="stackTip"]{max-width:62vw !important}
-    [data-m="setVeil"]{padding:0 !important;align-items:stretch !important}
-    [data-m="settingsBox"]{padding:24px 18px 44px !important;max-width:none !important;min-height:100%;border-left:none !important;border-right:none !important;border-top:none !important}
+    [data-m="setVeil"]{padding:0 !important;align-items:flex-end !important}
+    [data-m="settingsBox"]{padding:24px 18px 30px !important;max-width:none !important;width:100% !important;max-height:94% !important;min-height:0 !important;overflow:auto !important;border-left:none !important;border-right:none !important;border-bottom:none !important;box-shadow:0 -18px 50px rgba(20,18,14,.35) !important}
     [data-m="settingsBox"] input,[data-m="settingsBox"] select,[data-m="settingsBox"] button{min-height:44px !important}
   }
 </style>
@@ -438,8 +438,8 @@
     <h2 id="set-title" style="font-family:'Cormorant Garamond',Garamond,serif;font-weight:500;font-size:36px;letter-spacing:.05em;margin:8px 0 0">shelf settings</h2>
     <p style="margin:6px 0 0;font-size:10px;letter-spacing:.3em;text-transform:uppercase;color:#6E6353">Sport Romance · Romantasy · Contemporary Romance</p>
     <div role="tablist" aria-label="settings sections" style="display:flex;margin-top:20px;border-bottom:1px solid #C6BBA3">
-      <button type="button" id="tab-shelf" role="tab" aria-selected="true" aria-controls="panel-shelf" style="font-size:10.5px;letter-spacing:.28em;text-transform:uppercase;padding:12px 18px 11px;background:transparent;border:none;border-bottom:2px solid #1E3A2F;color:#211E19;cursor:pointer;min-height:44px">Shelf</button>
-      <button type="button" id="tab-authors" role="tab" aria-selected="false" aria-controls="panel-authors" style="font-size:10.5px;letter-spacing:.28em;text-transform:uppercase;padding:12px 18px 11px;background:transparent;border:none;border-bottom:2px solid transparent;color:#6E6353;cursor:pointer;min-height:44px">Authors</button>
+      <button type="button" id="tab-shelf" role="tab" aria-selected="true" aria-controls="panel-shelf" tabindex="0" style="font-size:10.5px;letter-spacing:.28em;text-transform:uppercase;padding:12px 18px 11px;background:transparent;border:none;border-bottom:2px solid #1E3A2F;color:#211E19;cursor:pointer;min-height:44px">Shelf</button>
+      <button type="button" id="tab-authors" role="tab" aria-selected="false" aria-controls="panel-authors" tabindex="-1" style="font-size:10.5px;letter-spacing:.28em;text-transform:uppercase;padding:12px 18px 11px;background:transparent;border:none;border-bottom:2px solid transparent;color:#6E6353;cursor:pointer;min-height:44px">Authors</button>
     </div>
     <div id="panel-shelf" role="tabpanel" aria-labelledby="tab-shelf">
     <p style="margin:10px 0 0;font-size:15px;line-height:1.6;color:#4A443A">Your OpenRouter key lives on your server in the appdata volume — it survives redeploys.</p>
@@ -480,11 +480,22 @@
   var veil=document.getElementById('set-veil');
   if(!veil)return;
   function open(){veil.style.display='flex';loadStatus();loadAuthors();if(!document.getElementById('set-model').options.length){loadModels();}startPolling();var x=document.getElementById('set-x');if(x)x.focus();}
-  function close(){veil.style.display='none';stopPolling();}
+  function close(){veil.style.display='none';stopPolling();var o=document.getElementById('set-open');if(o)o.focus();}
   document.addEventListener('click',function(e){if(e.target&&e.target.id==='set-open'){open();}});
   document.getElementById('set-x').addEventListener('click',close);
   veil.addEventListener('click',function(e){if(e.target===veil)close();});
   document.addEventListener('keydown',function(e){if(e.key==='Escape'&&veil.style.display!=='none')close();});
+  function focusables(){
+    return Array.prototype.slice.call(document.querySelectorAll('#settings-box button,#settings-box input,#settings-box select'))
+      .filter(function(el){return el.offsetParent!==null&&!el.disabled;});
+  }
+  document.addEventListener('keydown',function(e){
+    if(e.key!=='Tab'||veil.style.display==='none')return;
+    var f=focusables();if(!f.length)return;
+    var first=f[0],last=f[f.length-1];
+    if(e.shiftKey&&document.activeElement===first){e.preventDefault();last.focus();}
+    else if(!e.shiftKey&&document.activeElement===last){e.preventDefault();first.focus();}
+  });
   function tab(which){
     var on=which==='authors';
     document.getElementById('panel-shelf').hidden=on;
@@ -495,9 +506,20 @@
     document.getElementById('tab-shelf').style.color=on?'#6E6353':'#211E19';
     document.getElementById('tab-authors').style.borderBottomColor=on?'#1E3A2F':'transparent';
     document.getElementById('tab-authors').style.color=on?'#211E19':'#6E6353';
+    document.getElementById('tab-shelf').tabIndex=on?-1:0;
+    document.getElementById('tab-authors').tabIndex=on?0:-1;
+  }
+  function tabKey(e){
+    if(e.key!=='ArrowRight'&&e.key!=='ArrowLeft')return;
+    e.preventDefault();
+    var go=e.key==='ArrowRight'?'authors':'shelf';
+    tab(go);
+    document.getElementById(go==='authors'?'tab-authors':'tab-shelf').focus();
   }
   document.getElementById('tab-shelf').addEventListener('click',function(){tab('shelf');});
   document.getElementById('tab-authors').addEventListener('click',function(){tab('authors');});
+  document.getElementById('tab-shelf').addEventListener('keydown',tabKey);
+  document.getElementById('tab-authors').addEventListener('keydown',tabKey);
   function msg(t){document.getElementById('auth-msg').textContent=t||'';}
   function renderAuthors(lst){
     var host=document.getElementById('auth-list');host.innerHTML='';
@@ -566,10 +588,10 @@
   function loadModels(sel){
     j('/api/models').then(function(d){
       var m=document.getElementById('set-model');m.innerHTML='';
-      var fm=function(v){v=+v;return '$'+(v===Math.round(v)?v:v.toFixed(2));};
+      var money=function(v){v=+v;return '$'+(v===Math.round(v)?v:v.toFixed(2));};
       (d.models||[]).forEach(function(x){
         var o=document.createElement('option');o.value=x.id;
-        o.textContent=x.id+' — '+fm(x.in_mtok)+'/'+fm(x.out_mtok)+' per 1M · '+x.why;
+        o.textContent=x.id+' — '+money(x.in_mtok)+'/'+money(x.out_mtok)+' per 1M · '+x.why;
         m.appendChild(o);
       });
       if(sel){m.value=sel;}
