@@ -274,15 +274,28 @@ def load_cache():
         return {}
 
 
+def page_series(html):
+    """The series a book belongs to, from its Apple page: the JSON-LD
+    isPartof block names it, the breadcrumb carries the number
+    ('Book 3 - The Empyrean'). Returns {'series': str, 'num': str}."""
+    ser = re.search(r'"isPartof"\s*:\s*\{[^}]*?"name"\s*:\s*"([^"]{1,120})"', html)
+    num = re.search(r'Book\s+(\d+)\s*-\s', html)
+    return {'series': (ser.group(1).strip() if ser else ''),
+            'num': (num.group(1) if num else '')}
+
+
 def resolve_product(rec, cache):
     """Read the book's Apple page once (cached by trackId). Returns dict or None."""
     m = re.search(r'/id(\d+)', rec.get('url') or '')
     if not m:
         return None
     tid = m.group(1)
-    if tid in cache:
+    if tid in cache and 'series' in cache[tid]:
         STATS['pages']['cache_hits'] += 1
         return cache[tid]
+    # entries cached before ticket #9 carry no series — refetch them once so a
+    # watched author's upcoming book is never silently invisible (self-healing;
+    # the refetch lands in the report's page counts)
     html = _get(rec['url'], 0.35, 'pages')
     if html is None:
         return None
@@ -290,10 +303,12 @@ def resolve_product(rec, cache):
     lang = re.search(r'"inLanguage"\s*:\s*"([^"]{2,20})"', html)
     isbn = re.search(r'"isbn"\s*:\s*"([^"]{8,20})"', html)
     audio = bool(re.search(r'books\.apple\.com/[a-z]{2}/audiobook/', html))
+    ser = page_series(html)
     info = {'publisher': (pub.group(1).strip() if pub else ''),
             'language': (lang.group(1).strip() if lang else ''),
             'isbn': (isbn.group(1).strip() if isbn else ''),
-            'audio': audio, 'at': TODAY.isoformat()}
+            'audio': audio, 'series': ser['series'], 'num': ser['num'],
+            'at': TODAY.isoformat()}
     cache[tid] = info
     return info
 
@@ -352,13 +367,18 @@ def main():
     # ---- pool window + language screens ----
     pooled, dropped_foreign = [], {'non-ascii title': 0, 'description not English': 0, 'page language': 0}
     undated = 0
+    # a watched author's NEXT release can sit months out — author-lane records
+    # keep a longer forward horizon so the series radar can see them (#9);
+    # filter.py still windows them out of curation (future never picks)
+    author_future = POOL_FWD + timedelta(days=CFG.get('author_future_days', 300))
     for key, rec in RECORDS.items():
         d = None
         try:
             d = date.fromisoformat(rec['date'][:10]) if rec.get('date') else None
         except Exception:
             d = None
-        if d and not (POOL_BACK <= d <= POOL_FWD):
+        fwd = author_future if any((f or '').startswith('author:') for f in rec.get('found_by') or []) else POOL_FWD
+        if d and not (POOL_BACK <= d <= fwd):
             continue  # outside the pool window (backlist or far future)
         if not d:
             undated += 1
@@ -380,6 +400,8 @@ def main():
             rec['isbn'] = info.get('isbn') or ''
             rec['audio'] = bool(info.get('audio'))
             rec['pub_source'] = 'apple-page'
+            rec['series'] = info.get('series') or ''
+            rec['series_num'] = info.get('num') or ''
             if not english_lang(rec['language']):
                 dropped_foreign['page language'] += 1
                 continue
@@ -405,12 +427,25 @@ def main():
         }
     pub_n = sum(1 for r in kept if r.get('pub_known'))
     audio_n = sum(1 for r in kept if r.get('audio'))
+    watched = {a['name'] for a in authors if 'watched' in (a.get('why') or [])}
+    # per-author CANDIDATE counts — post-screens, and only when the record's
+    # own author matches the query (a fuzzy hit by someone else is not theirs)
+    by_author = {}
+    for r in kept:
+        for f in r.get('found_by') or []:
+            if f.startswith('author:'):
+                q = f[len('author:'):]
+                if re.sub(r'[^a-z0-9]', '', (r.get('author') or '').lower()) == re.sub(r'[^a-z0-9]', '', q.lower()):
+                    by_author[q] = by_author.get(q, 0) + 1
     report = {
         'mode': MODE, 'generated': datetime.now().isoformat(),
-        'pool_window': {'from': POOL_BACK.isoformat(), 'to': POOL_FWD.isoformat()},
+        'pool_window': {'from': POOL_BACK.isoformat(), 'to': POOL_FWD.isoformat(),
+                        'author_future': author_future.isoformat()},
         'run_window': {'from': run_lo.isoformat(), 'to': run_hi.isoformat()},
         'lanes': lanes_report,
-        'authors': {'queried': len(authors), 'with_candidates': {k: v for k, v in author_hits.items() if v}},
+        'authors': {'queried': len(authors), 'watched': sorted(watched),
+                    'with_candidates': by_author,
+                    'watched_with_candidates': {k: v for k, v in by_author.items() if k in watched}},
         'pool': {'kept': len(kept), 'undated': undated,
                  'foreign_dropped': dropped_foreign,
                  'publishers_resolved': pub_n, 'publishers_missing': len(kept) - pub_n, 'audio': audio_n},
@@ -432,6 +467,9 @@ def main():
         print('%-24s %7d %11d %9d' % (lane, lr['pooled'], lr['run_window'], lr['last_30d']))
     print('queries: %d lane terms + %d authors · authors with candidates: %d'
           % (term_count, len(authors), len(report['authors']['with_candidates'])))
+    wc = report['authors']['watched_with_candidates']
+    print('watched authors: %d queried · %d with candidates%s'
+          % (len(watched), len(wc), (' — ' + ', '.join(wc)) if wc else ''))
     print('pool: %d records · undated %d · foreign dropped %d %s · publishers %d/%d · audio %d'
           % (len(kept), undated, sum(dropped_foreign.values()), dropped_foreign, pub_n, len(kept), audio_n))
     print('sources: apple-search %d calls/%d failed · product pages %d calls/%d failed/%d cache-hits · removed dead: charts-rss, reddit, goodreads, romance.io'
