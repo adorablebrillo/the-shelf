@@ -447,6 +447,7 @@ def copy_static():
     os.makedirs(os.path.join(DIST, 'assets', 'vendor'), exist_ok=True)
     pairs = [
         (os.path.join(DESIGN, 'support.js'), os.path.join(DIST, 'support.js')),
+        (os.path.join(DESIGN, 'manifest.webmanifest'), os.path.join(DIST, 'manifest.webmanifest')),
         (os.path.join(DESIGN, 'vendor', 'react.production.min.js'), os.path.join(DIST, 'assets', 'vendor', 'react.production.min.js')),
         (os.path.join(DESIGN, 'vendor', 'react-dom.production.min.js'), os.path.join(DIST, 'assets', 'vendor', 'react-dom.production.min.js')),
     ]
@@ -455,6 +456,12 @@ def copy_static():
             shutil.copy2(src, dst)
         else:
             print('missing static: %s' % src)
+    # every app icon (adding a size = drop the file + a manifest entry)
+    icons = os.path.join(DESIGN, 'assets')
+    if os.path.isdir(icons):
+        for fn in sorted(os.listdir(icons)):
+            if fn.startswith('app-icon') and fn.endswith('.png'):
+                shutil.copy2(os.path.join(icons, fn), os.path.join(DIST, 'assets', fn))
     for cand in (os.path.join(ROOT, 'assets'), os.path.join(ROOT, '.lavish', 'assets')):
         if os.path.isdir(cand):
             shutil.copytree(cand, os.path.join(DIST, 'assets'), dirs_exist_ok=True)
