@@ -13,6 +13,7 @@
   },
   "author_lane_extra": [],
   "pool_back_days": 120,
+  "author_future_days": 300,
   "pool_forward_days": 60,
   "spice_min": 3,
   "trad_pub_score_rating": 4.0,

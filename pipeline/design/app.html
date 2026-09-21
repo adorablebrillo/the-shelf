@@ -826,7 +826,7 @@ class Component extends DCLogic {
       return {name:s.name,author:s.author,progress:readN+' of '+s.books.length+' read',
         nextKind:next?(ns==='out'?'Out now, unread':ns==='soon'?'Coming':'Announced'):'Caught up',
         nextTitle:next?next.t:'Nothing waiting',
-        nextMeta:next?(next.n+' · '+(next.d==='read'||next.d==='reading'?'on your shelf, unread':next.d)):'complete on your shelf',
+        nextMeta:next?(next.n+' · '+(next.d==='read'||next.d==='reading'?'on your shelf, unread':next.d+(next.state==='soon'&&next.iso?(' · in '+Math.max(0,Math.ceil((new Date(next.iso)-new Date())/86400000))+'d'):''))):'complete on your shelf',
         nextStyle:{marginTop:'16px',padding:'14px 16px',border:'1px solid '+(hot?BLOOD:LINE),background:hot?'#F3EAE2':'transparent',color:hot?BLOOD:INK},
         toggleLabel:open?'close the run':'the full run ('+s.books.length+')',
         open,
