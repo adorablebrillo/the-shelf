@@ -1,9 +1,11 @@
 {
   "model": "openai/gpt-4o-mini",
-  "max_candidates": 60,
+  "max_candidates": 80,
   "window_months": 1,
-  "target_books": [6, 8],
-  "genre_mix": {"sport romance": 3, "romantasy": 3, "contemporary romance": 2},
+  "target_books": [6, 9],
+  "genre_mix": {"sport romance": 3, "romantasy": 3, "contemporary romance": 3},
+  "lane_floor": 2,
+  "lane_widen_days": [30, 60, 90],
   "lane_terms": {
     "sport romance": ["hockey romance", "sports romance", "football romance", "formula 1 romance", "baseball romance"],
     "romantasy": ["romantasy", "fae romance", "dragon romance", "fantasy romance"],

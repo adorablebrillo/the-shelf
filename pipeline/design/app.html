@@ -63,7 +63,7 @@
   <div data-m="shell" style="max-width:1120px;margin:0 auto;padding:0 32px">
 
     <header style="text-align:center;padding:56px 0 0">
-      <p data-m="kicker" style="margin:0;font-family:'EB Garamond',Georgia,serif;font-size:11px;letter-spacing:.42em;text-transform:uppercase;color:#6E6353">Sport Romance &amp; Romantasy — for one reader</p>
+      <p data-m="kicker" style="margin:0;font-family:'EB Garamond',Georgia,serif;font-size:11px;letter-spacing:.42em;text-transform:uppercase;color:#6E6353">Sport Romance · Romantasy · Contemporary Romance</p>
       <div style="height:1px;background:#A8863F;max-width:120px;margin:18px auto"></div>
       <h1 data-m="title" style="font-family:'Cormorant Garamond',Garamond,serif;font-weight:300;font-size:clamp(52px,8vw,104px);line-height:1;letter-spacing:.12em;text-transform:uppercase;margin:0">The Shelf</h1>
       <p data-m="issue" style="margin:16px 0 0;font-family:'Cormorant Garamond',Garamond,serif;font-style:italic;font-size:20px;color:#6E2A2A">No. {{ issueNo }} · {{ monthLabel }} · {{ titleCount }}</p>
@@ -246,6 +246,10 @@
         <span style="font-size:11px;letter-spacing:.28em;text-transform:uppercase;color:#6E6353">{{ counts }}</span>
       </div>
       <div style="height:1px;background:#A8863F;margin:14px 0 0"></div>
+      <p data-m="shapeline" style="margin:12px 0 0;font-size:11px;letter-spacing:.26em;text-transform:uppercase;color:#6E6353">{{ shapeLine }}</p>
+      <sc-if value="{{ isLight }}">
+        <p style="margin:6px 0 0;font-family:'Cormorant Garamond',Garamond,serif;font-style:italic;font-size:17px;color:#6E2A2A">light month — only the best made it</p>
+      </sc-if>
 
       <sc-if value="{{ hasLead }}">
       <article style="margin-top:30px;background:#E5DCCA;padding:6px">
@@ -431,6 +435,7 @@
     <button type="button" id="set-x" aria-label="Close" style="position:absolute;top:8px;right:12px;font-size:22px;color:#6E6353;cursor:pointer">×</button>
     <p style="margin:0;font-size:10px;letter-spacing:.38em;text-transform:uppercase;color:#6E6353">Setup</p>
     <h2 style="font-family:'Cormorant Garamond',Garamond,serif;font-weight:500;font-size:36px;letter-spacing:.05em;margin:8px 0 0">shelf settings</h2>
+    <p style="margin:6px 0 0;font-size:10px;letter-spacing:.3em;text-transform:uppercase;color:#6E6353">Sport Romance · Romantasy · Contemporary Romance</p>
     <p style="margin:10px 0 0;font-size:15px;line-height:1.6;color:#4A443A">Your OpenRouter key lives on your server in the appdata volume — it survives redeploys.</p>
     <p style="margin:20px 0 0;font-size:10px;letter-spacing:.3em;text-transform:uppercase;color:#6E6353">OpenRouter key · <span id="key-state" style="color:#6E2A2A">…</span></p>
     <input id="set-key" type="password" placeholder="sk-or-v1-…" autocomplete="off" style="margin-top:8px;width:100%;box-sizing:border-box;background:transparent;border:1px solid #C6BBA3;padding:10px 12px;font-family:'EB Garamond',Georgia,serif;font-size:16px;color:#211E19"/>
@@ -835,6 +840,7 @@ class Component extends DCLogic {
       shelfLine:shelved.length?('Hover for the title · click to move it back to your shelf · '+shelved.length+' books here'):'Empty. Mark something read and it arrives.',
       stackTip:this.state.tip||'',
       monthLabel:d.month.label, monthShort:d.month.short, criteria:d.criteria,
+      shapeLine:(d.month.shapeLine||''), isLight:!!d.month.light,
       counts:parts.length?parts.join(' · '):'nothing marked yet',
       heroTitle:H.title||'', heroSub:[H.num,H.author].filter(Boolean).join(' · '), heroDays:days, heroDate:H.date||'', heroStanding:heroStanding, heroCoverStyle:heroCoverStyle, noHeroCover:!H.cover, heroCoverAlt:'Cover of '+(H.title||''),
       issueNo:d.month.issue||1, titleCount:d.month.titles||(d.books.length+((d.books.length===1)?' title':' titles')), hasHero:!!(H.iso),

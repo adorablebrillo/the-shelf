@@ -2,7 +2,8 @@
 
 Zero-dependency (pure Python stdlib) monthly engine for The Shelf.
 Runs anywhere — your Mac, your server's cron, or GitHub Actions. No Hermes
-involved: the only external call is one OpenRouter LLM request per month.
+involved: the only external calls are OpenRouter curation requests — one per run,
+up to three when a thin lane needs its window widened (the shape rule).
 
 ## Layout
 
@@ -11,10 +12,13 @@ pipeline/
 ├── config.json        # model, rules, deploy target
 ├── taste-prompt.md    # the curator brain — the reader's profile + rules (repo ships a generic default; a deployed shelf keeps its own in /config)
 ├── fetch.py           # Apple Books: lane terms + the author lane; publisher & language per book
-├── filter.py          # hard rules: M/F, no dark, spice band, window, trad/pub-first
-├── curate.py          # OpenRouter call → curated month JSON
+├── filter.py          # hard rules: M/F, no dark, spice band, a widening pool, trad/pub-first
+├── curate.py          # OpenRouter call(s) → curated month JSON, shaped 3/3/3 (ticket #6)
 ├── build.py           # month JSON → dist/index.html (the live design in design/app.html; blank installs get a valid empty-state page)
+├── lanes.py           # one lane mapping shared by curate/build/tests
+├── windows.py         # target month + window end, shared by filter/curate
 ├── paths.py           # personal files: config volume first, repo copy as fallback
+├── test_shape.py      # the shape rule's deterministic tests (python3 -m unittest test_shape)
 ├── design/            # the live design — app.html + support.js + vendored React
 ├── run.sh             # one-shot: fetch → filter → curate → build [--deploy]
 └── data/              # candidates-*.json, filtered-*.json, month-*.json (history)
