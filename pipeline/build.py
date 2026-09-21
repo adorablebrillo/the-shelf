@@ -18,6 +18,7 @@ same code path runs at image-bake time and after every pipeline run.
 import json, os, re, shutil, sys, urllib.request, urllib.parse, hashlib, calendar, glob
 from datetime import datetime
 import paths  # shared resolver: reader data lives on the volume (CFG_DIR)
+from lanes import lane_of, counts as lane_counts, shape_str, shape_line
 
 BASE = os.path.dirname(os.path.abspath(__file__))
 ROOT = os.path.dirname(BASE)
@@ -453,7 +454,7 @@ def main():
         # 404, never a crash. The app renders its own empty states from this.
         copy_static()
         data = {'month': {'label': 'Awaiting first run', 'short': '\u2014', 'drop': '', 'count': 0,
-                          'issue': 0, 'titles': 'no titles yet'},
+                          'issue': 0, 'titles': 'no titles yet', 'shapeLine': '', 'light': False},
                 'hero': None, 'books': [], 'pending': [], 'series': [],
                 'quotes': QUOTES.get(SEASON_OF.get(datetime.now().month, 'fall'), QUOTES['fall']),
                 'criteria': CRITERIA}
@@ -519,6 +520,10 @@ def main():
         'issue': len(order),
         'titles': WORDS.get(len(book_list), str(len(book_list))) + (' title' if len(book_list) == 1 else ' titles'),
     }
+    _lc = lane_counts(book_list)
+    month['shape'] = shape_str(_lc)          # the shape it shipped (ticket #6)
+    month['shapeLine'] = shape_line(_lc)
+    month['light'] = len(book_list) < CFG['target_books'][0]  # under the floor -> light month
 
     for b in book_list:                      # this issue's own provenance
         b['issue'] = {'n': month['issue'], 'label': ml['label'], 'ym': cur_ym}
@@ -543,7 +548,7 @@ def main():
         'window.SHELF_DATA=' + json.dumps(data, ensure_ascii=False) + ';\n')
 
     tpl = open(os.path.join(DESIGN, 'app.html')).read()
-    tpl = tpl.replace('__SHELF_TITLE__', 'The Shelf — %s' % ml['label'])
+    tpl = tpl.replace('__SHELF_TITLE__', 'The Shelf — %s · Sport Romance · Romantasy · Contemporary Romance' % ml['label'])
     open(os.path.join(DIST, 'index.html'), 'w').write(tpl)
     print('built dist (current: %s, %d books, %d series, issue no. %d)'
           % (cur_ym, len(book_list), len(series), month['issue']))

@@ -10,3 +10,5 @@ seed-imgs/
 
 # screenshot staging for PR before/after evidence
 captures/
+
+__pycache__/
