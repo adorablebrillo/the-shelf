@@ -43,7 +43,9 @@
   p,li,figcaption,blockquote{text-wrap:pretty}
   /* dense-desktop hit areas (the phone block below raises these to 44) */
   [data-m="pills"] button{min-height:40px !important;padding:10px 14px !important}
-  #set-open{position:relative}
+  [data-m="set-open"]{position:relative}
+  .loglink{color:#A8863F;text-decoration:underline;text-underline-offset:2px;cursor:pointer}
+  .loglink:hover{color:#211E19}
   #set-open::after{content:"";position:absolute;inset:-14px -12px}
   /* link-style controls: extend each to the most its row allows without
      overlapping the next row's target (44px touch / 40px dense desktop) */
@@ -642,8 +644,16 @@
       var m=document.getElementById('set-model');
       if(s.model&&!m.options.length){var o=document.createElement('option');o.value=s.model;o.textContent=s.model+' (current)';m.appendChild(o);}
       var last=s.last_run?(new Date(s.last_run)).toLocaleString():'never';
-      document.getElementById('status-line').textContent='monthly job: '+s.schedule+' · last run: '+last+(s.last_result?(' · '+s.last_result+(s.last_books?(' · '+s.last_books+' books'):'')):'');
-      document.getElementById('run-state').textContent=s.running?'running…':(s.last_result?('done — '+s.last_result+(s.last_books?(' ('+s.last_books+' books)'):'')):'');
+      var logsHref='/api/logs';
+      function withLogs(el, txt){
+        // "see logs" is the one string the reader actually needs to follow —
+        // make it a real link (a failed run is useless without its log)
+        if(txt.indexOf('see logs')>=0){
+          el.innerHTML=txt.split('see logs').join('<a class="loglink" href="'+logsHref+'" target="_blank" rel="noopener">see logs</a>');
+        } else { el.textContent=txt; }
+      }
+      withLogs(document.getElementById('status-line'), 'monthly job: '+s.schedule+' · last run: '+last+(s.last_result?(' · '+s.last_result+(s.last_books?(' · '+s.last_books+' books'):'')):''));
+      withLogs(document.getElementById('run-state'), s.running?'running…':(s.last_result?('done — '+s.last_result+(s.last_books?(' ('+s.last_books+' books)'):'')):''));
     }).catch(function(){
       document.getElementById('key-state').textContent='container offline';
       document.getElementById('status-line').textContent='settings live in the container build (port 8787)';
