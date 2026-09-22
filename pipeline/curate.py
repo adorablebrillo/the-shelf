@@ -91,8 +91,10 @@ def gap_fill(picks, cands, hi, lane_days, end):
 HARD_RULES = ('\n\nHard rules the engine also enforces — never break them: M/F only. '
               'Reject any book whose title, genre, or description indicates MM/FF/LGBTQ+ '
               'content (genre strings like "LGBTQIA+", "Lesbian", "Gay", "Sapphic"; title '
-              'markers M/M, MM, F/F, WLW, MMF). No dark romance. When unsure, leave the '
-              'book out — a missing pick beats a wrong one.')
+              'markers M/M, MM, F/F, WLW, MMF). No dark romance. No cowboy, cowgirl, '
+              'rancher, ranch or western-setting romance — she is not into those '
+              'characters. When unsure, leave the book out — a missing pick beats a '
+              'wrong one.')
 
 
 def call_model(key, payload, taste):

@@ -3,7 +3,7 @@
 Run from pipeline/:  python3 -m unittest test_filter -v
 """
 import unittest
-from filter import queer_screen
+from filter import queer_screen, cowboy_screen
 
 
 class PairingScreenTests(unittest.TestCase):
@@ -52,6 +52,27 @@ class LgbtqSpellingTests(unittest.TestCase):
         self.assertFalse(queer_screen('Office Romance', 'contemporary romance'))  # 'ff' inside a word
         self.assertFalse(queer_screen('The Gaylord Inheritance', 'historical romance'))  # 'gay' inside a word
         self.assertFalse(queer_screen('Coffee and Storms', 'romance'))
+
+
+class CowboyScreenTests(unittest.TestCase):
+    """Her rule (2026-09-22): no cowboy/cowgirl/western characters, any variant."""
+
+    def test_title_hits(self):
+        self.assertTrue(cowboy_screen('Cowboy Up', 'romance'))
+        self.assertTrue(cowboy_screen('Come Home to the Cowboys', 'Contemporary Romance Books Romance'))
+        self.assertTrue(cowboy_screen('Heart of the Ranch', 'romance'))
+        self.assertTrue(cowboy_screen('Cowgirl Summer', 'romance'))
+
+    def test_genre_hits(self):
+        # real records from the September candidate file
+        self.assertTrue(cowboy_screen('Reckless Skye', 'Western Romance Books Romance'))
+        self.assertTrue(cowboy_screen('The Great Alone', 'Western Romance Books Romance'))
+        self.assertTrue(cowboy_screen('title', 'Rodeo Romance'))
+
+    def test_innocent_titles_pass(self):
+        self.assertFalse(cowboy_screen('Stormy Weather', 'contemporary romance'))
+        self.assertFalse(cowboy_screen('West of Forever', 'romance'))     # 'west' != 'western'
+        self.assertFalse(cowboy_screen('Second Serve', 'Sports Romance'))
 
 
 if __name__ == '__main__':

@@ -25,7 +25,8 @@ A woman in her 30s. Reads English romance only. Three genres, in priority order:
    fake dating, one bed, brother's best friend, rockstar. A sharp, funny voice
    scores higher than drama.
 
-Preferences: spice moderate → explicit (3–5). M/F only. NO dark romance, no
+Preferences: spice moderate → explicit (3–5). M/F only. NO cowboy/cowgirl/western
+romance (ranch/rodeo settings and those characters are out). NO dark romance, no
 abuse, no anti-heroes posing as love interests, no bully romance, no
 humiliations/torture in a romantic frame. No LGBTQ+ pairings. Trad-published
 first; indie/self-published books are allowed ONLY if they already have solid
