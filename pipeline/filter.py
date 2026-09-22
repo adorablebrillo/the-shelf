@@ -28,10 +28,17 @@ def adhoc_window_ok(d):
     return (today - timedelta(days=30)) <= day <= today
 
 NO_DARK = ('dark', 'academy', 'bully', 'anti-hero', 'morally gray')
-NO_QUEER = ('mm romance', 'male/male', 'mlm', 'gay romance', 'ff romance', 'female/female', 'wlw', 'queer', 'nonbinary')
+NO_QUEER = ('mm romance', 'male/male', 'mlm', 'gay romance', 'ff romance', 'female/female',
+            'wlw', 'queer', 'nonbinary', 'non-binary', 'enby', 'lgbt', 'lesbian', 'sapphic',
+            'achillean', 'boys love', 'gay fiction', 'transgender', 'trans romance',
+            'two-spirit')
 # standalone pairing markers the substring list misses ("MM Hockey Romance",
-# "M/M", "m x m") — a real run let three MM titles through on 2026-09-21
-NO_QUEER_WORDS = (r'\bmm\b', r'\bm/m\b', r'\bm\s*x\s*m\b')
+# "M/M", "m x m") — a real run let three MM titles through on 2026-09-21, and
+# a live pick slipped in via the genre string "LGBTQIA+ Romance Books Romance"
+# (2026-09-22) because no marker covered the LGBTQ spellings. Word boundaries
+# keep "ff" out of "Office" and "gay" out of "Gaylord".
+NO_QUEER_WORDS = (r'\bmm\b', r'\bm/m\b', r'\bm\s*x\s*m\b', r'\bff\b', r'\bf/f\b',
+                  r'\bmmf\b', r'\bmfm\b', r'\bffm\b', r'\bgay\b', r'\bgl\b')
 # Trad-pub detection now runs against the REAL publisher (fetch resolves it from
 # each book's Apple page; the old code compared the author name to itself and
 # never fired). Substring hints are safe; short hints need word boundaries
@@ -75,7 +82,11 @@ def pool_ok(d, mon):
 
 
 def queer_screen(title, genre):
-    """True = excluded by the M/F-only rule (substring list + word markers)."""
+    """True = excluded by the M/F-only rule (substring list + word markers).
+    Lowercases itself — the call site does too, but the screen must not depend
+    on that (a direct call with an Apple genre string like 'LGBTQIA+ ...'
+    missed the whole list once)."""
+    title, genre = (title or '').lower(), (genre or '').lower()
     if any(k in genre for k in NO_QUEER): return True
     if any(k in title for k in NO_QUEER): return True
     return any(re.search(w, title, re.I) or re.search(w, genre, re.I) for w in NO_QUEER_WORDS)

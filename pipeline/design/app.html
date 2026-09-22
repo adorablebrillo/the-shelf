@@ -977,7 +977,9 @@ class Component extends DCLogic {
       padding:'14px 26px',cursor:'pointer',color:on?INK:MID,
       borderBottom:on?'2px solid '+BLOOD:'2px solid transparent',background:on?'rgba(168,134,63,.1)':'transparent'});
 
-    const books=d.books.map((b,i)=>this.book(b,i));
+    // "not for me" removes a book from view everywhere: the waiting strip
+    // already filters it, and the month must too (it waits in the set-aside)
+    const books=d.books.filter(b=>S[b.id]!=='skip').map((b,i)=>this.book(b,i));
 
     // ---- still on your list: unmarked + wanted books from earlier issues ----
     const waitingAll=(d.pending||[]).filter(b=>{const v=S[b.id];return v===undefined||v==='want';});
@@ -1037,7 +1039,9 @@ class Component extends DCLogic {
       shapeLine:(d.month.shapeLine||''), isLight:!!d.month.light,
       counts:parts.length?parts.join(' · '):'nothing marked yet',
       heroTitle:H.title||'', heroSub:[H.num,H.author].filter(Boolean).join(' · '), heroDays:days, heroDate:H.date||'', heroStanding:heroStanding, heroCoverStyle:heroCoverStyle, noHeroCover:!H.cover, heroCoverAlt:'Cover of '+(H.title||''),
-      issueNo:d.month.issue||1, titleCount:d.month.titles||(d.books.length+((d.books.length===1)?' title':' titles')), hasHero:!!(H.iso),
+      issueNo:d.month.issue||1,
+      // the count must match what is actually shown once verdicts remove picks
+      titleCount:(books.length!==(d.books||[]).length)?(books.length+((books.length===1)?' title':' titles')):(d.month.titles||(d.books.length+((d.books.length===1)?' title':' titles'))), hasHero:!!(H.iso),
       brew:(function(){const b=BREWS.filter(x=>x.m.indexOf(new Date().getMonth())>-1)[0]||BREWS[3];
         return {...b,style:{position:'absolute',left:'50%',top:'50%',transform:'translate(-50%,-50%)',width:'104px',height:'104px',
           backgroundImage:'url("'+b.img+'")',backgroundSize:'contain',backgroundRepeat:'no-repeat',backgroundPosition:'center',mixBlendMode:'multiply'}};})(),
