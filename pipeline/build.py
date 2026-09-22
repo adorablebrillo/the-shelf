@@ -409,6 +409,15 @@ def hero_data(series):
             'seriesRef': s.get('name') or '', 'standing': standing}
 
 
+def _int(v, default):
+    """Model-written numbers arrive as anything: '3.5', '3', 3.5, None.
+    Coerce leniently — a bad value must never take the shelf down."""
+    try:
+        return int(float(v))
+    except (TypeError, ValueError):
+        return default
+
+
 def pick_book(b, top_id, img):
     genre = (b.get('genre') or '').strip()
     if re.search(r'fae|dragon|fantasy|romantasy|vampire|fairy|witch', genre, re.I):
@@ -425,6 +434,10 @@ def pick_book(b, top_id, img):
     else:
         gr = 'GR —'
     canon = book_key(b.get('title'), b.get('author')) or b.get('id') or slug(b)
+    # the model drifts: spice arrives as '3.5', mmc as a bare '4' instead of an
+    # object. A bare int() here killed the whole build (and with it the page).
+    mmc_raw = b.get('mmc')
+    mmc_score = mmc_raw.get('score') if isinstance(mmc_raw, dict) else mmc_raw
     return {
         'id': canon,
         'rawId': b.get('id') or '',
@@ -432,7 +445,7 @@ def pick_book(b, top_id, img):
         'title': b.get('title') or '', 'series': b.get('series') or '',
         'author': b.get('author') or '', 'publisher': b.get('publisher') or '',
         'date': b.get('date') or '', 'genre': genre, 'lane': lane,
-        'spice': int(b.get('spice') or 3), 'mmc': int((b.get('mmc') or {}).get('score') or 3),
+        'spice': _int(b.get('spice'), 3), 'mmc': _int(mmc_score, 3),
         'fresh': bool(b.get('fresh')), 'gr': gr,
         'rating': rating if isinstance(rating, (int, float)) else None, 'count': '',
         'formats': b.get('formats') or ['Ebook'], 'tropes': b.get('tropes') or [],
