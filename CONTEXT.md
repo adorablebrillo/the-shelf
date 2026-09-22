@@ -11,7 +11,7 @@ The landing section and the action surface — everything still awaiting a verdi
 _Avoid_: dashboard, landing page
 
 **My Shelf**:
-The aggregate of every book marked *want*, across all months, newest first. Its page header reads **My TBR list**.
+The aggregate of every book marked *want*, across all months. Ordered by issue, newest first; within an issue, the curated order. Its page header reads **My TBR list**.
 _Avoid_: reading list, want list
 
 **Series**:
