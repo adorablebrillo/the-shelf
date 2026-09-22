@@ -361,8 +361,58 @@
     <div data-screen-label="Series">
       <p style="margin:0;font-size:10.5px;letter-spacing:.42em;text-transform:uppercase;color:#6E6353">03 · Series</p>
       <h2 style="font-family:'Cormorant Garamond',Garamond,serif;font-weight:300;font-size:clamp(34px,5vw,56px);letter-spacing:.1em;text-transform:uppercase;margin:12px 0 0">Your series</h2>
+      <p style="margin:10px 0 0;font-family:'Cormorant Garamond',Garamond,serif;font-style:italic;font-size:20px;color:#6E6353">{{ seriesCount }} open · {{ seriesClosed }} finished and closed.</p>
       <div style="height:1px;background:#A8863F;margin:20px 0 0"></div>
-      <p style="margin:24px 0 0;font-family:'Cormorant Garamond',Garamond,serif;font-style:italic;font-size:20px;color:#6E6353;max-width:56ch">{{ seriesCount }} open · every run, every volume and what is next — arriving in the next update.</p>
+
+      <sc-if value="{{ noSeries }}">
+        <p style="margin:22px 0 0;font-family:'Cormorant Garamond',Garamond,serif;font-style:italic;font-size:20px;color:#6E6353">No open series — everything you have tracked is finished.</p>
+      </sc-if>
+
+      <sc-for list="{{ seriesList }}" as="s" hint-placeholder-count="8">
+        <div data-m="scard" style="padding:20px 0;border-bottom:1px solid #D6CCB6">
+          <div style="display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.15fr);gap:30px;align-items:center" data-m="two">
+            <div style="min-width:0">
+              <p style="margin:0;font-family:'Cormorant Garamond',Garamond,serif;font-size:23px;line-height:1.16">{{ s.name }}</p>
+              <p style="margin:3px 0 0;font-size:11.5px;letter-spacing:.14em;text-transform:uppercase;color:#6E6353">{{ s.author }} · {{ s.progress }}</p>
+              <div style="display:flex;align-items:flex-start;gap:8px;flex-wrap:wrap;margin-top:14px">
+                <sc-for list="{{ s.vols }}" as="v" hint-placeholder-count="4">
+                  <span role="button" tabindex="0" aria-label="{{ v.label }}" onclick="{{ v.onTap }}" onfocus="{{ v.onEnter }}" onblur="{{ v.onLeave }}" onmouseenter="{{ v.onEnter }}" onmouseleave="{{ v.onLeave }}" style="flex:0 0 auto;display:block;width:58px;cursor:pointer">
+                    <span aria-hidden="true" style="{{ v.coverStyle }}"><span style="{{ v.labelStyle }}">{{ v.n }}</span></span>
+                    <span aria-hidden="true" style="{{ v.markStyle }}">{{ v.mark }}</span>
+                  </span>
+                </sc-for>
+              </div>
+              <p aria-live="polite" style="margin:10px 0 0;min-height:18px;font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:#6E2A2A">{{ s.volTipText }}</p>
+              <div data-m="verdicts" style="display:flex;gap:18px;flex-wrap:wrap;margin-top:8px">
+                <button type="button" onClick="{{ s.onToggle }}" style="font-size:11px;letter-spacing:.24em;text-transform:uppercase;color:#6E2A2A;border-bottom:1px solid #A8863F;padding:0 0 2px" style-hover="color:#1E3A2F">{{ s.toggleLabel }}</button>
+                <sc-if value="{{ s.canMark }}">
+                  <button type="button" onClick="{{ s.onMarkNext }}" style="font-size:11px;letter-spacing:.24em;text-transform:uppercase;color:#1E3A2F;border-bottom:1px solid #1E3A2F;padding:0 0 2px;text-align:left" style-hover="color:#6E2A2A;border-color:#6E2A2A">{{ s.markLabel }}</button>
+                </sc-if>
+                <sc-if value="{{ s.canLove }}">
+                  <button type="button" onClick="{{ s.onLoveNext }}" style="font-size:11px;letter-spacing:.24em;text-transform:uppercase;color:#6E2A2A;border-bottom:1px solid #6E2A2A;padding:0 0 2px" style-hover="color:#1E3A2F;border-color:#1E3A2F">{{ s.loveLabel }}</button>
+                </sc-if>
+              </div>
+            </div>
+            <div data-m="nextpanel" style="{{ s.nextStyle }}">
+              <p style="margin:0;font-size:9.5px;letter-spacing:.28em;text-transform:uppercase">{{ s.nextKind }}</p>
+              <p style="margin:6px 0 0;font-family:'Cormorant Garamond',Garamond,serif;font-size:22px;line-height:1.16">{{ s.nextTitle }}</p>
+              <p style="margin:3px 0 0;font-size:12.5px;letter-spacing:.1em;text-transform:uppercase">{{ s.nextMeta }}</p>
+            </div>
+          </div>
+          <sc-if value="{{ s.open }}">
+            <ul data-m="run" style="list-style:none;margin:14px 0 0;padding:0;max-width:640px">
+              <sc-for list="{{ s.books }}" as="bk" hint-placeholder-count="3">
+                <li style="{{ bk.style }}">
+                  <span aria-hidden="true" style="{{ bk.markStyle }}">{{ bk.mark }}</span>
+                  <span style="flex:1;min-width:0;font-family:'Cormorant Garamond',Garamond,serif;font-size:19px;line-height:1.3">{{ bk.t }} <span style="font-size:14px;color:#6E6353">{{ bk.n }}</span></span>
+                  <span style="font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:#6E6353;white-space:nowrap">{{ bk.d }}</span>
+                </li>
+              </sc-for>
+            </ul>
+          </sc-if>
+        </div>
+      </sc-for>
+      <p style="margin:16px 0 0;font-size:11px;letter-spacing:.18em;text-transform:uppercase;color:#6E6353;max-width:76ch">One mark per volume — gold = read · oxblood = out and unread · green = coming · dashed = announced. Cover art for series volumes is not in the data yet, so these are placeholders — hover or tap one for its title.</p>
     </div>
     </sc-if>
 
@@ -634,7 +684,7 @@ function hydrateIds(d){
 
 class Component extends DCLogic {
   state={ data:(typeof window!=='undefined'&&window.SHELF_DATA)?hydrateIds(window.SHELF_DATA):null,
-    states:{}, ts:{}, open:{}, q:0, view:'home', tip:'', peek:'', peekVol:false, sync:'?',
+    states:{}, ts:{}, open:{}, q:0, view:'home', tip:'', peek:'', peekVol:false, vol:'', volOf:'', volT:0, sync:'?',
     mobile:(typeof window!=='undefined'&&window.matchMedia)?window.matchMedia('(max-width:880px)').matches:false };
 
   /* ---- one identity per book ------------------------------------------
@@ -888,6 +938,62 @@ class Component extends DCLogic {
         onClick:()=>this.setState({view:'series'})};
     });
 
+    /* ---- Series: every open series, urgency first, with the full run ----- */
+    const seriesClosed=d.series.length-live.length;
+    const seriesList=liveSorted.map(s=>{
+      const isOpen=!!this.state.open[s.name];
+      const next=s.books.filter(b=>vstate(s,b)!=='read')[0];
+      const readN=s.books.filter(b=>vstate(s,b)==='read').length;
+      const ns=next?vstate(s,next):null;
+      const hot=ns==='out';
+      const dd=(ns==='soon'&&next&&next.iso)?Math.max(0,Math.ceil((new Date(next.iso+'T00:00:00')-new Date())/86400000)):null;
+      const tipOf=(b,vs)=>b.t+(b.n?' '+b.n:'')+' — '+(vs==='read'?'read':b.d);
+      return {name:s.name,author:s.author,progress:readN+' of '+s.books.length+' read',
+        /* live guarantees a next volume; these ternaries are belt-and-braces */
+        nextKind:next?(ns==='out'?'Out now, unread':ns==='soon'?'Coming':'Announced'):'Caught up',
+        nextTitle:next?next.t:'Nothing waiting',
+        nextMeta:next?[next.n,(ns==='soon'&&dd!==null)?(next.d+' · in '+dd+'d'):(ns==='tba'?'':next.d)].filter(Boolean).join(' · '):'complete on your shelf',
+        nextStyle:{marginTop:'16px',padding:'14px 16px',border:'1px solid '+(hot?BLOOD:LINE),
+          background:hot?'#F3EAE2':'transparent',color:hot?BLOOD:INK},
+        toggleLabel:isOpen?'close the run':'the full run ('+s.books.length+')',
+        open:isOpen,
+        canMark:ns==='out', markLabel:ns==='out'?('mark '+next.t+' read'):'',
+        onMarkNext:()=>{ if(next)this.apply(next.id,'read'); },
+        canLove:ns==='out', loveLabel:ns==='out'?'loved it':'',
+        onLoveNext:()=>{ if(next)this.apply(next.id,'loved'); },
+        onToggle:()=>this.setState(st=>({open:{...st.open,[s.name]:!st.open[s.name]}})),
+        volTipText:(this.state.volOf===s.name)?this.state.vol:'',
+        vols:s.books.map((b,i)=>{const vs=vstate(s,b);
+          const edge={read:GOLD,out:BLOOD,soon:FOREST,tba:LINE}[vs];
+          const axLabel=b.t+(b.n?' '+b.n:'')+' — '+(vs==='read'?'read':vs==='out'?'out and unread':vs==='soon'?'coming':'announced');
+          return {n:b.n||String(i+1),t:b.t,label:axLabel,
+            coverStyle:{flex:'0 0 auto',width:'58px',aspectRatio:'2/3',display:'flex',alignItems:'flex-end',
+              padding:'5px',boxSizing:'border-box',opacity:vs==='read'?.85:1,
+              background:vs==='read'?'repeating-linear-gradient(90deg,#E2D6B8 0 5px,#D8C9A6 5px 10px)':'repeating-linear-gradient(90deg,#EFE7D6 0 5px,#E4DAC4 5px 10px)',
+              border:'1px solid '+edge,borderStyle:vs==='tba'?'dashed':'solid',
+              boxShadow:'inset 1px 0 0 rgba(255,253,246,.7)'},
+            labelStyle:{fontFamily:"'SFMono-Regular',Menlo,Consolas,monospace",fontSize:'8.5px',lineHeight:1.3,
+              letterSpacing:'.03em',color:(vs==='read'||vs==='tba')?'#4A443A':edge,overflowWrap:'anywhere'},
+            mark:mark[vs].ch,
+            markStyle:{display:'block',textAlign:'center',fontSize:'10px',lineHeight:'1.6',color:mark[vs].c},
+            onEnter:()=>this.setState({vol:tipOf(b,vs), volOf:s.name}),
+            onLeave:()=>{ if(this.state.volOf===s.name){
+              /* a tap raises a compat mouseenter → click → mouseleave within
+                 milliseconds; only a DELIBERATE leave (not the tap's own
+                 post-click one) clears the peek */
+              if(Date.now()-(this.state.volT||0)<600)return;
+              this.setState({vol:'',volOf:''}); } },
+            /* a tap sets the peek and never toggles: the tap itself fires a compat
+               mouseenter before (and a mouseleave after) the click, so a toggle
+               would clear exactly what the enter just raised */
+            onTap:()=>this.setState({vol:tipOf(b,vs),volOf:s.name,volT:Date.now()})};}),
+        books:s.books.map(b=>{const vs=vstate(s,b);
+          return {t:b.t,n:b.n,d:vs==='read'&&b.state!=='read'?(b.d+' · read'):b.d,mark:mark[vs].ch,
+            markStyle:{flex:'0 0 14px',fontSize:'11px',color:mark[vs].c,lineHeight:'1.9'},
+            style:{display:'flex',alignItems:'baseline',gap:'10px',padding:'8px 0',borderTop:'1px solid #D6CCB6',opacity:vs==='read'?.55:1}};})
+      };
+    });
+
     /* ---- anticipation: the soonest release is the hero ------------------ */
     const soonAll=[];
     d.series.forEach(s=>s.books.forEach(b=>{
@@ -985,11 +1091,11 @@ class Component extends DCLogic {
       /* nav + shell */
       isHome:this.state.view==='home', isShelf:this.state.view==='shelf', isSeries:this.state.view==='series',
       isArchive:this.state.view==='archive', isSettings:this.state.view==='settings',
-      goHome:()=>this.setState({view:'home',tip:'',peek:'',peekVol:false}),
-      goShelf:()=>this.setState({view:'shelf',tip:'',peek:'',peekVol:false}),
-      goSeries:()=>this.setState({view:'series',tip:'',peek:'',peekVol:false}),
-      goArchive:()=>this.setState({view:'archive',tip:'',peek:'',peekVol:false}),
-      goSettings:()=>this.setState({view:'settings',tip:'',peek:'',peekVol:false}),
+      goHome:()=>this.setState({view:'home',tip:'',peek:'',peekVol:false,vol:'',volOf:''}),
+      goShelf:()=>this.setState({view:'shelf',tip:'',peek:'',peekVol:false,vol:'',volOf:''}),
+      goSeries:()=>this.setState({view:'series',tip:'',peek:'',peekVol:false,vol:'',volOf:''}),
+      goArchive:()=>this.setState({view:'archive',tip:'',peek:'',peekVol:false,vol:'',volOf:''}),
+      goSettings:()=>this.setState({view:'settings',tip:'',peek:'',peekVol:false,vol:'',volOf:''}),
       navHome:this.nav(this.state.view==='home'), navShelf:this.nav(this.state.view==='shelf'),
       navSeries:this.nav(this.state.view==='series'), navArchive:this.nav(this.state.view==='archive'),
       navSettings:this.nav(this.state.view==='settings'),
@@ -1023,7 +1129,10 @@ class Component extends DCLogic {
 
       /* my shelf — the TBR list + out-now-in-your-series */
       wantList, noWant, hasWant, waitingVols,
-      waitingCount:waitingVols.length, hasWaiting:waitingVols.length>0
+      waitingCount:waitingVols.length, hasWaiting:waitingVols.length>0,
+
+      /* series — the full run of every open series */
+      seriesList, seriesClosed, noSeries:seriesList.length===0
     };
   }
 }
