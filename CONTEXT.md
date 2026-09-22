@@ -15,7 +15,7 @@ The aggregate of every book marked *want*, across all months. Ordered by issue, 
 _Avoid_: reading list, want list
 
 **Series**:
-The section showing every open series with its full run, its next book, and per-volume markers. Fully-read series leave this page.
+The section showing every open series with its full run, its next book, and per-volume markers. Ordered by urgency — out-now first, then soonest coming, then announced. The header counts honestly ("N open · M finished and closed"); fully-read series leave this page.
 _Avoid_: the lane
 
 **Archive**:
