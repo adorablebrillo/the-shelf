@@ -540,7 +540,7 @@ def main():
         copy_static()
         data = {'month': {'label': 'Awaiting first run', 'short': '\u2014', 'drop': '', 'count': 0,
                           'issue': 0, 'titles': 'no titles yet', 'shapeLine': '', 'light': False},
-                'hero': None, 'books': [], 'pending': [], 'series': [],
+                'hero': None, 'books': [], 'pending': [], 'series': [], 'resolved': [],
                 'quotes': QUOTES.get(SEASON_OF.get(datetime.now().month, 'fall'), QUOTES['fall']),
                 'criteria': CRITERIA}
         os.makedirs(DIST, exist_ok=True)
@@ -572,6 +572,22 @@ def main():
         print('month picks held back by your shelf: %d' % month_held)
     book_list = [pick_book(b, top_id, ensure_cover(b.get('img'), b.get('title'), b.get('author'), covers_dir)) for b in src]
 
+    # ---- resolved books still ship their metadata --------------------------
+    # A book she has decided on leaves book_list/pending (it must not come back
+    # as a pick) — but the Archive still needs it: read / loved / set-aside
+    # rows, the stacks, and a reversal returning it to Home as open.
+    resolved, res_seen = [], set()
+    cur_issue = {'n': (order.index(cur_ym) + 1) if cur_ym in order else 0, 'label': ml, 'ym': cur_ym}
+    for b in cur.get('books', []):
+        if book_key(b.get('title'), b.get('author')) not in shelf_ex:
+            continue
+        rb = pick_book(b, None, ensure_cover(b.get('img'), b.get('title'), b.get('author'), covers_dir))
+        if not rb.get('id') or rb['id'] in res_seen:
+            continue
+        res_seen.add(rb['id'])
+        rb['issue'] = cur_issue
+        resolved.append(rb)
+
     # ---- still on your list: unresolved books from EARLIER issues ----------
     # Every earlier issue's picks ship so the app can carry forward whatever she
     # never decided on. Resolution belongs to the app: it owns the reader state.
@@ -592,6 +608,11 @@ def main():
             if not pb['id'] or pb['id'] in seen_pending:
                 continue
             if pb['id'] in shelf_ex:
+                pb['issue'] = {'n': (order.index(ym) + 1) if ym in order else 0,
+                               'label': mlp['label'], 'ym': ym}
+                if pb['id'] not in res_seen:
+                    res_seen.add(pb['id'])
+                    resolved.append(pb)
                 held_back += 1
                 continue
             seen_pending.add(pb['id'])
@@ -636,7 +657,7 @@ def main():
     if orphans:
         print('WARNING: %d books have no identity: %s' % (len(orphans), orphans[:5]))
     data = {'month': month, 'hero': hero, 'books': book_list, 'pending': pending,
-            'series': series, 'quotes': quotes, 'criteria': CRITERIA}
+            'series': series, 'quotes': quotes, 'criteria': CRITERIA, 'resolved': resolved}
     os.makedirs(DIST, exist_ok=True)
     open(os.path.join(DIST, 'shelf-data.js'), 'w').write(
         'window.SHELF_DATA=' + json.dumps(data, ensure_ascii=False) + ';\n')
