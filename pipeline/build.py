@@ -563,8 +563,13 @@ def main():
     covers_dir = os.path.join(BASE, 'data', 'covers')
     os.makedirs(covers_dir, exist_ok=True)
     os.makedirs(os.path.join(DIST, 'assets', 'covers'), exist_ok=True)
+    shelf_ex = exclusion_set()  # your verdicts steer this month's picks too (#7)
     top_id = cur.get('top_pick')
-    src = sorted(cur.get('books', []), key=lambda b: 0 if b.get('id') == top_id else 1)
+    src = [b for b in sorted(cur.get('books', []), key=lambda b: 0 if b.get('id') == top_id else 1)
+           if book_key(b.get('title'), b.get('author')) not in shelf_ex]
+    month_held = len(cur.get('books', [])) - len(src)
+    if month_held:
+        print('month picks held back by your shelf: %d' % month_held)
     book_list = [pick_book(b, top_id, ensure_cover(b.get('img'), b.get('title'), b.get('author'), covers_dir)) for b in src]
 
     # ---- still on your list: unresolved books from EARLIER issues ----------
@@ -572,7 +577,6 @@ def main():
     # never decided on. Resolution belongs to the app: it owns the reader state.
     # Newest issue first, one entry per book (a re-recommendation wins).
     pending, seen_pending = [], set()
-    shelf_ex = exclusion_set()  # your verdicts steer the carry-over too (#7)
     held_back = 0
     for mf in reversed(month_files):
         ym = os.path.basename(mf)[len('month-'):-len('.json')]

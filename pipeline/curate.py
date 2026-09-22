@@ -84,12 +84,23 @@ def gap_fill(picks, cands, hi, lane_days, end):
     return out
 
 
+# The taste prompt says M/F only, but a cheap model still picked an MM hockey
+# romance on 2026-09-22 whose genre read "LGBTQIA+ Romance Books Romance". The
+# deterministic screen in filter.py is the real gate; this block is a second
+# wall so the model itself refuses too.
+HARD_RULES = ('\n\nHard rules the engine also enforces — never break them: M/F only. '
+              'Reject any book whose title, genre, or description indicates MM/FF/LGBTQ+ '
+              'content (genre strings like "LGBTQIA+", "Lesbian", "Gay", "Sapphic"; title '
+              'markers M/M, MM, F/F, WLW, MMF). No dark romance. When unsure, leave the '
+              'book out — a missing pick beats a wrong one.')
+
+
 def call_model(key, payload, taste):
     """One curation call. Separated so tests can mock it deterministically."""
     body = json.dumps({
         'model': CFG.get('model', 'openai/gpt-4o-mini'),
         'messages': [
-            {'role': 'system', 'content': taste},
+            {'role': 'system', 'content': taste + HARD_RULES},
             {'role': 'user', 'content': "Here are this month's candidates JSON. Curate them:\n\n" + payload},
         ],
         'temperature': 0.6,
