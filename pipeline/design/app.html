@@ -380,7 +380,7 @@
               <div style="display:flex;align-items:flex-start;gap:8px;flex-wrap:wrap;margin-top:14px">
                 <sc-for list="{{ s.vols }}" as="v" hint-placeholder-count="4">
                   <span role="button" tabindex="0" aria-label="{{ v.label }}" onclick="{{ v.onTap }}" onfocus="{{ v.onEnter }}" onblur="{{ v.onLeave }}" onmouseenter="{{ v.onEnter }}" onmouseleave="{{ v.onLeave }}" style="flex:0 0 auto;display:block;width:58px;cursor:pointer">
-                    <span aria-hidden="true" style="{{ v.coverStyle }}"><span style="{{ v.labelStyle }}">{{ v.n }}</span></span>
+                    <span aria-hidden="true" style="{{ v.coverStyle }}"><img src="{{ v.art }}" alt="" style="{{ v.artStyle }}" onerror="{{ v.onArtErr }}"/><span style="{{ v.labelStyle }}">{{ v.n }}</span></span>
                     <span aria-hidden="true" style="{{ v.markStyle }}">{{ v.mark }}</span>
                   </span>
                 </sc-for>
@@ -415,7 +415,7 @@
           </sc-if>
         </div>
       </sc-for>
-      <p style="margin:16px 0 0;font-size:11px;letter-spacing:.18em;text-transform:uppercase;color:#6E6353;max-width:76ch">One mark per volume — gold = read · oxblood = out and unread · green = coming · dashed = announced. Cover art for series volumes is not in the data yet, so these are placeholders — hover or tap one for its title.</p>
+      <p style="margin:16px 0 0;font-size:11px;letter-spacing:.18em;text-transform:uppercase;color:#6E6353;max-width:76ch">One mark per volume — gold = read · oxblood = out and unread · green = coming · dashed = announced. Real cover art wherever it exists; a volume with no art anywhere keeps a striped placeholder — hover or tap one for its title.</p>
     </div>
     </sc-if>
 
@@ -475,7 +475,8 @@
               </div>
               <ul style="list-style:none;margin:0;padding:0;min-width:0">
                 <sc-for list="{{ s.books }}" as="bk" hint-placeholder-count="2">
-                  <li style="display:flex;align-items:baseline;gap:10px;padding:4px 0">
+                  <li style="display:flex;align-items:center;gap:10px;padding:4px 0">
+                    <span aria-hidden="true" style="{{ bk.thumbStyle }}"><img src="{{ bk.art }}" alt="" style="{{ bk.thumbArtStyle }}" onerror="{{ bk.onArtErr }}"/></span>
                     <span aria-hidden="true" style="flex:0 0 14px;font-size:11px;color:#A8863F">✓</span>
                     <span style="flex:1;min-width:0;font-family:'Cormorant Garamond',Garamond,serif;font-size:19px;line-height:1.3">{{ bk.t }} <span style="font-size:13.5px;color:#6E6353">{{ bk.n }}</span></span>
                     <span style="{{ bk.tagStyle }}">{{ bk.tag }}</span>
@@ -836,6 +837,14 @@ class Component extends DCLogic {
     this.apply(id, isVolume&&!isPick ? 'unread' : null);
   }
 
+  /* #42 review: a mirrored cover file can go missing (partial deploy, cache
+     clean) — fall back to the deliberate placeholder (stripes + number)
+     instead of a blank tile. The stripes are already the span's background. */
+  artFail(e){const im=e&&e.target;if(!im)return;
+    im.style.display='none';
+    const l=im.parentNode&&im.parentNode.querySelector('span');
+    if(l)l.style.display='inline';}
+
   persist(states,ts){
     try{ localStorage.setItem('shelf.marks',
       JSON.stringify({v:2,states:states||this.state.states,ts:ts||this.state.ts})); }catch(e){}
@@ -1101,15 +1110,22 @@ class Component extends DCLogic {
         volTipText:(this.state.volOf===s.name)?this.state.vol:'',
         vols:s.books.map((b,i)=>{const vs=vstate(s,b);
           const edge={read:GOLD,out:BLOOD,soon:FOREST,tba:LINE}[vs];
-          const axLabel=b.t+(b.n?' '+b.n:'')+' — '+(vs==='read'?'read':vs==='out'?'out and unread':vs==='soon'?'coming':'announced');
-          return {n:b.n||String(i+1),t:b.t,label:axLabel,
-            coverStyle:{flex:'0 0 auto',width:'58px',aspectRatio:'2/3',display:'flex',alignItems:'flex-end',
-              padding:'5px',boxSizing:'border-box',opacity:vs==='read'?.85:1,
-              background:vs==='read'?'repeating-linear-gradient(90deg,#E2D6B8 0 5px,#D8C9A6 5px 10px)':'repeating-linear-gradient(90deg,#EFE7D6 0 5px,#E4DAC4 5px 10px)',
-              border:'1px solid '+edge,borderStyle:vs==='tba'?'dashed':'solid',
-              boxShadow:'inset 1px 0 0 rgba(255,253,246,.7)'},
+          const num=b.n||String(i+1);
+          const axLabel=b.t+' '+num+' — '+(vs==='read'?'read':vs==='out'?'out and unread':vs==='soon'?'coming':'announced');
+          const art=b.img||'';
+          const stripes=vs==='read'?'repeating-linear-gradient(90deg,#E2D6B8 0 5px,#D8C9A6 5px 10px)':'repeating-linear-gradient(90deg,#EFE7D6 0 5px,#E4DAC4 5px 10px)';
+          const coverStyle={flex:'0 0 auto',width:'58px',aspectRatio:'2/3',display:'flex',alignItems:'flex-end',
+            position:'relative',overflow:'hidden',
+            padding:art?'0':'5px',boxSizing:'border-box',opacity:vs==='read'?.85:1,
+            background:stripes,
+            border:'1px solid '+edge,borderStyle:vs==='tba'?'dashed':'solid',
+            boxShadow:'inset 1px 0 0 rgba(255,253,246,.7)'};
+          return {n:num,t:b.t,label:axLabel,art,onArtErr:this.artFail,
+            coverStyle,
+            artStyle:art?{position:'absolute',top:'0',left:'0',width:'100%',height:'100%',objectFit:'cover',display:'block'}:{display:'none'},
             labelStyle:{fontFamily:"'SFMono-Regular',Menlo,Consolas,monospace",fontSize:'8.5px',lineHeight:1.3,
-              letterSpacing:'.03em',color:(vs==='read'||vs==='tba')?'#4A443A':edge,overflowWrap:'anywhere'},
+              letterSpacing:'.03em',color:(vs==='read'||vs==='tba')?'#4A443A':edge,overflowWrap:'anywhere',
+              ...(art?{position:'absolute',left:'5px',bottom:'4px',display:'none'}:{})},
             mark:mark[vs].ch,
             markStyle:{display:'block',textAlign:'center',fontSize:'10px',lineHeight:'1.6',color:mark[vs].c},
             onEnter:()=>this.setState({vol:tipOf(b,vs), volOf:s.name}),
@@ -1227,6 +1243,13 @@ class Component extends DCLogic {
       return {name:s.name,author:s.author,complete:rows.length>0&&rows.length===s.books.length,
         books:rows.map(b=>({t:b.t,n:b.n,tag:S[b.id]==='loved'?'loved':'read',
           unreadLabel:'mark '+b.t+' unread',
+          art:b.img||'',onArtErr:this.artFail,
+          thumbStyle:{flex:'0 0 34px',width:'34px',height:'51px',position:'relative',overflow:'hidden',
+            background:'repeating-linear-gradient(90deg,#EFE7D6 0 4px,#E4DAC4 4px 8px)',
+            border:'1px solid '+(b.img?'rgba(33,30,25,.35)':'#D6CCB6')},
+          thumbArtStyle: b.img
+            ?{position:'absolute',top:'0',left:'0',width:'100%',height:'100%',objectFit:'cover',display:'block'}
+            :{display:'none'},
           tagStyle:{fontSize:'9.5px',letterSpacing:'.24em',textTransform:'uppercase',
             color:S[b.id]==='loved'?BLOOD:MID},
           onUnread:()=>this.unreadId(b.id,true)}))};

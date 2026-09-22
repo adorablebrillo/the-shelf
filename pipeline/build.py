@@ -129,44 +129,73 @@ def _get_json(url, timeout=25):
         return json.loads(r.read().decode('utf-8', 'replace'))
 
 
+def _norm_title(s):
+    return re.sub(r'[^a-z0-9]+', '', (s or '').lower())
+
+
+def _title_ok(want, got):
+    """#42 review: only accept art whose candidate title really is this book —
+    a long substring match or a distinctive shared word. Never for empty,
+    'untitled' or 'tba' titles, so an unannounced volume can't borrow a
+    neighbour's cover."""
+    w = _norm_title(want)
+    if len(w) < 3 or w.startswith('untitled') or w in ('tba', 'tbd', 'titletba'):
+        return False
+    g = _norm_title(got)
+    if not g:
+        return False
+    if len(w) >= 8 and (w in g or (len(g) >= 8 and g in w)):
+        return True
+    if w == g:
+        return True
+    wt = [t for t in re.split(r'[^a-z0-9]+', (want or '').lower()) if len(t) >= 5]
+    gt = set(t for t in re.split(r'[^a-z0-9]+', (got or '').lower()) if len(t) >= 5)
+    return any(t in gt for t in wt)
+
+
 def lookup_cover_url(title, author):
     """Real cover art for a book: iTunes ebooks -> Google Books -> Open Library.
-    No API keys needed; returns a full-size-ish image URL or ''."""
+    No API keys needed; returns a full-size-ish image URL or ''.
+    Every provider must pass _title_ok — a wrong cover is worse than a
+    placeholder (the #42 review found 'Untitled' borrowing Iron Flame's art)."""
     t = (title or '').strip()
     a = (author or '').strip()
-    if not t:
+    if not t or not _title_ok(t, t):
         return ''
     tl = t.lower()
+    last = a.split()[-1].lower() if a else ''
     try:
         q = urllib.parse.urlencode({'term': ('%s %s' % (t, a)).strip(), 'media': 'ebook',
                                     'entity': 'ebook', 'limit': 8, 'country': CFG.get('apple_country', 'us')})
         results = _get_json('https://itunes.apple.com/search?' + q).get('results', [])
         for it in results:
-            name = (it.get('trackName') or '').lower()
+            name = it.get('trackName') or ''
             art = it.get('artworkUrl100') or it.get('artworkUrl60') or ''
-            if art and (name.startswith(tl[:24]) or tl[:24] in name or name[:24] in tl):
+            author_ok = (not last) or (last in (it.get('artistName') or '').lower())
+            if art and author_ok and _title_ok(t, name):
                 return art.replace('100x100bb', '600x600bb').replace('60x60bb', '600x600bb').replace('100x100', '600x600')
-        if results and results[0].get('artworkUrl100'):
-            last = a.split()[-1].lower() if a else ''
-            if last and last in (results[0].get('artistName') or '').lower():
-                return results[0]['artworkUrl100'].replace('100x100bb', '600x600bb')
     except Exception as e:
         print('cover lookup (itunes): %s' % str(e)[:70])
     try:
         q = urllib.parse.quote('intitle:"%s"%s' % (t, (' inauthor:"%s"' % a) if a else ''))
         d = _get_json('https://www.googleapis.com/books/v1/volumes?q=%s&maxResults=5&country=US' % q)
         for it in d.get('items', []):
-            links = ((it.get('volumeInfo') or {}).get('imageLinks') or {})
+            vi = it.get('volumeInfo') or {}
+            links = (vi.get('imageLinks') or {})
             u = links.get('thumbnail') or links.get('smallThumbnail')
-            if u:
+            auts = [x.lower() for x in (vi.get('authors') or [])]
+            author_ok = (not last) or (not auts) or any(last in x for x in auts)
+            if u and author_ok and _title_ok(t, vi.get('title')):
                 return u.replace('http://', 'https://').replace('&edge=curl', '')
     except Exception as e:
         print('cover lookup (google): %s' % str(e)[:70])
     try:
         q = urllib.parse.quote(('%s %s' % (t, a)).strip())
-        d = _get_json('https://openlibrary.org/search.json?q=%s&limit=3&fields=cover_i,title' % q)
+        d = _get_json('https://openlibrary.org/search.json?q=%s&limit=3&fields=cover_i,title,author_name' % q)
         for doc in d.get('docs', []):
-            if doc.get('cover_i'):
+            auts = [x.lower() for x in (doc.get('author_name') or [])]
+            author_ok = (not last) or (not auts) or any(last in x for x in auts)
+            if doc.get('cover_i') and author_ok and _title_ok(t, doc.get('title')):
                 return 'https://covers.openlibrary.org/b/id/%s-L.jpg' % doc['cover_i']
     except Exception as e:
         print('cover lookup (openlibrary): %s' % str(e)[:70])
@@ -186,12 +215,23 @@ def ensure_cover(img, title, author, covers_dir):
     name = slug({'title': title or 'x', 'author': author or 'y'}) + '.jpg'
     if os.path.isfile(os.path.join(covers_dir, name)):
         return 'assets/covers/%s' % name
+    # #42 review: cache the miss too — a '<slug>.none' sentinel keeps rebuilds
+    # fully offline (no re-attempting three providers per artless volume).
+    # Delete the sentinel to re-attempt a lookup by hand.
+    miss = os.path.join(covers_dir, name[:-4] + '.none')
+    if os.path.isfile(miss):
+        return img or ''
     url = lookup_cover_url(title, author)
     if url:
         local = download_cover({'img': url, 'title': title, 'author': author}, covers_dir)
         if local:
             print('cover fetched: %s' % (title or '')[:44])
             return local
+    try:
+        with open(miss, 'w') as f:
+            f.write('no cover found %s\n' % datetime.now().date().isoformat())
+    except Exception:
+        pass
     return img or ''
 
 
@@ -282,7 +322,7 @@ def author_upcoming(tracked, today, path=None):
     return out
 
 
-def series_data():
+def series_data(covers_dir=None):
     """EVERY series she is in: reads from data/library.json + what's next from
     data/sequels.json. Powers both 'Your Series' and the archive views."""
     lib_path, lib_src = paths.personal('library.json')
@@ -320,6 +360,36 @@ def series_data():
                     n += 1
         return n
 
+    covers_dir = covers_dir or os.path.join(BASE, 'data', 'covers')
+    os.makedirs(covers_dir, exist_ok=True)
+    cov = {'resolved': 0, 'cached': 0, 'fetched': 0, 'placeholder': 0, 'preset': 0}
+    handled = set()
+
+    def attach_covers(books, author):
+        """#42: every volume gets cover art when art exists anywhere — the same
+        iTunes -> Google Books -> Open Library resolution the picks use, cached
+        by slug so rebuilds stay offline. No art anywhere -> deliberate
+        placeholder (an empty img — the app keeps its striped treatment)."""
+        for b in books:
+            if b.get('img'):
+                cov['preset'] += 1
+                continue
+            # #42 review: an unannounced volume ('tba', or a title that is
+            # empty/'untitled') never gets a lookup — a deliberate placeholder.
+            if (b.get('state') or '').lower() == 'tba' or not _title_ok(b.get('t') or '', b.get('t') or ''):
+                cov['placeholder'] += 1
+                continue
+            name = slug({'title': b.get('t') or 'x', 'author': author or 'y'}) + '.jpg'
+            was = name in handled or os.path.isfile(os.path.join(covers_dir, name))
+            img = ensure_cover('', b.get('t') or '', author or '', covers_dir)
+            b['img'] = img or ''
+            handled.add(name)
+            if img:
+                cov['resolved'] += 1
+                cov['cached' if was else 'fetched'] += 1
+            else:
+                cov['placeholder'] += 1
+
     used = set()
     out = []
     for ls in lib.get('series', []):
@@ -349,6 +419,7 @@ def series_data():
                     continue
                 b['id'] = b.get('id') or book_key(b['t'], ser_author)
                 books.append(b)
+        attach_covers(books, ls.get('author') or (entry.get('author') if entry is not None else '') or '')
         out.append({'name': name, 'author': ls.get('author') or '', 'publisher': publisher, 'books': books})
 
     # researched series the library never listed (safety net — nothing gets lost)
@@ -366,10 +437,15 @@ def series_data():
         nb_list = next_books_for(v2, today)
         for b in nb_list:
             b['id'] = b.get('id') or book_key(b['t'], v2.get('author'))
+        attach_covers(nb_list, v2.get('author') or '')
         out.append({'name': nm, 'author': v2.get('author') or '', 'publisher': publisher,
                     'books': nb_list})
     if merged_total:
         print('author watches: %d upcoming series book(s) merged into the series lane' % merged_total)
+    total = cov['resolved'] + cov['placeholder']
+    extra = (', %d pre-set' % cov['preset']) if cov['preset'] else ''
+    print('series covers: %d of %d volumes resolved real art (%d from cache, %d fetched%s), %d deliberate placeholders'
+          % (cov['resolved'], total, cov['cached'], cov['fetched'], extra, cov['placeholder']))
     return out
 
 
@@ -622,7 +698,7 @@ def main():
     print('carried over: %d unresolved books from %d earlier issues (%d held back by your shelf)'
           % (len(pending), len(set(p['issue']['ym'] for p in pending)), held_back))
 
-    series = series_data()
+    series = series_data(covers_dir)
     hero = hero_data(series)
     if hero:
         hero['cover'] = ensure_cover('', hero.get('title'), hero.get('author'), covers_dir)

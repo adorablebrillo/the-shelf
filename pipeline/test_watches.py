@@ -127,9 +127,11 @@ class SeriesMergeTests(unittest.TestCase):
                                'next_books': [{'title': 'Known Book (#2)', 'release_date': '2026-12-01'}]}]},
                   open(os.path.join(self.cfg, 'sequels.json'), 'w'))
         self._orig = build.author_upcoming
+        self._orig_lookup = build.lookup_cover_url
 
     def tearDown(self):
         build.author_upcoming = self._orig
+        build.lookup_cover_url = self._orig_lookup
 
     def test_upcoming_merges_with_countdown_and_dedupes(self):
         build.author_upcoming = lambda tracked, today, path=None: {
@@ -138,7 +140,11 @@ class SeriesMergeTests(unittest.TestCase):
                 {'title': 'Known Book (#2)', 'release_date': '2026-12-01', 'status': 'soon', 'publisher': ''},
                 {'title': 'Fresh Book (#3)', 'release_date': '2026-11-03', 'status': 'soon', 'publisher': ''},
             ]}
-        series = build.series_data()
+        # hermetic (#42 review): no live cover lookups, no writes into the
+        # tree's real cache — the fixture's 'Known Book' fetched a real
+        # book's art through the provider fallback chain.
+        build.lookup_cover_url = lambda title, author: ''
+        series = build.series_data(covers_dir=tempfile.mkdtemp(prefix='shelf-covers-'))
         emp = [s for s in series if s['name'] == 'The Empyrean'][0]
         titles = [b['t'] for b in emp['books']]
         self.assertIn('Fresh Book', titles)              # merged
