@@ -28,6 +28,19 @@ def adhoc_window_ok(d):
     return (today - timedelta(days=30)) <= day <= today
 
 NO_DARK = ('dark', 'academy', 'bully', 'anti-hero', 'morally gray')
+# her rule: no cowboy/cowgirl/western characters, any variant (2026-09-22).
+# A hard drop — like the M/F screen, this is deterministic; the model gets a
+# HARD_RULES reminder in curate.py but is never the gate.
+NO_COWBOY = ('cowboy', 'cowgirl', 'ranch', 'rodeo', 'wrangler', 'buckaroo',
+             'cattleman', 'western')
+
+
+def cowboy_screen(title, genre):
+    """True = excluded: cowboy/cowgirl/western character romance (her rule)."""
+    title, genre = (title or '').lower(), (genre or '').lower()
+    return any(k in title for k in NO_COWBOY) or any(k in genre for k in NO_COWBOY)
+
+
 NO_QUEER = ('mm romance', 'male/male', 'mlm', 'gay romance', 'ff romance', 'female/female',
             'wlw', 'queer', 'nonbinary', 'non-binary', 'enby', 'lgbt', 'lesbian', 'sapphic',
             'achillean', 'boys love', 'gay fiction', 'transgender', 'trans romance',
@@ -118,10 +131,14 @@ def main():
         src_path = files[-1]
     cands = json.load(open(src_path)).get('books', [])
     kept = []
+    dropped_cowboy = []
     for b in cands:
         title = (b.get('title') or '').lower()
         genre = (b.get('genre') or '').lower()
         if queer_screen(title, genre): continue
+        if cowboy_screen(title, genre):
+            dropped_cowboy.append(b.get('title') or '')
+            continue
         # dark-romance signal: let the LLM make the final call, but tag it
         b['dark_flag'] = any(k in title or k in genre for k in NO_DARK)
         # keep the whole widening pool; in_window tags the base window
@@ -141,6 +158,9 @@ def main():
         b['pub_known'] = bool(pub)
         b['indie_proven'] = bool(cls == 'indie' and proven)
         kept.append(b)
+    if dropped_cowboy:
+        print('cowboy/western: dropped %d candidate(s) — %s'
+              % (len(dropped_cowboy), ', '.join(dropped_cowboy[:4])))
     # your shelf steers the engine (ticket #7): resolved books never return
     kept, shelf_counts = exclude_by_shelf(kept, exclusion_set())
     print('shelf: excluded %d candidate(s) — %d not for me · %d already read'
@@ -171,7 +191,8 @@ def main():
                'shelf_excluded': shelf_counts,
                'cap': {'pool': total, 'kept': len(kept), 'max': cap},
                'rules': {
-                   'mf_only': True, 'no_dark': True, 'spice_min': CFG['spice_min'],
+                   'mf_only': True, 'no_dark': True, 'no_cowboy': True,
+                   'spice_min': CFG['spice_min'],
                    'trad_first_indie_with_proof': True,
                    'pool_back_days': CFG.get('pool_back_days', 120)}}, open(out, 'w'), indent=1)
     nwin = sum(1 for b in kept if b.get('in_window'))
