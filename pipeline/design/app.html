@@ -307,8 +307,53 @@
     <div data-screen-label="My Shelf">
       <p style="margin:0;font-size:10.5px;letter-spacing:.42em;text-transform:uppercase;color:#6E6353">02 · My Shelf</p>
       <h2 style="font-family:'Cormorant Garamond',Garamond,serif;font-weight:300;font-size:clamp(34px,5vw,56px);letter-spacing:.1em;text-transform:uppercase;margin:12px 0 0">My TBR list</h2>
+      <sc-if value="{{ hasWant }}">
+        <p style="margin:10px 0 0;font-family:'Cormorant Garamond',Garamond,serif;font-style:italic;font-size:20px;color:#6E6353">{{ wantCount }} waiting · press read or loved and it moves to the archive.</p>
+      </sc-if>
       <div style="height:1px;background:#A8863F;margin:20px 0 0"></div>
-      <p style="margin:24px 0 0;font-family:'Cormorant Garamond',Garamond,serif;font-style:italic;font-size:20px;color:#6E6353;max-width:56ch">Every book you press <em>want</em> on gathers here as one list, newest first — this shelf opens in the next update.</p>
+
+      <sc-if value="{{ noWant }}">
+        <p style="margin:22px 0 0;font-family:'Cormorant Garamond',Garamond,serif;font-style:italic;font-size:20px;color:#6E6353">Nothing here yet. Press <em>want</em> on a pick and it lands on this shelf.</p>
+      </sc-if>
+
+      <sc-for list="{{ wantList }}" as="b" hint-placeholder-count="2">
+        <article data-m="row" style="display:grid;grid-template-columns:minmax(0,112px) minmax(0,1fr) minmax(0,150px);gap:26px;align-items:start;padding:26px 0;border-bottom:1px solid #D6CCB6">
+          <div role="img" aria-label="{{ b.alt }}" style="{{ b.coverStyle }}"></div>
+          <div style="min-width:0">
+            <h3 style="font-family:'Cormorant Garamond',Garamond,serif;font-weight:500;font-size:28px;line-height:1.1;margin:0">{{ b.title }}</h3>
+            <p style="margin:6px 0 0;font-size:13px;letter-spacing:.13em;text-transform:uppercase;color:#6E6353">{{ b.author }} · {{ b.genre }} · {{ b.date }}</p>
+            <p style="margin:12px 0 0;font-family:'Cormorant Garamond',Garamond,serif;font-size:20px;line-height:1.45;max-width:56ch">{{ b.hook }}</p>
+            <p style="margin:8px 0 0;font-size:14px;color:#4A443A">{{ b.tropeLine }}</p>
+          </div>
+          <div data-m="verdicts" style="display:flex;flex-direction:column;align-items:flex-start;gap:10px">
+            <button type="button" onClick="{{ b.onRead }}" style="font-size:10.5px;letter-spacing:.22em;text-transform:uppercase;border:1px solid #A8863F;padding:10px 14px;min-height:40px" style-hover="background:#1E3A2F;color:#F3EDE1;border-color:#1E3A2F">mark read</button>
+            <button type="button" onClick="{{ b.onLoved }}" style="font-size:10.5px;letter-spacing:.22em;text-transform:uppercase;border:1px solid #A8863F;padding:10px 14px;min-height:40px" style-hover="background:#6E2A2A;color:#F3EDE1;border-color:#6E2A2A">loved it</button>
+            <button type="button" onClick="{{ b.onDrop }}" style="font-size:10px;letter-spacing:.2em;text-transform:uppercase;color:#6E6353;border-bottom:1px solid #C6BBA3;padding:0 0 2px" style-hover="color:#6E2A2A">not for me</button>
+          </div>
+        </article>
+      </sc-for>
+
+      <sc-if value="{{ hasWaiting }}">
+      <section aria-label="Out now in your series" style="margin-top:46px">
+        <div style="display:flex;align-items:baseline;justify-content:space-between;gap:16px;flex-wrap:wrap">
+          <h3 style="font-family:'Cormorant Garamond',Garamond,serif;font-weight:500;font-size:clamp(21px,2.6vw,28px);letter-spacing:.14em;text-transform:uppercase;margin:0">Out now in your series</h3>
+          <span style="font-size:11px;letter-spacing:.28em;text-transform:uppercase;color:#6E6353">{{ waitingCount }} unread</span>
+        </div>
+        <div style="height:1px;background:#A8863F;margin:14px 0 0"></div>
+        <ul style="list-style:none;margin:0;padding:0">
+          <sc-for list="{{ waitingVols }}" as="v" hint-placeholder-count="6">
+            <li style="display:flex;align-items:baseline;gap:14px;flex-wrap:wrap;padding:12px 0;border-bottom:1px solid #E1D8C4">
+              <span style="flex:1;min-width:200px;font-family:'Cormorant Garamond',Garamond,serif;font-size:20px;line-height:1.3">{{ v.t }} <span style="font-size:14px;color:#6E6353">{{ v.n }}</span></span>
+              <span style="font-size:11px;letter-spacing:.16em;text-transform:uppercase;color:#6E6353">{{ v.series }} · {{ v.d }}</span>
+              <span data-m="verdicts" style="display:flex;gap:14px;flex-wrap:wrap;align-items:baseline">
+              <button type="button" onClick="{{ v.onRead }}" style="font-size:10px;letter-spacing:.2em;text-transform:uppercase;color:#1E3A2F;border-bottom:1px solid #1E3A2F;padding:0 0 2px" style-hover="color:#6E2A2A;border-color:#6E2A2A">mark read</button>
+              <button type="button" onClick="{{ v.onLoved }}" style="font-size:10px;letter-spacing:.2em;text-transform:uppercase;color:#6E2A2A;border-bottom:1px solid #6E2A2A;padding:0 0 2px" style-hover="color:#1E3A2F;border-color:#1E3A2F">loved it</button>
+              </span>
+            </li>
+          </sc-for>
+        </ul>
+      </section>
+      </sc-if>
     </div>
     </sc-if>
 
@@ -785,15 +830,29 @@ class Component extends DCLogic {
     const _now=new Date();
     const today=_now.getFullYear()+'-'+String(_now.getMonth()+1).padStart(2,'0')+'-'+String(_now.getDate()).padStart(2,'0');
 
-    /* ---- the sidebar tally ---- */
-    let r=0,l=0,w=0,k=0;
-    Object.keys(S).forEach(id=>{const v=S[id];if(v==='read')r++;else if(v==='loved')l++;else if(v==='want')w++;else if(v==='skip')k++;});
+    /* ---- My Shelf: the TBR list (the marks are all it needs) ------------- */
+    const seenWant={};
+    const wantList=(d.books||[]).concat(d.pending||[]).filter(b=>{
+      if(S[b.id]!=='want'||seenWant[b.id])return false;   // a re-recommendation is one book
+      seenWant[b.id]=1; return true;
+    }).map((b,i)=>{const card=this.book(b,i);
+      return {...card,
+        onRead:()=>this.setBook(b.id,'read'),
+        onLoved:()=>this.setBook(b.id,'loved'),
+        onDrop:()=>this.setBook(b.id,'skip')};});
+    const noWant=wantList.length===0, hasWant=wantList.length>0;
+
+    /* ---- the sidebar tally ----------------------------------------------- */
+    let r=0,l=0,k=0;
+    Object.keys(S).forEach(id=>{const v=S[id];if(v==='read')r++;else if(v==='loved')l++;else if(v==='skip')k++;});
+    const w=wantList.length;   // the sidebar count and the shelf list must agree
     const parts=[]; if(r)parts.push(r+' read'); if(l)parts.push(l+' loved'); if(w)parts.push(w+' want'); if(k)parts.push(k+' set aside');
 
     /* ---- one vstate for every volume ----------------------------------- */
     const mark={read:{ch:'\u2713',c:MID},out:{ch:'\u25C6',c:BLOOD},soon:{ch:'\u25CB',c:FOREST},tba:{ch:'\u00B7',c:MID}};
     const vstate=(s,b)=>{const m=S[b.id];
-      if(m==='unread')return b.state==='read'?'out':b.state;
+      // an explicit 'unread' mark must not hide a volume that has since released
+      if(m==='unread')return (b.state==='read'||(b.state==='soon'&&b.iso&&b.iso<=today))?'out':b.state;
       // 'loved' means she read it and loved it — it outranks a volume that is
       // only out-and-unread (otherwise a loved pick would vanish from the archive)
       if(m==='read'||m==='loved')return 'read';
@@ -903,8 +962,14 @@ class Component extends DCLogic {
       ?recent.length+' finished in the past 30 days · '+lovedN+' you loved'
       :'Nothing finished in the past 30 days.';
 
-    /* ---- the nav's counts ------------------------------------------------ */
-    const wantCount=(d.books||[]).concat(d.pending||[]).filter(b=>S[b.id]==='want').length;
+    /* ---- Out now in your series: every out volume not already on the TBR --- */
+    const wantIds={}; wantList.forEach(b=>{wantIds[b.id]=1;});
+    const waitingVols=[];
+    live.forEach(s=>s.books.forEach(b=>{
+      if(b.id&&!wantIds[b.id]&&vstate(s,b)==='out')waitingVols.push({t:b.t,n:b.n||'',series:s.name,d:b.d,
+        onRead:()=>this.apply(b.id,'read'),
+        onLoved:()=>this.apply(b.id,'loved')});}));
+    const wantCount=wantList.length;
     const inSeries={}; d.series.forEach(s=>s.books.forEach(b=>{ if(b.id) inSeries[b.id]=1; }));
     const readVols=[]; d.series.forEach(s=>s.books.forEach(b=>{ if(b.id&&vstate(s,b)==='read')readVols.push(b.id); }));
     const readSolo=(d.books||[]).concat(d.pending||[]).filter(b=>(S[b.id]==='read'||S[b.id]==='loved')&&!inSeries[b.id]);
@@ -954,7 +1019,11 @@ class Component extends DCLogic {
       shapeLine:d.month.shapeLine||'', isLight:!!d.month.light,
 
       /* series at a glance */
-      seriesGlance:glance
+      seriesGlance:glance,
+
+      /* my shelf — the TBR list + out-now-in-your-series */
+      wantList, noWant, hasWant, waitingVols,
+      waitingCount:waitingVols.length, hasWaiting:waitingVols.length>0
     };
   }
 }
