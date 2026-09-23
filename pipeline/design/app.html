@@ -190,6 +190,17 @@
                 <p style="margin:8px 0 0;font-size:16px;line-height:1.5;color:#E6E0D2">{{ heroStanding }}</p>
               </div>
             </div>
+            <sc-if value="{{ heroSynShow }}">
+              <div data-m="syn" style="{{ heroSynWrapStyle }}">
+                <sc-if value="{{ heroSynHas }}">
+                  <span data-m="verdicts"><button type="button" onClick="{{ onHeroSyn }}" aria-expanded="{{ heroSynExpanded }}" aria-label="{{ heroSynAria }}" style="{{ heroSynBtnStyle }}">{{ heroSynLabel }}</button></span>
+                  <p style="{{ heroSynTextStyle }}">{{ heroSynText }}</p>
+                </sc-if>
+                <sc-if value="{{ heroSynNote }}">
+                  <p style="{{ heroSynNoteStyle }}">{{ heroSynNote }}</p>
+                </sc-if>
+              </div>
+            </sc-if>
           </div>
         </div>
         <sc-if value="{{ hasAnticipations }}">
@@ -257,6 +268,17 @@
               <h3 style="font-family:'Cormorant Garamond',Garamond,serif;font-weight:500;font-size:clamp(28px,4vw,46px);line-height:1.06;margin:10px 0 0">{{ lead.title }} <span aria-hidden="true" style="color:#A8863F">{{ lead.star }}</span></h3>
               <p style="margin:8px 0 0;font-size:14px;letter-spacing:.14em;text-transform:uppercase;color:#635846">{{ lead.author }} · {{ lead.publisher }} · {{ lead.gr }}</p>
               <p style="margin:16px 0 0;font-family:'Cormorant Garamond',Garamond,serif;font-size:24px;line-height:1.42;max-width:52ch">{{ lead.hook }}</p>
+              <sc-if value="{{ lead.synShow }}">
+                <div data-m="syn" style="{{ lead.synWrapStyle }}">
+                  <sc-if value="{{ lead.synHas }}">
+                    <span data-m="verdicts"><button type="button" onClick="{{ lead.onSyn }}" aria-expanded="{{ lead.synExpanded }}" aria-label="{{ lead.synAria }}" style="{{ lead.synBtnStyle }}">{{ lead.synLabel }}</button></span>
+                    <p style="{{ lead.synTextStyle }}">{{ lead.synText }}</p>
+                  </sc-if>
+                  <sc-if value="{{ lead.synNote }}">
+                    <p style="{{ lead.synNoteStyle }}">{{ lead.synNote }}</p>
+                  </sc-if>
+                </div>
+              </sc-if>
               <p style="margin:12px 0 0;font-style:italic;font-size:15.5px;color:#4A443A;max-width:56ch">Why it won — {{ lead.why }}</p>
               <div data-m="verdicts" style="display:flex;gap:9px;flex-wrap:wrap;margin-top:20px">
                 <sc-for list="{{ lead.pills }}" as="p" hint-placeholder-count="4">
@@ -281,6 +303,17 @@
                   </sc-if>
                   <p style="margin:6px 0 0;font-size:12px;letter-spacing:.13em;text-transform:uppercase;color:#635846">{{ b.author }}</p>
                   <p style="margin:12px 0 0;font-family:'Cormorant Garamond',Garamond,serif;font-size:19px;line-height:1.42">{{ b.hook }}</p>
+                  <sc-if value="{{ b.synShow }}">
+                    <div data-m="syn" style="{{ b.synWrapStyle }}">
+                      <sc-if value="{{ b.synHas }}">
+                        <span data-m="verdicts"><button type="button" onClick="{{ b.onSyn }}" aria-expanded="{{ b.synExpanded }}" aria-label="{{ b.synAria }}" style="{{ b.synBtnStyle }}">{{ b.synLabel }}</button></span>
+                        <p style="{{ b.synTextStyle }}">{{ b.synText }}</p>
+                      </sc-if>
+                      <sc-if value="{{ b.synNote }}">
+                        <p style="{{ b.synNoteStyle }}">{{ b.synNote }}</p>
+                      </sc-if>
+                    </div>
+                  </sc-if>
                   <sc-if value="{{ b.waitNote }}">
                     <p style="margin:8px 0 0;font-size:10.5px;letter-spacing:.2em;text-transform:uppercase;color:#6E2A2A">{{ b.waitNote }}</p>
                   </sc-if>
@@ -345,6 +378,17 @@
             <h3 style="font-family:'Cormorant Garamond',Garamond,serif;font-weight:500;font-size:28px;line-height:1.1;margin:0">{{ b.title }} <span aria-hidden="true" style="color:#A8863F">{{ b.star }}</span></h3>
             <p style="margin:6px 0 0;font-size:13px;letter-spacing:.13em;text-transform:uppercase;color:#635846">{{ b.author }} · {{ b.genre }} · {{ b.date }}</p>
             <p style="margin:12px 0 0;font-family:'Cormorant Garamond',Garamond,serif;font-size:20px;line-height:1.45;max-width:56ch">{{ b.hook }}</p>
+            <sc-if value="{{ b.synShow }}">
+              <div data-m="syn" style="{{ b.synWrapStyle }}">
+                <sc-if value="{{ b.synHas }}">
+                  <span data-m="verdicts"><button type="button" onClick="{{ b.onSyn }}" aria-expanded="{{ b.synExpanded }}" aria-label="{{ b.synAria }}" style="{{ b.synBtnStyle }}">{{ b.synLabel }}</button></span>
+                  <p style="{{ b.synTextStyle }}">{{ b.synText }}</p>
+                </sc-if>
+                <sc-if value="{{ b.synNote }}">
+                  <p style="{{ b.synNoteStyle }}">{{ b.synNote }}</p>
+                </sc-if>
+              </div>
+            </sc-if>
             <p style="margin:8px 0 0;font-size:14px;color:#4A443A">{{ b.tropeLine }}</p>
           </div>
           <div data-m="verdicts" style="display:flex;flex-direction:column;align-items:flex-start;gap:10px">
@@ -426,9 +470,22 @@
             <ul data-m="run" style="list-style:none;margin:14px 0 0;padding:0;max-width:640px">
               <sc-for list="{{ s.books }}" as="bk" hint-placeholder-count="3">
                 <li style="{{ bk.style }}">
-                  <span aria-hidden="true" style="{{ bk.markStyle }}">{{ bk.mark }}</span>
-                  <span style="flex:1;min-width:0;font-family:'Cormorant Garamond',Garamond,serif;font-size:19px;line-height:1.3">{{ bk.t }} <span style="font-size:14px;color:#635846">{{ bk.n }}</span></span>
-                  <span style="font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:#635846;white-space:nowrap">{{ bk.d }}</span>
+                  <span style="{{ bk.rowStyle }}">
+                    <span aria-hidden="true" style="{{ bk.markStyle }}">{{ bk.mark }}</span>
+                    <span style="flex:1;min-width:0;font-family:'Cormorant Garamond',Garamond,serif;font-size:19px;line-height:1.3">{{ bk.t }} <span style="font-size:14px;color:#635846">{{ bk.n }}</span></span>
+                    <span style="font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:#635846;white-space:nowrap">{{ bk.d }}</span>
+                  </span>
+                  <sc-if value="{{ bk.synShow }}">
+                    <div data-m="syn" style="{{ bk.synWrapStyle }}">
+                      <sc-if value="{{ bk.synHas }}">
+                        <span data-m="verdicts"><button type="button" onClick="{{ bk.onSyn }}" aria-expanded="{{ bk.synExpanded }}" aria-label="{{ bk.synAria }}" style="{{ bk.synBtnStyle }}">{{ bk.synLabel }}</button></span>
+                        <p style="{{ bk.synTextStyle }}">{{ bk.synText }}</p>
+                      </sc-if>
+                      <sc-if value="{{ bk.synNote }}">
+                        <p style="{{ bk.synNoteStyle }}">{{ bk.synNote }}</p>
+                      </sc-if>
+                    </div>
+                  </sc-if>
                 </li>
               </sc-for>
             </ul>
@@ -847,7 +904,7 @@ function hydrateIds(d){
 
 class Component extends DCLogic {
   state={ data:(typeof window!=='undefined'&&window.SHELF_DATA)?hydrateIds(window.SHELF_DATA):null,
-    states:{}, ts:{}, open:{}, q:0, view:'home', tip:'', peek:'', peekVol:false, vol:'', volOf:'', volT:0, plate:'', plateId:'', plateT:0, lastTapId:'', lastTapT:0, reading:{}, arc:'read', sync:'?',
+    states:{}, ts:{}, open:{}, q:0, view:'home', tip:'', peek:'', peekVol:false, vol:'', volOf:'', volT:0, plate:'', plateId:'', plateT:0, lastTapId:'', lastTapT:0, reading:{}, syn:{}, arc:'read', sync:'?',
     mobile:(typeof window!=='undefined'&&window.matchMedia)?window.matchMedia('(max-width:880px)').matches:false };
 
   /* ---- one identity per book ------------------------------------------
@@ -1151,12 +1208,42 @@ class Component extends DCLogic {
       mmcNote:b.lane==='romantasy'?'Xaden · Rhysand · Raihn energy':'same energy, no magic',
       tropeLine:(b.tropes||[]).join(' · '),
       formatLine:(b.formats||[]).join(' · '),
-      // the verdict she asked for by name: "skip sounds like a browsing gesture;
-      // this is a verdict" -> the stored value stays 'skip', the label does not
+      /* the verdict she asked for by name: "skip sounds like a browsing gesture;
+         this is a verdict" -> the stored value stays 'skip', the label does not */
       pills:[['want','want'],['read','read'],['loved','loved'],['skip','not for me']]
         .map(v=>({label:v[1],on:st===v[0],style:this.pill(st===v[0],v[0]==='skip'?MID:FOREST),
           aria:v[0]==='want'?'want to read '+b.title:(v[0]==='read'?'mark '+b.title+' read':(v[0]==='loved'?'loved '+b.title:'not for me — '+b.title)),
-          onClick:()=>this.setBook(b.id,v[0])}))
+          onClick:()=>this.setBook(b.id,v[0])})),
+      ...this.synFields(b.id,b.synopsis,b.synopsisSrc,false,b.title)
+    };
+  }
+
+  /* ---- #51: the "what it's about" block --------------------------------
+     The pipeline ships each book's real blurb (goodreads -> apple fallback).
+     Cards show a clamped preview with an expander so one book cannot stretch
+     the row; a book the sources have nothing for says so plainly, and one the
+     fill has not reached yet says that instead — a blurb is never invented. */
+  synFields(id,text,src,dark,name){
+    const open=!!((this.state.syn||{})[id]);
+    const has=!!(text||'');
+    const ink=dark?{rule:'#3F6153',label:'#C8B27A',body:'#E6E0D2',note:'#BFD3C6'}
+                 :{rule:'#C6BBA3',label:'#6E2A2A',body:'#4A443A',note:'#635846'};
+    return {
+      synShow:!!src,
+      synHas:has,
+      synText:text||'',
+      synExpanded:open?'true':'false',
+      synLabel:open?'hide the blurb':'what it\u2019s about',
+      synAria:(open?'hide the blurb':(text?'what it\u2019s about':'no blurb'))+' \u2014 '+(name||'this book'),
+      onSyn:()=>this.setState(st=>({syn:{...(st.syn||{}),[id]:!((st.syn||{})[id])}})),
+      synWrapStyle:{marginTop:'14px',paddingTop:'12px',borderTop:'1px solid '+ink.rule},
+      synBtnStyle:{fontSize:'10.5px',letterSpacing:'.22em',textTransform:'uppercase',color:ink.label,borderBottom:'1px solid #A8863F',padding:'0 0 2px'},
+      synTextStyle:{margin:'10px 0 0',fontSize:'15.5px',lineHeight:'1.62',color:ink.body,maxWidth:'62ch',
+        ...(open?{}:{display:'-webkit-box',WebkitLineClamp:'3',WebkitBoxOrient:'vertical',overflow:'hidden'})},
+      synNote:has?'':(src==='none'
+        ?'no blurb found — goodreads and apple had none for this one.'
+        :(src==='unannounced'?'not announced yet — no blurb to fetch.':'blurb not fetched yet.')),
+      synNoteStyle:{margin:'0',fontStyle:'italic',fontSize:'15px',lineHeight:'1.5',color:ink.note}
     };
   }
 
@@ -1312,7 +1399,9 @@ class Component extends DCLogic {
         books:s.books.map(b=>{const vs=vstate(s,b);
           return {t:b.t,n:b.n,d:vs==='read'&&b.state!=='read'?(b.d+' · read'):b.d,mark:mark[vs].ch,
             markStyle:{flex:'0 0 14px',fontSize:'11px',color:mark[vs].c,lineHeight:'1.9'},
-            style:{display:'flex',alignItems:'baseline',gap:'10px',padding:'8px 0',borderTop:'1px solid #D6CCB6',opacity:vs==='read'?.55:1}};})
+            rowStyle:{display:'flex',alignItems:'baseline',gap:'10px'},
+            style:{display:'block',padding:'8px 0',borderTop:'1px solid #D6CCB6',opacity:vs==='read'?.55:1},
+            ...this.synFields('vol|'+(b.id||b.t),b.synopsis,b.synopsisSrc,false,b.t)};})
       };
     });
 
@@ -1346,6 +1435,14 @@ class Component extends DCLogic {
     const anticipations=soonAll.slice(1).map(x=>{const dd=Math.max(0,Math.ceil((new Date(x.b.iso+'T00:00:00')-new Date())/86400000));
       return {series:x.s.name,title:x.b.t,n:x.b.n||'',date:x.b.d,days:dd,
         daysLabel:dd===1?'day':'days',standing:standingFor(x.s)};});
+
+    /* #51: the hero's own blurb — a client-picked release carries it on the
+       volume, the payload hero on itself. The toggle key is scoped ('hero|')
+       so expanding the hero never flips a pick card for the same book. */
+    const heroSynId='hero|'+(nx?(nx.b.id||heroTitle):(H.id||heroTitle));
+    const heroSyn=nx?(nx.b.synopsis||''):(H.synopsis||'');
+    const heroSynSrc=nx?(nx.b.synopsisSrc||''):(H.synopsisSrc||'');
+    const hs=this.synFields(heroSynId,heroSyn,heroSynSrc,true,heroTitle);
 
     /* ---- home: the month's picks, open books only ----------------------- */
     const openPicks=(d.books||[]).filter(b=>S[b.id]===undefined);
@@ -1511,6 +1608,11 @@ class Component extends DCLogic {
       noHeroCover:!heroCover, heroCoverAlt,
       hasAnticipations:anticipations.length>0,
       anticipations,
+      /* #51 hero blurb — explicit keys so the binding sweep can see them */
+      heroSynShow:hs.synShow, heroSynHas:hs.synHas, heroSynText:hs.synText,
+      heroSynExpanded:hs.synExpanded, heroSynLabel:hs.synLabel, onHeroSyn:hs.onSyn, heroSynAria:hs.synAria,
+      heroSynWrapStyle:hs.synWrapStyle, heroSynBtnStyle:hs.synBtnStyle,
+      heroSynTextStyle:hs.synTextStyle, heroSynNote:hs.synNote, heroSynNoteStyle:hs.synNoteStyle,
 
       /* read & loved — past 30 days */
       recentSpines, recentList,

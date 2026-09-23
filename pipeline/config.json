@@ -25,5 +25,6 @@
     "path": "/var/www/the-shelf/"
   },
   "output_dir": "data",
-  "dist_dir": "dist"
+  "dist_dir": "dist",
+  "synopsis_budget_seconds": 180
 }
