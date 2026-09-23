@@ -246,7 +246,7 @@
             </div>
             <div style="min-width:0">
               <p style="margin:0;font-size:11px;letter-spacing:.3em;text-transform:uppercase;color:#6E6353">{{ lead.genre }} · {{ lead.date }}</p>
-              <h3 style="font-family:'Cormorant Garamond',Garamond,serif;font-weight:500;font-size:clamp(28px,4vw,46px);line-height:1.06;margin:10px 0 0">{{ lead.title }}</h3>
+              <h3 style="font-family:'Cormorant Garamond',Garamond,serif;font-weight:500;font-size:clamp(28px,4vw,46px);line-height:1.06;margin:10px 0 0">{{ lead.title }} <span aria-hidden="true" style="color:#A8863F">{{ lead.star }}</span></h3>
               <p style="margin:8px 0 0;font-size:14px;letter-spacing:.14em;text-transform:uppercase;color:#6E6353">{{ lead.author }} · {{ lead.publisher }} · {{ lead.gr }}</p>
               <p style="margin:16px 0 0;font-family:'Cormorant Garamond',Garamond,serif;font-size:24px;line-height:1.42;max-width:52ch">{{ lead.hook }}</p>
               <p style="margin:12px 0 0;font-style:italic;font-size:15.5px;color:#4A443A;max-width:56ch">Why it won — {{ lead.why }}</p>
@@ -343,7 +343,7 @@
             <p style="margin:8px 0 0;font-size:14px;color:#4A443A">{{ b.tropeLine }}</p>
           </div>
           <div data-m="verdicts" style="display:flex;flex-direction:column;align-items:flex-start;gap:10px">
-            <button type="button" onClick="{{ b.onReading }}" aria-pressed="{{ b.readingPressed }}" style="{{ b.readingStyle }}">{{ b.readingLabel }}</button>
+            <button type="button" onClick="{{ b.onReading }}" aria-pressed="{{ b.readingPressed }}" aria-label="{{ b.readingAria }}" style="{{ b.readingStyle }}">{{ b.readingLabel }}</button>
             <button type="button" onClick="{{ b.onRead }}" style="font-size:10.5px;letter-spacing:.22em;text-transform:uppercase;border:1px solid #A8863F;padding:10px 14px;min-height:40px" style-hover="background:#1E3A2F;color:#F3EDE1;border-color:#1E3A2F">mark read</button>
             <button type="button" onClick="{{ b.onLoved }}" style="font-size:10.5px;letter-spacing:.22em;text-transform:uppercase;border:1px solid #A8863F;padding:10px 14px;min-height:40px" style-hover="background:#6E2A2A;color:#F3EDE1;border-color:#6E2A2A">loved it</button>
             <button type="button" onClick="{{ b.onDrop }}" style="font-size:10px;letter-spacing:.2em;text-transform:uppercase;color:#6E6353;border-bottom:1px solid #C6BBA3;padding:0 0 2px" style-hover="color:#6E2A2A">not for me</button>
@@ -841,15 +841,19 @@ class Component extends DCLogic {
      the mark is queued and retried — never dropped.                        */
   apply(id,val){
     /* #57: finishing a book is worth a moment — read/loved celebrate, a
-       set-aside never does */
+       set-aside never does; any verdict also clears the reading flag (you are
+       no longer reading a book you have finished or set aside) */
     if(val==='read'||val==='loved')this.confetti();
     this.setState(s=>{
       const st={...s.states}, ts={...s.ts}, now=Date.now();
       if(val===null)delete st[id]; else st[id]=val;
       ts[id]=now;
       const delta={}; delta[id]={s:val,t:now};
-      this.persist(st,ts); this.sync(delta);
-      return {states:st, ts};
+      const r={...s.reading}; let rdelta=null;
+      if(val&&(r[id]||{}).s){ r[id]={s:false,t:now}; rdelta={}; rdelta[id]=r[id]; }
+      this.persist(st,ts,r); this.sync(delta);
+      if(rdelta)this.syncReading(rdelta);
+      return {states:st, ts, reading:r};
     });
   }
   setBook(id,st){ this.apply(id, this.state.states[id]===st?null:st); }
@@ -869,21 +873,23 @@ class Component extends DCLogic {
   settingsLeave(){try{const S=(typeof window!=='undefined')&&window.SHELF_SETTINGS;if(S&&S.leave)S.leave();}catch(e){}}
   settingsEnter(){try{const S=(typeof window!=='undefined')&&window.SHELF_SETTINGS;if(S&&S.enter)setTimeout(function(){S.enter();},0);}catch(e){}}
 
-  persist(states,ts){
+  persist(states,ts,reading){
     try{ localStorage.setItem('shelf.marks',
-      JSON.stringify({v:2,states:states||this.state.states,ts:ts||this.state.ts,reading:this.state.reading||{}})); }catch(e){}
+      JSON.stringify({v:2,states:states||this.state.states,ts:ts||this.state.ts,reading:reading||this.state.reading||{}})); }catch(e){}
   }
 
-  /* #57: "reading now" — an additive flag, never a verdict. It lives beside the
-     marks (localStorage), so it survives reloads exactly like they do; the
-     server's state stays verdicts-only (it feeds the pipeline, where a reading
-     flag means nothing). */
+  /* #57: "reading now" — an additive flag, never a verdict, but it travels like
+     one: localStorage first, then the server of record, on its own channel (a
+     reading flag must never enter the verdict states the pipeline reads). */
   toggleReading(id){
+    const now=Date.now();
     this.setState(s=>{
-      const r={...s.reading};
-      if(r[id])delete r[id]; else r[id]=Date.now();
+      const cur=s.reading[id], on=!(cur&&cur.s);
+      const r={...s.reading}; r[id]={s:on,t:now};
+      const delta={}; delta[id]=r[id];
+      this.persist(undefined,undefined,r); this.syncReading(delta);
       return {reading:r};
-    },()=>this.persist());
+    });
   }
 
   /* #57: the finish-line confetti — a short, tasteful burst in the shelf's own
@@ -939,14 +945,40 @@ class Component extends DCLogic {
       this.setState({sync:'queued'});
     }catch(e){}
   }
+  /* #57: the reading channel — same travel rules as the marks, its own payload
+     and outbox so a reading flag never touches the verdict states */
+  syncReading(delta){
+    try{ fetch('/api/state',{method:'POST',headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({reading:delta})})
+      .then(r=>{ if(!r.ok)throw 0; this.flushOutbox(); })
+      .catch(()=>this.queueReading(delta));
+    }catch(e){ this.queueReading(delta); }
+  }
+  queueReading(delta){
+    try{
+      const q=JSON.parse(localStorage.getItem('shelf.outbox.reading')||'{}');
+      Object.keys(delta).forEach(k=>{
+        if(!q[k]||Number((q[k]||{}).t||0)<=Number((delta[k]||{}).t||0))q[k]=delta[k];});
+      localStorage.setItem('shelf.outbox.reading',JSON.stringify(q));
+      this.setState({sync:'queued'});
+    }catch(e){}
+  }
   flushOutbox(){
     try{
       const q=JSON.parse(localStorage.getItem('shelf.outbox')||'{}');
-      if(!Object.keys(q).length)return;
-      fetch('/api/state',{method:'POST',headers:{'Content-Type':'application/json'},
-        body:JSON.stringify({states:q})})
-        .then(r=>{ if(r.ok){localStorage.removeItem('shelf.outbox'); this.setState({sync:'ok'});} })
-        .catch(()=>{});
+      if(Object.keys(q).length){
+        fetch('/api/state',{method:'POST',headers:{'Content-Type':'application/json'},
+          body:JSON.stringify({states:q})})
+          .then(r=>{ if(r.ok){localStorage.removeItem('shelf.outbox'); this.setState({sync:'ok'});} })
+          .catch(()=>{});
+      }
+      const rq=JSON.parse(localStorage.getItem('shelf.outbox.reading')||'{}');
+      if(Object.keys(rq).length){
+        fetch('/api/state',{method:'POST',headers:{'Content-Type':'application/json'},
+          body:JSON.stringify({reading:rq})})
+          .then(r=>{ if(r.ok)localStorage.removeItem('shelf.outbox.reading'); })
+          .catch(()=>{});
+      }
     }catch(e){}
   }
   pull(){
@@ -961,9 +993,19 @@ class Component extends DCLogic {
       Object.keys(st).forEach(k=>{                       // local-only marks (first import)
         if(!(k in remote)&&!up[k])up[k]={s:st[k],t:Number(ts[k]||0)};
       });
-      this.setState({states:st, ts, sync:'ok'});
-      this.persist(st,ts);
+      const remR=(j&&j.reading)||{}, rd={...this.state.reading}, upR={};
+      Object.keys(remR).forEach(k=>{                     // the reading channel, same rules
+        const r=remR[k]||{}, rt=Number(r.t||0), lt=Number((rd[k]||{}).t||0);
+        if(rt>lt){ rd[k]={s:!!r.s,t:rt}; }
+        else if(lt>rt){ upR[k]=rd[k]; }
+      });
+      Object.keys(rd).forEach(k=>{                       // local-only flags
+        if(!(k in remR)&&!upR[k])upR[k]=rd[k];
+      });
+      this.setState({states:st, ts, reading:rd, sync:'ok'});
+      this.persist(st,ts,rd);
       if(Object.keys(up).length)this.sync(up); else this.flushOutbox();
+      if(Object.keys(upR).length)this.syncReading(upR);
     }).catch(()=>{ this.setState({sync:'offline'}); this.flushOutbox(); });
   }
 
@@ -1013,7 +1055,11 @@ class Component extends DCLogic {
           // the mark dates must survive every load, not just every write.
           Object.keys(all.states).forEach(k=>{out[k]=all.states[k];
             tsf[k]=Number(((all.ts)||{})[k]||0);});
-          if(all.reading){ Object.keys(all.reading).forEach(k=>{rd[k]=Number(all.reading[k]||0);}); }
+          if(all.reading&&typeof all.reading==='object'){ Object.keys(all.reading).forEach(k=>{
+            const v=all.reading[k];
+            if(v&&typeof v==='object'){ rd[k]={s:!!v.s,t:Number(v.t||0)}; }
+            else { const n=Number(v||0); rd[k]={s:n>0,t:n}; }
+          }); }
         }
         else{
           Object.keys(all||{}).forEach(k=>{            // v1: book:<id> | seq:<series>:<title>
@@ -1035,7 +1081,7 @@ class Component extends DCLogic {
         const now=Date.now();
         Object.keys(out).forEach(k=>{ if(!tsf[k])tsf[k]=now; });
         if(Object.keys(out).length||Object.keys(rd).length){
-          this.setState({states:out, ts:tsf, reading:rd}); this.persist(out,tsf);
+          this.setState({states:out, ts:tsf, reading:rd}); this.persist(out,tsf,rd);
         }
       }
     }catch(e){}
@@ -1076,7 +1122,7 @@ class Component extends DCLogic {
     return {...b,
       /* #57: a book you are reading now carries its star everywhere the card
          builder is used (Home's picks and My Shelf) */
-      star:(this.state.reading&&this.state.reading[b.id])?'\u2605':'',
+      star:((this.state.reading&&this.state.reading[b.id]||{}).s)?'\u2605':'',
       alt:'Cover of '+b.title+' by '+b.author,
       coverStyle:{width:'100%',aspectRatio:'2/3',border:'1px solid '+INK,backgroundImage:'url("'+b.img+'")',backgroundSize:'cover',backgroundPosition:'center',backgroundColor:'#D8CFBA'},
       rank:rank!==undefined?rank:('No. '+(i+1)),
@@ -1113,9 +1159,10 @@ class Component extends DCLogic {
       if(S[b.id]!=='want'||seenWant[b.id])return false;   // a re-recommendation is one book
       seenWant[b.id]=1; return true;
     }).map((b,i)=>{const card=this.book(b,i);
-      const rd=!!this.state.reading[b.id];
+      const rd=!!((this.state.reading[b.id]||{}).s);
       return {...card,
         reading:rd, readingLabel:rd?'reading now \u2605':'reading now',
+        readingAria:'reading now',
         readingPressed:rd?'true':'false',
         readingStyle:{fontSize:'10px',letterSpacing:'.2em',textTransform:'uppercase',padding:'10px 14px',minHeight:'40px',
           border:'1px solid '+(rd?'#A8863F':'#C6BBA3'), background:rd?'#A8863F':'transparent',

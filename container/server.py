@@ -3,7 +3,7 @@
 Serves the built page, holds settings (OpenRouter key, model), schedules the
 monthly run (1st, 09:00), exposes a small JSON API used by the in-page
 Settings pane. Pure stdlib — no pip installs."""
-import json, os, re, shutil, glob, sys, subprocess, threading, time, urllib.request
+import json, os, re, shutil, glob, sys, subprocess, tempfile, threading, time, urllib.request
 from datetime import datetime
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from urllib.parse import urlparse
@@ -123,9 +123,26 @@ def load_settings():
         s = {}
     return {**DEFAULTS, **s}
 
+def _atomic_json(path, d, indent=None):
+    """Write JSON via a UNIQUE temp file + rename: two concurrent writers can
+    never share a temp (the #57 fold — a verdict fires two posts at once)."""
+    os.makedirs(os.path.dirname(path) or '.', exist_ok=True)
+    fd, tmp = tempfile.mkstemp(dir=os.path.dirname(path) or '.', prefix='.tmp-')
+    try:
+        with os.fdopen(fd, 'w') as f:
+            json.dump(d, f, indent=indent)
+        os.replace(tmp, path)
+    except Exception:
+        try:
+            os.unlink(tmp)
+        except OSError:
+            pass
+        raise
+
+
 def save_settings(s):
     os.makedirs(CONFIG_DIR, exist_ok=True)
-    json.dump(s, open(SETTINGS, 'w'), indent=1)
+    _atomic_json(SETTINGS, s, indent=1)
 
 def log(msg, level='run'):
     os.makedirs(LOGSD, exist_ok=True)
@@ -319,13 +336,22 @@ class H(BaseHTTPRequestHandler):
         u = urlparse(self.path)
         body = self._body()
         if u.path == '/api/state':
-            cur = load_state()
-            cur['states'] = merge_states(cur.get('states'), body.get('states') or {})
-            save_state(cur)
+            # one writer at a time: the merge is read-modify-write, and a
+            # verdict now fires two posts (states + reading) at once
+            with STATE_LOCK:
+                cur = load_state()
+                cur['states'] = merge_states(cur.get('states'), body.get('states') or {})
+                # #57: the reading channel — its own map beside the marks, merged
+                # by the same last-write-wins rule (a reading flag must never
+                # enter 'states': the pipeline reads that as verdicts)
+                if 'reading' in body:
+                    cur['reading'] = merge_states(cur.get('reading'), body.get('reading') or {})
+                save_state(cur)
             live = [k for k, v in cur['states'].items() if isinstance(v, dict) and v.get('s')]
             gone = [k for k, v in cur['states'].items() if isinstance(v, dict) and v.get('s') is None]
             log('reader state: %d marked, %d cleared' % (len(live), len(gone)))
-            self._json({'ok': True, 'v': 2, 'states': cur['states'], 'updated': cur['updated']})
+            self._json({'ok': True, 'v': 2, 'states': cur['states'],
+                        'reading': cur.get('reading') or {}, 'updated': cur['updated']})
         elif u.path == '/api/settings':
             s = load_settings()
             if body.get('api_key') is not None:
@@ -376,13 +402,12 @@ def load_state():
 
 def save_state(d):
     """Atomic write — a mark must never be lost to a half-written file."""
-    os.makedirs(CONFIG_DIR, exist_ok=True)
     d['v'] = 2
     d['updated'] = datetime.now().strftime('%Y-%m-%dT%H:%M:%S')
-    tmp = STATE + '.tmp'
-    with open(tmp, 'w') as f:
-        json.dump(d, f)
-    os.replace(tmp, STATE)
+    _atomic_json(STATE, d)
+
+
+STATE_LOCK = threading.Lock()
 
 
 def merge_states(server_states, incoming):
@@ -422,10 +447,7 @@ def load_authors():
 
 def save_authors(d):
     os.makedirs(CONFIG_DIR, exist_ok=True)
-    tmp = AUTHORS + '.tmp'
-    with open(tmp, 'w') as f:
-        json.dump(d, f, indent=1)
-    os.replace(tmp, AUTHORS)
+    _atomic_json(AUTHORS, d, indent=1)
 
 
 def authors_add(name, lane):
