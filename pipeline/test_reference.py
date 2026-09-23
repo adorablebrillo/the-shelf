@@ -177,5 +177,137 @@ class KindleCandidateTests(unittest.TestCase):
         self.assertIsNone(c)
 
 
+class MatchStrictnessTests(unittest.TestCase):
+    """The Apple guard must reject a same-title, different-writer result — a
+    shared first name is not a match — and fail closed on a nameless side."""
+
+    def test_a_shared_first_name_is_not_a_match(self):
+        self.assertFalse(reference._author_match('Sarah Pekkanen', 'Sarah J. Maas'))
+
+    def test_initials_and_variants_still_pass(self):
+        self.assertTrue(reference._author_match('J.K. Maclaren', 'JK Maclaren'))
+        self.assertTrue(reference._author_match('Sarah Pekkanen', 'Sarah Pekkanen'))
+
+    def test_one_side_nameless_fails_closed(self):
+        self.assertFalse(reference._author_match('', 'Someone Else'))
+        self.assertFalse(reference._author_match('Someone Else', ''))
+
+
+class KindleUndatedTests(unittest.TestCase):
+    def test_an_undated_page_yields_no_date(self):
+        raw = open(BOOK_FIXTURE, encoding='utf-8').read()
+        stripped = raw.replace('"publicationTime":1785826800000', '"publicationTime":null')
+        self.assertNotEqual(raw, stripped, 'the fixture must carry the timestamp this test strips')
+        orig = reference._get
+        try:
+            reference._get = lambda url, timeout=0: stripped
+            c = reference.kindle_candidate({'title': 'The Unknown', 'author': 'Riley Sager',
+                                            'url': 'https://www.goodreads.com/book/show/243596193-the-unknown',
+                                            'cover': '', 'description': ''}, '2026-08')
+        finally:
+            reference._get = orig
+        self.assertIsNotNone(c)
+        self.assertIsNone(c['date'])       # never invented — the filter lets the model judge
+
+
+class WrongPageTests(unittest.TestCase):
+    def test_a_page_that_is_not_the_entry_is_rejected(self):
+        orig = reference._get
+        try:
+            reference._get = lambda url, timeout=0: open(BOOK_FIXTURE, encoding='utf-8').read()
+            c = reference.kindle_candidate({'title': 'A Completely Different Book', 'author': 'X',
+                                            'url': 'https://www.goodreads.com/book/show/243596193-the-unknown',
+                                            'cover': '', 'description': ''}, '2026-08')
+        finally:
+            reference._get = orig
+        self.assertIsNone(c)
+
+
+class GateBranchTests(unittest.TestCase):
+    """The ticket's indie-with-proof case, through the REAL filter run: an
+    unknown publisher sourced from a Goodreads page with proven ratings passes
+    the curator's gate; its Apple-page twin does not."""
+
+    def test_unknown_goodreads_page_with_proof_passes_the_gate(self):
+        import json
+        import os
+        import tempfile
+        import filter as flt
+        import windows
+        tmp = tempfile.mkdtemp(prefix='shelf-ref-gate-')
+        mon = windows.target_month(flt.MODE)
+        books = [
+            {'title': 'Kindle First Book', 'author': 'A Author', 'genre': 'Romantasy',
+             'date': None, 'publisher': '', 'rating': 4.4, 'rating_count': 500,
+             'pub_source': 'goodreads-page', 'found_by': ['goodreads']},
+            {'title': 'Apple Twin Book', 'author': 'B Author', 'genre': 'Romantasy',
+             'date': None, 'publisher': '', 'rating': 4.9, 'rating_count': 9000,
+             'pub_source': 'apple-search', 'found_by': ['goodreads']},
+        ]
+        with open(os.path.join(tmp, 'candidates-%s.json' % mon), 'w') as f:
+            json.dump({'books': books}, f)
+        old = flt.CFG.get('output_dir')
+        flt.CFG['output_dir'] = tmp
+        try:
+            rc = flt.main()
+        finally:
+            if old is not None:
+                flt.CFG['output_dir'] = old
+        self.assertEqual(rc, 0)
+        with open(os.path.join(tmp, 'filtered-%s.json' % mon)) as f:
+            kept = {b['title']: b for b in json.load(f)['books']}
+        self.assertIn('Kindle First Book', kept)
+        self.assertTrue(kept['Kindle First Book']['indie_proven'])
+        self.assertIn('Apple Twin Book', kept)
+        self.assertFalse(kept['Apple Twin Book']['indie_proven'])
+
+
+class AppendHonestyTests(unittest.TestCase):
+    """'Found but not appended' must read as a failure: the line says so, the
+    file says ok:false, and nothing is claimed as added."""
+
+    def test_append_failure_is_reported_not_hidden(self):
+        import contextlib
+        import io
+        import json
+        import os
+        import tempfile
+        import fetch
+        tmp = tempfile.mkdtemp(prefix='shelf-ref-append-')
+        old_out = fetch.CFG.get('output_dir')
+        orig_month, orig_get, orig_search, orig_resolve = (
+            reference.fetch_month, reference._get, fetch.search, fetch.resolve_product)
+
+        def fake_search(term, limit=100):
+            return [{'trackName': 'The Unknown', 'artistName': 'Riley Sager',
+                     'releaseDate': '2026-08-04T07:00:00Z', 'genres': ['Romance'],
+                     'trackViewUrl': 'https://books.apple.com/x/id1', 'trackId': 1,
+                     'averageUserRating': 4.5, 'userRatingCount': 500, 'description': ''}]
+
+        try:
+            fetch.CFG['output_dir'] = tmp
+            reference.fetch_month = lambda mon: open(LIST_FIXTURE, encoding='utf-8').read()
+            reference._get = lambda url, timeout=0: (_ for _ in ()).throw(OSError('no page'))
+            fetch.search = fake_search
+            fetch.resolve_product = lambda rec, cache: None
+            buf = io.StringIO()
+            with contextlib.redirect_stdout(buf):
+                rc = reference.main()
+            self.assertEqual(rc, 0)
+            out = buf.getvalue()
+            self.assertIn('APPEND FAILED', out)      # nothing entered the pool
+            files = [f for f in os.listdir(tmp) if f.startswith('reference-')]
+            blob = json.load(open(os.path.join(tmp, files[0])))
+            self.assertFalse(blob['ok'])
+            self.assertIn('append failed', blob['reason'])
+            self.assertEqual(blob['added'], [])
+            self.assertTrue(blob['capped'])          # 15 misses -> the top 8 by rank
+        finally:
+            reference.fetch_month, reference._get = orig_month, orig_get
+            fetch.search, fetch.resolve_product = orig_search, orig_resolve
+            if old_out is not None:
+                fetch.CFG['output_dir'] = old_out
+
+
 if __name__ == '__main__':
     unittest.main()

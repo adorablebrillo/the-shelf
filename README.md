@@ -4,7 +4,7 @@ Monthly new-romance page + self-driving pipeline. An editorial cream-and-gold
 web app (Cormorant Garamond, forest-green hero panels) that curates **up to 9 new
 releases across three lanes — sport romance, romantasy & contemporary romance**
 — for one reader, every 1st of
-the month: fetch → filter → OpenRouter curation → build → serve. Two views —
+the month: fetch → Goodreads reference → filter → OpenRouter curation → build → serve. Two views —
 *This month* (the drop, the series hero, every series she is in) and *The
 archive* (the reading room bookcase + everything she has read).
 
@@ -12,7 +12,7 @@ archive* (the reading room bookcase + everything she has read).
 
 | Path | Purpose |
 |---|---|
-| `pipeline/` | fetch.py / filter.py / curate.py / build.py + `taste-prompt.md` (the curator's brief) |
+| `pipeline/` | fetch.py / reference.py / filter.py / curate.py / build.py + `taste-prompt.md` (the curator's brief) |
 | `container/` | server.py (web UI + settings API + scheduler) and Dockerfile |
 | `templates/` | Unraid Community Applications template (`my-the-shelf.xml`) + icon |
 | `.lavish/assets/` | the design's art — the seasonal coffee illustrations |

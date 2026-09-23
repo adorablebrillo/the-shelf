@@ -35,6 +35,7 @@ from datetime import datetime
 
 import bookids
 import fetch
+import lanes
 import paths
 from shelf_state import exclusion_set
 from windows import target_month
@@ -43,6 +44,7 @@ UA = ('Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 '
       '(KHTML, like Gecko) Chrome/120.0 Safari/537.36')
 GAP = 1.2          # polite: one request at a time, with a gap
 TIMEOUT = 25
+CAP = 8            # at most this many misses are looked up per run (top of the list)
 
 
 def _get(url, timeout=TIMEOUT):
@@ -106,6 +108,9 @@ def parse_list(html):
         b = ap.get(_ref(e.get('node'), 'Book:'))
         if not isinstance(b, dict):
             continue
+        title = (b.get('title') or '').strip()
+        if not title:
+            continue                     # a title-less stub is a parse change, not a miss
         author = ''
         c = ap.get(_ref((b.get('primaryContributorEdge') or {}).get('node'), 'Contributor:'))
         if isinstance(c, dict):
@@ -117,7 +122,7 @@ def parse_list(html):
             rating, count = st.get('averageRating'), st.get('ratingsCount')
         out.append({
             'rank': e.get('rank'),
-            'title': (b.get('title') or '').strip(),
+            'title': title,
             'author': author,
             'url': b.get('webUrl') or '',
             'cover': b.get('imageUrl') or '',
@@ -128,18 +133,26 @@ def parse_list(html):
     return out or None
 
 
-def parse_book(html):
+def parse_book(html, url=None):
     """A Goodreads book page -> {title,author,publisher,date,rating,
-    rating_count,genres,cover,description}, or None (fail soft)."""
+    rating_count,genres,cover,description}, or None (fail soft). When the
+    requested URL carries a book id, prefer the node that IS that book — a
+    page can hold several Book nodes, and publishing the wrong one under the
+    entry's URL is worse than none."""
     j = _next_data(html)
     if not j:
         return None
     ap = _apollo(j)
+    m = re.search(r'/show/(\d+)', url or '')
+    want = m.group(1) if m else None
     b = None
     for k, v in ap.items():
         if k.startswith('Book:') and isinstance(v, dict):
-            b = v
-            break
+            if want and (str(v.get('legacyId') or '') == want or want in (v.get('webUrl') or '')):
+                b = v
+                break
+            if b is None:
+                b = v
     if not isinstance(b, dict):
         return None
     author = ''
@@ -199,14 +212,18 @@ def _title_match(a, b):
 
 
 def _author_match(a, b):
-    """Loose author check: punctuation/initials vary between catalogs, so any
-    shared meaningful token counts; only a clear mismatch rejects."""
+    """Loose author check: punctuation/initials vary between catalogs, so a
+    shared meaningful token counts. Strict enough to reject a same-title,
+    different-writer result (a shared first name is not a match), and it fails
+    CLOSED when one side carries a name and the other does not."""
     def toks(s):
         return {w for w in re.sub(r'[^a-z ]+', ' ', (s or '').lower()).split() if len(w) > 2}
     ta, tb = toks(a), toks(b)
+    if not ta and not tb:
+        return True                      # nothing to compare on either side
     if not ta or not tb:
-        return True                      # nothing to compare — do not block
-    return bool(ta & tb)
+        return False                     # one side names the writer — the other must too
+    return len(ta & tb) >= min(2, len(ta), len(tb))
 
 
 def fetch_month(mon):
@@ -258,6 +275,11 @@ def apple_candidate(e, mon, cache=None):
         author = (it.get('artistName') or '').strip()
         if not _author_match(e.get('author'), author):
             continue                     # same title, different writer
+        if not (e.get('author') or '').strip():
+            # the entry carries no writer: only an exact title may stand in
+            norm = lambda s: re.sub(r'[^a-z0-9]+', ' ', (s or '').lower()).strip()
+            if norm(e['title']) != norm(title):
+                continue
         cand = {
             'source': 'apple-search', 'title': title, 'author': author,
             'date': fetch.norm_date(it.get('releaseDate')),
@@ -271,6 +293,12 @@ def apple_candidate(e, mon, cache=None):
             'lane': '', 'lanes': [], 'found_by': ['goodreads'],
             'pub_source': 'apple-search',
         }
+        try:
+            lane = lanes.lane_of(cand['genre']) or ''
+        except Exception:
+            lane = ''
+        cand['lane'] = lane
+        cand['lanes'] = ([lane] if lane else [])
         try:
             info = fetch.resolve_product(cand, cache if cache is not None else {})
             if info:
@@ -290,22 +318,30 @@ def kindle_candidate(e, mon):
     candidate needs. Returns a candidate dict or None."""
     try:
         time.sleep(GAP)
-        data = parse_book(_get(e['url']))
+        data = parse_book(_get(e['url']), e['url'])
     except Exception:
         return None
     if not data or not data.get('title'):
         return None
+    if e.get('title') and not _title_match(e['title'], data['title']):
+        return None                      # the page did not answer for this entry
     genres = data.get('genres') or []
+    try:
+        lane = lanes.lane_of(' '.join(genres)) or ''
+    except Exception:
+        lane = ''
     return {
         'source': 'goodreads-page', 'title': data['title'], 'author': data['author'] or e['author'],
-        'date': data.get('date') or (mon + '-01'),
+        # never invented: an undated book stays undated and the filter lets
+        # the model judge it (a synthetic month-day would read as in-window)
+        'date': data.get('date'),
         'genre': ' '.join(genres[:3]),
         'url': e['url'],
         'trackId': None,
         'rating': data.get('rating'), 'rating_count': data.get('rating_count'),
         'publisher': data.get('publisher') or '', 'pub_known': bool(data.get('publisher')),
         'language': 'English', 'isbn': '', 'audio': False, 'ebook': True,
-        'lane': '', 'lanes': [], 'found_by': ['goodreads'],
+        'lane': lane, 'lanes': ([lane] if lane else []), 'found_by': ['goodreads'],
         'pub_source': 'goodreads-page',
         'cover': data.get('cover') or e.get('cover') or '',
         'description': data.get('description') or e.get('description') or '',
@@ -315,14 +351,28 @@ def kindle_candidate(e, mon):
 def main():
     mon = target_month(fetch.MODE)
     outdir = os.path.join(paths.BASE, fetch.CFG.get('output_dir', 'data'))
-    os.makedirs(outdir, exist_ok=True)
     ref_path = os.path.join(outdir, 'reference-%s.json' % mon)
     report = {'month': mon, 'fetched_at': datetime.now().isoformat(), 'ok': False,
               'listed': 0, 'seen': 0, 'added': [], 'unobtainable': [], 'reason': ''}
 
+    try:
+        os.makedirs(outdir, exist_ok=True)
+    except Exception as ex:
+        print('goodreads reference: 0 — output dir unwritable (%s) (run continues)'
+              % str(ex)[:80])
+        return 0
+
     def write():
-        with open(ref_path, 'w') as f:
-            json.dump(report, f, indent=1)
+        """Best-effort by design: a file that cannot be written must not break
+        the run either."""
+        try:
+            with open(ref_path, 'w') as f:
+                json.dump(report, f, indent=1)
+            return True
+        except Exception as ex:
+            print('goodreads reference: %d listed — reference file unwritable (%s) (run continues)'
+                  % (report['listed'], str(ex)[:80]))
+            return False
 
     try:
         html = fetch_month(mon)
@@ -341,28 +391,23 @@ def main():
 
     report['listed'] = len(entries)
     seen = seen_keys()
-    misses = []
-    for e in entries:
-        if _entry_keys(e) & seen:
-            report['seen'] += 1
-        else:
-            misses.append(e)
+    misses = [e for e in entries if not (_entry_keys(e) & seen)]
+    report['seen'] = len(entries) - len(misses)
+    report['capped'] = len(misses) > CAP
+    if report['capped']:
+        misses = misses[:CAP]
 
-    cands = []
+    found = []                                   # (entry, candidate, via)
     cache = fetch.load_cache()
     for e in misses:
         try:
             c = apple_candidate(e, mon, cache)
             if c and c.get('date'):
-                cands.append(c)
-                report['added'].append({'title': e['title'], 'author': e['author'],
-                                        'via': 'apple', 'url': e['url']})
+                found.append((e, c, 'apple'))
                 continue
             c = kindle_candidate(e, mon)
             if c:
-                cands.append(c)
-                report['added'].append({'title': e['title'], 'author': e['author'],
-                                        'via': 'goodreads-page', 'url': e['url']})
+                found.append((e, c, 'goodreads-page'))
             else:
                 report['unobtainable'].append({'title': e['title'], 'author': e['author'],
                                                'url': e['url'],
@@ -375,33 +420,54 @@ def main():
     except Exception:
         pass
 
-    if cands:
+    # a book counts as added only once it is IN the pool — the run line is the
+    # operator's truth, and 'found but not appended' must read as a failure
+    added = 0
+    report['ok'] = True
+    if found:
         try:
-            src = os.path.join(outdir, 'candidates-%s.json' % mon)
+            src = os.path.join(outdir, 'candidates-%s.json' % mon)   # this month only
             if not os.path.exists(src):
-                files = sorted([f for f in os.listdir(outdir) if f.startswith('candidates-')])
-                if not files:
-                    raise IOError('no candidates file')
-                src = os.path.join(outdir, files[-1])
+                raise IOError('no candidates-%s.json to append to' % mon)
             blob = json.load(open(src))
             have = {fetch.normkey(b.get('title'), b.get('author')) for b in blob.get('books', [])}
-            fresh = [c for c in cands if fetch.normkey(c.get('title'), c.get('author')) not in have]
+            fresh = [c for (e, c, via) in found
+                     if fetch.normkey(c.get('title'), c.get('author')) not in have]
             blob.setdefault('books', []).extend(fresh)
             with open(src, 'w') as f:
                 json.dump(blob, f, indent=1)
-            report['appended'] = len(fresh)
+            added = len(fresh)
+            freshkeys = {fetch.normkey(c.get('title'), c.get('author')) for c in fresh}
+            for (e, c, via) in found:
+                if fetch.normkey(c.get('title'), c.get('author')) in freshkeys:
+                    report['added'].append({'title': c.get('title') or e['title'],
+                                            'entry_title': e['title'],
+                                            'author': c.get('author') or e['author'],
+                                            'via': via, 'url': e['url'],
+                                            'trackId': c.get('trackId')})
         except Exception as ex:
             report['reason'] = 'candidates append failed: %s' % str(ex)[:120]
-
-    report['ok'] = True
+            report['ok'] = False
     write()
-    n_apple = len([a for a in report['added'] if a['via'] == 'apple'])
-    n_kindle = len([a for a in report['added'] if a['via'] == 'goodreads-page'])
+
+    n_apple = len([1 for (e, c, via) in found if via == 'apple'])
+    n_kindle = len(found) - n_apple
+    apple_calls = fetch.STATS['search']['calls'] + fetch.STATS['pages']['calls']
+    apple_failed = fetch.STATS['search']['failed'] + fetch.STATS['pages']['failed']
+    cap_note = (' (looked up the top %d by rank)' % CAP) if report['capped'] else ''
+    if report['ok']:
+        line = ('goodreads reference: %d listed, %d already seen, %d missed -> '
+                '%d found (%d Apple, %d Kindle-first), %d unobtainable, %d added to the pool%s '
+                '[apple %d calls/%d failed]'
+                % (report['listed'], report['seen'], len(misses), len(found), n_apple, n_kindle,
+                   len(report['unobtainable']), added, cap_note, apple_calls, apple_failed))
+    else:
+        line = ('goodreads reference: %d listed, %d already seen, %d missed -> '
+                '%d found, %d unobtainable — APPEND FAILED (%s): nothing entered the pool%s'
+                % (report['listed'], report['seen'], len(misses), len(found),
+                   len(report['unobtainable']), report['reason'], cap_note))
     titles = ', '.join(a['title'] for a in report['added'][:6])
-    print('goodreads reference: %d listed, %d already seen, %d missed -> '
-          '%d added (Apple), %d added (Kindle-first), %d unobtainable%s'
-          % (report['listed'], report['seen'], len(misses), n_apple, n_kindle,
-             len(report['unobtainable']), (' — %s' % titles) if titles else ''))
+    print(line + ((' — %s' % titles) if titles else ''))
     return 0
 
 

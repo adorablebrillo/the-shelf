@@ -181,7 +181,7 @@ def fetch_models():
     return out
 
 def run_pipeline(settings, mode='adhoc'):
-    """fetch → filter → curate → build. Uses the in-container pipeline dir.
+    """fetch → reference → filter → curate → build. Uses the in-container pipeline dir.
     mode='adhoc'     — "curate now": rolling last-30-days window (manual button)
     mode='scheduled' — the 1st-of-month drop: the previous month's books"""
     settings['running'] = True
