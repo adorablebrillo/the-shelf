@@ -18,6 +18,7 @@ same code path runs at image-bake time and after every pipeline run.
 import json, os, re, shutil, sys, urllib.request, urllib.parse, hashlib, calendar, glob
 from datetime import datetime
 import paths  # shared resolver: reader data lives on the volume (CFG_DIR)
+import synopses  # #51: the synopsis chain + its volume cache
 from lanes import lane_of, counts as lane_counts, shape_str, shape_line
 from bookids import book_key
 from shelf_state import exclusion_set
@@ -738,6 +739,30 @@ def main():
     hero = hero_data(series)
     if hero:
         hero['cover'] = ensure_cover('', hero.get('title'), hero.get('author'), covers_dir)
+
+    # ---- every rendered book carries a real synopsis (#51) -----------------
+    # Her complaint: the one-line hooks are too thin to judge a book by. Each
+    # book below gets its Goodreads blurb (Apple description as fallback), the
+    # miss cached honestly. PRIORITY is the point: the picks she decides on
+    # fill first, then the hero, then the volumes she can still pick up, then
+    # the read ones — a cold cache fills across builds inside the politeness
+    # budget (synopsis_budget_seconds), never blowing the boot rebuild's
+    # timeout, and the report says exactly how far it got.
+    syn_entries = [(b, b.get('title'), b.get('author')) for b in book_list]
+    syn_entries += [(b, b.get('title'), b.get('author')) for b in pending]
+    if hero:
+        syn_entries.append((hero, hero.get('title'), hero.get('author')))
+    syn_entries += [(b, b.get('title'), b.get('author')) for b in resolved]
+    vol_rank = {'out': 0, 'soon': 1, 'tba': 2, 'read': 3}
+    vol_entries = [(b, b.get('t'), s.get('author') or '')
+                   for s in series for b in (s.get('books') or [])]
+    vol_entries.sort(key=lambda e: vol_rank.get(e[0].get('state'), 9))  # stable: series order holds
+    syn_entries += vol_entries
+    syn_cache = synopses.load()
+    syn_stats = synopses.attach(syn_entries, syn_cache)
+    if not synopses.save(syn_cache):
+        print('synopsis cache: write failed — rebuilds will refetch')
+
     y, m = int(cur_ym[:4]), int(cur_ym[5:7])
     month = {
         'label': '%s %d' % (ml['name'].upper(), y),
@@ -779,6 +804,9 @@ def main():
     open(os.path.join(DIST, 'index.html'), 'w').write(tpl)
     print('built dist (current: %s, %d books, %d series, issue no. %d)'
           % (cur_ym, len(book_list), len(series), month['issue']))
+    # last line on purpose: the server keeps the run log's tail, and the
+    # synopsis counts are the one line a reader of the log must not lose
+    print(synopses.report_line(syn_stats))
     return 0
 
 
