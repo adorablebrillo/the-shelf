@@ -395,7 +395,7 @@
               <div style="display:flex;align-items:flex-start;gap:8px;flex-wrap:wrap;margin-top:14px">
                 <sc-for list="{{ s.vols }}" as="v" hint-placeholder-count="4">
                   <span role="button" tabindex="0" aria-label="{{ v.label }}" onclick="{{ v.onTap }}" onfocus="{{ v.onEnter }}" onblur="{{ v.onLeave }}" onmouseenter="{{ v.onEnter }}" onmouseleave="{{ v.onLeave }}" style="flex:0 0 auto;display:block;width:58px;cursor:pointer">
-                    <span aria-hidden="true" style="{{ v.coverStyle }}"><img src="{{ v.artSrc }}" alt="" style="{{ v.artStyle }}" data-art="1"/><span style="{{ v.labelStyle }}">{{ v.n }}</span></span>
+                    <span aria-hidden="true" style="{{ v.coverStyle }}"><img src="{{ v.artSrc }}" alt="" style="position:absolute;top:0;left:0;width:100%;height:100%;object-fit:cover;display:none" data-art="1"/><span style="{{ v.labelStyle }}">{{ v.n }}</span></span>
                     <span aria-hidden="true" style="{{ v.markStyle }}">{{ v.mark }}</span>
                   </span>
                 </sc-for>
@@ -491,7 +491,7 @@
               <ul style="list-style:none;margin:0;padding:0;min-width:0">
                 <sc-for list="{{ s.books }}" as="bk" hint-placeholder-count="2">
                   <li style="display:flex;align-items:center;gap:10px;padding:4px 0">
-                    <span aria-hidden="true" style="{{ bk.thumbStyle }}"><img src="{{ bk.artSrc }}" alt="" style="{{ bk.thumbArtStyle }}" data-art="1"/></span>
+                    <span aria-hidden="true" style="{{ bk.thumbStyle }}"><img src="{{ bk.artSrc }}" alt="" style="position:absolute;top:0;left:0;width:100%;height:100%;object-fit:cover;display:none" data-art="1"/></span>
                     <span aria-hidden="true" style="flex:0 0 14px;font-size:11px;color:#A8863F">✓</span>
                     <span style="flex:1;min-width:0;font-family:'Cormorant Garamond',Garamond,serif;font-size:19px;line-height:1.3">{{ bk.t }} <span style="font-size:13.5px;color:#6E6353">{{ bk.n }}</span></span>
                     <span style="{{ bk.tagStyle }}">{{ bk.tag }}</span>
@@ -1287,7 +1287,6 @@ class Component extends DCLogic {
           return {n:num,t:b.t,label:axLabel,art,
             artSrc:art||'data:image/gif;base64,R0lGODlhAQABAAAAACH5BAEKAAEALAAAAAABAAEAAAICTAEAOw==',
             coverStyle,
-            artStyle:art?{position:'absolute',top:'0',left:'0',width:'100%',height:'100%',objectFit:'cover',display:'block'}:{display:'none'},
             labelStyle:{fontFamily:"'SFMono-Regular',Menlo,Consolas,monospace",fontSize:'8.5px',lineHeight:1.3,
               letterSpacing:'.03em',color:(vs==='read'||vs==='tba')?'#4A443A':edge,overflowWrap:'anywhere',
               ...(art?{position:'absolute',left:'5px',bottom:'4px',display:'none'}:{})},
@@ -1413,9 +1412,6 @@ class Component extends DCLogic {
           thumbStyle:{flex:'0 0 34px',width:'34px',height:'51px',position:'relative',overflow:'hidden',
             background:'repeating-linear-gradient(90deg,#EFE7D6 0 4px,#E4DAC4 4px 8px)',
             border:'1px solid '+(b.img?'rgba(33,30,25,.35)':'#D6CCB6')},
-          thumbArtStyle: b.img
-            ?{position:'absolute',top:'0',left:'0',width:'100%',height:'100%',objectFit:'cover',display:'block'}
-            :{display:'none'},
           tagStyle:{fontSize:'9.5px',letterSpacing:'.24em',textTransform:'uppercase',
             color:S[b.id]==='loved'?BLOOD:MID},
           onUnread:()=>this.unreadId(b.id,true)}))};
