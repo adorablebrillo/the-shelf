@@ -25,10 +25,11 @@ A woman in her 30s. Reads English romance only. Three genres, in priority order:
    fake dating, one bed, brother's best friend, rockstar. A sharp, funny voice
    scores higher than drama.
 
-Preferences: spice moderate → explicit (3–5). M/F only. NO cowboy/cowgirl/western
-romance (ranch/rodeo settings and those characters are out). NO dark romance, no
-abuse, no anti-heroes posing as love interests, no bully romance, no
-humiliations/torture in a romantic frame. No LGBTQ+ pairings. Trad-published
+Preferences: spice moderate → explicit (3–5). M/F only. Dark romance is welcome —
+especially dark academia: gothic settings, anti-heroes, morally gray love
+interests, bully romance. (Still no abuse or humiliation played straight as
+romance — dark, not cruel.) NO cowboy/cowgirl/western
+romance (ranch/rodeo settings and those characters are out). No LGBTQ+ pairings. Trad-published
 first; indie/self-published books are allowed ONLY if they already have solid
 early ratings (4.0+ with a decent vote count — see `rating` / `rating_count`
 on the candidate) — otherwise drop.
