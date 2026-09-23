@@ -89,9 +89,21 @@
     [data-m="tabs"] button{min-height:44px !important}
     [data-m="plate"]{min-height:44px !important}
     [data-m="stacks"] button{width:26px !important}
+    [aria-label="Series at a glance"] > div:first-child button{min-height:44px !important;padding:12px 0 !important}
   }
   @media (max-width:340px){
     [data-m="cornerquote"]{min-height:3.84em !important}
+  }
+  /* #43: the phone nav — the buttons carry width:100% for the sidebar look, so
+     the design's row+wrap collapse needs them auto-sized to act as a top row.
+     Also folded from Aminaz's phone report: the panel's height:100% with
+     content-box sizing made its gold frame + the stats line hang ~38px past
+     the green, and the seal/season were hidden entirely — both fixed here. */
+  @media (max-width:880px){
+    [data-m="sidenav"] button{width:auto !important;flex:0 1 auto !important;margin-right:0 !important;border-right:1px solid #3F6153 !important;padding:11px 14px !important}
+    [data-m="sidepanel"]{height:auto !important;overflow:visible !important;box-sizing:border-box !important}
+    [data-m="sidering"]{display:block !important;margin:0 auto !important}
+    [data-m="sideseason"]{display:block !important}
   }
 </style>
 </helmet>
