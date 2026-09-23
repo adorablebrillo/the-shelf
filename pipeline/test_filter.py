@@ -78,6 +78,25 @@ class CowboyScreenTests(unittest.TestCase):
 if __name__ == '__main__':
     unittest.main()
 
+class PubClassTests(unittest.TestCase):
+    """#47: the imprints the Goodreads reference surfaced must classify as trad
+    (they are big-5 houses), and nothing may masquerade as indie."""
+
+    def test_big_five_imprints_are_trad(self):
+        from filter import pub_class
+        for p in ('Crown', 'William Morrow', 'Penguin Publishing Group',
+                  'Knopf Doubleday Publishing', 'Park Row Books', 'HarperCollins',
+                  'Macmillan Publishers', 'Dutton', 'St. Martin\'s Publishing Group'):
+            self.assertEqual(pub_class(p), 'trad', p)
+
+    def test_indie_and_unknown_stay_distinct(self):
+        from filter import pub_class
+        self.assertEqual(pub_class('Independently published'), 'indie')
+        self.assertEqual(pub_class('Montlake'), 'indie')
+        self.assertEqual(pub_class(''), 'unknown')
+        self.assertEqual(pub_class('Some Tiny Press'), 'unknown')
+
+
 class DarkRomanceRuleTests(unittest.TestCase):
     """Her rule reversed (2026-09-23): dark romance is WANTED — especially dark
     academia. A dark-academia candidate passes screening with a positive hint,

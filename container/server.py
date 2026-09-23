@@ -198,7 +198,7 @@ def run_pipeline(settings, mode='adhoc'):
                 _sh.copy2(mf, dst)
     except Exception as e:
         log('baseline seed: %s' % e)
-    steps = ['fetch.py', 'filter.py', 'curate.py', 'build.py']
+    steps = ['fetch.py', 'reference.py', 'filter.py', 'curate.py', 'build.py']
     code = 0
     for s in steps:
         log('stage: %s (%s)' % (s, mode))

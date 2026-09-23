@@ -72,7 +72,11 @@ TRAD_HINTS = ('avon', 'berkley', 'grand central', "st. martin", 'random house', 
               'bloom books', 'quercus', 'harlequin', 'cornerstone', 'simon & schuster', 'hachette',
               'pan macmillan', 'red tower', 'entangled', 'piatkus', 'headline', 'hodder', 'orion',
               'sourcebooks', 'celadon', 'putnam', 'dutton', 'bantam', 'bookouture', 'michael joseph',
-              'flatiron', 'gallery books', 'atria', 'forever', 'sphere', 'orbit')
+              'flatiron', 'gallery books', 'atria', 'forever', 'sphere', 'orbit',
+              # #47: imprints the Goodreads reference surfaced as 'unknown' —
+              # all genuine big-5 houses, so the curator's gate must see them
+              'penguin', 'crown', 'william morrow', 'knopf', 'doubleday', 'park row',
+              'harper', 'macmillan')
 TRAD_WORDS = ('tor', 'dell', 'mira')
 INDIE_HINTS = ('montlake', 'amazon publishing', 'kdp', 'smashwords', 't. howard',
                'independently published', 'draft2digital')
@@ -169,7 +173,11 @@ def main():
         b['trad'] = (cls == 'trad')
         b['indie'] = (cls == 'indie')
         b['pub_known'] = bool(pub)
-        b['indie_proven'] = bool(cls == 'indie' and proven)
+        # #47: a Kindle-first book (sourced from its Goodreads page, no Apple
+        # presence, publisher not on record) with strong ratings is the
+        # indie-with-proof case — the Goodreads numbers carry it
+        b['indie_proven'] = bool(proven and (cls == 'indie' or
+                                             (cls == 'unknown' and b.get('pub_source') == 'goodreads-page')))
         kept.append(b)
     if dropped_cowboy:
         print('cowboy/western: dropped %d candidate(s) — %s'
