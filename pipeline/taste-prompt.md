@@ -48,7 +48,8 @@ on the candidate) — otherwise drop.
   wider than the base window: that lane may draw back that many days. If the
   date is missing or outside the window, drop it.
 - If fewer than six books make the bar, that is a light month: pick only what
-  earns its place; the page prints "light month — only the best made it".
+  earns its place. The page no longer announces it (the line was dropped on
+  the reader's call, 2026-09).
 - Sequels are welcome ONLY if they continue a series the reader is already in
   (series names and her read list are in the sequels_map below). Mark them
   `aseq: true`.
