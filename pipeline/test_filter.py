@@ -75,9 +75,6 @@ class CowboyScreenTests(unittest.TestCase):
         self.assertFalse(cowboy_screen('Second Serve', 'Sports Romance'))
 
 
-if __name__ == '__main__':
-    unittest.main()
-
 class DarkRomanceRuleTests(unittest.TestCase):
     """Her rule reversed (2026-09-23): dark romance is WANTED — especially dark
     academia. A dark-academia candidate passes screening with a positive hint,
@@ -109,3 +106,56 @@ class DarkRomanceRuleTests(unittest.TestCase):
         src = open(os.path.join(os.path.dirname(os.path.abspath(__file__)), 'filter.py')).read()
         self.assertIn("'dark_romance_welcome': True", src)
         self.assertNotIn("'no_dark': True", src)
+
+    def test_the_cruelty_line_survives_in_the_hard_rules(self):
+        """'dark, never cruel' — the reconciliation must be in the hard rules
+        too, not only the taste prompt (the review's one-clause fix)."""
+        import curate
+        self.assertIn('never cruel', curate.HARD_RULES)
+        self.assertIn('abuse or humiliation played straight', curate.HARD_RULES)
+
+
+class DarkCandidateFlowTests(unittest.TestCase):
+    """The ticket's pass-through, behaviourally: a dark-academia candidate
+    passes the REAL filter run, the cowboy screen still bites, and the emitted
+    run file states the new rule (the review's behavioural pin)."""
+
+    def test_a_dark_academia_candidate_passes_the_run(self):
+        import json
+        import os
+        import tempfile
+        import filter as flt
+        import windows
+        tmp = tempfile.mkdtemp(prefix='shelf-filter-flow-')
+        mon = windows.target_month(flt.MODE)
+        cands = {'books': [
+            {'title': 'Eternal is the Night', 'author': 'Alayna Ravenwood',
+             'genre': 'Dark Academia Fantasy Romance', 'date': mon + '-15',
+             'publisher': 'Independently published', 'rating': 4.4, 'rating_count': 900,
+             'language': 'English'},
+            {'title': 'Cowboy Up', 'author': 'Someone', 'genre': 'Western Romance',
+             'date': mon + '-10'},
+        ]}
+        with open(os.path.join(tmp, 'candidates-%s.json' % mon), 'w') as f:
+            json.dump(cands, f)
+        old_out = flt.CFG.get('output_dir')
+        flt.CFG['output_dir'] = tmp
+        try:
+            rc = flt.main()
+        finally:
+            if old_out is not None:
+                flt.CFG['output_dir'] = old_out
+        self.assertEqual(rc, 0)
+        with open(os.path.join(tmp, 'filtered-%s.json' % mon)) as f:
+            out = json.load(f)
+        kept = {b['title'] for b in out['books']}
+        self.assertIn('Eternal is the Night', kept)          # dark passes
+        self.assertNotIn('Cowboy Up', kept)                  # the screen still bites
+        dark = [b for b in out['books'] if b['title'] == 'Eternal is the Night'][0]
+        self.assertTrue(dark['dark_hint'])
+        self.assertTrue(out['rules'].get('dark_romance_welcome'))
+        self.assertNotIn('no_dark', out['rules'])
+
+
+if __name__ == '__main__':
+    unittest.main()
