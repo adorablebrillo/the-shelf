@@ -41,6 +41,7 @@
   button:active:not(:disabled){scale:.96}
   h1,h2,h3{text-wrap:balance}
   p,li,figcaption,blockquote{text-wrap:pretty}
+  :focus-visible{outline:2px solid #A8863F;outline-offset:2px;box-shadow:0 0 0 1px #211E19}
   .loglink{color:#A8863F;text-decoration:underline;text-underline-offset:2px;cursor:pointer}
   .loglink:hover{color:#211E19}
   /* dense-desktop hit areas (the phone block below raises these to 44) */
@@ -152,7 +153,7 @@
     <div data-screen-label="Home">
       <section aria-label="My reading corner" style="background:#E5DCCA;padding:6px">
         <div style="border:1px solid #A8863F;padding:26px 30px">
-          <p style="margin:0;font-size:10px;letter-spacing:.34em;text-transform:uppercase;color:#6E6353">My reading corner · {{ monthLabel }}</p>
+          <p style="margin:0;font-size:10px;letter-spacing:.34em;text-transform:uppercase;color:#635846">My reading corner · {{ monthLabel }}</p>
           <p data-m="cornerquote" style="margin:12px 0 0;max-width:42ch;min-height:2.56em;font-family:'Cormorant Garamond',Garamond,serif;font-style:italic;font-size:clamp(22px,3vw,33px);line-height:1.28">{{ quote }}</p>
           <p data-m="recentline" style="margin:18px 0 0;padding-top:14px;border-top:1px solid #C6BBA3;min-height:1.6em;font-size:10px;letter-spacing:.28em;text-transform:uppercase;color:#6E2A2A">{{ recentLine }}</p>
         </div>
@@ -208,7 +209,7 @@
       <section aria-label="Read and loved" style="margin-top:46px">
         <div style="display:flex;align-items:baseline;justify-content:space-between;gap:16px;flex-wrap:wrap">
           <h2 style="font-family:'Cormorant Garamond',Garamond,serif;font-weight:500;font-size:clamp(23px,3vw,32px);letter-spacing:.14em;text-transform:uppercase;margin:0">Read &amp; loved</h2>
-          <span style="font-size:11px;letter-spacing:.28em;text-transform:uppercase;color:#6E6353">past 30 days</span>
+          <span style="font-size:11px;letter-spacing:.28em;text-transform:uppercase;color:#635846">past 30 days</span>
         </div>
         <div style="height:1px;background:#A8863F;margin:14px 0 0"></div>
         <div style="display:flex;align-items:flex-end;gap:5px;flex-wrap:wrap;min-height:78px;padding:22px 0 14px;border-bottom:1px solid #D6CCB6">
@@ -216,12 +217,12 @@
             <span aria-hidden="true" style="{{ s.style }}"></span>
           </sc-for>
         </div>
-        <p style="margin:14px 0 0;font-size:11.5px;letter-spacing:.2em;text-transform:uppercase;color:#6E6353">{{ recentLine }}</p>
+        <p style="margin:14px 0 0;font-size:11.5px;letter-spacing:.2em;text-transform:uppercase;color:#635846">{{ recentLine }}</p>
         <ul style="list-style:none;margin:16px 0 0;padding:0;display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:4px 26px" data-m="recent">
           <sc-for list="{{ recentList }}" as="r" hint-placeholder-count="6">
             <li style="display:flex;align-items:baseline;gap:10px;padding:5px 0;border-top:1px solid #E1D8C4">
               <span style="flex:1;min-width:0;font-family:'Cormorant Garamond',Garamond,serif;font-size:18px;line-height:1.3">{{ r.t }}</span>
-              <span style="font-size:10px;letter-spacing:.14em;text-transform:uppercase;color:#6E6353;white-space:nowrap">{{ r.d }}</span>
+              <span style="font-size:10px;letter-spacing:.14em;text-transform:uppercase;color:#635846;white-space:nowrap">{{ r.d }}</span>
               <span style="{{ r.tagStyle }}">{{ r.tag }}</span>
             </li>
           </sc-for>
@@ -231,13 +232,13 @@
       <section aria-label="This month's picks" style="margin-top:50px">
         <div style="display:flex;align-items:baseline;justify-content:space-between;gap:16px;flex-wrap:wrap">
           <h2 style="font-family:'Cormorant Garamond',Garamond,serif;font-weight:500;font-size:clamp(24px,3.2vw,36px);letter-spacing:.14em;text-transform:uppercase;margin:0">The Month's Picks</h2>
-          <span style="font-size:11px;letter-spacing:.28em;text-transform:uppercase;color:#6E6353">{{ pickCount }}</span>
+          <span style="font-size:11px;letter-spacing:.28em;text-transform:uppercase;color:#635846">{{ pickCount }}</span>
         </div>
         <div style="height:1px;background:#A8863F;margin:14px 0 0"></div>
 
         <sc-if value="{{ hasLead }}">
         <article style="margin-top:26px;background:#E5DCCA;padding:6px">
-          <div style="border:1px solid #A8863F;padding:26px;display:grid;grid-template-columns:minmax(0,190px) minmax(0,1fr);gap:30px;align-items:start" data-m="two">
+          <div style="border:1px solid #A8863F;box-sizing:border-box;padding:26px;display:grid;grid-template-columns:minmax(0,190px) minmax(0,1fr);gap:30px;align-items:start" data-m="two">
             <div style="min-width:0">
               <div role="img" aria-label="{{ lead.alt }}" style="{{ lead.coverStyle }}"></div>
               <sc-if value="{{ leadIsTop }}">
@@ -245,14 +246,14 @@
               </sc-if>
             </div>
             <div style="min-width:0">
-              <p style="margin:0;font-size:11px;letter-spacing:.3em;text-transform:uppercase;color:#6E6353">{{ lead.genre }} · {{ lead.date }}</p>
+              <p style="margin:0;font-size:11px;letter-spacing:.3em;text-transform:uppercase;color:#635846">{{ lead.genre }} · {{ lead.date }}</p>
               <h3 style="font-family:'Cormorant Garamond',Garamond,serif;font-weight:500;font-size:clamp(28px,4vw,46px);line-height:1.06;margin:10px 0 0">{{ lead.title }} <span aria-hidden="true" style="color:#A8863F">{{ lead.star }}</span></h3>
-              <p style="margin:8px 0 0;font-size:14px;letter-spacing:.14em;text-transform:uppercase;color:#6E6353">{{ lead.author }} · {{ lead.publisher }} · {{ lead.gr }}</p>
+              <p style="margin:8px 0 0;font-size:14px;letter-spacing:.14em;text-transform:uppercase;color:#635846">{{ lead.author }} · {{ lead.publisher }} · {{ lead.gr }}</p>
               <p style="margin:16px 0 0;font-family:'Cormorant Garamond',Garamond,serif;font-size:24px;line-height:1.42;max-width:52ch">{{ lead.hook }}</p>
               <p style="margin:12px 0 0;font-style:italic;font-size:15.5px;color:#4A443A;max-width:56ch">Why it won — {{ lead.why }}</p>
               <div data-m="verdicts" style="display:flex;gap:9px;flex-wrap:wrap;margin-top:20px">
                 <sc-for list="{{ lead.pills }}" as="p" hint-placeholder-count="4">
-                  <button type="button" onClick="{{ p.onClick }}" aria-pressed="{{ p.on }}" style="{{ p.style }}">{{ p.label }}</button>
+                  <button type="button" onClick="{{ p.onClick }}" aria-pressed="{{ p.on }}" aria-label="{{ p.aria }}" style="{{ p.style }}">{{ p.label }}</button>
                 </sc-for>
               </div>
             </div>
@@ -260,26 +261,26 @@
         </article>
         </sc-if>
 
-        <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(340px,1fr));gap:18px;margin-top:20px">
+        <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:18px;margin-top:20px">
           <sc-for list="{{ rest }}" as="b" hint-placeholder-count="7">
             <article style="background:#E5DCCA;padding:5px">
-              <div style="height:100%;border:1px solid #A8863F;padding:20px;display:grid;grid-template-columns:minmax(0,96px) minmax(0,1fr);gap:20px;align-items:start">
+              <div style="height:100%;box-sizing:border-box;border:1px solid #A8863F;padding:20px;display:grid;grid-template-columns:minmax(0,96px) minmax(0,1fr);gap:20px;align-items:start" data-m="two">
                 <div role="img" aria-label="{{ b.alt }}" style="{{ b.coverStyle }}"></div>
                 <div style="min-width:0">
-                  <p style="margin:0;font-size:10px;letter-spacing:.28em;text-transform:uppercase;color:#6E6353">{{ b.rank }} · {{ b.genre }}</p>
+                  <p style="margin:0;font-size:10px;letter-spacing:.28em;text-transform:uppercase;color:#635846">{{ b.rank }} · {{ b.genre }}</p>
                   <h3 style="font-family:'Cormorant Garamond',Garamond,serif;font-weight:500;font-size:25px;line-height:1.12;margin:7px 0 0;overflow-wrap:anywhere">{{ b.title }} <span aria-hidden="true" style="color:#A8863F">{{ b.star }}</span></h3>
                   <sc-if value="{{ b.series }}">
                     <p style="margin:2px 0 0;font-family:'Cormorant Garamond',Garamond,serif;font-style:italic;font-size:17px;color:#6E2A2A">{{ b.series }}</p>
                   </sc-if>
-                  <p style="margin:6px 0 0;font-size:12px;letter-spacing:.13em;text-transform:uppercase;color:#6E6353">{{ b.author }}</p>
+                  <p style="margin:6px 0 0;font-size:12px;letter-spacing:.13em;text-transform:uppercase;color:#635846">{{ b.author }}</p>
                   <p style="margin:12px 0 0;font-family:'Cormorant Garamond',Garamond,serif;font-size:19px;line-height:1.42">{{ b.hook }}</p>
                   <sc-if value="{{ b.waitNote }}">
                     <p style="margin:8px 0 0;font-size:10.5px;letter-spacing:.2em;text-transform:uppercase;color:#6E2A2A">{{ b.waitNote }}</p>
                   </sc-if>
-                  <p style="margin:10px 0 0;font-size:11.5px;letter-spacing:.1em;text-transform:uppercase;color:#6E6353">Spice {{ b.spiceLabel }} · MMC {{ b.mmcLabel }}</p>
+                  <p style="margin:10px 0 0;font-size:11.5px;letter-spacing:.1em;text-transform:uppercase;color:#635846">Spice {{ b.spiceLabel }} · MMC {{ b.mmcLabel }}</p>
                   <div data-m="verdicts" style="display:flex;gap:6px;flex-wrap:wrap;margin-top:14px;padding-top:14px;border-top:1px solid #C6BBA3">
                     <sc-for list="{{ b.pills }}" as="p" hint-placeholder-count="4">
-                      <button type="button" onClick="{{ p.onClick }}" aria-pressed="{{ p.on }}" style="{{ p.style }}">{{ p.label }}</button>
+                      <button type="button" onClick="{{ p.onClick }}" aria-pressed="{{ p.on }}" aria-label="{{ p.aria }}" style="{{ p.style }}">{{ p.label }}</button>
                     </sc-for>
                   </div>
                 </div>
@@ -288,13 +289,10 @@
           </sc-for>
         </div>
         <sc-if value="{{ carriedLine }}">
-          <p style="margin:18px 0 0;font-size:11px;letter-spacing:.2em;text-transform:uppercase;color:#6E6353">{{ carriedLine }}</p>
+          <p style="margin:18px 0 0;font-size:11px;letter-spacing:.2em;text-transform:uppercase;color:#635846">{{ carriedLine }}</p>
         </sc-if>
         <sc-if value="{{ shapeLine }}">
-          <p style="margin:8px 0 0;font-size:11px;letter-spacing:.2em;text-transform:uppercase;color:#6E6353">{{ shapeLine }}</p>
-        </sc-if>
-        <sc-if value="{{ isLight }}">
-          <p style="margin:8px 0 0;font-family:'Cormorant Garamond',Garamond,serif;font-style:italic;font-size:18px;color:#6E2A2A">light month — only the best made it</p>
+          <p style="margin:8px 0 0;font-size:11px;letter-spacing:.2em;text-transform:uppercase;color:#635846">{{ shapeLine }}</p>
         </sc-if>
       </section>
 
@@ -309,7 +307,7 @@
             <button type="button" onClick="{{ s.onClick }}" style="display:block;width:100%;text-align:left;padding:16px 18px;border:1px solid #D6CCB6;background:#E5DCCA" style-hover="border-color:#6E2A2A">
               <span style="display:flex;align-items:baseline;gap:12px">
                 <span style="flex:1;min-width:0;font-family:'Cormorant Garamond',Garamond,serif;font-size:21px;line-height:1.2">{{ s.name }}</span>
-                <span style="font-size:10px;letter-spacing:.2em;text-transform:uppercase;color:#6E6353">{{ s.count }}</span>
+                <span style="font-size:10px;letter-spacing:.2em;text-transform:uppercase;color:#635846">{{ s.count }}</span>
               </span>
               <span style="{{ s.railStyle }}"><span style="{{ s.fillStyle }}"></span></span>
               <span style="{{ s.statusStyle }}">{{ s.status }}</span>
@@ -322,15 +320,15 @@
 
     <sc-if value="{{ isShelf }}">
     <div data-screen-label="My Shelf">
-      <p style="margin:0;font-size:10.5px;letter-spacing:.42em;text-transform:uppercase;color:#6E6353">02 · My Shelf</p>
+      <p style="margin:0;font-size:10.5px;letter-spacing:.42em;text-transform:uppercase;color:#635846">02 · My Shelf</p>
       <h2 style="font-family:'Cormorant Garamond',Garamond,serif;font-weight:300;font-size:clamp(34px,5vw,56px);letter-spacing:.1em;text-transform:uppercase;margin:12px 0 0">My TBR list</h2>
       <sc-if value="{{ hasWant }}">
-        <p style="margin:10px 0 0;font-family:'Cormorant Garamond',Garamond,serif;font-style:italic;font-size:20px;color:#6E6353">{{ wantCount }} waiting · press read or loved and it moves to the archive.</p>
+        <p style="margin:10px 0 0;font-family:'Cormorant Garamond',Garamond,serif;font-style:italic;font-size:20px;color:#635846">{{ wantCount }} waiting · press read or loved and it moves to the archive.</p>
       </sc-if>
       <div style="height:1px;background:#A8863F;margin:20px 0 0"></div>
 
       <sc-if value="{{ noWant }}">
-        <p style="margin:22px 0 0;font-family:'Cormorant Garamond',Garamond,serif;font-style:italic;font-size:20px;color:#6E6353">Nothing here yet. Press <em>want</em> on a pick and it lands on this shelf.</p>
+        <p style="margin:22px 0 0;font-family:'Cormorant Garamond',Garamond,serif;font-style:italic;font-size:20px;color:#635846">Nothing here yet. Press <em>want</em> on a pick and it lands on this shelf.</p>
       </sc-if>
 
       <sc-for list="{{ wantList }}" as="b" hint-placeholder-count="2">
@@ -338,7 +336,7 @@
           <div role="img" aria-label="{{ b.alt }}" style="{{ b.coverStyle }}"></div>
           <div style="min-width:0">
             <h3 style="font-family:'Cormorant Garamond',Garamond,serif;font-weight:500;font-size:28px;line-height:1.1;margin:0">{{ b.title }} <span aria-hidden="true" style="color:#A8863F">{{ b.star }}</span></h3>
-            <p style="margin:6px 0 0;font-size:13px;letter-spacing:.13em;text-transform:uppercase;color:#6E6353">{{ b.author }} · {{ b.genre }} · {{ b.date }}</p>
+            <p style="margin:6px 0 0;font-size:13px;letter-spacing:.13em;text-transform:uppercase;color:#635846">{{ b.author }} · {{ b.genre }} · {{ b.date }}</p>
             <p style="margin:12px 0 0;font-family:'Cormorant Garamond',Garamond,serif;font-size:20px;line-height:1.45;max-width:56ch">{{ b.hook }}</p>
             <p style="margin:8px 0 0;font-size:14px;color:#4A443A">{{ b.tropeLine }}</p>
           </div>
@@ -346,7 +344,7 @@
             <button type="button" onClick="{{ b.onReading }}" aria-pressed="{{ b.readingPressed }}" aria-label="{{ b.readingAria }}" style="{{ b.readingStyle }}">{{ b.readingLabel }}</button>
             <button type="button" onClick="{{ b.onRead }}" style="font-size:10.5px;letter-spacing:.22em;text-transform:uppercase;border:1px solid #A8863F;padding:10px 14px;min-height:40px" style-hover="background:#1E3A2F;color:#F3EDE1;border-color:#1E3A2F">mark read</button>
             <button type="button" onClick="{{ b.onLoved }}" style="font-size:10.5px;letter-spacing:.22em;text-transform:uppercase;border:1px solid #A8863F;padding:10px 14px;min-height:40px" style-hover="background:#6E2A2A;color:#F3EDE1;border-color:#6E2A2A">loved it</button>
-            <button type="button" onClick="{{ b.onDrop }}" style="font-size:10px;letter-spacing:.2em;text-transform:uppercase;color:#6E6353;border-bottom:1px solid #C6BBA3;padding:0 0 2px" style-hover="color:#6E2A2A">not for me</button>
+            <button type="button" onClick="{{ b.onDrop }}" style="font-size:10px;letter-spacing:.2em;text-transform:uppercase;color:#635846;border-bottom:1px solid #C6BBA3;padding:0 0 2px" style-hover="color:#6E2A2A">not for me</button>
           </div>
         </article>
       </sc-for>
@@ -355,14 +353,14 @@
       <section aria-label="Out now in your series" style="margin-top:46px">
         <div style="display:flex;align-items:baseline;justify-content:space-between;gap:16px;flex-wrap:wrap">
           <h3 style="font-family:'Cormorant Garamond',Garamond,serif;font-weight:500;font-size:clamp(21px,2.6vw,28px);letter-spacing:.14em;text-transform:uppercase;margin:0">Out now in your series</h3>
-          <span style="font-size:11px;letter-spacing:.28em;text-transform:uppercase;color:#6E6353">{{ waitingCount }} unread</span>
+          <span style="font-size:11px;letter-spacing:.28em;text-transform:uppercase;color:#635846">{{ waitingCount }} unread</span>
         </div>
         <div style="height:1px;background:#A8863F;margin:14px 0 0"></div>
         <ul style="list-style:none;margin:0;padding:0">
           <sc-for list="{{ waitingVols }}" as="v" hint-placeholder-count="6">
             <li style="display:flex;align-items:baseline;gap:14px;flex-wrap:wrap;padding:12px 0;border-bottom:1px solid #E1D8C4">
-              <span style="flex:1;min-width:200px;font-family:'Cormorant Garamond',Garamond,serif;font-size:20px;line-height:1.3">{{ v.t }} <span style="font-size:14px;color:#6E6353">{{ v.n }}</span></span>
-              <span style="font-size:11px;letter-spacing:.16em;text-transform:uppercase;color:#6E6353">{{ v.series }} · {{ v.d }}</span>
+              <span style="flex:1;min-width:200px;font-family:'Cormorant Garamond',Garamond,serif;font-size:20px;line-height:1.3">{{ v.t }} <span style="font-size:14px;color:#635846">{{ v.n }}</span></span>
+              <span style="font-size:11px;letter-spacing:.16em;text-transform:uppercase;color:#635846">{{ v.series }} · {{ v.d }}</span>
               <span data-m="verdicts" style="display:flex;gap:14px;flex-wrap:wrap;align-items:baseline">
               <button type="button" onClick="{{ v.onRead }}" style="font-size:10px;letter-spacing:.2em;text-transform:uppercase;color:#1E3A2F;border-bottom:1px solid #1E3A2F;padding:0 0 2px" style-hover="color:#6E2A2A;border-color:#6E2A2A">mark read</button>
               <button type="button" onClick="{{ v.onLoved }}" style="font-size:10px;letter-spacing:.2em;text-transform:uppercase;color:#6E2A2A;border-bottom:1px solid #6E2A2A;padding:0 0 2px" style-hover="color:#1E3A2F;border-color:#1E3A2F">loved it</button>
@@ -377,13 +375,13 @@
 
     <sc-if value="{{ isSeries }}">
     <div data-screen-label="Series">
-      <p style="margin:0;font-size:10.5px;letter-spacing:.42em;text-transform:uppercase;color:#6E6353">03 · Series</p>
+      <p style="margin:0;font-size:10.5px;letter-spacing:.42em;text-transform:uppercase;color:#635846">03 · Series</p>
       <h2 style="font-family:'Cormorant Garamond',Garamond,serif;font-weight:300;font-size:clamp(34px,5vw,56px);letter-spacing:.1em;text-transform:uppercase;margin:12px 0 0">Your series</h2>
-      <p style="margin:10px 0 0;font-family:'Cormorant Garamond',Garamond,serif;font-style:italic;font-size:20px;color:#6E6353">{{ seriesCount }} open · {{ seriesClosed }} finished and closed.</p>
+      <p style="margin:10px 0 0;font-family:'Cormorant Garamond',Garamond,serif;font-style:italic;font-size:20px;color:#635846">{{ seriesCount }} open · {{ seriesClosed }} finished and closed.</p>
       <div style="height:1px;background:#A8863F;margin:20px 0 0"></div>
 
       <sc-if value="{{ noSeries }}">
-        <p style="margin:22px 0 0;font-family:'Cormorant Garamond',Garamond,serif;font-style:italic;font-size:20px;color:#6E6353">No open series — everything you have tracked is finished.</p>
+        <p style="margin:22px 0 0;font-family:'Cormorant Garamond',Garamond,serif;font-style:italic;font-size:20px;color:#635846">No open series — everything you have tracked is finished.</p>
       </sc-if>
 
       <sc-for list="{{ seriesList }}" as="s" hint-placeholder-count="8">
@@ -391,7 +389,7 @@
           <div style="display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.15fr);gap:30px;align-items:center" data-m="two">
             <div style="min-width:0">
               <p style="margin:0;font-family:'Cormorant Garamond',Garamond,serif;font-size:23px;line-height:1.16">{{ s.name }}</p>
-              <p style="margin:3px 0 0;font-size:11.5px;letter-spacing:.14em;text-transform:uppercase;color:#6E6353">{{ s.author }} · {{ s.progress }}</p>
+              <p style="margin:3px 0 0;font-size:11.5px;letter-spacing:.14em;text-transform:uppercase;color:#635846">{{ s.author }} · {{ s.progress }}</p>
               <div style="display:flex;align-items:flex-start;gap:8px;flex-wrap:wrap;margin-top:14px">
                 <sc-for list="{{ s.vols }}" as="v" hint-placeholder-count="4">
                   <span role="button" tabindex="0" aria-label="{{ v.label }}" onclick="{{ v.onTap }}" onfocus="{{ v.onEnter }}" onblur="{{ v.onLeave }}" onmouseenter="{{ v.onEnter }}" onmouseleave="{{ v.onLeave }}" style="flex:0 0 auto;display:block;width:58px;cursor:pointer">
@@ -422,21 +420,21 @@
               <sc-for list="{{ s.books }}" as="bk" hint-placeholder-count="3">
                 <li style="{{ bk.style }}">
                   <span aria-hidden="true" style="{{ bk.markStyle }}">{{ bk.mark }}</span>
-                  <span style="flex:1;min-width:0;font-family:'Cormorant Garamond',Garamond,serif;font-size:19px;line-height:1.3">{{ bk.t }} <span style="font-size:14px;color:#6E6353">{{ bk.n }}</span></span>
-                  <span style="font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:#6E6353;white-space:nowrap">{{ bk.d }}</span>
+                  <span style="flex:1;min-width:0;font-family:'Cormorant Garamond',Garamond,serif;font-size:19px;line-height:1.3">{{ bk.t }} <span style="font-size:14px;color:#635846">{{ bk.n }}</span></span>
+                  <span style="font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:#635846;white-space:nowrap">{{ bk.d }}</span>
                 </li>
               </sc-for>
             </ul>
           </sc-if>
         </div>
       </sc-for>
-      <p style="margin:16px 0 0;font-size:11px;letter-spacing:.18em;text-transform:uppercase;color:#6E6353;max-width:76ch">One mark per volume — gold = read · oxblood = out and unread · green = coming · dashed = announced. Real cover art wherever it exists; a volume with no art anywhere keeps a striped placeholder — hover or tap one for its title.</p>
+      <p style="margin:16px 0 0;font-size:11px;letter-spacing:.18em;text-transform:uppercase;color:#635846;max-width:76ch">One mark per volume — gold = read · oxblood = out and unread · green = coming · dashed = announced. Real cover art wherever it exists; a volume with no art anywhere keeps a striped placeholder — hover or tap one for its title.</p>
     </div>
     </sc-if>
 
     <sc-if value="{{ isArchive }}">
     <div data-screen-label="Archive">
-      <p style="margin:0;font-size:10.5px;letter-spacing:.42em;text-transform:uppercase;color:#6E6353">04 · Archive</p>
+      <p style="margin:0;font-size:10.5px;letter-spacing:.42em;text-transform:uppercase;color:#635846">04 · Archive</p>
       <h2 style="font-family:'Cormorant Garamond',Garamond,serif;font-weight:300;font-size:clamp(34px,5vw,56px);letter-spacing:.1em;text-transform:uppercase;margin:12px 0 0">The archive</h2>
       <div data-m="tabs" role="tablist" aria-label="Archive views" onkeydown="{{ arcKey }}" style="display:flex;gap:0;margin-top:20px;border:1px solid #A8863F;width:max-content;max-width:100%;flex-wrap:wrap">
         <button id="arc-tab-read" type="button" role="tab" aria-selected="{{ arcReadOn }}" aria-controls="arc-read" tabindex="{{ arcReadIdx }}" onClick="{{ showRead }}" style="{{ tabReadStyle }}">Read &amp; loved — {{ readLovedCount }}</button>
@@ -448,7 +446,7 @@
         <section aria-label="The stacks" style="margin-top:30px;background:#E5DCCA;padding:6px">
           <div style="position:relative;border:1px solid #A8863F;overflow:hidden;background:radial-gradient(120% 82% at 50% 2%,#FBF6E9 0%,#F2EADA 42%,#E2D7BF 100%)">
             <div style="position:relative;padding:28px 30px 26px;display:flex;flex-direction:column;align-items:center">
-              <p style="margin:0 0 14px;font-size:10px;letter-spacing:.4em;text-transform:uppercase;color:#6E6353;text-align:center">The stacks — shelved by author</p>
+              <p style="margin:0 0 14px;font-size:10px;letter-spacing:.4em;text-transform:uppercase;color:#635846;text-align:center">The stacks — shelved by author</p>
               <div data-m="plate" style="display:flex;align-items:center;justify-content:center;gap:14px;margin:0 0 16px;min-height:24px;max-width:100%">
                 <span aria-hidden="true" style="flex:0 0 26px;height:1px;background:#A8863F"></span>
                 <p aria-hidden="true" style="margin:0;font-family:'Cormorant Garamond',Garamond,serif;font-style:italic;font-size:17px;line-height:1.3;color:#4A443A;text-align:center">{{ plate }}</p>
@@ -465,7 +463,7 @@
                 <div style="height:18px;border:1px solid #6E5A2E;background:repeating-linear-gradient(90deg,#B49A5E 0 2px,#E0CE9E 2px 7px,#B49A5E 7px 9px,rgba(110,90,46,.3) 9px 12px), linear-gradient(#E0CE9E,#A8863F)"></div>
                 <div style="height:14px;margin:0 36px;background:linear-gradient(#D8CBAC,#BCAD8A);border:1px solid #A8863F;border-top:none"></div>
               </div>
-              <p style="margin:14px 0 0;font-size:11.5px;letter-spacing:.2em;text-transform:uppercase;color:#6E6353;text-align:center">{{ shelfLine }}</p>
+              <p style="margin:14px 0 0;font-size:11.5px;letter-spacing:.2em;text-transform:uppercase;color:#635846;text-align:center">{{ shelfLine }}</p>
             </div>
           </div>
         </section>
@@ -473,17 +471,17 @@
         <section aria-label="Everything read" style="margin-top:46px">
           <div style="display:flex;align-items:baseline;justify-content:space-between;gap:16px;flex-wrap:wrap">
             <h3 style="font-family:'Cormorant Garamond',Garamond,serif;font-weight:500;font-size:clamp(22px,2.8vw,30px);letter-spacing:.14em;text-transform:uppercase;margin:0">Everything I have read</h3>
-            <span style="font-size:11px;letter-spacing:.28em;text-transform:uppercase;color:#6E6353">{{ readSeriesCount }} series represented</span>
+            <span style="font-size:11px;letter-spacing:.28em;text-transform:uppercase;color:#635846">{{ readSeriesCount }} series represented</span>
           </div>
           <div style="height:1px;background:#A8863F;margin:14px 0 0"></div>
           <sc-if value="{{ noRead }}">
-            <p style="margin:18px 0 0;font-family:'Cormorant Garamond',Garamond,serif;font-style:italic;font-size:20px;color:#6E6353">Nothing read yet. Press <em>read</em> or <em>loved</em> on a pick and it lands here.</p>
+            <p style="margin:18px 0 0;font-family:'Cormorant Garamond',Garamond,serif;font-style:italic;font-size:20px;color:#635846">Nothing read yet. Press <em>read</em> or <em>loved</em> on a pick and it lands here.</p>
           </sc-if>
           <sc-for list="{{ readBySeries }}" as="s" hint-placeholder-count="8">
             <div style="display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.5fr);gap:26px;align-items:start;padding:18px 0;border-bottom:1px solid #D6CCB6" data-m="two">
               <div style="min-width:0">
                 <p style="margin:0;font-family:'Cormorant Garamond',Garamond,serif;font-size:21px;line-height:1.16">{{ s.name }}</p>
-                <p style="margin:3px 0 0;font-size:11.5px;letter-spacing:.14em;text-transform:uppercase;color:#6E6353">{{ s.author }}</p>
+                <p style="margin:3px 0 0;font-size:11.5px;letter-spacing:.14em;text-transform:uppercase;color:#635846">{{ s.author }}</p>
                 <sc-if value="{{ s.complete }}">
                   <p style="margin:6px 0 0;font-size:9.5px;letter-spacing:.24em;text-transform:uppercase;color:#6E5A2E">complete</p>
                 </sc-if>
@@ -493,7 +491,7 @@
                   <li style="display:flex;align-items:center;gap:10px;padding:4px 0">
                     <span aria-hidden="true" style="{{ bk.thumbStyle }}"><img src="{{ bk.artSrc }}" alt="" style="position:absolute;top:0;left:0;width:100%;height:100%;object-fit:cover;display:none" data-art="1"/></span>
                     <span aria-hidden="true" style="flex:0 0 14px;font-size:11px;color:#A8863F">✓</span>
-                    <span style="flex:1;min-width:0;font-family:'Cormorant Garamond',Garamond,serif;font-size:19px;line-height:1.3">{{ bk.t }} <span style="font-size:13.5px;color:#6E6353">{{ bk.n }}</span></span>
+                    <span style="flex:1;min-width:0;font-family:'Cormorant Garamond',Garamond,serif;font-size:19px;line-height:1.3">{{ bk.t }} <span style="font-size:13.5px;color:#635846">{{ bk.n }}</span></span>
                     <span style="{{ bk.tagStyle }}">{{ bk.tag }}</span>
                     <span data-m="verdicts"><button type="button" aria-label="{{ bk.unreadLabel }}" onClick="{{ bk.onUnread }}" style="flex:0 0 auto;font-size:10px;letter-spacing:.2em;text-transform:uppercase;color:#6E2A2A;border-bottom:1px solid #A8863F;padding:0 0 1px" style-hover="color:#1E3A2F">mark unread</button></span>
                   </li>
@@ -506,18 +504,18 @@
         <section aria-label="Standalones" style="margin-top:46px">
           <div style="display:flex;align-items:baseline;justify-content:space-between;gap:16px;flex-wrap:wrap">
             <h3 style="font-family:'Cormorant Garamond',Garamond,serif;font-weight:500;font-size:clamp(22px,2.8vw,30px);letter-spacing:.14em;text-transform:uppercase;margin:0">Standalones</h3>
-            <span style="font-size:11px;letter-spacing:.28em;text-transform:uppercase;color:#6E6353">{{ soloCount }} read outside a series</span>
+            <span style="font-size:11px;letter-spacing:.28em;text-transform:uppercase;color:#635846">{{ soloCount }} read outside a series</span>
           </div>
           <div style="height:1px;background:#A8863F;margin:14px 0 0"></div>
           <sc-if value="{{ noSolo }}">
-            <p style="margin:18px 0 0;font-family:'Cormorant Garamond',Garamond,serif;font-style:italic;font-size:20px;color:#6E6353">Nothing yet. Press <em>read</em> or <em>loved</em> on a pick and it lands here.</p>
+            <p style="margin:18px 0 0;font-family:'Cormorant Garamond',Garamond,serif;font-style:italic;font-size:20px;color:#635846">Nothing yet. Press <em>read</em> or <em>loved</em> on a pick and it lands here.</p>
           </sc-if>
           <sc-for list="{{ soloRows }}" as="b" hint-placeholder-count="3">
             <div data-m="row" style="display:grid;grid-template-columns:minmax(0,74px) minmax(0,1fr) minmax(0,180px);gap:22px;align-items:center;padding:18px 0;border-bottom:1px solid #D6CCB6">
               <div role="img" aria-label="{{ b.alt }}" style="{{ b.coverStyle }}"></div>
               <div style="min-width:0">
                 <p style="margin:0;font-family:'Cormorant Garamond',Garamond,serif;font-size:23px;line-height:1.16">{{ b.title }}</p>
-                <p style="margin:4px 0 0;font-size:12.5px;letter-spacing:.14em;text-transform:uppercase;color:#6E6353">{{ b.author }} · {{ b.publisher }} · {{ b.genre }}</p>
+                <p style="margin:4px 0 0;font-size:12.5px;letter-spacing:.14em;text-transform:uppercase;color:#635846">{{ b.author }} · {{ b.publisher }} · {{ b.genre }}</p>
               </div>
               <div style="display:flex;align-items:center;justify-content:flex-end;gap:16px">
                 <span style="{{ b.tagStyle }}">{{ b.tag }}</span>
@@ -532,17 +530,17 @@
       <sc-if value="{{ arcNfmOn }}">
         <div id="arc-nfm" role="tabpanel" aria-label="Not for me">
         <section aria-label="Not for me" style="margin-top:30px">
-          <p style="margin:0;font-family:'Cormorant Garamond',Garamond,serif;font-style:italic;font-size:20px;color:#6E6353">Books you set aside. Put one back and it returns to Home as an open pick.</p>
+          <p style="margin:0;font-family:'Cormorant Garamond',Garamond,serif;font-style:italic;font-size:20px;color:#635846">Books you set aside. Put one back and it returns to Home as an open pick.</p>
           <div style="height:1px;background:#A8863F;margin:16px 0 0"></div>
           <sc-if value="{{ noNotForMe }}">
-            <p style="margin:22px 0 0;font-family:'Cormorant Garamond',Garamond,serif;font-style:italic;font-size:20px;color:#6E6353">Nothing set aside. Press <em>not for me</em> on a pick and it waits here.</p>
+            <p style="margin:22px 0 0;font-family:'Cormorant Garamond',Garamond,serif;font-style:italic;font-size:20px;color:#635846">Nothing set aside. Press <em>not for me</em> on a pick and it waits here.</p>
           </sc-if>
           <sc-for list="{{ notForMe }}" as="b" hint-placeholder-count="2">
             <div data-m="row" style="display:grid;grid-template-columns:minmax(0,74px) minmax(0,1fr) minmax(0,150px);gap:22px;align-items:center;padding:18px 0;border-bottom:1px solid #D6CCB6">
               <div role="img" aria-label="{{ b.alt }}" style="{{ b.coverStyle }}"></div>
               <div style="min-width:0">
                 <p style="margin:0;font-family:'Cormorant Garamond',Garamond,serif;font-size:23px;line-height:1.16">{{ b.title }}</p>
-                <p style="margin:4px 0 0;font-size:12.5px;letter-spacing:.14em;text-transform:uppercase;color:#6E6353">{{ b.author }} · {{ b.publisher }}</p>
+                <p style="margin:4px 0 0;font-size:12.5px;letter-spacing:.14em;text-transform:uppercase;color:#635846">{{ b.author }} · {{ b.publisher }}</p>
                 <sc-if value="{{ b.hasTropes }}">
                   <p style="margin:8px 0 0;font-size:14px;color:#4A443A">{{ b.tropeLine }}</p>
                 </sc-if>
@@ -560,32 +558,32 @@
 
     <sc-if value="{{ isSettings }}">
     <div data-screen-label="Settings">
-      <p style="margin:0;font-size:10.5px;letter-spacing:.42em;text-transform:uppercase;color:#6E6353">Setup</p>
+      <p style="margin:0;font-size:10.5px;letter-spacing:.42em;text-transform:uppercase;color:#635846">Setup</p>
       <h2 id="set-h" tabindex="-1" style="font-family:'Cormorant Garamond',Garamond,serif;font-weight:300;font-size:clamp(34px,5vw,56px);letter-spacing:.06em;margin:12px 0 0;outline:none">Shelf settings</h2>
-      <p style="margin:10px 0 0;font-size:11px;letter-spacing:.28em;text-transform:uppercase;color:#6E6353">Sport Romance · Romantasy · Contemporary Romance</p>
+      <p style="margin:10px 0 0;font-size:11px;letter-spacing:.28em;text-transform:uppercase;color:#635846">Sport Romance · Romantasy · Contemporary Romance</p>
 
       <div data-m="setTabs" role="tablist" aria-label="Settings panels" style="display:flex;margin-top:24px;border-bottom:1px solid #C6BBA3">
         <button type="button" id="tab-shelf" role="tab" aria-selected="true" aria-controls="panel-shelf" tabindex="0" style="font-size:10.5px;letter-spacing:.28em;text-transform:uppercase;padding:12px 18px 11px;background:transparent;border:none;border-bottom:2px solid #1E3A2F;color:#211E19;cursor:pointer;min-height:44px">Shelf</button>
-        <button type="button" id="tab-authors" role="tab" aria-selected="false" aria-controls="panel-authors" tabindex="-1" style="font-size:10.5px;letter-spacing:.28em;text-transform:uppercase;padding:12px 18px 11px;background:transparent;border:none;border-bottom:2px solid transparent;color:#6E6353;cursor:pointer;min-height:44px">Authors</button>
+        <button type="button" id="tab-authors" role="tab" aria-selected="false" aria-controls="panel-authors" tabindex="-1" style="font-size:10.5px;letter-spacing:.28em;text-transform:uppercase;padding:12px 18px 11px;background:transparent;border:none;border-bottom:2px solid transparent;color:#635846;cursor:pointer;min-height:44px">Authors</button>
       </div>
 
       <div id="panel-shelf" role="tabpanel" aria-labelledby="tab-shelf">
         <section aria-label="Shelf setup" style="max-width:720px">
           <p style="margin:22px 0 0;font-size:16px;line-height:1.6;color:#4A443A">Your OpenRouter key lives on your server in the appdata volume — it survives redeploys.</p>
-          <p style="margin:26px 0 0;font-size:10.5px;letter-spacing:.28em;text-transform:uppercase;color:#6E6353">OpenRouter key · <span id="key-state" style="color:#6E2A2A">…</span></p>
+          <p style="margin:26px 0 0;font-size:10.5px;letter-spacing:.28em;text-transform:uppercase;color:#635846">OpenRouter key · <span id="key-state" style="color:#6E2A2A">…</span></p>
           <input id="set-key" type="password" placeholder="sk-or-v1-…" autocomplete="off" aria-label="OpenRouter key" style="display:block;width:100%;box-sizing:border-box;margin-top:10px;min-height:48px;background:#FBF6EC;border:1px solid #C6BBA3;padding:12px 14px;font-family:'EB Garamond',Georgia,serif;font-size:16px;color:#211E19"/>
           <div style="display:flex;align-items:baseline;gap:14px;margin-top:24px">
-            <p style="margin:0;font-size:10.5px;letter-spacing:.28em;text-transform:uppercase;color:#6E6353">Model · <button type="button" id="set-refresh" style="font-size:10px;letter-spacing:.2em;text-transform:uppercase;color:#6E2A2A;border:none;border-bottom:1px solid #A8863F;padding:0 0 2px;min-height:44px;background:transparent;cursor:pointer">refresh</button></p>
+            <p style="margin:0;font-size:10.5px;letter-spacing:.28em;text-transform:uppercase;color:#635846">Model · <button type="button" id="set-refresh" style="font-size:10px;letter-spacing:.2em;text-transform:uppercase;color:#6E2A2A;border:none;border-bottom:1px solid #A8863F;padding:0 0 2px;min-height:44px;background:transparent;cursor:pointer">refresh</button></p>
           </div>
           <select id="set-model" aria-label="Model" style="display:block;width:100%;box-sizing:border-box;margin-top:10px;min-height:48px;background:#FBF6EC;border:1px solid #C6BBA3;padding:12px 10px;font-family:'EB Garamond',Georgia,serif;font-size:15px;color:#211E19;text-overflow:ellipsis"></select>
-          <p id="model-hint" style="margin:8px 0 0;font-style:italic;font-size:14px;color:#6E6353">prices come live from OpenRouter</p>
+          <p id="model-hint" style="margin:8px 0 0;font-style:italic;font-size:14px;color:#635846">prices come live from OpenRouter</p>
           <div data-m="verdicts" style="display:flex;gap:12px;flex-wrap:wrap;margin-top:24px">
             <button type="button" id="set-save" style="font-size:10.5px;letter-spacing:.28em;text-transform:uppercase;padding:14px 26px;min-height:48px;border:1px solid #1E3A2F;background:#1E3A2F;color:#F3EDE1;cursor:pointer">save</button>
             <button type="button" id="set-run" style="font-size:10.5px;letter-spacing:.28em;text-transform:uppercase;padding:14px 26px;min-height:48px;border:1px solid #6E2A2A;background:transparent;color:#6E2A2A;cursor:pointer">curate now — last 30 days</button>
           </div>
-          <p style="margin:12px 0 0;font-style:italic;font-size:14px;line-height:1.6;color:#6E6353;max-width:56ch">curate now re-runs for the last 30 days of releases. the 1st of every month still drops the full previous month.</p>
+          <p style="margin:12px 0 0;font-style:italic;font-size:14px;line-height:1.6;color:#635846;max-width:56ch">curate now re-runs for the last 30 days of releases. the 1st of every month still drops the full previous month.</p>
           <p id="run-state" role="status" aria-live="polite" style="margin:18px 0 0;font-family:'Cormorant Garamond',Garamond,serif;font-size:22px;color:#1E3A2F;min-height:28px"></p>
-          <p id="status-line" style="margin:4px 0 0;font-size:14px;color:#6E6353"></p>
+          <p id="status-line" style="margin:4px 0 0;font-size:14px;color:#635846"></p>
         </section>
       </div>
 
@@ -602,16 +600,16 @@
             </select>
             <button type="button" id="auth-add" style="min-height:48px;font-size:10.5px;letter-spacing:.28em;text-transform:uppercase;padding:14px 24px;border:1px solid #1E3A2F;background:#1E3A2F;color:#F3EDE1;cursor:pointer">add</button>
           </div>
-          <p id="auth-msg" role="status" aria-live="polite" style="margin:12px 0 0;font-style:italic;font-size:14px;color:#6E6353;min-height:20px"></p>
+          <p id="auth-msg" role="status" aria-live="polite" style="margin:12px 0 0;font-style:italic;font-size:14px;color:#635846;min-height:20px"></p>
           <div id="auth-list" style="margin-top:4px"></div>
-          <p style="margin:16px 0 0;font-size:13px;color:#6E6353">The watch list feeds the monthly run — this month's page changes on the next curate.</p>
+          <p style="margin:16px 0 0;font-size:13px;color:#635846">The watch list feeds the monthly run — this month's page changes on the next curate.</p>
         </section>
       </div>
     </div>
     </sc-if>
     <footer style="margin-top:56px;padding-top:20px;border-top:1px solid #A8863F">
-      <p style="margin:0;font-size:11px;letter-spacing:.12em;line-height:1.9;color:#6E6353;max-width:76ch">Filtered on — {{ criteria }}</p>
-      <p style="margin:12px 0 0;font-size:10px;letter-spacing:.34em;text-transform:uppercase;color:#6E6353">The Shelf · {{ monthShort }}</p>
+      <p style="margin:0;font-size:11px;letter-spacing:.12em;line-height:1.9;color:#635846;max-width:76ch">Filtered on — {{ criteria }}</p>
+      <p style="margin:12px 0 0;font-size:10px;letter-spacing:.34em;text-transform:uppercase;color:#635846">The Shelf · {{ monthShort }}</p>
     </footer>
   </main>
 </div>
@@ -635,7 +633,7 @@
     host.innerHTML='';
     if(!lst||!lst.length){
       var p=document.createElement('p');
-      p.style.cssText='margin:6px 0 0;font-size:14px;color:#6E6353';
+      p.style.cssText='margin:6px 0 0;font-size:14px;color:#635846';
       p.textContent='no watched authors yet — add one above.';
       host.appendChild(p);return;
     }
@@ -649,7 +647,7 @@
       if(a.lane){
         var ch=document.createElement('span');
         ch.textContent=a.lane;
-        ch.style.cssText='font-size:9.5px;letter-spacing:.22em;text-transform:uppercase;color:#6E6353;border:1px solid #C6BBA3;padding:3px 8px';
+        ch.style.cssText='font-size:9.5px;letter-spacing:.22em;text-transform:uppercase;color:#635846;border:1px solid #C6BBA3;padding:3px 8px';
         row.appendChild(ch);
       }
       var rm=document.createElement('button');
@@ -738,8 +736,8 @@
        preserves, and display:none is equivalent for both sight and AT */
     ps.style.display=on?'none':'block';pa.style.display=on?'block':'none';
     ts.setAttribute('aria-selected',String(!on));ta.setAttribute('aria-selected',String(on));
-    ts.style.borderBottomColor=on?'transparent':'#1E3A2F';ts.style.color=on?'#6E6353':'#211E19';
-    ta.style.borderBottomColor=on?'#1E3A2F':'transparent';ta.style.color=on?'#211E19':'#6E6353';
+    ts.style.borderBottomColor=on?'transparent':'#1E3A2F';ts.style.color=on?'#635846':'#211E19';
+    ta.style.borderBottomColor=on?'#1E3A2F':'transparent';ta.style.color=on?'#211E19':'#635846';
     ts.tabIndex=on?-1:0;ta.tabIndex=on?0:-1;
   }
   function tabKey(e){
@@ -815,7 +813,7 @@
 })();
 </script>
 <script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;:{&quot;width&quot;:1180}}">
-const INK='#211E19', GOLD='#A8863F', BLOOD='#6E2A2A', FOREST='#1E3A2F', MID='#6E6353', LINE='#C6BBA3';
+const INK='#211E19', GOLD='#A8863F', GOLDD='#8A6C31', BLOOD='#6E2A2A', FOREST='#1E3A2F', MID='#635846', LINE='#C6BBA3';
 
 const BREWS=[
   {m:[11,0,1],img:'assets/coffee-winter-b.png',alt:'Ink drawing of a winter cocoa',season:'cocoa season'},
@@ -1125,12 +1123,12 @@ class Component extends DCLogic {
 
   tab(on) {
     return { fontSize:'10.5px', letterSpacing:'.24em', textTransform:'uppercase', padding:'12px 18px', minHeight:'42px',
-      color: on?'#F3EDE1':'#6E6353', background: on?'#1E3A2F':'transparent' };
+      color: on?'#F3EDE1':'#635846', background: on?'#1E3A2F':'transparent' };
   }
   pill(on,tone){
     const c=tone||FOREST;
     return {fontFamily:"'EB Garamond',Georgia,serif",fontSize:'10.5px',letterSpacing:'.22em',textTransform:'uppercase',
-      padding:'10px 14px',border:'1px solid '+(on?c:GOLD),background:on?c:'transparent',color:on?'#F3EDE1':INK,cursor:'pointer'};
+      padding:'10px 14px',border:'1px solid '+(on?c:GOLDD),background:on?c:'transparent',color:on?'#F3EDE1':INK,cursor:'pointer'};
   }
   book(b,i,rank){
     const st=this.state.states[b.id];
@@ -1150,6 +1148,7 @@ class Component extends DCLogic {
       // this is a verdict" -> the stored value stays 'skip', the label does not
       pills:[['want','want'],['read','read'],['loved','loved'],['skip','not for me']]
         .map(v=>({label:v[1],on:st===v[0],style:this.pill(st===v[0],v[0]==='skip'?MID:FOREST),
+          aria:v[0]==='want'?'want to read '+b.title:(v[0]==='read'?'mark '+b.title+' read':(v[0]==='loved'?'loved '+b.title:'not for me — '+b.title)),
           onClick:()=>this.setBook(b.id,v[0])}))
     };
   }
@@ -1191,7 +1190,7 @@ class Component extends DCLogic {
         readingPressed:rd?'true':'false',
         readingStyle:{fontSize:'10px',letterSpacing:'.2em',textTransform:'uppercase',padding:'10px 14px',minHeight:'40px',
           border:'1px solid '+(rd?'#A8863F':'#C6BBA3'), background:rd?'#A8863F':'transparent',
-          color:rd?'#211E19':'#6E6353'},
+          color:rd?'#211E19':'#635846'},
         onReading:()=>this.toggleReading(b.id),
         onRead:()=>this.setBook(b.id,'read'),
         onLoved:()=>this.setBook(b.id,'loved'),
