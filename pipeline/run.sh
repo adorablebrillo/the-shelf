@@ -1,12 +1,14 @@
 #!/usr/bin/env bash
 # The Shelf — one-shot monthly pipeline. Run from cron or by hand.
-#   ./run.sh          # fetch + filter + curate + build
+#   ./run.sh          # fetch + reference + filter + curate + build
 #   ./run.sh --deploy # ... and rsync to your server (see config.json deploy)
 set -euo pipefail
 cd "$(dirname "$0")"
 
 echo "== fetch =="
 python3 fetch.py
+echo "== reference (goodreads, best-effort) =="
+python3 reference.py || true
 echo "== filter =="
 python3 filter.py
 echo "== curate (OpenRouter) =="

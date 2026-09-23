@@ -181,7 +181,7 @@ def fetch_models():
     return out
 
 def run_pipeline(settings, mode='adhoc'):
-    """fetch → filter → curate → build. Uses the in-container pipeline dir.
+    """fetch → reference → filter → curate → build. Uses the in-container pipeline dir.
     mode='adhoc'     — "curate now": rolling last-30-days window (manual button)
     mode='scheduled' — the 1st-of-month drop: the previous month's books"""
     settings['running'] = True
@@ -198,7 +198,7 @@ def run_pipeline(settings, mode='adhoc'):
                 _sh.copy2(mf, dst)
     except Exception as e:
         log('baseline seed: %s' % e)
-    steps = ['fetch.py', 'filter.py', 'curate.py', 'build.py']
+    steps = ['fetch.py', 'reference.py', 'filter.py', 'curate.py', 'build.py']
     code = 0
     for s in steps:
         log('stage: %s (%s)' % (s, mode))

@@ -12,6 +12,7 @@ pipeline/
 ├── config.json        # model, rules, deploy target
 ├── taste-prompt.md    # the curator brain — the reader's profile + rules (repo ships a generic default; a deployed shelf keeps its own in /config)
 ├── fetch.py           # Apple Books search (lane terms + author lane), publisher/language/series per book
+├── reference.py       # Goodreads monthly release reference — best-effort, never breaks the run (#47)
 ├── filter.py          # hard rules + your shelf's verdicts (read/not-for-me never return)
 ├── curate.py          # OpenRouter call(s) → curated month JSON, shaped 3/3/3 (ticket #6)
 ├── build.py           # month JSON → dist/index.html (design/app.html + manifest.webmanifest + assets/app-icon-*.png; blank installs get a valid empty-state page)
@@ -22,11 +23,13 @@ pipeline/
 ├── paths.py           # personal files: config volume first, repo copy as fallback
 ├── test_shape.py      # the shape rule's deterministic tests
 ├── test_shelf.py      # your-shelf exclusion tests
+├── test_reference.py  # the Goodreads reference: parsers (real fixtures), matchers, failure paths
+├── testdata/          # saved real pages for the reference parsers (list + one book page)
 ├── test_filter.py     # the pairing screen's tests
 ├── test_watches.py    # author watches: page series extraction + the radar merge
 ├── test_pick.py       # pick_book survives model field drift (string spice/mmc)
 ├── design/            # the live design — app.html + support.js + vendored React
-├── run.sh             # one-shot: fetch → filter → curate → build [--deploy]
+├── run.sh             # one-shot: fetch → reference → filter → curate → build [--deploy]
 └── data/              # candidates-*.json, filtered-*.json, month-*.json (history)
 ```
 
@@ -43,7 +46,7 @@ pipeline/
 ## Run
 
 ```
-./run.sh            # fetch + filter + curate + build
+./run.sh            # fetch + reference + filter + curate + build
 ./run.sh --deploy   # + rsync dist/ to your server
 ```
 
@@ -91,3 +94,15 @@ container image to GHCR on every push to `main`; the Unraid template pulls it.
 
 Every run is auditable: candidates, filtered set, and the curated month are all
 saved as JSON in `data/`.
+
+## The Goodreads reference (reference.py, #47)
+
+Runs between fetch and filter. One polite request for the month's
+most-popular-releases list, then find-not-just-flag: an Apple miss is looked up
+with the normal search (title AND author verified, product page resolved);
+a Kindle-first miss gets its own Goodreads page read once (publisher, date,
+genres, ratings, cover). At most 8 misses are looked up per run, one request at
+a time with a 1.2s gap. Everything is best-effort: any failure prints why,
+writes `data/reference-<month>.json` with `ok:false` and exits 0 — a missing
+reference line is acceptable, a broken run is not. `./run.sh` therefore runs it
+plain (it cannot fail the chain).
