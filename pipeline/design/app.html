@@ -1155,10 +1155,20 @@ class Component extends DCLogic {
 
     /* ---- My Shelf: the TBR list (the marks are all it needs) ------------- */
     const seenWant={};
-    const wantList=picks.filter(b=>{
+    const wantRows=picks.filter(b=>{
       if(S[b.id]!=='want'||seenWant[b.id])return false;   // a re-recommendation is one book
       seenWant[b.id]=1; return true;
-    }).map((b,i)=>{const card=this.book(b,i);
+    });
+    /* #66: a book she is reading now takes the FIRST spot on the shelf — the
+       newest mark on top; the rest keep their newest-issue-first order (a
+       stable sort, so nothing else moves) and un-marking returns the book */
+    wantRows.sort((a,b)=>{
+      const ra=this.state.reading[a.id]||{}, rb=this.state.reading[b.id]||{};
+      if(ra.s&&!rb.s)return -1; if(rb.s&&!ra.s)return 1;
+      if(ra.s&&rb.s)return (rb.t||0)-(ra.t||0);
+      return 0;
+    });
+    const wantList=wantRows.map((b,i)=>{const card=this.book(b,i);
       const rd=!!((this.state.reading[b.id]||{}).s);
       return {...card,
         reading:rd, readingLabel:rd?'reading now \u2605':'reading now',
