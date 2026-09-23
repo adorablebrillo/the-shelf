@@ -18,3 +18,9 @@ __pycache__/
 
 # the local Lavish review artifact (built from dist; not source)
 .lavish/phone/
+
+# the impeccable design-skill install + its local context (never public)
+.github/agents/
+.github/hooks/
+.github/skills/
+.impeccable/
