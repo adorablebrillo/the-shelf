@@ -27,7 +27,19 @@ def adhoc_window_ok(d):
     today = date.today()
     return (today - timedelta(days=30)) <= day <= today
 
-NO_DARK = ('dark', 'academy', 'bully', 'anti-hero', 'morally gray')
+# her rule (reversed 2026-09-23): dark romance is WANTED — especially dark
+# academia. These signals tag a candidate as a wanted flavour (a hint the
+# curator favours), never an exclusion.
+DARK_HINTS = ('dark', 'academia', 'gothic', 'anti-hero', 'antihero', 'morally gray', 'morally grey', 'bully')
+
+
+def dark_hint(title, genre, *extra):
+    """True when a candidate carries a dark-romance signal (wanted, not screened).
+    The fetch's candidate set carries no blurb, so title/genre (plus the series
+    name) are the only text we can read — extra strings are accepted so a future
+    description field joins the hint without another signature change."""
+    hay = ' '.join(str(x or '') for x in (title, genre) + extra).lower()
+    return any(k in hay for k in DARK_HINTS)
 # her rule: no cowboy/cowgirl/western characters, any variant (2026-09-22).
 # A hard drop — like the M/F screen, this is deterministic; the model gets a
 # HARD_RULES reminder in curate.py but is never the gate.
@@ -139,8 +151,9 @@ def main():
         if cowboy_screen(title, genre):
             dropped_cowboy.append(b.get('title') or '')
             continue
-        # dark-romance signal: let the LLM make the final call, but tag it
-        b['dark_flag'] = any(k in title or k in genre for k in NO_DARK)
+        # dark-romance hint: wanted, especially dark academia — the curator
+        # favours these; it is never a screen
+        b['dark_hint'] = dark_hint(title, genre, b.get('series'))
         # keep the whole widening pool; in_window tags the base window
         if MODE == 'adhoc':
             b['in_window'] = adhoc_window_ok(b.get('date'))
@@ -191,7 +204,7 @@ def main():
                'shelf_excluded': shelf_counts,
                'cap': {'pool': total, 'kept': len(kept), 'max': cap},
                'rules': {
-                   'mf_only': True, 'no_dark': True, 'no_cowboy': True,
+                   'mf_only': True, 'dark_romance_welcome': True, 'no_cowboy': True,
                    'spice_min': CFG['spice_min'],
                    'trad_first_indie_with_proof': True,
                    'pool_back_days': CFG.get('pool_back_days', 120)}}, open(out, 'w'), indent=1)

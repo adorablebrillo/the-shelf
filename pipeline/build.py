@@ -34,7 +34,7 @@ DIST = os.environ.get('DIST_DIR') or os.path.join(BASE, 'dist')
 
 MONTH_NAMES = ['JAN', 'FEB', 'MAR', 'APR', 'MAY', 'JUN', 'JUL', 'AUG', 'SEP', 'OCT', 'NOV', 'DEC']
 WORDS = {1: 'one', 2: 'two', 3: 'three', 4: 'four', 5: 'five', 6: 'six', 7: 'seven', 8: 'eight', 9: 'nine', 10: 'ten'}
-CRITERIA = ('M/F only · no dark romance · no cowboy/western · spice 3–5 · trad-pub first, indie with proof · '
+CRITERIA = ('M/F only · dark romance & dark academia welcome · no cowboy/western · spice 3–5 · trad-pub first, indie with proof · '
             'released last month · sequels only for series you are already in')
 
 QUOTES = {

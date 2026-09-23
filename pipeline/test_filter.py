@@ -77,3 +77,35 @@ class CowboyScreenTests(unittest.TestCase):
 
 if __name__ == '__main__':
     unittest.main()
+
+class DarkRomanceRuleTests(unittest.TestCase):
+    """Her rule reversed (2026-09-23): dark romance is WANTED — especially dark
+    academia. A dark-academia candidate passes screening with a positive hint,
+    and all four rule surfaces say so (no stale 'no dark romance' anywhere)."""
+
+    def test_dark_academia_candidate_is_hinted_not_screened(self):
+        from filter import dark_hint
+        self.assertTrue(dark_hint('Eternal is the Night', 'Dark Academia Romance'))
+        self.assertTrue(dark_hint('title', 'Gothic Romance'))
+        self.assertTrue(dark_hint('A Study in Shadows', 'Dark Academia'))
+        self.assertTrue(dark_hint('title', 'morally grey anti-hero romance'))
+        self.assertTrue(dark_hint('The Quiet Ledger', 'Contemporary Romance', 'a dark academia series'))
+        self.assertFalse(dark_hint('The Cruel Prince', 'Romantasy'))
+        self.assertFalse(dark_hint('The Summer Pact', 'Contemporary Romance'))
+        self.assertFalse(dark_hint('Hockey Captain', 'Sports Romance'))
+
+    def test_all_four_rule_surfaces_agree(self):
+        import curate, build, os
+        self.assertIn('Dark romance is welcome', curate.HARD_RULES)
+        self.assertNotIn('No dark romance', curate.HARD_RULES)
+        self.assertIn('dark romance & dark academia welcome', build.CRITERIA)
+        self.assertNotIn('no dark romance', build.CRITERIA)
+        tp = open(os.path.join(os.path.dirname(os.path.abspath(__file__)), 'taste-prompt.md')).read()
+        self.assertIn('Dark romance is welcome', tp)
+        self.assertNotIn('NO dark romance', tp)
+
+    def test_rules_block_states_it_honestly(self):
+        import os
+        src = open(os.path.join(os.path.dirname(os.path.abspath(__file__)), 'filter.py')).read()
+        self.assertIn("'dark_romance_welcome': True", src)
+        self.assertNotIn("'no_dark': True", src)
