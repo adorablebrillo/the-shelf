@@ -154,6 +154,8 @@ class KindleCandidateTests(unittest.TestCase):
         self.assertEqual(c['publisher'], 'Dutton')
         self.assertEqual(c['found_by'], ['goodreads'])
         self.assertEqual(c['pub_source'], 'goodreads-page')
+        self.assertIn(c['lane'], ('sport romance', 'romantasy', 'contemporary romance'))
+        self.assertEqual(c['lane'], 'contemporary romance')   # this fixture's genres
         self.assertTrue(c['date'].startswith('2026-'))
         self.assertTrue(c['rating'] and c['rating_count'])
 
@@ -301,7 +303,35 @@ class AppendHonestyTests(unittest.TestCase):
             self.assertFalse(blob['ok'])
             self.assertIn('append failed', blob['reason'])
             self.assertEqual(blob['added'], [])
-            self.assertTrue(blob['capped'])          # 15 misses -> the top 8 by rank
+        finally:
+            reference.fetch_month, reference._get = orig_month, orig_get
+            fetch.search, fetch.resolve_product = orig_search, orig_resolve
+            if old_out is not None:
+                fetch.CFG['output_dir'] = old_out
+
+    def test_the_kindle_page_cap_is_stated_not_silent(self):
+        import contextlib
+        import io
+        import os
+        import tempfile
+        import fetch
+        tmp = tempfile.mkdtemp(prefix='shelf-ref-cap-')
+        old_out = fetch.CFG.get('output_dir')
+        orig_month, orig_get, orig_search, orig_resolve = (
+            reference.fetch_month, reference._get, fetch.search, fetch.resolve_product)
+        try:
+            fetch.CFG['output_dir'] = tmp
+            reference.fetch_month = lambda mon: open(LIST_FIXTURE, encoding='utf-8').read()
+            reference._get = lambda url, timeout=0: (_ for _ in ()).throw(OSError('503'))
+            fetch.search = lambda term, limit=100: []          # no Apple presence at all
+            fetch.resolve_product = lambda rec, cache: None
+            buf = io.StringIO()
+            with contextlib.redirect_stdout(buf):
+                rc = reference.main()
+            self.assertEqual(rc, 0)
+            out = buf.getvalue()
+            self.assertIn('kindle page cap', out)              # stated, not silent
+            self.assertIn('not looked up', out)
         finally:
             reference.fetch_month, reference._get = orig_month, orig_get
             fetch.search, fetch.resolve_product = orig_search, orig_resolve

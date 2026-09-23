@@ -44,8 +44,7 @@ UA = ('Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 '
       '(KHTML, like Gecko) Chrome/120.0 Safari/537.36')
 GAP = 1.2          # polite: one request at a time, with a gap
 TIMEOUT = 25
-CAP = 8            # at most this many misses are looked up per run (top of the list)
-
+KINDLE_CAP = 4     # at most this many Goodreads book pages per run (the list is 1 more)
 
 def _get(url, timeout=TIMEOUT):
     """One plain GET, browser-shaped, gzip-safe. Raises on failure — callers
@@ -294,7 +293,7 @@ def apple_candidate(e, mon, cache=None):
             'pub_source': 'apple-search',
         }
         try:
-            lane = lanes.lane_of(cand['genre']) or ''
+            lane = lanes.lane_of(cand) or ''
         except Exception:
             lane = ''
         cand['lane'] = lane
@@ -327,7 +326,7 @@ def kindle_candidate(e, mon):
         return None                      # the page did not answer for this entry
     genres = data.get('genres') or []
     try:
-        lane = lanes.lane_of(' '.join(genres)) or ''
+        lane = lanes.lane_of({'genre': ' '.join(genres)}) or ''
     except Exception:
         lane = ''
     return {
@@ -393,25 +392,31 @@ def main():
     seen = seen_keys()
     misses = [e for e in entries if not (_entry_keys(e) & seen)]
     report['seen'] = len(entries) - len(misses)
-    report['capped'] = len(misses) > CAP
-    if report['capped']:
-        misses = misses[:CAP]
 
     found = []                                   # (entry, candidate, via)
     cache = fetch.load_cache()
+    kindle_pages = 0
     for e in misses:
         try:
             c = apple_candidate(e, mon, cache)
             if c and c.get('date'):
                 found.append((e, c, 'apple'))
                 continue
+            if kindle_pages >= KINDLE_CAP:
+                # the expensive reads are capped; the Apple searches are not —
+                # an Apple outage must not become a Goodreads crawl
+                report['unobtainable'].append({'title': e['title'], 'author': e['author'],
+                                               'url': e['url'],
+                                               'reason': 'kindle page cap reached (%d)' % KINDLE_CAP})
+                continue
+            kindle_pages += 1
             c = kindle_candidate(e, mon)
             if c:
                 found.append((e, c, 'goodreads-page'))
             else:
                 report['unobtainable'].append({'title': e['title'], 'author': e['author'],
                                                'url': e['url'],
-                                               'reason': 'no Apple match, page unreadable'})
+                                               'reason': 'no Apple match; its Goodreads page could not be sourced'})
         except Exception as ex:
             report['unobtainable'].append({'title': e['title'], 'author': e['author'],
                                            'url': e['url'], 'reason': str(ex)[:120]})
@@ -454,13 +459,15 @@ def main():
     n_kindle = len(found) - n_apple
     apple_calls = fetch.STATS['search']['calls'] + fetch.STATS['pages']['calls']
     apple_failed = fetch.STATS['search']['failed'] + fetch.STATS['pages']['failed']
-    cap_note = (' (looked up the top %d by rank)' % CAP) if report['capped'] else ''
+    capped_entries = [u for u in report['unobtainable'] if 'cap reached' in (u.get('reason') or '')]
+    cap_note = ((' (%d not looked up — kindle page cap %d)' % (len(capped_entries), KINDLE_CAP))
+                if capped_entries else '')
     if report['ok']:
         line = ('goodreads reference: %d listed, %d already seen, %d missed -> '
-                '%d found (%d Apple, %d Kindle-first), %d unobtainable, %d added to the pool%s '
-                '[apple %d calls/%d failed]'
+                '%d found (%d Apple, %d Kindle-first), %d unobtainable, %d added to the pool '
+                '[apple %d calls/%d failed, kindle pages %d]%s'
                 % (report['listed'], report['seen'], len(misses), len(found), n_apple, n_kindle,
-                   len(report['unobtainable']), added, cap_note, apple_calls, apple_failed))
+                   len(report['unobtainable']), added, apple_calls, apple_failed, kindle_pages, cap_note))
     else:
         line = ('goodreads reference: %d listed, %d already seen, %d missed -> '
                 '%d found, %d unobtainable — APPEND FAILED (%s): nothing entered the pool%s'
