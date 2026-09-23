@@ -86,3 +86,11 @@ A read book that isn't part of a series.
 
 **Watched authors**:
 Authors whose new releases every run looks for.
+
+## Settings (ticket #41)
+
+**Settings is a page, not a sheet.** The old modal (veil, dialog, focus trap, Escape-to-close) is retired; the nav's Settings button renders the page. The same controls, endpoints and tab machinery as the shipped sheet — a page script binds them when the view enters and stops the status poll when it leaves.
+
+**Tabs**: Shelf (key · model · save · curate now · status) and Authors (watched list with lanes, add + remove, the empty state). Roving tabindex + arrow keys, as the sheet had.
+
+**Panels use inline `display`, not the `hidden` attribute** — the design runtime drops `hidden` during render, so `display:none` is the only reliable hide inside the dc root.

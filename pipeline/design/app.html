@@ -45,10 +45,9 @@
   .loglink:hover{color:#211E19}
   /* dense-desktop hit areas (the phone block below raises these to 44) */
   [data-m="verdicts"] button{min-height:40px !important;padding:10px 14px !important}
-  [data-m="set-open"]{position:relative}
-  #set-open::after{content:"";position:absolute;inset:-14px -12px}
   #set-refresh{position:relative}
   #set-refresh::after{content:"";position:absolute;inset:-12px -10px}
+  #status-line{min-height:22px}
   @media (prefers-reduced-motion: reduce){
     *,*::before,*::after{animation-duration:.01ms !important;animation-iteration-count:1 !important;transition-duration:.01ms !important}
     button:active:not(:disabled){scale:1 !important}
@@ -79,14 +78,12 @@
     [data-m="row"]{grid-template-columns:84px minmax(0,1fr) !important}
     [data-m="row"] > :nth-child(3){grid-column:1 / -1}
   }
-  /* phone: the settings sheet becomes a bottom sheet; the shell is already
-     stacked by the 880 rule above */
+  /* phone: the settings page stacks with the shell (#43 does the full pass) */
   @media (max-width:700px){
     [data-m="main"]{padding:30px 18px 64px !important}
     [data-m="antic"] > div{padding:22px 16px !important}
-    [data-m="setVeil"]{padding:0 !important;align-items:flex-end !important}
-    [data-m="settingsBox"]{padding:24px 18px 30px !important;max-width:none !important;width:100% !important;max-height:94% !important;min-height:0 !important;overflow:auto !important;border-left:none !important;border-right:none !important;border-bottom:none !important;box-shadow:0 -18px 50px rgba(20,18,14,.35) !important}
-    [data-m="settingsBox"] input,[data-m="settingsBox"] select,[data-m="settingsBox"] button{min-height:44px !important}
+    [data-m="setTabs"] button{min-height:44px !important}
+    .loglink{display:inline-block;min-height:44px;padding:10px 0}
     [data-m="verdicts"] button{min-height:44px !important;padding:11px 16px !important;font-size:11.5px !important;letter-spacing:.14em !important}
     [data-m="tabs"] button{min-height:44px !important}
     [data-m="plate"]{min-height:44px !important}
@@ -380,7 +377,7 @@
               <div style="display:flex;align-items:flex-start;gap:8px;flex-wrap:wrap;margin-top:14px">
                 <sc-for list="{{ s.vols }}" as="v" hint-placeholder-count="4">
                   <span role="button" tabindex="0" aria-label="{{ v.label }}" onclick="{{ v.onTap }}" onfocus="{{ v.onEnter }}" onblur="{{ v.onLeave }}" onmouseenter="{{ v.onEnter }}" onmouseleave="{{ v.onLeave }}" style="flex:0 0 auto;display:block;width:58px;cursor:pointer">
-                    <span aria-hidden="true" style="{{ v.coverStyle }}"><img src="{{ v.art }}" alt="" style="{{ v.artStyle }}" onerror="{{ v.onArtErr }}"/><span style="{{ v.labelStyle }}">{{ v.n }}</span></span>
+                    <span aria-hidden="true" style="{{ v.coverStyle }}"><img src="{{ v.artSrc }}" alt="" style="{{ v.artStyle }}" data-art="1"/><span style="{{ v.labelStyle }}">{{ v.n }}</span></span>
                     <span aria-hidden="true" style="{{ v.markStyle }}">{{ v.mark }}</span>
                   </span>
                 </sc-for>
@@ -476,7 +473,7 @@
               <ul style="list-style:none;margin:0;padding:0;min-width:0">
                 <sc-for list="{{ s.books }}" as="bk" hint-placeholder-count="2">
                   <li style="display:flex;align-items:center;gap:10px;padding:4px 0">
-                    <span aria-hidden="true" style="{{ bk.thumbStyle }}"><img src="{{ bk.art }}" alt="" style="{{ bk.thumbArtStyle }}" onerror="{{ bk.onArtErr }}"/></span>
+                    <span aria-hidden="true" style="{{ bk.thumbStyle }}"><img src="{{ bk.artSrc }}" alt="" style="{{ bk.thumbArtStyle }}" data-art="1"/></span>
                     <span aria-hidden="true" style="flex:0 0 14px;font-size:11px;color:#A8863F">✓</span>
                     <span style="flex:1;min-width:0;font-family:'Cormorant Garamond',Garamond,serif;font-size:19px;line-height:1.3">{{ bk.t }} <span style="font-size:13.5px;color:#6E6353">{{ bk.n }}</span></span>
                     <span style="{{ bk.tagStyle }}">{{ bk.tag }}</span>
@@ -546,14 +543,54 @@
     <sc-if value="{{ isSettings }}">
     <div data-screen-label="Settings">
       <p style="margin:0;font-size:10.5px;letter-spacing:.42em;text-transform:uppercase;color:#6E6353">Setup</p>
-      <h2 style="font-family:'Cormorant Garamond',Garamond,serif;font-weight:300;font-size:clamp(34px,5vw,56px);letter-spacing:.06em;margin:12px 0 0">Shelf settings</h2>
+      <h2 id="set-h" tabindex="-1" style="font-family:'Cormorant Garamond',Garamond,serif;font-weight:300;font-size:clamp(34px,5vw,56px);letter-spacing:.06em;margin:12px 0 0;outline:none">Shelf settings</h2>
       <p style="margin:10px 0 0;font-size:11px;letter-spacing:.28em;text-transform:uppercase;color:#6E6353">Sport Romance · Romantasy · Contemporary Romance</p>
-      <div style="height:1px;background:#A8863F;margin:20px 0 0"></div>
-      <p style="margin:24px 0 0;font-family:'Cormorant Garamond',Garamond,serif;font-style:italic;font-size:20px;color:#6E6353;max-width:56ch">Settings moves onto its own page in the next update. Until then your settings sheet works exactly as before —</p>
-      <button type="button" id="set-open" data-m="set-open" style="margin-top:22px;font-size:10.5px;letter-spacing:.28em;text-transform:uppercase;padding:14px 26px;min-height:48px;border:1px solid #1E3A2F;background:#1E3A2F;color:#F3EDE1" style-hover="background:#25493A;border-color:#25493A">open settings</button>
+
+      <div data-m="setTabs" role="tablist" aria-label="Settings panels" style="display:flex;margin-top:24px;border-bottom:1px solid #C6BBA3">
+        <button type="button" id="tab-shelf" role="tab" aria-selected="true" aria-controls="panel-shelf" tabindex="0" style="font-size:10.5px;letter-spacing:.28em;text-transform:uppercase;padding:12px 18px 11px;background:transparent;border:none;border-bottom:2px solid #1E3A2F;color:#211E19;cursor:pointer;min-height:44px">Shelf</button>
+        <button type="button" id="tab-authors" role="tab" aria-selected="false" aria-controls="panel-authors" tabindex="-1" style="font-size:10.5px;letter-spacing:.28em;text-transform:uppercase;padding:12px 18px 11px;background:transparent;border:none;border-bottom:2px solid transparent;color:#6E6353;cursor:pointer;min-height:44px">Authors</button>
+      </div>
+
+      <div id="panel-shelf" role="tabpanel" aria-labelledby="tab-shelf">
+        <section aria-label="Shelf setup" style="max-width:720px">
+          <p style="margin:22px 0 0;font-size:16px;line-height:1.6;color:#4A443A">Your OpenRouter key lives on your server in the appdata volume — it survives redeploys.</p>
+          <p style="margin:26px 0 0;font-size:10.5px;letter-spacing:.28em;text-transform:uppercase;color:#6E6353">OpenRouter key · <span id="key-state" style="color:#6E2A2A">…</span></p>
+          <input id="set-key" type="password" placeholder="sk-or-v1-…" autocomplete="off" aria-label="OpenRouter key" style="display:block;width:100%;box-sizing:border-box;margin-top:10px;min-height:48px;background:#FBF6EC;border:1px solid #C6BBA3;padding:12px 14px;font-family:'EB Garamond',Georgia,serif;font-size:16px;color:#211E19"/>
+          <div style="display:flex;align-items:baseline;gap:14px;margin-top:24px">
+            <p style="margin:0;font-size:10.5px;letter-spacing:.28em;text-transform:uppercase;color:#6E6353">Model · <button type="button" id="set-refresh" style="font-size:10px;letter-spacing:.2em;text-transform:uppercase;color:#6E2A2A;border:none;border-bottom:1px solid #A8863F;padding:0 0 2px;min-height:44px;background:transparent;cursor:pointer">refresh</button></p>
+          </div>
+          <select id="set-model" aria-label="Model" style="display:block;width:100%;box-sizing:border-box;margin-top:10px;min-height:48px;background:#FBF6EC;border:1px solid #C6BBA3;padding:12px 10px;font-family:'EB Garamond',Georgia,serif;font-size:15px;color:#211E19;text-overflow:ellipsis"></select>
+          <p id="model-hint" style="margin:8px 0 0;font-style:italic;font-size:14px;color:#6E6353">prices come live from OpenRouter</p>
+          <div data-m="verdicts" style="display:flex;gap:12px;flex-wrap:wrap;margin-top:24px">
+            <button type="button" id="set-save" style="font-size:10.5px;letter-spacing:.28em;text-transform:uppercase;padding:14px 26px;min-height:48px;border:1px solid #1E3A2F;background:#1E3A2F;color:#F3EDE1;cursor:pointer">save</button>
+            <button type="button" id="set-run" style="font-size:10.5px;letter-spacing:.28em;text-transform:uppercase;padding:14px 26px;min-height:48px;border:1px solid #6E2A2A;background:transparent;color:#6E2A2A;cursor:pointer">curate now — last 30 days</button>
+          </div>
+          <p style="margin:12px 0 0;font-style:italic;font-size:14px;line-height:1.6;color:#6E6353;max-width:56ch">curate now re-runs for the last 30 days of releases. the 1st of every month still drops the full previous month.</p>
+          <p id="run-state" role="status" aria-live="polite" style="margin:18px 0 0;font-family:'Cormorant Garamond',Garamond,serif;font-size:22px;color:#1E3A2F;min-height:28px"></p>
+          <p id="status-line" style="margin:4px 0 0;font-size:14px;color:#6E6353"></p>
+        </section>
+      </div>
+
+      <div id="panel-authors" role="tabpanel" aria-labelledby="tab-authors" style="display:none">
+        <section aria-label="Watched authors" style="max-width:720px">
+          <p style="margin:22px 0 0;font-size:16px;line-height:1.6;color:#4A443A">Watched authors — every run looks for their new releases. The lane is optional; it steers which lane their books join.</p>
+          <div style="display:flex;gap:10px;flex-wrap:wrap;margin-top:18px">
+            <input id="auth-name" type="text" placeholder="author name" autocomplete="off" aria-label="author name" style="flex:1 1 200px;min-height:48px;box-sizing:border-box;background:#FBF6EC;border:1px solid #C6BBA3;padding:12px 14px;font-family:'EB Garamond',Georgia,serif;font-size:16px;color:#211E19"/>
+            <select id="auth-lane" aria-label="lane (optional)" style="min-height:48px;background:#FBF6EC;border:1px solid #C6BBA3;padding:12px 10px;font-family:'EB Garamond',Georgia,serif;font-size:15px;color:#211E19">
+              <option value="">any lane</option>
+              <option value="sport romance">sport romance</option>
+              <option value="romantasy">romantasy</option>
+              <option value="contemporary romance">contemporary romance</option>
+            </select>
+            <button type="button" id="auth-add" style="min-height:48px;font-size:10.5px;letter-spacing:.28em;text-transform:uppercase;padding:14px 24px;border:1px solid #1E3A2F;background:#1E3A2F;color:#F3EDE1;cursor:pointer">add</button>
+          </div>
+          <p id="auth-msg" role="status" aria-live="polite" style="margin:12px 0 0;font-style:italic;font-size:14px;color:#6E6353;min-height:20px"></p>
+          <div id="auth-list" style="margin-top:4px"></div>
+          <p style="margin:16px 0 0;font-size:13px;color:#6E6353">The watch list feeds the monthly run — this month's page changes on the next curate.</p>
+        </section>
+      </div>
     </div>
     </sc-if>
-
     <footer style="margin-top:56px;padding-top:20px;border-top:1px solid #A8863F">
       <p style="margin:0;font-size:11px;letter-spacing:.12em;line-height:1.9;color:#6E6353;max-width:76ch">Filtered on — {{ criteria }}</p>
       <p style="margin:12px 0 0;font-size:10px;letter-spacing:.34em;text-transform:uppercase;color:#6E6353">The Shelf · {{ monthShort }}</p>
@@ -561,124 +598,23 @@
   </main>
 </div>
 </x-dc>
-<!-- ============ SHELF SETTINGS (app-only, outside the dc root) ============ -->
-<div id="set-veil" data-m="setVeil" style="display:none;position:fixed;inset:0;background:rgba(33,30,25,.55);z-index:60;align-items:flex-start;justify-content:center;padding:56px 16px;overflow:auto">
-  <div id="settings-box" data-m="settingsBox" role="dialog" aria-modal="true" aria-labelledby="set-title" style="max-width:560px;width:100%;background:#F6F1E4;border:1px solid #A8863F;box-shadow:0 24px 60px rgba(20,18,14,.35);padding:34px 36px;position:relative">
-    <button type="button" id="set-x" aria-label="Close settings" style="position:absolute;top:8px;right:12px;font-size:22px;color:#6E6353;cursor:pointer;background:transparent;border:none;min-width:44px;min-height:44px">×</button>
-    <p style="margin:0;font-size:10px;letter-spacing:.38em;text-transform:uppercase;color:#6E6353">Setup</p>
-    <h2 id="set-title" style="font-family:'Cormorant Garamond',Garamond,serif;font-weight:500;font-size:36px;letter-spacing:.05em;margin:8px 0 0">shelf settings</h2>
-    <p style="margin:6px 0 0;font-size:10px;letter-spacing:.3em;text-transform:uppercase;color:#6E6353">Sport Romance · Romantasy · Contemporary Romance</p>
-    <div role="tablist" aria-label="settings sections" style="display:flex;margin-top:20px;border-bottom:1px solid #C6BBA3">
-      <button type="button" id="tab-shelf" role="tab" aria-selected="true" aria-controls="panel-shelf" tabindex="0" style="font-size:10.5px;letter-spacing:.28em;text-transform:uppercase;padding:12px 18px 11px;background:transparent;border:none;border-bottom:2px solid #1E3A2F;color:#211E19;cursor:pointer;min-height:44px">Shelf</button>
-      <button type="button" id="tab-authors" role="tab" aria-selected="false" aria-controls="panel-authors" tabindex="-1" style="font-size:10.5px;letter-spacing:.28em;text-transform:uppercase;padding:12px 18px 11px;background:transparent;border:none;border-bottom:2px solid transparent;color:#6E6353;cursor:pointer;min-height:44px">Authors</button>
-    </div>
-    <div id="panel-shelf" role="tabpanel" aria-labelledby="tab-shelf">
-    <p style="margin:10px 0 0;font-size:15px;line-height:1.6;color:#4A443A">Your OpenRouter key lives on your server in the appdata volume — it survives redeploys.</p>
-    <p style="margin:20px 0 0;font-size:10px;letter-spacing:.3em;text-transform:uppercase;color:#6E6353">OpenRouter key · <span id="key-state" style="color:#6E2A2A">…</span></p>
-    <input id="set-key" type="password" placeholder="sk-or-v1-…" autocomplete="off" style="margin-top:8px;width:100%;box-sizing:border-box;background:transparent;border:1px solid #C6BBA3;padding:10px 12px;font-family:'EB Garamond',Georgia,serif;font-size:16px;color:#211E19"/>
-    <p style="margin:18px 0 0;font-size:10px;letter-spacing:.3em;text-transform:uppercase;color:#6E6353">Model · <button type="button" id="set-refresh" style="font-size:10px;letter-spacing:.2em;text-transform:uppercase;color:#6E2A2A;border-bottom:1px solid #A8863F">refresh</button></p>
-    <select id="set-model" style="margin-top:8px;width:100%;background:transparent;border:1px solid #C6BBA3;padding:10px 12px;font-family:'EB Garamond',Georgia,serif;font-size:15px;color:#211E19;text-overflow:ellipsis"></select>
-    <p id="model-hint" style="margin:6px 0 0;font-size:13px;font-style:italic;color:#6E6353">prices come live from OpenRouter</p>
-    <div style="display:flex;gap:14px;flex-wrap:wrap;margin-top:24px">
-      <button type="button" id="set-save" style="font-size:10.5px;letter-spacing:.28em;text-transform:uppercase;padding:11px 18px;border:1px solid #1E3A2F;background:#1E3A2F;color:#F3EDE1;cursor:pointer">save</button>
-      <button type="button" id="set-run" style="font-size:10.5px;letter-spacing:.28em;text-transform:uppercase;padding:11px 18px;border:1px solid #6E2A2A;background:transparent;color:#6E2A2A;cursor:pointer">curate now — last 30 days</button>
-    </div>
-    <p style="margin:10px 0 0;font-size:13.5px;font-style:italic;color:#6E6353">curate now re-runs for the last 30 days of releases. the 1st of every month still drops the full previous month.</p>
-    <p id="run-state" style="margin:16px 0 0;font-size:15px;color:#1E3A2F"></p>
-    <p id="status-line" style="margin:6px 0 0;font-size:14px;color:#6E6353"></p>
-    </div>
-    <div id="panel-authors" role="tabpanel" aria-labelledby="tab-authors" hidden>
-      <p style="margin:14px 0 0;font-size:15px;line-height:1.6;color:#4A443A">Watched authors — every run looks for their new releases. The lane is optional; it steers which lane their books join.</p>
-      <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:14px">
-        <input id="auth-name" type="text" placeholder="author name" autocomplete="off" aria-label="author name" style="flex:1 1 150px;min-height:44px;box-sizing:border-box;background:transparent;border:1px solid #C6BBA3;padding:10px 12px;font-family:'EB Garamond',Georgia,serif;font-size:16px;color:#211E19"/>
-        <select id="auth-lane" aria-label="lane (optional)" style="min-height:44px;background:transparent;border:1px solid #C6BBA3;padding:10px 8px;font-family:'EB Garamond',Georgia,serif;font-size:15px;color:#211E19">
-          <option value="">any lane</option>
-          <option value="sport romance">sport romance</option>
-          <option value="romantasy">romantasy</option>
-          <option value="contemporary romance">contemporary romance</option>
-        </select>
-        <button type="button" id="auth-add" style="min-height:44px;font-size:10.5px;letter-spacing:.28em;text-transform:uppercase;padding:11px 18px;border:1px solid #1E3A2F;background:#1E3A2F;color:#F3EDE1;cursor:pointer">add</button>
-      </div>
-      <p id="auth-msg" role="status" aria-live="polite" style="margin:10px 0 0;font-size:14px;font-style:italic;color:#6E6353;min-height:20px"></p>
-      <div id="auth-list" style="margin-top:4px"></div>
-      <p style="margin:16px 0 0;font-size:13px;color:#6E6353">The watch list feeds the monthly run — this month's page changes on the next curate.</p>
-    </div>
-  </div>
-</div>
 <script>
+/* Shelf settings — the page version of the settings sheet (#41).
+   Same endpoints, same controls, same tab machinery; the modal (veil,
+   dialog, focus trap, Escape-to-close) retired with the sheet.
+   Every query is lazy: the section only exists in the DOM while the
+   Settings view is active, and the component calls enter()/leave(). */
 (function(){
   'use strict';
-  var veil=document.getElementById('set-veil');
-  if(!veil)return;
-  var closeTimer=null;
-  function open(){
-    if(closeTimer){clearTimeout(closeTimer);closeTimer=null;}
-    veil.style.display='flex';
-    var box=document.getElementById('settings-box');
-    veil.style.transition='none';box.style.transition='none';
-    veil.style.opacity='0';box.style.transform='translateY(14px)';
-    requestAnimationFrame(function(){requestAnimationFrame(function(){
-      veil.style.transition='opacity 160ms ease-out';
-      box.style.transition='opacity 200ms ease-out, transform 200ms ease-out';
-      veil.style.opacity='1';box.style.transform='none';
-    });});
-    loadStatus();loadAuthors();if(!document.getElementById('set-model').options.length){loadModels();}startPolling();var x=document.getElementById('set-x');if(x)x.focus();
-  }
-  function close(){
-    var box=document.getElementById('settings-box');
-    veil.style.transition='opacity 140ms ease-out';
-    box.style.transition='opacity 140ms ease-out, transform 140ms ease-out';
-    veil.style.opacity='0';box.style.transform='translateY(10px)';
-    closeTimer=setTimeout(function(){
-      veil.style.display='none';
-      veil.style.transition='';veil.style.opacity='';
-      box.style.transition='';box.style.transform='';
-      closeTimer=null;
-    },150);
-    stopPolling();var o=document.getElementById('set-open');if(o)o.focus();
-  }
-  document.addEventListener('click',function(e){if(e.target&&e.target.id==='set-open'){open();}});
-  document.getElementById('set-x').addEventListener('click',close);
-  veil.addEventListener('click',function(e){if(e.target===veil)close();});
-  document.addEventListener('keydown',function(e){if(e.key==='Escape'&&veil.style.display!=='none')close();});
-  function focusables(){
-    return Array.prototype.slice.call(document.querySelectorAll('#settings-box button,#settings-box input,#settings-box select'))
-      .filter(function(el){return el.offsetParent!==null&&!el.disabled;});
-  }
-  document.addEventListener('keydown',function(e){
-    if(e.key!=='Tab'||veil.style.display==='none')return;
-    var f=focusables();if(!f.length)return;
-    var first=f[0],last=f[f.length-1];
-    if(e.shiftKey&&document.activeElement===first){e.preventDefault();last.focus();}
-    else if(!e.shiftKey&&document.activeElement===last){e.preventDefault();first.focus();}
-  });
-  function tab(which){
-    var on=which==='authors';
-    document.getElementById('panel-shelf').hidden=on;
-    document.getElementById('panel-authors').hidden=!on;
-    document.getElementById('tab-shelf').setAttribute('aria-selected',String(!on));
-    document.getElementById('tab-authors').setAttribute('aria-selected',String(on));
-    document.getElementById('tab-shelf').style.borderBottomColor=on?'transparent':'#1E3A2F';
-    document.getElementById('tab-shelf').style.color=on?'#6E6353':'#211E19';
-    document.getElementById('tab-authors').style.borderBottomColor=on?'#1E3A2F':'transparent';
-    document.getElementById('tab-authors').style.color=on?'#211E19':'#6E6353';
-    document.getElementById('tab-shelf').tabIndex=on?-1:0;
-    document.getElementById('tab-authors').tabIndex=on?0:-1;
-  }
-  function tabKey(e){
-    if(e.key!=='ArrowRight'&&e.key!=='ArrowLeft')return;
-    e.preventDefault();
-    var go=e.key==='ArrowRight'?'authors':'shelf';
-    tab(go);
-    document.getElementById(go==='authors'?'tab-authors':'tab-shelf').focus();
-  }
-  document.getElementById('tab-shelf').addEventListener('click',function(){tab('shelf');});
-  document.getElementById('tab-authors').addEventListener('click',function(){tab('authors');});
-  document.getElementById('tab-shelf').addEventListener('keydown',tabKey);
-  document.getElementById('tab-authors').addEventListener('keydown',tabKey);
-  function msg(t){document.getElementById('auth-msg').textContent=t||'';}
+  function j(path,opts){return fetch(path,opts).then(function(r){return r.json();});}
+  function msg(t){var el=document.getElementById('auth-msg');if(el)el.textContent=t||'';}
+  var pollTimer=null;
+  function startPolling(){if(!pollTimer){pollTimer=setInterval(loadStatus,6000);}}
+  function stopPolling(){if(pollTimer){clearInterval(pollTimer);pollTimer=null;}}
+
   function renderAuthors(lst){
-    var host=document.getElementById('auth-list');host.innerHTML='';
+    var host=document.getElementById('auth-list');if(!host)return;
+    host.innerHTML='';
     if(!lst||!lst.length){
       var p=document.createElement('p');
       p.style.cssText='margin:6px 0 0;font-size:14px;color:#6E6353';
@@ -712,7 +648,7 @@
   }
   function loadAuthors(){j('/api/authors').then(function(d){renderAuthors(d.authors||[]);}).catch(function(){msg('could not load the list — container offline?');});}
   function addAuthor(){
-    var inp=document.getElementById('auth-name');
+    var inp=document.getElementById('auth-name');if(!inp)return;
     var n=inp.value;
     if(!n.trim()){msg('give the author a name');return;}
     j('/api/authors',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({name:n,lane:document.getElementById('auth-lane').value})})
@@ -722,56 +658,127 @@
     })
     .catch(function(){msg('could not add — container offline?');});
   }
-  document.getElementById('auth-add').addEventListener('click',addAuthor);
-  document.getElementById('auth-name').addEventListener('keydown',function(e){if(e.key==='Enter')addAuthor();});
-  function j(path,opts){return fetch(path,opts).then(function(r){return r.json();});}
   function loadStatus(){
-    j('/api/status').then(function(s){
-      document.getElementById('key-state').textContent=s.key_set?'yes — key saved':'no key yet';
+    return j('/api/status').then(function(s){
+      var ks=document.getElementById('key-state');if(ks)ks.textContent=s.key_set?'yes — key saved':'no key yet';
       var m=document.getElementById('set-model');
-      if(s.model&&!m.options.length){var o=document.createElement('option');o.value=s.model;o.textContent=s.model+' (current)';m.appendChild(o);}
+      if(m&&s.model&&!m.options.length){var o=document.createElement('option');o.value=s.model;o.textContent=s.model+' (current)';m.appendChild(o);}
       var last=s.last_run?(new Date(s.last_run)).toLocaleString():'never';
       var logsHref='/api/logs';
-      function withLogs(el, txt){
-        // "see logs" is the one string the reader actually needs to follow —
-        // make it a real link (a failed run is useless without its log)
+      function withLogs(el,txt){
+        if(!el)return;
         if(txt.indexOf('see logs')>=0){
           el.innerHTML=txt.split('see logs').join('<a class="loglink" href="'+logsHref+'" target="_blank" rel="noopener">see logs</a>');
         } else { el.textContent=txt; }
       }
-      withLogs(document.getElementById('status-line'), 'monthly job: '+s.schedule+' · last run: '+last+(s.last_result?(' · '+s.last_result+(s.last_books?(' · '+s.last_books+' books'):'')):''));
-      withLogs(document.getElementById('run-state'), s.running?'running…':(s.last_result?('done — '+s.last_result+(s.last_books?(' ('+s.last_books+' books)'):'')):''));
+      withLogs(document.getElementById('status-line'),'monthly job: '+s.schedule+' · last run: '+last+(s.last_result?(' · '+s.last_result+(s.last_books?(' · '+s.last_books+' books'):'')):''));
+      withLogs(document.getElementById('run-state'),s.running?'running…':(s.last_result?('done — '+s.last_result+(s.last_books?(' ('+s.last_books+' books)'):'')):''));
     }).catch(function(){
-      document.getElementById('key-state').textContent='container offline';
-      document.getElementById('status-line').textContent='settings live in the container build (port 8787)';
+      var ks=document.getElementById('key-state');if(ks)ks.textContent='container offline';
+      var sl=document.getElementById('status-line');if(sl)sl.textContent='settings live in the container build (port 8787)';
     });
   }
-  var pollTimer=null;
-  function startPolling(){if(!pollTimer){pollTimer=setInterval(loadStatus,6000);}}
-  function stopPolling(){if(pollTimer){clearInterval(pollTimer);pollTimer=null;}}
   function loadModels(sel){
     j('/api/models').then(function(d){
-      var m=document.getElementById('set-model');m.innerHTML='';
+      var m=document.getElementById('set-model');if(!m)return;
+      /* #41 review: an error body or an empty list is a failure — keep any
+         previously loaded options and say so honestly */
+      if(!d||d.error||!(d.models||[]).length){
+        var mh=document.getElementById('model-hint');
+        if(mh)mh.textContent='could not reach the openrouter list — model stays as set on the server';
+        return;
+      }
+      m.innerHTML='';
       var money=function(v){v=+v;return '$'+(v===Math.round(v)?v:v.toFixed(2));};
       (d.models||[]).forEach(function(x){
         var o=document.createElement('option');o.value=x.id;
         o.textContent=x.id+' — '+money(x.in_mtok)+'/'+money(x.out_mtok)+' per 1M · '+x.why;
         m.appendChild(o);
       });
-      if(sel){m.value=sel;}
-    }).catch(function(){document.getElementById('model-hint').textContent='could not reach the openrouter list — model stays as set on the server';});
+      if(sel){
+        m.value=sel;
+        if(m.value!==sel){var o=document.createElement('option');o.value=sel;o.textContent=sel+' (current)';m.insertBefore(o,m.firstChild);m.value=sel;}
+      }
+    }).catch(function(){var mh=document.getElementById('model-hint');if(mh)mh.textContent='could not reach the openrouter list — model stays as set on the server';});
   }
-  document.getElementById('set-save').addEventListener('click',function(){
+  function save(){
     j('/api/settings',{method:'POST',headers:{'Content-Type':'application/json'},
       body:JSON.stringify({api_key:document.getElementById('set-key').value,model:document.getElementById('set-model').value})})
-    .then(function(r){document.getElementById('key-state').textContent=r.key_set?'yes — key saved':'no key yet';loadStatus();})
-    .catch(function(){document.getElementById('key-state').textContent='save failed — is the container running?';});
-  });
-  document.getElementById('set-refresh').addEventListener('click',function(){loadModels();});
-  document.getElementById('set-run').addEventListener('click',function(){
-    j('/api/run',{method:'POST'}).then(function(r){document.getElementById('run-state').textContent=r.error||'started — watch status';}).catch(function(){document.getElementById('run-state').textContent='could not start — container offline?';});
+    .then(function(r){var ks=document.getElementById('key-state');if(ks)ks.textContent=r.key_set?'yes — key saved':'no key yet';loadStatus();})
+    .catch(function(){var ks=document.getElementById('key-state');if(ks)ks.textContent='save failed — is the container running?';});
+  }
+  function curate(){
+    j('/api/run',{method:'POST'}).then(function(r){var el=document.getElementById('run-state');if(el)el.textContent=r.error||'started — watch status';}).catch(function(){var el=document.getElementById('run-state');if(el)el.textContent='could not start — container offline?';});
     setTimeout(loadStatus,3000);
-  });
+  }
+  function tab(which){
+    var on=which==='authors';
+    var ps=document.getElementById('panel-shelf'),pa=document.getElementById('panel-authors');
+    var ts=document.getElementById('tab-shelf'),ta=document.getElementById('tab-authors');
+    if(!ps||!pa||!ts||!ta)return;
+    /* the dc runtime drops the `hidden` attribute — inline display is what it
+       preserves, and display:none is equivalent for both sight and AT */
+    ps.style.display=on?'none':'block';pa.style.display=on?'block':'none';
+    ts.setAttribute('aria-selected',String(!on));ta.setAttribute('aria-selected',String(on));
+    ts.style.borderBottomColor=on?'transparent':'#1E3A2F';ts.style.color=on?'#6E6353':'#211E19';
+    ta.style.borderBottomColor=on?'#1E3A2F':'transparent';ta.style.color=on?'#211E19':'#6E6353';
+    ts.tabIndex=on?-1:0;ta.tabIndex=on?0:-1;
+  }
+  function tabKey(e){
+    var keys=['ArrowRight','ArrowLeft','Home','End'];
+    if(keys.indexOf(e.key)<0)return;
+    e.preventDefault();
+    var ts=document.getElementById('tab-shelf');
+    var onShelf=!!ts&&ts.getAttribute('aria-selected')==='true';
+    /* two tabs: arrows toggle and wrap; Home/End jump */
+    var go=e.key==='Home'?'shelf':e.key==='End'?'authors':(onShelf?'authors':'shelf');
+    tab(go);
+    var el=document.getElementById(go==='authors'?'tab-authors':'tab-shelf');if(el)el.focus();
+  }
+  /* #42/#41 review: the dc runtime cannot bind an inline onerror to a
+     callable (it lands as a non-function and throws when the event fires),
+     so the cover-art fallback binds real listeners here: a missing or broken
+     art file hides the img and reveals the striped underlay + number. */
+  function bindArt(){
+    var imgs=document.querySelectorAll('main img[data-art]');
+    for(var i=0;i<imgs.length;i++){
+      var im=imgs[i];
+      if(im.getAttribute('data-bound')||!im.getAttribute('src')||im.getAttribute('src').indexOf('data:')===0)continue;
+      im.setAttribute('data-bound','1');
+      im.addEventListener('error',function(){
+        this.style.display='none';
+        var l=this.parentNode&&this.parentNode.querySelector('span');
+        if(l)l.style.display='inline';
+      });
+    }
+  }
+  try{
+    if(document.readyState!=='loading'){bindArt();}
+    document.addEventListener('DOMContentLoaded',bindArt);
+    if(window.MutationObserver){new MutationObserver(bindArt).observe(document.body,{childList:true,subtree:true});}
+  }catch(e){}
+  /* the component calls these when the Settings view enters/leaves */
+  window.SHELF_SETTINGS={
+    enter:function(){
+      var ts=document.getElementById('tab-shelf'),ta=document.getElementById('tab-authors');
+      if(!ts||!ta)return;
+      ts.onclick=function(){tab('shelf');};ta.onclick=function(){tab('authors');};
+      ts.onkeydown=tabKey;ta.onkeydown=tabKey;
+      var an=document.getElementById('auth-name');if(an)an.onkeydown=function(e){if(e.key==='Enter')addAuthor();};
+      var aa=document.getElementById('auth-add');if(aa)aa.onclick=addAuthor;
+      var sv=document.getElementById('set-save');if(sv)sv.onclick=save;
+      var rf=document.getElementById('set-refresh');if(rf)rf.onclick=function(){var m=document.getElementById('set-model');loadModels(m&&m.value);};
+      var rn=document.getElementById('set-run');if(rn)rn.onclick=curate;
+      loadStatus().then(function(s){
+        var m=document.getElementById('set-model');
+        if(m&&!m.options.length){loadModels(s&&s.model);}
+      });
+      loadAuthors();
+      startPolling();
+      var h=document.getElementById('set-h');if(h)h.focus();
+    },
+    leave:function(){stopPolling();}
+  };
 })();
 </script>
 <script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;:{&quot;width&quot;:1180}}">
@@ -837,13 +844,9 @@ class Component extends DCLogic {
     this.apply(id, isVolume&&!isPick ? 'unread' : null);
   }
 
-  /* #42 review: a mirrored cover file can go missing (partial deploy, cache
-     clean) — fall back to the deliberate placeholder (stripes + number)
-     instead of a blank tile. The stripes are already the span's background. */
-  artFail(e){const im=e&&e.target;if(!im)return;
-    im.style.display='none';
-    const l=im.parentNode&&im.parentNode.querySelector('span');
-    if(l)l.style.display='inline';}
+  /* #41: the settings page script binds/unbinds with the view */
+  settingsLeave(){try{const S=(typeof window!=='undefined')&&window.SHELF_SETTINGS;if(S&&S.leave)S.leave();}catch(e){}}
+  settingsEnter(){try{const S=(typeof window!=='undefined')&&window.SHELF_SETTINGS;if(S&&S.enter)setTimeout(function(){S.enter();},0);}catch(e){}}
 
   persist(states,ts){
     try{ localStorage.setItem('shelf.marks',
@@ -1120,7 +1123,8 @@ class Component extends DCLogic {
             background:stripes,
             border:'1px solid '+edge,borderStyle:vs==='tba'?'dashed':'solid',
             boxShadow:'inset 1px 0 0 rgba(255,253,246,.7)'};
-          return {n:num,t:b.t,label:axLabel,art,onArtErr:this.artFail,
+          return {n:num,t:b.t,label:axLabel,art,
+            artSrc:art||'data:image/gif;base64,R0lGODlhAQABAAAAACH5BAEKAAEALAAAAAABAAEAAAICTAEAOw==',
             coverStyle,
             artStyle:art?{position:'absolute',top:'0',left:'0',width:'100%',height:'100%',objectFit:'cover',display:'block'}:{display:'none'},
             labelStyle:{fontFamily:"'SFMono-Regular',Menlo,Consolas,monospace",fontSize:'8.5px',lineHeight:1.3,
@@ -1243,7 +1247,8 @@ class Component extends DCLogic {
       return {name:s.name,author:s.author,complete:rows.length>0&&rows.length===s.books.length,
         books:rows.map(b=>({t:b.t,n:b.n,tag:S[b.id]==='loved'?'loved':'read',
           unreadLabel:'mark '+b.t+' unread',
-          art:b.img||'',onArtErr:this.artFail,
+          art:b.img||'',
+          artSrc:b.img||'data:image/gif;base64,R0lGODlhAQABAAAAACH5BAEKAAEALAAAAAABAAEAAAICTAEAOw==',
           thumbStyle:{flex:'0 0 34px',width:'34px',height:'51px',position:'relative',overflow:'hidden',
             background:'repeating-linear-gradient(90deg,#EFE7D6 0 4px,#E4DAC4 4px 8px)',
             border:'1px solid '+(b.img?'rgba(33,30,25,.35)':'#D6CCB6')},
@@ -1306,11 +1311,11 @@ class Component extends DCLogic {
       /* nav + shell */
       isHome:this.state.view==='home', isShelf:this.state.view==='shelf', isSeries:this.state.view==='series',
       isArchive:this.state.view==='archive', isSettings:this.state.view==='settings',
-      goHome:()=>this.setState({view:'home',tip:'',peek:'',peekVol:false,vol:'',volOf:'',plate:'',plateId:''}),
-      goShelf:()=>this.setState({view:'shelf',tip:'',peek:'',peekVol:false,vol:'',volOf:'',plate:'',plateId:''}),
-      goSeries:()=>this.setState({view:'series',tip:'',peek:'',peekVol:false,vol:'',volOf:'',plate:'',plateId:''}),
-      goArchive:()=>this.setState({view:'archive',tip:'',peek:'',peekVol:false,vol:'',volOf:'',plate:'',plateId:''}),
-      goSettings:()=>this.setState({view:'settings',tip:'',peek:'',peekVol:false,vol:'',volOf:'',plate:'',plateId:''}),
+      goHome:()=>{this.settingsLeave();this.setState({view:'home',tip:'',peek:'',peekVol:false,vol:'',volOf:'',plate:'',plateId:''});},
+      goShelf:()=>{this.settingsLeave();this.setState({view:'shelf',tip:'',peek:'',peekVol:false,vol:'',volOf:'',plate:'',plateId:''});},
+      goSeries:()=>{this.settingsLeave();this.setState({view:'series',tip:'',peek:'',peekVol:false,vol:'',volOf:'',plate:'',plateId:''});},
+      goArchive:()=>{this.settingsLeave();this.setState({view:'archive',tip:'',peek:'',peekVol:false,vol:'',volOf:'',plate:'',plateId:''});},
+      goSettings:()=>{this.setState({view:'settings',tip:'',peek:'',peekVol:false,vol:'',volOf:'',plate:'',plateId:''});this.settingsEnter();},
       navHome:this.nav(this.state.view==='home'), navShelf:this.nav(this.state.view==='shelf'),
       navSeries:this.nav(this.state.view==='series'), navArchive:this.nav(this.state.view==='archive'),
       navSettings:this.nav(this.state.view==='settings'),
