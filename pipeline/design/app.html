@@ -761,19 +761,34 @@
     var imgs=document.querySelectorAll('main img[data-art]');
     for(var i=0;i<imgs.length;i++){
       var im=imgs[i];
-      if(im.getAttribute('data-bound')||!im.getAttribute('src')||im.getAttribute('src').indexOf('data:')===0)continue;
-      im.setAttribute('data-bound','1');
-      im.addEventListener('error',function(){
-        this.style.display='none';
-        var l=this.parentNode&&this.parentNode.querySelector('span');
-        if(l)l.style.display='inline';
-      });
+      if(im.getAttribute('src').indexOf('data:')===0)continue;   // the transparent gif = no art by design
+      if(!im.getAttribute('data-bound')){
+        im.setAttribute('data-bound','1');
+        im.addEventListener('error',function(){ setArt(this,false); });
+        im.addEventListener('load',function(){ setArt(this,true); });
+      }
+      /* self-heal (#67): the app renders before the data arrives and again
+         while it syncs, so an early error-hide or a late re-render can leave a
+         loaded cover hidden. An already-complete image is settled — show it
+         iff it has pixels, whatever an earlier pass did. */
+      if(im.complete)setArt(im,im.naturalWidth>0);
     }
   }
+  function setArt(im,ok){
+    im.style.display=ok?'block':'none';
+    var l=im.parentNode&&im.parentNode.querySelector('span');
+    if(l)l.style.display=ok?'none':'inline';
+  }
+  /* settle passes: the loads can finish after the last mutation, so re-run the
+     heal on the window load, on src/style changes, and a few bounded times */
+  try{
+    window.addEventListener('load',bindArt);
+    [300,1000,2500,5000].forEach(function(ms){setTimeout(bindArt,ms);});
+  }catch(e){}
   try{
     if(document.readyState!=='loading'){bindArt();}
     document.addEventListener('DOMContentLoaded',bindArt);
-    if(window.MutationObserver){new MutationObserver(bindArt).observe(document.body,{childList:true,subtree:true});}
+    if(window.MutationObserver){new MutationObserver(bindArt).observe(document.body,{childList:true,subtree:true,attributes:true,attributeFilter:['src','style']});}
   }catch(e){}
   /* the component calls these when the Settings view enters/leaves */
   window.SHELF_SETTINGS={
