@@ -84,10 +84,14 @@
     [data-m="antic"] > div{padding:22px 16px !important}
     [data-m="setTabs"] button{min-height:44px !important}
     .loglink{display:inline-block;min-height:44px;padding:10px 0}
+    [data-m="recentline"]{min-height:3.2em !important}
     [data-m="verdicts"] button{min-height:44px !important;padding:11px 16px !important;font-size:11.5px !important;letter-spacing:.14em !important}
     [data-m="tabs"] button{min-height:44px !important}
     [data-m="plate"]{min-height:44px !important}
     [data-m="stacks"] button{width:26px !important}
+  }
+  @media (max-width:340px){
+    [data-m="cornerquote"]{min-height:3.84em !important}
   }
 </style>
 </helmet>
@@ -136,8 +140,8 @@
       <section aria-label="My reading corner" style="background:#E5DCCA;padding:6px">
         <div style="border:1px solid #A8863F;padding:26px 30px">
           <p style="margin:0;font-size:10px;letter-spacing:.34em;text-transform:uppercase;color:#6E6353">My reading corner · {{ monthLabel }}</p>
-          <p style="margin:12px 0 0;max-width:42ch;font-family:'Cormorant Garamond',Garamond,serif;font-style:italic;font-size:clamp(22px,3vw,33px);line-height:1.28">{{ quote }}</p>
-          <p style="margin:18px 0 0;padding-top:14px;border-top:1px solid #C6BBA3;font-size:10px;letter-spacing:.28em;text-transform:uppercase;color:#6E2A2A">{{ recentLine }}</p>
+          <p data-m="cornerquote" style="margin:12px 0 0;max-width:42ch;min-height:2.56em;font-family:'Cormorant Garamond',Garamond,serif;font-style:italic;font-size:clamp(22px,3vw,33px);line-height:1.28">{{ quote }}</p>
+          <p data-m="recentline" style="margin:18px 0 0;padding-top:14px;border-top:1px solid #C6BBA3;min-height:1.6em;font-size:10px;letter-spacing:.28em;text-transform:uppercase;color:#6E2A2A">{{ recentLine }}</p>
         </div>
       </section>
 
@@ -1326,7 +1330,13 @@ class Component extends DCLogic {
       counts:parts.length?parts.join(' · '):'nothing marked yet',
       monthLabel:d.month.label, monthShort:d.month.short, issueNo:d.month.issue||1, criteria:d.criteria,
       brew,
-      quote:(d.quotes||[''])[ this.state.q % ((d.quotes||['']).length) ],
+      /* #55: one line a day — indexed from the reader's LOCAL date (the local
+         Y/M/D normalised through Date.UTC, so it is DST-safe and flips at
+         local midnight; never UTC) */
+      quote:(function(){const qs=(d.quotes&&d.quotes.length)?d.quotes:[''];
+        try{const n=new Date();
+          const day=Math.round((Date.UTC(n.getFullYear(),n.getMonth(),n.getDate())-Date.UTC(n.getFullYear(),0,1))/86400000);
+          return qs[((day%qs.length)+qs.length)%qs.length];}catch(e){return qs[0];}})(),
 
       /* reading corner */
       recentLine,
