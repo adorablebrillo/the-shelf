@@ -42,6 +42,13 @@
   h1,h2,h3{text-wrap:balance}
   p,li,figcaption,blockquote{text-wrap:pretty}
   :focus-visible{outline:2px solid #A8863F;outline-offset:2px;box-shadow:0 0 0 1px #211E19}
+  /* #73: the carried-over set is explicit, not auto-fit — 3 across on wide
+     desktops (>=1248 incl. the 1280 laptop), 2 in the middle band, 1 below.
+     A 300px auto-fit floor could never fit 3 at 1280: the sidebar leaves the
+     grid only 908px, so 3 tracks need a floor of <=290. */
+  [data-m="picksgrid"]{grid-template-columns:repeat(3,minmax(0,1fr))}
+  @media (max-width:1247px){[data-m="picksgrid"]{grid-template-columns:repeat(2,minmax(0,1fr))}}
+  @media (max-width:1000px){[data-m="picksgrid"]{grid-template-columns:1fr}}
   .loglink{color:#A8863F;text-decoration:underline;text-underline-offset:2px;cursor:pointer}
   .loglink:hover{color:#211E19}
   /* dense-desktop hit areas (the phone block below raises these to 44) */
@@ -261,7 +268,7 @@
         </article>
         </sc-if>
 
-        <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:18px;margin-top:20px">
+        <div data-m="picksgrid" style="display:grid;gap:18px;margin-top:20px">
           <sc-for list="{{ rest }}" as="b" hint-placeholder-count="7">
             <article style="background:#E5DCCA;padding:5px">
               <div style="height:100%;box-sizing:border-box;border:1px solid #A8863F;padding:20px;display:grid;grid-template-columns:minmax(0,96px) minmax(0,1fr);gap:20px;align-items:start" data-m="two">
@@ -1512,7 +1519,7 @@ class Component extends DCLogic {
       lead, hasLead:!!lead, leadIsTop:leadIdx===0, rest,
       pickCount:(d.books||[]).length?(openPicks.length+' of '+(d.books||[]).length+' still open'):'',
       carriedLine:openPending.length?(openPending.length+' carried over from earlier issues'):'',
-      shapeLine:d.month.shapeLine||'', isLight:!!d.month.light,
+      shapeLine:d.month.shapeLine||'',
 
       /* series at a glance */
       seriesGlance:glance,
