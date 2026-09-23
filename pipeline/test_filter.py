@@ -89,6 +89,7 @@ class DarkRomanceRuleTests(unittest.TestCase):
         self.assertTrue(dark_hint('title', 'Gothic Romance'))
         self.assertTrue(dark_hint('A Study in Shadows', 'Dark Academia'))
         self.assertTrue(dark_hint('title', 'morally grey anti-hero romance'))
+        self.assertTrue(dark_hint('The Quiet Ledger', 'Contemporary Romance', 'a dark academia series'))
         self.assertFalse(dark_hint('The Cruel Prince', 'Romantasy'))
         self.assertFalse(dark_hint('The Summer Pact', 'Contemporary Romance'))
         self.assertFalse(dark_hint('Hockey Captain', 'Sports Romance'))

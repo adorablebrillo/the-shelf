@@ -33,11 +33,13 @@ def adhoc_window_ok(d):
 DARK_HINTS = ('dark', 'academia', 'gothic', 'anti-hero', 'antihero', 'morally gray', 'morally grey', 'bully')
 
 
-def dark_hint(title, genre):
-    """True when a candidate carries a dark-romance signal (wanted, not screened)."""
-    t = (title or '').lower()
-    g = (genre or '').lower()
-    return any(k in t or k in g for k in DARK_HINTS)
+def dark_hint(title, genre, *extra):
+    """True when a candidate carries a dark-romance signal (wanted, not screened).
+    The fetch's candidate set carries no blurb, so title/genre (plus the series
+    name) are the only text we can read — extra strings are accepted so a future
+    description field joins the hint without another signature change."""
+    hay = ' '.join(str(x or '') for x in (title, genre) + extra).lower()
+    return any(k in hay for k in DARK_HINTS)
 # her rule: no cowboy/cowgirl/western characters, any variant (2026-09-22).
 # A hard drop — like the M/F screen, this is deterministic; the model gets a
 # HARD_RULES reminder in curate.py but is never the gate.
@@ -151,7 +153,7 @@ def main():
             continue
         # dark-romance hint: wanted, especially dark academia — the curator
         # favours these; it is never a screen
-        b['dark_hint'] = dark_hint(title, genre)
+        b['dark_hint'] = dark_hint(title, genre, b.get('series'))
         # keep the whole widening pool; in_window tags the base window
         if MODE == 'adhoc':
             b['in_window'] = adhoc_window_ok(b.get('date'))
