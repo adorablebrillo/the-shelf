@@ -267,7 +267,7 @@
                 <div role="img" aria-label="{{ b.alt }}" style="{{ b.coverStyle }}"></div>
                 <div style="min-width:0">
                   <p style="margin:0;font-size:10px;letter-spacing:.28em;text-transform:uppercase;color:#6E6353">{{ b.rank }} · {{ b.genre }}</p>
-                  <h3 style="font-family:'Cormorant Garamond',Garamond,serif;font-weight:500;font-size:25px;line-height:1.12;margin:7px 0 0;overflow-wrap:anywhere">{{ b.title }}</h3>
+                  <h3 style="font-family:'Cormorant Garamond',Garamond,serif;font-weight:500;font-size:25px;line-height:1.12;margin:7px 0 0;overflow-wrap:anywhere">{{ b.title }} <span aria-hidden="true" style="color:#A8863F">{{ b.star }}</span></h3>
                   <sc-if value="{{ b.series }}">
                     <p style="margin:2px 0 0;font-family:'Cormorant Garamond',Garamond,serif;font-style:italic;font-size:17px;color:#6E2A2A">{{ b.series }}</p>
                   </sc-if>
@@ -337,12 +337,13 @@
         <article data-m="row" style="display:grid;grid-template-columns:minmax(0,112px) minmax(0,1fr) minmax(0,150px);gap:26px;align-items:start;padding:26px 0;border-bottom:1px solid #D6CCB6">
           <div role="img" aria-label="{{ b.alt }}" style="{{ b.coverStyle }}"></div>
           <div style="min-width:0">
-            <h3 style="font-family:'Cormorant Garamond',Garamond,serif;font-weight:500;font-size:28px;line-height:1.1;margin:0">{{ b.title }}</h3>
+            <h3 style="font-family:'Cormorant Garamond',Garamond,serif;font-weight:500;font-size:28px;line-height:1.1;margin:0">{{ b.title }} <span aria-hidden="true" style="color:#A8863F">{{ b.star }}</span></h3>
             <p style="margin:6px 0 0;font-size:13px;letter-spacing:.13em;text-transform:uppercase;color:#6E6353">{{ b.author }} · {{ b.genre }} · {{ b.date }}</p>
             <p style="margin:12px 0 0;font-family:'Cormorant Garamond',Garamond,serif;font-size:20px;line-height:1.45;max-width:56ch">{{ b.hook }}</p>
             <p style="margin:8px 0 0;font-size:14px;color:#4A443A">{{ b.tropeLine }}</p>
           </div>
           <div data-m="verdicts" style="display:flex;flex-direction:column;align-items:flex-start;gap:10px">
+            <button type="button" onClick="{{ b.onReading }}" aria-pressed="{{ b.readingPressed }}" style="{{ b.readingStyle }}">{{ b.readingLabel }}</button>
             <button type="button" onClick="{{ b.onRead }}" style="font-size:10.5px;letter-spacing:.22em;text-transform:uppercase;border:1px solid #A8863F;padding:10px 14px;min-height:40px" style-hover="background:#1E3A2F;color:#F3EDE1;border-color:#1E3A2F">mark read</button>
             <button type="button" onClick="{{ b.onLoved }}" style="font-size:10.5px;letter-spacing:.22em;text-transform:uppercase;border:1px solid #A8863F;padding:10px 14px;min-height:40px" style-hover="background:#6E2A2A;color:#F3EDE1;border-color:#6E2A2A">loved it</button>
             <button type="button" onClick="{{ b.onDrop }}" style="font-size:10px;letter-spacing:.2em;text-transform:uppercase;color:#6E6353;border-bottom:1px solid #C6BBA3;padding:0 0 2px" style-hover="color:#6E2A2A">not for me</button>
@@ -826,7 +827,7 @@ function hydrateIds(d){
 
 class Component extends DCLogic {
   state={ data:(typeof window!=='undefined'&&window.SHELF_DATA)?hydrateIds(window.SHELF_DATA):null,
-    states:{}, ts:{}, open:{}, q:0, view:'home', tip:'', peek:'', peekVol:false, vol:'', volOf:'', volT:0, plate:'', plateId:'', plateT:0, lastTapId:'', lastTapT:0, arc:'read', sync:'?',
+    states:{}, ts:{}, open:{}, q:0, view:'home', tip:'', peek:'', peekVol:false, vol:'', volOf:'', volT:0, plate:'', plateId:'', plateT:0, lastTapId:'', lastTapT:0, reading:{}, arc:'read', sync:'?',
     mobile:(typeof window!=='undefined'&&window.matchMedia)?window.matchMedia('(max-width:880px)').matches:false };
 
   /* ---- one identity per book ------------------------------------------
@@ -839,6 +840,9 @@ class Component extends DCLogic {
      and the desktop can't clobber each other). If the server is unreachable
      the mark is queued and retried — never dropped.                        */
   apply(id,val){
+    /* #57: finishing a book is worth a moment — read/loved celebrate, a
+       set-aside never does */
+    if(val==='read'||val==='loved')this.confetti();
     this.setState(s=>{
       const st={...s.states}, ts={...s.ts}, now=Date.now();
       if(val===null)delete st[id]; else st[id]=val;
@@ -867,7 +871,56 @@ class Component extends DCLogic {
 
   persist(states,ts){
     try{ localStorage.setItem('shelf.marks',
-      JSON.stringify({v:2,states:states||this.state.states,ts:ts||this.state.ts})); }catch(e){}
+      JSON.stringify({v:2,states:states||this.state.states,ts:ts||this.state.ts,reading:this.state.reading||{}})); }catch(e){}
+  }
+
+  /* #57: "reading now" — an additive flag, never a verdict. It lives beside the
+     marks (localStorage), so it survives reloads exactly like they do; the
+     server's state stays verdicts-only (it feeds the pipeline, where a reading
+     flag means nothing). */
+  toggleReading(id){
+    this.setState(s=>{
+      const r={...s.reading};
+      if(r[id])delete r[id]; else r[id]=Date.now();
+      return {reading:r};
+    },()=>this.persist());
+  }
+
+  /* #57: the finish-line confetti — a short, tasteful burst in the shelf's own
+     palette, an overlay only (never blocks a click, never shifts the page).
+     Skipped entirely under prefers-reduced-motion. */
+  confetti(){
+    try{
+      if(typeof window==='undefined'||!window.requestAnimationFrame)return;
+      if(window.matchMedia&&window.matchMedia('(prefers-reduced-motion: reduce)').matches)return;
+      const pt=(this._pt&&this._pt.t>Date.now()-1200)?this._pt:{x:window.innerWidth/2,y:window.innerHeight*0.32};
+      const c=document.createElement('canvas');
+      c.setAttribute('aria-hidden','true');
+      c.style.cssText='position:fixed;inset:0;width:100%;height:100%;pointer-events:none;z-index:80';
+      c.width=window.innerWidth; c.height=window.innerHeight;
+      document.body.appendChild(c);
+      const x=c.getContext('2d');
+      const cols=['#A8863F','#C8B27A','#F6F1E4','#1E3A2F','#6E2A2A'];
+      const ps=[];
+      for(let i=0;i<70;i++){
+        const a=Math.random()*Math.PI*2, v=2.2+Math.random()*5.2;
+        ps.push({x:pt.x,y:pt.y,vx:Math.cos(a)*v,vy:Math.sin(a)*v-3.4,
+          w:3+Math.random()*4.5,h:5+Math.random()*7,r:Math.random()*Math.PI,vr:(Math.random()-.5)*.28,
+          col:cols[i%cols.length]});
+      }
+      const t0=Date.now();
+      const step=()=>{
+        const t=(Date.now()-t0)/1400;
+        x.clearRect(0,0,c.width,c.height);
+        if(t>=1){ c.remove(); return; }
+        x.globalAlpha=Math.max(0,1-Math.max(0,(t-0.55))/0.45);
+        ps.forEach(p=>{ p.vy+=0.16; p.x+=p.vx; p.y+=p.vy; p.r+=p.vr; p.vx*=0.99;
+          x.save(); x.translate(p.x,p.y); x.rotate(p.r); x.fillStyle=p.col;
+          x.fillRect(-p.w/2,-p.h/2,p.w,p.h); x.restore(); });
+        requestAnimationFrame(step);
+      };
+      requestAnimationFrame(step);
+    }catch(e){}
   }
 
   sync(delta){
@@ -940,11 +993,19 @@ class Component extends DCLogic {
       this._mqListener=()=>this.setState({mobile:this._mq.matches});
       this._mq.addEventListener('change',this._mqListener);
     }
+    /* #57: remember where the last tap/click landed so the confetti bursts
+       from there (a plain global, not state — no re-render) */
+    if(typeof window!=='undefined'){
+      this._pt=null;
+      const track=(e)=>{try{this._pt={x:(e.clientX||0),y:(e.clientY||0),t:Date.now()};}catch(err){}};
+      document.addEventListener('pointerdown',track,true);
+      document.addEventListener('mousedown',track,true);
+    }
     const d=this.state.data||(typeof window!=='undefined'&&window.SHELF_DATA)||{};
     try{
       const raw=localStorage.getItem('shelf.marks');
       if(raw){
-        const all=JSON.parse(raw), out={}, tsf={};
+        const all=JSON.parse(raw), out={}, tsf={}, rd={};
         if(all&&all.v===2&&all.states){
           // KEEP the stored timestamps. Re-stamping them with 'now' made the
           // next pull treat every mark as locally-newer than the server's copy
@@ -952,6 +1013,7 @@ class Component extends DCLogic {
           // the mark dates must survive every load, not just every write.
           Object.keys(all.states).forEach(k=>{out[k]=all.states[k];
             tsf[k]=Number(((all.ts)||{})[k]||0);});
+          if(all.reading){ Object.keys(all.reading).forEach(k=>{rd[k]=Number(all.reading[k]||0);}); }
         }
         else{
           Object.keys(all||{}).forEach(k=>{            // v1: book:<id> | seq:<series>:<title>
@@ -972,8 +1034,8 @@ class Component extends DCLogic {
         // that import is the first moment the app ever knew it)
         const now=Date.now();
         Object.keys(out).forEach(k=>{ if(!tsf[k])tsf[k]=now; });
-        if(Object.keys(out).length){
-          this.setState({states:out, ts:tsf}); this.persist(out,tsf);
+        if(Object.keys(out).length||Object.keys(rd).length){
+          this.setState({states:out, ts:tsf, reading:rd}); this.persist(out,tsf);
         }
       }
     }catch(e){}
@@ -1012,6 +1074,9 @@ class Component extends DCLogic {
   book(b,i,rank){
     const st=this.state.states[b.id];
     return {...b,
+      /* #57: a book you are reading now carries its star everywhere the card
+         builder is used (Home's picks and My Shelf) */
+      star:(this.state.reading&&this.state.reading[b.id])?'\u2605':'',
       alt:'Cover of '+b.title+' by '+b.author,
       coverStyle:{width:'100%',aspectRatio:'2/3',border:'1px solid '+INK,backgroundImage:'url("'+b.img+'")',backgroundSize:'cover',backgroundPosition:'center',backgroundColor:'#D8CFBA'},
       rank:rank!==undefined?rank:('No. '+(i+1)),
@@ -1048,7 +1113,14 @@ class Component extends DCLogic {
       if(S[b.id]!=='want'||seenWant[b.id])return false;   // a re-recommendation is one book
       seenWant[b.id]=1; return true;
     }).map((b,i)=>{const card=this.book(b,i);
+      const rd=!!this.state.reading[b.id];
       return {...card,
+        reading:rd, readingLabel:rd?'reading now \u2605':'reading now',
+        readingPressed:rd?'true':'false',
+        readingStyle:{fontSize:'10px',letterSpacing:'.2em',textTransform:'uppercase',padding:'10px 14px',minHeight:'40px',
+          border:'1px solid '+(rd?'#A8863F':'#C6BBA3'), background:rd?'#A8863F':'transparent',
+          color:rd?'#211E19':'#6E6353'},
+        onReading:()=>this.toggleReading(b.id),
         onRead:()=>this.setBook(b.id,'read'),
         onLoved:()=>this.setBook(b.id,'loved'),
         onDrop:()=>this.setBook(b.id,'skip')};});
