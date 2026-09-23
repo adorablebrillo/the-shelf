@@ -1304,8 +1304,11 @@ class Component extends DCLogic {
       :'Empty. Mark something read and it arrives.';
 
     const brew=(function(){const b=BREWS.filter(x=>x.m.indexOf(new Date().getMonth())>-1)[0]||BREWS[3];
+      /* #54: the drinks are gold duotones now — no multiply (it crushed the art
+         into the dark green seal and made it invisible). The ?v= busts the
+         browser cache when the art changes (the file name never does). */
       return {...b,style:{position:'absolute',left:'50%',top:'50%',transform:'translate(-50%,-50%)',width:'104px',height:'104px',
-        backgroundImage:'url("'+b.img+'")',backgroundSize:'contain',backgroundRepeat:'no-repeat',backgroundPosition:'center',mixBlendMode:'multiply'}};})();
+        backgroundImage:'url("'+b.img+'?v=8af707e0")',backgroundSize:'contain',backgroundRepeat:'no-repeat',backgroundPosition:'center'}};})();
 
     return {
       /* nav + shell */

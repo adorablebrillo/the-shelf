@@ -12,3 +12,6 @@ seed-imgs/
 captures/
 
 __pycache__/
+
+# local build output at the repo root (the real dist lives in pipeline/dist)
+/dist/
