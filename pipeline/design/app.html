@@ -88,7 +88,7 @@
     [data-m="verdicts"] button{min-height:44px !important;padding:11px 16px !important;font-size:11.5px !important;letter-spacing:.14em !important}
     [data-m="tabs"] button{min-height:44px !important}
     [data-m="plate"]{min-height:44px !important}
-    [data-m="stacks"] button{width:26px !important}
+    [data-m="stacks"] button{width:44px !important}
     [aria-label="Series at a glance"] > div:first-child button{min-height:44px !important;padding:12px 0 !important}
   }
   @media (max-width:340px){
@@ -101,6 +101,7 @@
      the green, and the seal/season were hidden entirely — both fixed here. */
   @media (max-width:880px){
     [data-m="sidenav"] button{width:auto !important;flex:0 1 auto !important;margin-right:0 !important;border-right:1px solid #3F6153 !important;padding:11px 14px !important}
+    [data-m="sidenav"] button[aria-current="true"]{border-right:none !important}
     [data-m="sidepanel"]{height:auto !important;overflow:visible !important;box-sizing:border-box !important}
     [data-m="sidering"]{display:block !important;margin:0 auto !important}
     [data-m="sideseason"]{display:block !important}
@@ -825,7 +826,7 @@ function hydrateIds(d){
 
 class Component extends DCLogic {
   state={ data:(typeof window!=='undefined'&&window.SHELF_DATA)?hydrateIds(window.SHELF_DATA):null,
-    states:{}, ts:{}, open:{}, q:0, view:'home', tip:'', peek:'', peekVol:false, vol:'', volOf:'', volT:0, plate:'', plateId:'', plateT:0, arc:'read', sync:'?',
+    states:{}, ts:{}, open:{}, q:0, view:'home', tip:'', peek:'', peekVol:false, vol:'', volOf:'', volT:0, plate:'', plateId:'', plateT:0, lastTapId:'', lastTapT:0, arc:'read', sync:'?',
     mobile:(typeof window!=='undefined'&&window.matchMedia)?window.matchMedia('(max-width:880px)').matches:false };
 
   /* ---- one identity per book ------------------------------------------
@@ -1296,12 +1297,17 @@ class Component extends DCLogic {
     const archiveSpines=shelved.map((bk,i)=>{
       const tip=bk.t+' — '+bk.a+' · '+bk.s+(bk.loved?' · loved':'');
       return {tip,onClick:()=>{
-          /* touch: a tap only peeks; the reversal needs a second, deliberate tap.
-             (the tap fires its own compat mouseenter before the click — the
-             peek is already raised, and plateT anchors "this tap's echo") */
+          /* touch: a tap only peeks; the reversal needs a second, deliberate tap
+             on the SAME spine. #43 review: the old guard compared plateId/plateT,
+             but every tap's compat mouseenter sets plateId to this spine 1ms
+             before the click — so any spine's first tap after 600ms silently
+             un-read a book. The reversal now anchors on lastTapId/lastTapT,
+             which are written ONLY here. */
           if(this.state.mobile){
-            if(this.state.plateId===bk.id&&this.state.plateT&&Date.now()-this.state.plateT>600){ this.unreadId(bk.id,bk.vol); return; }
-            this.setState({plate:tip,plateId:bk.id,plateT:Date.now()}); return; }
+            if(this.state.lastTapId===bk.id&&Date.now()-(this.state.lastTapT||0)>600){
+              this.setState({plate:'',plateId:'',lastTapId:'',lastTapT:0});
+              this.unreadId(bk.id,bk.vol); return; }
+            this.setState({plate:tip,plateId:bk.id,plateT:Date.now(),lastTapId:bk.id,lastTapT:Date.now()}); return; }
           this.unreadId(bk.id,bk.vol); },
         onEnter:()=>this.setState({plate:tip, plateId:bk.id}),
         onLeave:()=>{
