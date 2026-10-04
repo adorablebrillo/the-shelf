@@ -52,8 +52,8 @@ on the candidate) — otherwise drop.
   the reader's call, 2026-09).
 - Sequels are welcome ONLY if they continue a series the reader is already in
   (series names and her read list are in the sequels_map below). Mark them
-  `aseq: true`. The pipeline guarantees every `aseq` book a pick — the cap and
-  the shape rule can never drop one, so do not leave one out of your picks.
+  `aseq: true`. The pipeline guarantees every `aseq` book a pick — the cap can
+  never drop one, so do not leave one out of your picks.
 - Every pick must feel like it could be her next favorite — the bar is "good
   and right for her", not "currently popular".
 

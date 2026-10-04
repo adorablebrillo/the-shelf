@@ -28,15 +28,17 @@ def norm_name(s):
 
 
 def tracked_series():
-    """Every series name she is in, normalized. Best-effort: a missing or
-    broken file just means no marks."""
+    """Every series name she is in, normalized. Best-effort, but LOUD: an
+    unreadable file must never silently masquerade as 'no series' (the review
+    of #76: a corrupt sequels.json would quietly turn the guarantee off)."""
     names = set()
     for fname in ('library.json', 'sequels.json'):
         try:
             path, src = paths.personal(fname)
             if src == 'missing':
                 continue
-            data = json.load(open(path))
+            with open(path) as f:
+                data = json.load(f)
             for s in (data or {}).get('series', []):
                 if not isinstance(s, dict):
                     continue
@@ -44,14 +46,26 @@ def tracked_series():
                     n = norm_name(s.get(k))
                     if n:
                         names.add(n)
-        except Exception:
-            continue
+        except Exception as e:
+            print('sequels: %s unreadable (%s) — those series cannot be matched this run'
+                  % (fname, str(e)[:60]))
     return names
 
 
 def is_sequel(book, names):
-    """True when the candidate continues a series she is already in."""
+    """True when the candidate continues a series she is already in.
+
+    Exact normalized match first; then a guarded containment fallback, because
+    real name drift is normal ('The Empyrean' vs 'Empyrean' vs 'The Empyrean
+    #4') and build.py's own series matching is fuzzy for the same reason. The
+    6-char floor keeps a short series word from matching half the catalog."""
     if not names:
         return False
     n = norm_name((book or {}).get('series'))
-    return bool(n) and n in names
+    if not n:
+        return False
+    if n in names:
+        return True
+    if len(n) < 6:
+        return False
+    return any(len(t) >= 6 and (n in t or t in n) for t in names)

@@ -196,6 +196,16 @@ class EnsureSequelsTests(unittest.TestCase):
         out = curate.ensure_sequels([pick('A', 'Hockey'), s], [s], log=lambda *a: None)
         self.assertEqual(len(out), 2)
 
+    def test_title_variant_not_duplicated(self):
+        # the review of #76: a model pick titled with the series suffix must
+        # not duplicate the plain candidate title
+        model_pick = {'title': 'Threshing Day (The Empyrean #4)', 'author': 'Rebecca Yarros'}
+        cand = {'title': 'Threshing Day', 'author': 'Rebecca Yarros',
+                'genre': 'Romance', 'aseq': True}
+        out = curate.ensure_sequels([pick('A', 'Hockey'), model_pick], [cand],
+                                    log=lambda *a: None)
+        self.assertEqual(len(out), 2)
+
     def test_no_sequels_is_a_noop(self):
         picks = [pick('A', 'Hockey')]
         out = curate.ensure_sequels(picks, picks + [mk('B', 'Romance', 3, rating=4.5)],

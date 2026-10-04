@@ -209,6 +209,16 @@ class SequelGuaranteeTests(unittest.TestCase):
         self.assertFalse(is_sequel({'series': ''}, names))
         self.assertFalse(is_sequel({}, names))
 
+    def test_name_drift_still_matches(self):
+        # the review of #76: exact equality missed real-world drift
+        names = tracked_series()
+        self.assertTrue(is_sequel({'series': 'Empyrean'}, names))          # shorter
+        self.assertTrue(is_sequel({'series': 'The Empyrean #4'}, names))   # suffixed
+        self.assertTrue(is_sequel({'series': 'The Empyrean Series'}, names))
+        # the 6-char floor keeps short words from matching half the catalog
+        self.assertFalse(is_sequel({'series': 'The'}, names))
+        self.assertFalse(is_sequel({'series': 'War'}, names))
+
     def test_no_files_no_marks(self):
         import os
         os.environ['CFG_DIR'] = self.tmp + '-none'

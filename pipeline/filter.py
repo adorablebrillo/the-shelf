@@ -173,6 +173,7 @@ def main():
     # #76: every series she is in (library.json + sequels.json) — a candidate
     # continuing one is marked here and can never be capped away below
     tracked = tracked_series()
+    aseq_n = 0
     for b in cands:
         title = (b.get('title') or '').lower()
         genre = (b.get('genre') or '').lower()
@@ -204,10 +205,14 @@ def main():
         b['indie_proven'] = bool(proven and (cls == 'indie' or
                                              (cls == 'unknown' and b.get('pub_source') == 'goodreads-page')))
         b['aseq'] = is_sequel(b, tracked)
+        if b['aseq']:
+            aseq_n += 1
         kept.append(b)
     if dropped_cowboy:
         print('cowboy/western: dropped %d candidate(s) — %s'
               % (len(dropped_cowboy), ', '.join(dropped_cowboy[:4])))
+    print('sequels: %d series tracked · %d candidate(s) marked (never capped)'
+          % (len(tracked), aseq_n))
     # your shelf steers the engine (ticket #7): resolved books never return
     kept, shelf_counts = exclude_by_shelf(kept, exclusion_set())
     print('shelf: excluded %d candidate(s) — %d not for me · %d already read'

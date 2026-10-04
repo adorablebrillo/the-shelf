@@ -90,12 +90,22 @@ def ensure_sequels(picks, cands, log=print):
     judgment (or the cap, or a thin lane) never dropped one. Her rule: being a
     sequel overrides every criterion. Her own verdicts already ran in the
     filter, so a book she marked never returns."""
+    import re as _re
+
+    def _ntitle(b):
+        # the review of #76: a model pick titled 'Threshing Day (The Empyrean
+        # #4)' must not duplicate the candidate 'Threshing Day'
+        return _re.sub(r'\s*\([^)]*\)', '', (b.get('title') or '').lower()).strip()
+
     have = {_key(p) for p in picks}
-    missing = [c for c in cands if c.get('aseq') and _key(c) not in have]
+    seen_titles = {_ntitle(p) for p in picks}
+    missing = [c for c in cands if c.get('aseq')
+               and _key(c) not in have and _ntitle(c) not in seen_titles]
     for c in missing:
         c = dict(c)
         c['why'] = c.get('why') or 'your series — a guaranteed pick'
         picks.append(c)
+        seen_titles.add(_ntitle(c))
     if missing:
         log('sequel guarantee: +%d never-droppable pick(s) (%s)'
             % (len(missing), ', '.join((c.get('title') or '')[:28] for c in missing[:4])))
