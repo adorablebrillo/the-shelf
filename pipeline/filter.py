@@ -14,6 +14,7 @@ CFG = json.load(open(os.path.join(BASE, 'config.json')))
 
 
 from windows import target_month, window_end  # one definition, shared with curate
+from sequels import tracked_series, is_sequel  # #76: the sequel guarantee
 
 
 def adhoc_window_ok(d):
@@ -134,6 +135,27 @@ def in_window(d, mon):
     except Exception:
         return True
 
+def cap_pool(kept, cap):
+    """The candidate cap. Every lane keeps a fair share (round-robin, never
+    insertion order) — and #76: books continuing a series she is in are NEVER
+    capped; her rule: being a sequel overrides the criteria. Returns
+    (picked, locked_count, dropped_per_lane)."""
+    if len(kept) <= cap:
+        return list(kept), 0, {}
+    locked = [b for b in kept if b.get('aseq')]
+    rest = [b for b in kept if not b.get('aseq')]
+    buckets = {}
+    for b in rest:
+        buckets.setdefault(b.get('lane') or 'unknown', []).append(b)
+    picked = list(locked)
+    while len(picked) < cap and any(buckets.values()):
+        for lane in list(buckets):
+            if buckets[lane] and len(picked) < cap:
+                picked.append(buckets[lane].pop(0))
+    dropped = {lane: len(v) for lane, v in buckets.items() if v}
+    return picked, len(locked), dropped
+
+
 def main():
     import glob
     # resolve the target month from the mode (leftover files can't shift it)
@@ -148,6 +170,10 @@ def main():
     cands = json.load(open(src_path)).get('books', [])
     kept = []
     dropped_cowboy = []
+    # #76: every series she is in (library.json + sequels.json) — a candidate
+    # continuing one is marked here and can never be capped away below
+    tracked = tracked_series()
+    aseq_n = 0
     for b in cands:
         title = (b.get('title') or '').lower()
         genre = (b.get('genre') or '').lower()
@@ -178,10 +204,15 @@ def main():
         # indie-with-proof case — the Goodreads numbers carry it
         b['indie_proven'] = bool(proven and (cls == 'indie' or
                                              (cls == 'unknown' and b.get('pub_source') == 'goodreads-page')))
+        b['aseq'] = is_sequel(b, tracked)
+        if b['aseq']:
+            aseq_n += 1
         kept.append(b)
     if dropped_cowboy:
         print('cowboy/western: dropped %d candidate(s) — %s'
               % (len(dropped_cowboy), ', '.join(dropped_cowboy[:4])))
+    print('sequels: %d series tracked · %d candidate(s) marked (never capped)'
+          % (len(tracked), aseq_n))
     # your shelf steers the engine (ticket #7): resolved books never return
     kept, shelf_counts = exclude_by_shelf(kept, exclusion_set())
     print('shelf: excluded %d candidate(s) — %d not for me · %d already read'
@@ -191,26 +222,16 @@ def main():
     total = len(kept)
     cap = CFG['max_candidates']
     if total > cap:
-        # keep every lane fairly represented: round-robin across lanes instead of
-        # truncating in insertion order (a late search lane used to lose wholesale)
-        buckets = {}
-        for b in kept:
-            buckets.setdefault(b.get('lane') or 'unknown', []).append(b)
-        picked = []
-        while len(picked) < cap and any(buckets.values()):
-            for lane in list(buckets):
-                if buckets[lane] and len(picked) < cap:
-                    picked.append(buckets[lane].pop(0))
-        dropped = {lane: len(v) for lane, v in buckets.items() if v}
-        print('cap: kept %d of %d — dropped per lane: %s (round-robin, never insertion order)'
-              % (len(picked), total, dropped))
-        kept = picked
+        kept, locked_n, dropped = cap_pool(kept, cap)
+        print('cap: kept %d of %d (incl. %d sequel(s) never capped) — dropped per lane: %s (round-robin, never insertion order)'
+              % (len(kept), total, locked_n, dropped))
     else:
         print('cap: kept %d of %d — under the %d cap, nothing dropped' % (total, total, cap))
     out = os.path.join(BASE, CFG['output_dir'], 'filtered-%s.json' % mon)
     json.dump({'month': mon, 'mode': MODE, 'books': kept,
                'shelf_excluded': shelf_counts,
-               'cap': {'pool': total, 'kept': len(kept), 'max': cap},
+               'cap': {'pool': total, 'kept': len(kept), 'max': cap,
+                       'sequels_kept': sum(1 for b in kept if b.get('aseq'))},
                'rules': {
                    'mf_only': True, 'dark_romance_welcome': True, 'no_cowboy': True,
                    'spice_min': CFG['spice_min'],

@@ -84,6 +84,34 @@ def gap_fill(picks, cands, hi, lane_days, end):
     return out
 
 
+def ensure_sequels(picks, cands, log=print):
+    """#76: the sequel guarantee — a book continuing a series she is already in
+    is a guaranteed pick. The filter marks `aseq`; this makes sure the model's
+    judgment (or the cap, or a thin lane) never dropped one. Her rule: being a
+    sequel overrides every criterion. Her own verdicts already ran in the
+    filter, so a book she marked never returns."""
+    import re as _re
+
+    def _ntitle(b):
+        # the review of #76: a model pick titled 'Threshing Day (The Empyrean
+        # #4)' must not duplicate the candidate 'Threshing Day'
+        return _re.sub(r'\s*\([^)]*\)', '', (b.get('title') or '').lower()).strip()
+
+    have = {_key(p) for p in picks}
+    seen_titles = {_ntitle(p) for p in picks}
+    missing = [c for c in cands if c.get('aseq')
+               and _key(c) not in have and _ntitle(c) not in seen_titles]
+    for c in missing:
+        c = dict(c)
+        c['why'] = c.get('why') or 'your series — a guaranteed pick'
+        picks.append(c)
+        seen_titles.add(_ntitle(c))
+    if missing:
+        log('sequel guarantee: +%d never-droppable pick(s) (%s)'
+            % (len(missing), ', '.join((c.get('title') or '')[:28] for c in missing[:4])))
+    return picks
+
+
 # The taste prompt says M/F only, but a cheap model still picked an MM hockey
 # romance on 2026-09-22 whose genre read "LGBTQIA+ Romance Books Romance". The
 # deterministic screen in filter.py is the real gate; this block is a second
@@ -181,6 +209,9 @@ def curate(key, filtered, taste, seq, mon, window_rule, call=None, log=print):
         log('gap fill: +%d from the strongest leftovers (%s)' %
             (len(fills), ', '.join(lane_of(f) for f in fills)))
         picks = picks + fills
+    # #76: the sequel guarantee — a book in a series she is already in is a
+    # pick no matter what the model or the cap decided
+    picks = ensure_sequels(picks, cands, log)
     c = counts(picks)
     dropped = [l for l in LANES if c[l] < floor]
     if dropped:

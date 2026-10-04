@@ -176,5 +176,42 @@ class ShapeRuleTests(unittest.TestCase):
         self.assertEqual(len(cur['books']), 2)
 
 
+class EnsureSequelsTests(unittest.TestCase):
+    """#76: the sequel guarantee — the model's picks can never leave one out."""
+
+    def test_missing_sequel_is_appended_and_marked(self):
+        picks = [pick('Picked A', 'Hockey'), pick('Picked B', 'Romance')]
+        cands = picks + [{'title': 'Threshing Day', 'author': 'Rebecca Yarros',
+                          'genre': 'Romance', 'aseq': True}]
+        logs = []
+        out = curate.ensure_sequels(picks, cands, log=logs.append)
+        self.assertEqual(len(out), 3)
+        self.assertEqual(out[-1]['title'], 'Threshing Day')
+        self.assertTrue(out[-1]['why'])
+        self.assertTrue(any('sequel guarantee' in l for l in logs))
+
+    def test_already_picked_sequel_not_duplicated(self):
+        s = {'title': 'Threshing Day', 'author': 'Rebecca Yarros',
+             'genre': 'Romance', 'aseq': True}
+        out = curate.ensure_sequels([pick('A', 'Hockey'), s], [s], log=lambda *a: None)
+        self.assertEqual(len(out), 2)
+
+    def test_title_variant_not_duplicated(self):
+        # the review of #76: a model pick titled with the series suffix must
+        # not duplicate the plain candidate title
+        model_pick = {'title': 'Threshing Day (The Empyrean #4)', 'author': 'Rebecca Yarros'}
+        cand = {'title': 'Threshing Day', 'author': 'Rebecca Yarros',
+                'genre': 'Romance', 'aseq': True}
+        out = curate.ensure_sequels([pick('A', 'Hockey'), model_pick], [cand],
+                                    log=lambda *a: None)
+        self.assertEqual(len(out), 2)
+
+    def test_no_sequels_is_a_noop(self):
+        picks = [pick('A', 'Hockey')]
+        out = curate.ensure_sequels(picks, picks + [mk('B', 'Romance', 3, rating=4.5)],
+                                    log=lambda *a: None)
+        self.assertEqual(len(out), 1)
+
+
 if __name__ == '__main__':
     unittest.main()
