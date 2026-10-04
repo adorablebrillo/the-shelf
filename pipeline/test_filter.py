@@ -3,7 +3,8 @@
 Run from pipeline/:  python3 -m unittest test_filter -v
 """
 import unittest
-from filter import queer_screen, cowboy_screen
+from filter import queer_screen, cowboy_screen, cap_pool
+from sequels import tracked_series, is_sequel
 
 
 class PairingScreenTests(unittest.TestCase):
@@ -174,6 +175,59 @@ class DarkCandidateFlowTests(unittest.TestCase):
         self.assertTrue(dark['dark_hint'])
         self.assertTrue(out['rules'].get('dark_romance_welcome'))
         self.assertNotIn('no_dark', out['rules'])
+
+
+class SequelGuaranteeTests(unittest.TestCase):
+    """#76: a book in a series she is already in overrides every criterion.
+    The live case: "Threshing Day" (The Empyrean) — nothing marked it, and it
+    reached the reader's lists only because the model happened to pick it."""
+
+    def setUp(self):
+        import os, tempfile, json as _json
+        self.tmp = tempfile.mkdtemp(prefix='seqtest')
+        self._old = os.environ.get('CFG_DIR')
+        os.environ['CFG_DIR'] = self.tmp
+        with open(os.path.join(self.tmp, 'sequels.json'), 'w') as f:
+            _json.dump({'series': [{'series': 'The Empyrean', 'author': 'Rebecca Yarros'}]}, f)
+        with open(os.path.join(self.tmp, 'library.json'), 'w') as f:
+            _json.dump({'series': [{'series': 'The Hurricane Wars (The Hurricane Wars #1)'}]}, f)
+
+    def tearDown(self):
+        import os, shutil
+        if self._old is None:
+            os.environ.pop('CFG_DIR', None)
+        else:
+            os.environ['CFG_DIR'] = self._old
+        shutil.rmtree(self.tmp, ignore_errors=True)
+
+    def test_marks_the_live_case(self):
+        names = tracked_series()
+        self.assertTrue(is_sequel({'series': 'The Empyrean'}, names))
+        self.assertTrue(is_sequel({'series': 'the empyrean'}, names))
+        self.assertTrue(is_sequel({'series': 'The Hurricane Wars (Book #3)'}, names))
+        self.assertFalse(is_sequel({'series': 'Some Other Series'}, names))
+        self.assertFalse(is_sequel({'series': ''}, names))
+        self.assertFalse(is_sequel({}, names))
+
+    def test_no_files_no_marks(self):
+        import os
+        os.environ['CFG_DIR'] = self.tmp + '-none'
+        self.assertEqual(tracked_series(), set())
+        self.assertFalse(is_sequel({'series': 'The Empyrean'}, set()))
+
+    def test_cap_never_drops_a_sequel(self):
+        kept = [{'title': 'Filler %d' % i, 'lane': 'romantasy'} for i in range(50)]
+        kept.append({'title': 'Threshing Day', 'lane': 'romantasy', 'aseq': True})
+        picked, locked_n, dropped = cap_pool(kept, 10)
+        self.assertIn('Threshing Day', [b['title'] for b in picked])
+        self.assertEqual(locked_n, 1)
+        self.assertEqual(len(picked), 10)
+
+    def test_cap_under_limit_is_untouched(self):
+        kept = [{'title': 'A', 'lane': 'sport romance'}]
+        picked, locked_n, dropped = cap_pool(kept, 80)
+        self.assertEqual(len(picked), 1)
+        self.assertEqual(locked_n, 0)
 
 
 if __name__ == '__main__':
