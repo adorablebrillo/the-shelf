@@ -320,6 +320,9 @@
                 </div>
               </sc-if>
               <p style="margin:12px 0 0;font-style:italic;font-size:15.5px;color:#4A443A;max-width:56ch">Why it won — {{ lead.why }}</p>
+              <sc-if value="{{ lead.because }}">
+              <p style="margin:6px 0 0;font-family:'Cormorant Garamond',Garamond,serif;font-style:italic;font-size:18px;color:#6E2A2A;max-width:56ch">{{ lead.because }}</p>
+              </sc-if>
               <div data-m="verdicts" style="display:flex;gap:9px;flex-wrap:wrap;margin-top:20px">
                 <sc-for list="{{ lead.pills }}" as="p" hint-placeholder-count="4">
                   <button type="button" onClick="{{ p.onClick }}" aria-pressed="{{ p.on }}" aria-label="{{ p.aria }}" style="{{ p.style }}">{{ p.label }}</button>
@@ -343,6 +346,9 @@
                   </sc-if>
                   <p style="margin:6px 0 0;font-size:12px;letter-spacing:.13em;text-transform:uppercase;color:#635846">{{ b.author }}</p>
                   <p style="margin:12px 0 0;font-family:'Cormorant Garamond',Garamond,serif;font-size:19px;line-height:1.42">{{ b.hook }}</p>
+                  <sc-if value="{{ b.because }}">
+                    <p style="margin:6px 0 0;font-family:'Cormorant Garamond',Garamond,serif;font-style:italic;font-size:17px;color:#6E2A2A">{{ b.because }}</p>
+                  </sc-if>
                   <sc-if value="{{ b.synShow }}">
                     <div data-m="syn" style="{{ b.synWrapStyle }}">
                       <sc-if value="{{ b.synHas }}">

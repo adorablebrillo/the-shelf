@@ -22,6 +22,7 @@ import synopses  # #51: the synopsis chain + its volume cache
 from lanes import lane_of, counts as lane_counts, shape_str, shape_line
 from bookids import book_key
 from shelf_state import exclusion_set
+from verdicts import because_line
 
 BASE = os.path.dirname(os.path.abspath(__file__))
 ROOT = os.path.dirname(BASE)
@@ -620,6 +621,8 @@ def pick_book(b, top_id, img):
         'formats': b.get('formats') or ['Ebook'], 'tropes': b.get('tropes') or [],
         'hook': b.get('hook') or '', 'fit': b.get('fit') or '',
         'why': b.get('why') or b.get('fit') or '',
+        # #83: the one line naming the loved/want book that steered the pick
+        'because': because_line(b.get('because')),
         'top': b.get('id') == top_id,
     }
 

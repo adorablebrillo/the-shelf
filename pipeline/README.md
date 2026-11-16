@@ -20,9 +20,11 @@ pipeline/
 ├── windows.py         # target month + window end, shared by filter/curate
 ├── bookids.py         # the canonical book identity (book_key), shared by engine + app
 ├── shelf_state.py     # your verdicts: the exclusion set + split (ticket #7)
+├── verdicts.py        # your verdicts teach the model: marked ids -> books, the her_verdicts lists, the kept `because` (#83)
 ├── paths.py           # personal files: config volume first, repo copy as fallback
 ├── test_shape.py      # the shape rule's deterministic tests
 ├── test_shelf.py      # your-shelf exclusion tests
+├── test_verdicts.py   # her_verdicts: the lookup, the capped lists, the `because` rule
 ├── test_reference.py  # the Goodreads reference: parsers (real fixtures), matchers, failure paths
 ├── testdata/          # saved real pages for the reference parsers (list + one book page)
 ├── test_filter.py     # the pairing screen's tests
