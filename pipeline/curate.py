@@ -12,6 +12,7 @@ month file records the shape it shipped. Nothing is ever padded.
 """
 import json, os, sys, re, base64, urllib.request
 import paths  # shared resolver: reader data lives on the volume (CFG_DIR)
+import verdicts
 from datetime import datetime, date, timedelta
 from lanes import LANES, lane_of, counts, shape_str, shape_line
 from windows import target_month, window_end
@@ -127,13 +128,25 @@ HARD_RULES = ('\n\nHard rules the engine also enforces — never break them: M/F
               'characters. When unsure, leave the book out — a missing pick beats a '
               'wrong one.')
 
+# #83: her verdicts teach the model. The request carries her_verdicts — books
+# she loved, wants, and set aside as not for me, newest first. This paragraph
+# lives in code (her deployed taste-prompt.md is never edited) and asks for an
+# optional `because` the build keeps only when it names a loved or want book.
+VERDICT_RULES = ('\n\nHer verdicts: the request carries her_verdicts — books she marked loved, '
+                 'want (a mild yes) and not_for_me, newest first. Lean toward books like the ones '
+                 'she loved and wanted (same lanes, tropes, authors, energy) and away from books '
+                 'like the ones she set aside. Never pick a book that is already in her_verdicts. '
+                 'Each book may carry an optional "because" field: the exact title of ONE book from '
+                 'her loved or want list that most steered this pick. Leave it out when no single '
+                 'book did — never name a not_for_me book or a book outside those lists.')
+
 
 def call_model(key, payload, taste):
     """One curation call. Separated so tests can mock it deterministically."""
     body = json.dumps({
         'model': CFG.get('model', 'openai/gpt-4o-mini'),
         'messages': [
-            {'role': 'system', 'content': taste + HARD_RULES},
+            {'role': 'system', 'content': taste + HARD_RULES + VERDICT_RULES},
             {'role': 'user', 'content': "Here are this month's candidates JSON. Curate them:\n\n" + payload},
         ],
         'temperature': 0.6,
@@ -153,7 +166,7 @@ def call_model(key, payload, taste):
         return json.loads(m.group(0)) if m else None
 
 
-def build_payload(mon, window_rule, lane_days, av, cands, seq):
+def build_payload(mon, window_rule, lane_days, av, cands, seq, her_verdicts=None):
     return json.dumps({
         'month': mon,
         'window_rule': window_rule,
@@ -165,10 +178,11 @@ def build_payload(mon, window_rule, lane_days, av, cands, seq):
         'genre_mix': CFG.get('genre_mix', {}),
         'candidates': cands,
         'sequels_map': seq,
+        'her_verdicts': her_verdicts or {k: [] for k in verdicts.CAPS},
     }, indent=1)
 
 
-def curate(key, filtered, taste, seq, mon, window_rule, call=None, log=print):
+def curate(key, filtered, taste, seq, mon, window_rule, call=None, log=print, her_verdicts=None):
     """The widening loop + shape enforcement. Returns the curated dict.
     `call` is the model seam (tests inject a deterministic fake)."""
     call = call or call_model
@@ -181,7 +195,7 @@ def curate(key, filtered, taste, seq, mon, window_rule, call=None, log=print):
     lane_days = {l: attempts[0] for l in LANES}
     cur = None
     for i, d in enumerate(attempts):
-        payload = build_payload(mon, window_rule, lane_days, av, cands, seq)
+        payload = build_payload(mon, window_rule, lane_days, av, cands, seq, her_verdicts)
         cur = call(key, payload, taste)
         if not cur or 'books' not in cur:
             log('CURATE output not valid JSON — try another model in config.json')
@@ -203,7 +217,8 @@ def curate(key, filtered, taste, seq, mon, window_rule, call=None, log=print):
                     break
         if not widened:
             break
-    picks = cur['books']
+    # #83: a `because` survives only when it names a loved or want book
+    picks = [verdicts.keep_because(b, her_verdicts or {}) for b in cur['books']]
     fills = gap_fill(picks, cands, hi, lane_days, end)
     if fills:
         log('gap fill: +%d from the strongest leftovers (%s)' %
@@ -249,6 +264,10 @@ def main():
     seq = {}
     if os.path.exists(seq_path):
         seq = json.load(open(seq_path))
+    # #83: her verdicts, by name, for the model
+    lists, missing = verdicts.her_verdicts(
+        verdicts.load_marks(), verdicts.book_details(os.path.join(BASE, CFG['output_dir'])))
+    print(verdicts.report_line(lists, missing))
 
     if MODE == 'adhoc':
         window_rule = ('released within the last 30 days — a rolling window ending today (%s). '
@@ -258,7 +277,7 @@ def main():
                        '1st for the entire PREVIOUS month)')
 
     try:
-        cur = curate(key, filtered, taste, seq, mon, window_rule)
+        cur = curate(key, filtered, taste, seq, mon, window_rule, her_verdicts=lists)
     except urllib.error.HTTPError as e:
         err = e.read().decode('utf-8', 'replace')[:600]
         open(os.path.join(BASE, CFG['output_dir'], 'curate-%s.error.json' % mon), 'w').write(json.dumps({'code': e.code, 'body': err}, indent=1))
