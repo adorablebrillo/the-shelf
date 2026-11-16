@@ -63,6 +63,19 @@ class VerdictTests(unittest.TestCase):
         self.assertEqual(d[book_key('Iron Storm', 'M. Stone')]['series'], 'Iron Wings')
         self.assertEqual(d[book_key('Glass Heir', 'P. Lane')]['author'], 'P. Lane')
 
+    def test_lookup_resolves_a_book_she_added_by_search(self):
+        # the record as the server writes it for an Apple Books result (#84)
+        write(os.path.join(self.cfg, 'added-books.json'), {'v': 1, 'books': [
+            {'id': book_key('Fourth Wing', 'Rebecca Yarros'), 'title': 'Fourth Wing',
+             'author': 'Rebecca Yarros', 'genre': 'Fantasy Books Sci-Fi & Fantasy',
+             'series': 'The Empyrean', 'series_num': '1'}]})
+        self.mark({book_key('Fourth Wing', 'Rebecca Yarros'): {'s': 'loved', 't': 9}})
+        lists, missing = self.lists()
+        self.assertEqual(missing, 0)
+        fw = lists['loved'][0]
+        self.assertEqual((fw['title'], fw['author'], fw['series'], fw['lane']),
+                         ('Fourth Wing', 'Rebecca Yarros', 'The Empyrean', 'romantasy'))
+
     def test_lists_are_newest_first_capped_and_count_unknown_marks(self):
         states = {book_key('Ash Crown', 'K. Hale'): {'s': 'loved', 't': 300},
                   book_key('Iron Wings', 'M. Stone'): {'s': 'loved', 't': 500},
