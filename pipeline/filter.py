@@ -170,9 +170,10 @@ def main():
     cands = json.load(open(src_path)).get('books', [])
     kept = []
     dropped_cowboy = []
-    # #76: every series she is in (library.json + sequels.json) — a candidate
-    # continuing one is marked here and can never be capped away below
-    tracked = tracked_series()
+    # #76: every series she is in (library.json + sequels.json + the series
+    # her read and loved marks track) — a candidate continuing one is marked
+    # here and can never be capped away below
+    tracked = tracked_series(log=print)
     aseq_n = 0
     for b in cands:
         title = (b.get('title') or '').lower()

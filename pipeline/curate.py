@@ -113,6 +113,33 @@ def ensure_sequels(picks, cands, log=print):
     return picks
 
 
+def copy_series(picks, cands):
+    """The model's output schema has no series field, so a pick can come back
+    without one. Copy series and series_num from the candidate record onto
+    every pick (matched by book id, then by bare title), so the month file
+    keeps the series a read or loved mark starts tracking."""
+    from bookids import book_key
+    import re as _re
+
+    def _ntitle(b):
+        return _re.sub(r'\s*\([^)]*\)', '', (b.get('title') or '').lower()).strip()
+
+    by_id, by_title = {}, {}
+    for c in cands:
+        if not (c.get('series') or '').strip():
+            continue
+        by_id.setdefault(book_key(c.get('title'), c.get('author')), c)
+        by_title.setdefault(_ntitle(c), c)
+    for p in picks:
+        c = by_id.get(book_key(p.get('title'), p.get('author'))) or by_title.get(_ntitle(p))
+        if c is None:
+            continue
+        p['series'] = c['series']
+        if c.get('series_num'):
+            p['series_num'] = str(c['series_num'])
+    return picks
+
+
 # The taste prompt says M/F only, but a cheap model still picked an MM hockey
 # romance on 2026-09-22 whose genre read "LGBTQIA+ Romance Books Romance". The
 # deterministic screen in filter.py is the real gate; this block is a second
@@ -219,6 +246,9 @@ def curate(key, filtered, taste, seq, mon, window_rule, call=None, log=print, he
             break
     # #83: a `because` survives only when it names a loved or want book
     picks = [verdicts.keep_because(b, her_verdicts or {}) for b in cur['books']]
+    # the candidate's series rides onto every model pick (gap fills and
+    # guaranteed sequels are candidate records already)
+    picks = copy_series(picks, cands)
     fills = gap_fill(picks, cands, hi, lane_days, end)
     if fills:
         log('gap fill: +%d from the strongest leftovers (%s)' %

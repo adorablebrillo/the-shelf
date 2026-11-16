@@ -23,6 +23,7 @@ from lanes import lane_of, counts as lane_counts, shape_str, shape_line
 from bookids import book_key
 from shelf_state import exclusion_set
 from verdicts import because_line
+import sequels  # the series her read and loved marks track
 
 BASE = os.path.dirname(os.path.abspath(__file__))
 ROOT = os.path.dirname(BASE)
@@ -503,6 +504,15 @@ def series_data(covers_dir=None):
     for ser in seq.get('series', []):
         seqmap[norm_name(ser.get('series'))] = ser
 
+    # the series her read and loved marks track: they join the tracked map so
+    # their next books merge the same way, and list only once one is known
+    marked = {}
+    for g in sequels.from_marks(os.path.join(BASE, 'data')):
+        k = norm_name(g['series'])
+        if k and k not in seqmap:
+            marked[k] = g
+            seqmap[k] = {'series': g['series'], 'author': g['author'], 'next_books': []}
+
     upcoming = author_upcoming(seqmap, today)  # #9: author watches feed the tracked series
     merged_total = 0
 
@@ -598,6 +608,13 @@ def series_data(covers_dir=None):
         nb_list = next_books_for(v2, today)
         for b in nb_list:
             b['id'] = b.get('id') or book_key(b['t'], v2.get('author'))
+        if k2 in marked:
+            if not nb_list:
+                continue  # no next book known yet: the Series page waits for one
+            read = [{'t': rb['title'], 'n': ('#' + rb['num']) if rb['num'] else '', 'd': 'read',
+                     'state': 'read', 'iso': '', 'id': rb['id']} for rb in marked[k2]['books']]
+            have = {x['t'].lower() for x in read}
+            nb_list = read + [b for b in nb_list if b['t'].lower() not in have]
         attach_covers(nb_list, v2.get('author') or '')
         out.append({'name': nm, 'author': v2.get('author') or '', 'publisher': publisher,
                     'books': nb_list})
@@ -655,6 +672,16 @@ def _int(v, default):
         return default
 
 
+def pick_series(b):
+    """The series line on a pick card: its name, with the volume number when
+    curate copied one from the candidate ('Mist Court #1')."""
+    ser = (b.get('series') or '').strip()
+    num = str(b.get('series_num') or '').strip()
+    if ser and num and '#' not in ser:
+        ser = '%s #%s' % (ser, num)
+    return ser
+
+
 def pick_book(b, top_id, img):
     genre = (b.get('genre') or '').strip()
     if re.search(r'fae|dragon|fantasy|romantasy|vampire|fairy|witch', genre, re.I):
@@ -679,7 +706,7 @@ def pick_book(b, top_id, img):
         'id': canon,
         'rawId': b.get('id') or '',
         'img': img or b.get('img') or '',
-        'title': b.get('title') or '', 'series': b.get('series') or '',
+        'title': b.get('title') or '', 'series': pick_series(b),
         'author': b.get('author') or '', 'publisher': b.get('publisher') or '',
         'date': b.get('date') or '', 'genre': genre, 'lane': lane,
         'spice': _int(b.get('spice'), 3), 'mmc': _int(mmc_score, 3),

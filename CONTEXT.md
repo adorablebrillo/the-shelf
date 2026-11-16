@@ -47,6 +47,10 @@ _Avoid_: skip, dismiss
 
 ### Series
 
+**Tracked series**:
+A series she is in. It comes from `library.json`, from `sequels.json`, or from her marks: a book marked *read* or *loved* tracks its series, worked out again at each run (no file is written, and clearing the mark stops tracking at the next run). The author of a tracked series is searched every run, and a new book in it is a guaranteed pick (the sequel guarantee). A series tracked from marks shows on the Series page once a next book is known.
+_Avoid_: followed series, the lane
+
 **Open series** / **Closed series**:
 A series with at least one unread volume is open (it shows on the Series page); one whose every volume is read is closed (it leaves the page; its volumes stay in the Archive).
 

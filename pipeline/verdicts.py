@@ -54,6 +54,7 @@ def book_details(data_dir):
         body = _load(mf) or {}
         for b in body.get('books', []):
             add(b.get('title') or '', b.get('author') or '', series=b.get('series') or '',
+                series_num=str(b.get('series_num') or ''),
                 lane=lane_of(b) if b.get('genre') else '', tropes=b.get('tropes') or [])
 
     lib_path = paths.personal('library.json')[0]
@@ -74,14 +75,15 @@ def book_details(data_dir):
     return out
 
 
-def load_marks(cfg_dir=None):
-    """[(id, state, t)] from the server's reader-state.json. A cleared mark
-    (s: null) and the reading flag are not verdicts."""
+def load_marks(cfg_dir=None, keep=STATE_LIST):
+    """[(id, state, t)] from the server's reader-state.json, for the states in
+    `keep` (default: the three lists the model reads). A cleared mark (s: null)
+    and the reading flag are not verdicts."""
     rs = os.path.join(cfg_dir or paths.cfg_dir(), 'reader-state.json')
     state = _load(rs) or {}
     out = []
     for bid, st in (state.get('states') or {}).items():
-        if isinstance(st, dict) and st.get('s') in STATE_LIST:
+        if isinstance(st, dict) and st.get('s') in keep:
             out.append((bid, st['s'], int(st.get('t') or 0)))
     return out
 

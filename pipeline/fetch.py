@@ -10,7 +10,8 @@ the skill's references/sources-and-fetch.md). Two nets:
                    in the app (CFG_DIR/authors.json — Settings → Authors; this
                    stage reads it, the UI ticket writes it) PLUS the authors of
                    every series she tracks (data/library.json, data/sequels.json,
-                   seed-reads.json, config `author_lane_extra`).
+                   the series her read and loved marks track, seed-reads.json,
+                   config `author_lane_extra`).
 
 Every record keeps WHERE it was found (query + lane). For each record inside
 the pool window the book's own Apple page is read once — cached in
@@ -26,6 +27,7 @@ in the run's window and over the rolling 30 days).
 import json, os, re, sys, time, urllib.request, urllib.parse, html as htmllib
 from datetime import date, datetime, timedelta
 import paths  # shared resolver: reader data lives on the volume (CFG_DIR)
+import sequels  # the series her read and loved marks track
 
 BASE = os.path.dirname(os.path.abspath(__file__))
 CFG = json.load(open(os.path.join(BASE, 'config.json')))
@@ -221,6 +223,13 @@ def author_lane():
                 put(s.get('author'))
         except Exception as e:
             STATS['failures'].append('sequels.json: %s' % str(e)[:60])
+    # 2b) authors of the series her read and loved marks track (worked out
+    #     each run — clearing the mark stops the search at the next run)
+    try:
+        for g in sequels.from_marks():
+            put(g.get('author'))
+    except Exception as e:
+        STATS['failures'].append('series from marks: %s' % str(e)[:60])
     # 3) authors she reads 2+ books from (taste profile)
     seed_path, seed_src = paths.personal('seed-reads.json')
     if seed_src != 'missing':
