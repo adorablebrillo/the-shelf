@@ -39,62 +39,114 @@ WORDS = {1: 'one', 2: 'two', 3: 'three', 4: 'four', 5: 'five', 6: 'six', 7: 'sev
 CRITERIA = ('M/F only · dark romance & dark academia welcome · no cowboy/western · spice 3–5 · trad-pub first, indie with proof · '
             'released last month · sequels only for series you are already in')
 
-# The season table: ONE clock for the sidebar drink, its label,
-# the seasonal look and the reading-corner quote. Each season runs from its
-# start day to its end day inclusive ('MM-DD'); a season whose end is before its
-# start wraps the new year. Every day of the year belongs to exactly one season
-# (test_seasons.py owns that). The table ships to the page in shelf-data.js and
-# the page picks the season from the reader's LOCAL date (same clock as the
-# daily quote, #55), so it flips at local midnight — never at build time.
+# The season table: ONE clock for the sidebar drink, its label, the seasonal
+# look and the reading-corner quote. Each season runs from its start day to its
+# end day inclusive ('MM-DD'); a season whose end is before its start wraps the
+# new year. Every day of the year belongs to exactly one season (test_seasons.py
+# owns that). The table ships to the page in shelf-data.js and the page picks
+# the season from the reader's LOCAL date (same clock as the daily quote, #55),
+# so it flips at local midnight — never at build time.
+#
+# Each season's quotes show one a day, in order from the season's first day
+# (day index = days since the start, modulo the pool). The four non-Christmas
+# pools alternate a new line with one of the original twelve.
 _POOLS = {
-    'winter': ['cocoa swirl, two marshmallows, one more chapter.',
-               'snow outside — a whole shelf inside.',
-               'hot cocoa, cold nights, warm plots.',
-               'january: cocoa in hand, epilogue in sight.',
-               'winter chapters read best under a blanket.',
-               'a marshmallow melts; a plot thickens.',
-               'tea for the throat, romance for the soul.',
-               'the kettle sings; the story hums.',
-               'frost on the window, fire in the plot.',
-               'one cup, one chapter, one very long night.',
-               'cocoa season: stir slowly, read fast.',
-               'cold hands, warm book, perfect evening.'],
-    'spring': ['cherry-blossom latte and a fresh TBR.',
-               'bloom season is plot season.',
-               'petals fall — you fall into books.',
-               'a warm latte for the first chapter.',
-               'spring cleaning, except the shelf.',
-               'new season, new shelf, same coffee.',
-               'april showers, may flowers, always chapters.',
-               'iced or hot, the book is the point.',
-               'the garden can wait; the chapter cannot.',
-               'fresh pages smell like spring.',
-               'one latte, one love story, one afternoon.',
-               'buds and beginnings, chapters and cream.'],
-    'summer': ['lemon ice, a lounger, a slow-burn.',
-               'the sun is up — so is your TBR.',
-               'iced hands, warmer pages.',
-               'iced coffee, hot plot.',
-               'sand in the pages, salt in the air.',
-               'the shade, the stack, the refill.',
-               'pages turn faster in the sun.',
-               'an iced latte and a slow afternoon.',
-               'sunscreen, sunglasses, a very good book.',
-               'chapters by the pool, condensation on the glass.',
-               'july: sweet reads, cold drinks.',
-               "heatwave? perfect — the book's in charge."],
-    'autumn': ['september: pumpkin spice on the shelf, spice on the page.',
-             "a good book, a warm cup — that's the whole agenda.",
-             'curl up. the leaves changed, so did your TBR.',
-             "one more chapter, one more cup — the fire can wait.",
-             'autumn is for slow mornings, long chapters, warm mugs.',
-             'a spiced latte and a slow burn — seasonal perfection.',
-             'the leaves turn; so do the pages.',
-             'paperbacks by the window, steam on the glass.',
-             'cinnamon on the foam, cliffhangers on the nightstand.',
-             'sweater weather, paperback weather.',
-             'the best plots brew slowly.',
-             'every good book deserves a refill.'],
+    'winter': ['a snow day is a reading day.',
+              'cocoa swirl, two marshmallows, one more chapter.',
+              'new year, new book boyfriend.',
+              'snow outside — a whole shelf inside.',
+              'frost on the glass, a fae king at the gate.',
+              'hot cocoa, cold nights, warm plots.',
+              'valentines are nice; book boyfriends are better.',
+              'cocoa in hand, epilogue in sight.',
+              'the snow piles up; so does the TBR.',
+              'winter chapters read best under a blanket.',
+              'a long night, a longer book, a warm mug.',
+              'a marshmallow melts; a plot thickens.',
+              'cold rink, hot captain, warm cocoa.',
+              'tea for the throat, romance for the soul.',
+              'slippers, a blanket and forced proximity.',
+              'the kettle sings; the story hums.',
+              'a winter cabin, one bed, no wifi.',
+              'frost on the window, fire in the plot.',
+              "the kettle's on and the snow won't stop.",
+              'one cup, one chapter, one very long night.',
+              'cold days are for warm endings.',
+              'cocoa season: stir slowly, read fast.',
+              'short days, long chapters, slow kisses.',
+              'cold hands, warm book, perfect evening.'],
+    'spring': ['new buds, new books, new crushes.',
+              'cherry-blossom latte and a fresh TBR.',
+              'pink petals, pink latte, a meet-cute.',
+              'bloom season is plot season.',
+              'open the window, open the book.',
+              'petals fall — you fall into books.',
+              'a rainy afternoon and a second-chance romance.',
+              'a warm latte for the first chapter.',
+              'lights out: a new race season and a racing romance.',
+              'spring cleaning, except the shelf.',
+              'fresh flowers on the table, fresh pages in hand.',
+              'new season, new shelf, same coffee.',
+              'the cherry trees bloom for exactly one chapter.',
+              'april showers, may flowers, always chapters.',
+              'soft rain, warm latte, a slow-burn bloom.',
+              'iced or hot, the book is the point.',
+              'a garden party, a rival, a very good book.',
+              'the garden can wait; the chapter cannot.',
+              'longer evenings mean longer chapters.',
+              'fresh pages smell like spring.',
+              'a flower crown for the fae queen, a latte for me.',
+              'one latte, one love story, one afternoon.',
+              "bloom where you're reading.",
+              'buds and beginnings, chapters and cream.'],
+    'summer': ['a lemon iced latte and a holiday romance.',
+              'lemon ice, a lounger, a slow-burn.',
+              'beach bag: one towel, three paperbacks.',
+              'the sun is up — so is your TBR.',
+              'long light, long chapters, no alarm.',
+              'iced hands, warmer pages.',
+              'a summer fling on the page, ice in the glass.',
+              'iced coffee, hot plot.',
+              'the hammock is my reading room now.',
+              'sand in the pages, salt in the air.',
+              'salt on the skin, spice on the page.',
+              'the shade, the stack, the refill.',
+              'the pool can wait; the grovel cannot.',
+              'pages turn faster in the sun.',
+              'late sunsets were made for one more chapter.',
+              'an iced latte and a slow afternoon.',
+              'a lemon slice, a slow afternoon, a fast plot.',
+              'sunscreen, sunglasses, a very good book.',
+              'off-season for football, on-season for football romance.',
+              'chapters by the pool, condensation on the glass.',
+              'a road trip, a fake date, a tall iced coffee.',
+              'sweet reads, cold drinks, long days.',
+              'warm nights, cold brew, hot heroes.',
+              "heatwave? perfect — the book's in charge."],
+    'autumn': ['a maple latte and a dark academia romance.',
+              'pumpkin spice on the shelf, spice on the page.',
+              'rain on the window, a rival in the library.',
+              "a good book, a warm cup — that's the whole agenda.",
+              'crisp leaves outside, a slow burn inside.',
+              'curl up. the leaves changed, so did your TBR.',
+              'candles lit, blanket on, one more chapter.',
+              'one more chapter, one more cup — the fire can wait.',
+              'apple cider and a forbidden kiss.',
+              'autumn is for slow mornings, long chapters, warm mugs.',
+              'the nights grow longer; so does the TBR.',
+              'a spiced latte and a slow burn — seasonal perfection.',
+              'pumpkin spice and a very morally grey hero.',
+              'the leaves turn; so do the pages.',
+              'a haunted manor, a brooding lord, a second cup.',
+              'paperbacks by the window, steam on the glass.',
+              'fog on the hills, a fae prince at the door.',
+              'cinnamon on the foam, cliffhangers on the nightstand.',
+              'cardigan on, phone off, plot twist ahead.',
+              'sweater weather, paperback weather.',
+              'a warm mug, a cold night, a slow-burn kiss.',
+              'the best plots brew slowly.',
+              'hockey season starts; so does the hockey romance.',
+              'every good book deserves a refill.'],
     'christmas': ['november counts as christmas if the mug says so.',
                   'peppermint mocha, fairy lights, one more chapter.',
                   'deck the halls with paperbacks.',
@@ -121,17 +173,32 @@ _POOLS = {
                   'christmas morning: coffee first, then the epilogue.'],
 }
 
+# A season's corner: the reading-corner colours (outer band, inner panel, border,
+# small caps, quote, bottom line). Each season's drawings — the seal garland
+# with its rim words, the four small sidebar drawings and the corner sprig —
+# live in design/app.html under the season's key (SVG text cannot take a
+# template value, so the rim words are drawn there too).
+def _corner(outer, inner, border, eyebrow, quote, recent):
+    return {'outer': outer, 'inner': inner, 'border': border,
+            'eyebrow': eyebrow, 'quote': quote, 'recent': recent}
+
+
 SEASONS = [
     {'key': 'autumn', 'start': '09-01', 'end': '10-31',
-     'drink': {'img': 'assets/coffee-2.png', 'alt': 'Ink drawing of a spiced latte', 'label': 'pumpkin spice season'}},
+     'drink': {'img': 'assets/coffee-2.png', 'alt': 'Ink drawing of a pumpkin spice latte', 'label': 'pumpkin spice season'},
+     'corner': _corner('#6F3519', '#8A4524', '#D9B77A', '#F0D3A8', '#FBF1E4', '#F0D3A8')},  # rust
     {'key': 'christmas', 'start': '11-01', 'end': '01-06',
-     'drink': {'img': 'assets/coffee-winter-b.png', 'alt': 'Ink drawing of a candy cane cocoa', 'label': 'christmas cocoa season'}},
+     'drink': {'img': 'assets/coffee-winter-b.png', 'alt': 'Ink drawing of a candy cane cocoa', 'label': 'christmas cocoa season'},
+     'corner': _corner('#5A2121', '#6E2A2A', '#C8B27A', '#E3D1A0', '#F6EFE2', '#E3D1A0')},  # oxblood
     {'key': 'winter', 'start': '01-07', 'end': '02-29',
-     'drink': {'img': 'assets/coffee-winter-a.png', 'alt': 'Ink drawing of a winter cocoa', 'label': 'cocoa season'}},
+     'drink': {'img': 'assets/coffee-3.png', 'alt': 'Ink drawing of a cinnamon latte', 'label': 'cinnamon latte season'},
+     'corner': _corner('#1E2A3B', '#26364C', '#C8B27A', '#E3D1A0', '#F3EDE1', '#E3D1A0')},  # midnight
     {'key': 'spring', 'start': '03-01', 'end': '05-31',
-     'drink': {'img': 'assets/coffee-spring-a.png', 'alt': 'Ink drawing of a blossom latte', 'label': 'blossom season'}},
+     'drink': {'img': 'assets/coffee-spring-b.png', 'alt': 'Ink drawing of a flower latte', 'label': 'blossom season'},
+     'corner': _corner('#D9A9AE', '#E8C4C6', '#8A6C31', '#5A3E40', '#211E19', '#7A2F3E')},  # rose
     {'key': 'summer', 'start': '06-01', 'end': '08-31',
-     'drink': {'img': 'assets/coffee-summer-b.png', 'alt': 'Ink drawing of an iced coffee', 'label': 'iced coffee season'}},
+     'drink': {'img': 'assets/coffee-summer-b.png', 'alt': 'Ink drawing of an iced coffee with lemon', 'label': 'iced coffee season'},
+     'corner': _corner('#B8CDD0', '#D6E4E5', '#8A6C31', '#3F5458', '#211E19', '#2B5559')},  # sea glass
 ]
 for _s in SEASONS:
     _s['quotes'] = _POOLS[_s['key']]
