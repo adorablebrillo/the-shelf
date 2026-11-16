@@ -4,6 +4,7 @@ Serves the built page, holds settings (OpenRouter key, model), schedules the
 monthly run (1st, 09:00), exposes a small JSON API used by the in-page
 Settings pane. Pure stdlib — no pip installs."""
 import json, os, re, shutil, glob, sys, subprocess, tempfile, threading, time, urllib.request
+from contextlib import nullcontext
 from datetime import datetime
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from urllib.parse import urlparse
@@ -202,8 +203,11 @@ def run_pipeline(settings, mode='adhoc'):
     code = 0
     for s in steps:
         log('stage: %s (%s)' % (s, mode))
-        r = subprocess.run(['python3', os.path.join(PIPELINE, s)], capture_output=True,
-                           text=True, env=env, timeout=1500, cwd=PIPELINE)
+        # one page build at a time: a run started during the boot full build
+        # waits for it here instead of writing the page beside it
+        with (BUILD_LOCK if s == 'build.py' else nullcontext()):
+            r = subprocess.run(['python3', os.path.join(PIPELINE, s)], capture_output=True,
+                               text=True, env=env, timeout=1500, cwd=PIPELINE)
         log((r.stdout or '')[-800:] + (r.stderr or '')[-400:])
         if r.returncode != 0:
             code = r.returncode
@@ -475,20 +479,37 @@ def authors_remove(name):
     return d['authors']
 
 
-def ensure_default():
+# Only one page build writes dist at a time (the boot full build, a run's build).
+BUILD_LOCK = threading.Lock()
+
+
+def run_build(offline=False, timeout=300):
+    """pipeline/build.py once. offline=True is the quick boot build: saved
+    data only (SHELF_OFFLINE=1 — cached covers and synopses, no network)."""
+    env = dict(os.environ)
+    env.pop('SHELF_OFFLINE', None)
+    if offline:
+        env['SHELF_OFFLINE'] = '1'
+    return subprocess.run([sys.executable, os.path.join(PIPELINE, 'build.py')], env=env,
+                          capture_output=True, text=True, timeout=timeout, cwd=PIPELINE)
+
+
+def ensure_default(offline=False):
     """Never serve a blank page: rebuild from the volume's months at boot when
     any exist (a redeploy must never serve a stale baked page over live data),
-    else fall back to the baked page or the design placeholder."""
+    else fall back to the baked page or the design placeholder.
+    offline=True is the quick build before the port opens; the full build
+    (lookups for new covers and synopses) runs after it, in the background."""
+    kind = 'quick' if offline else 'full'
     try:
         months = sorted(glob.glob(os.path.join(PIPELINE, 'data', 'month-*.json')))
         if months:
-            r = subprocess.run([sys.executable, os.path.join(PIPELINE, 'build.py')],
-                               capture_output=True, text=True, timeout=300, cwd=PIPELINE)
+            r = run_build(offline, timeout=120 if offline else 300)
             if r.returncode == 0 and os.path.isfile(os.path.join(DIST, 'index.html')):
-                log('boot: rebuilt the page from %d volume months' % len(months))
+                log('boot: %s rebuild of the page from %d volume months' % (kind, len(months)))
                 return
-            log('boot: rebuild failed — keeping the baked page (%s)'
-                % (r.stderr or r.stdout or '')[-160:])
+            log('boot: %s rebuild failed — keeping the page already there (%s)'
+                % (kind, (r.stderr or r.stdout or '')[-160:]))
             # the writer may have targeted pipeline/dist instead (flattened layouts)
             bd = os.path.join(PIPELINE, 'dist', 'index.html')
             if os.path.isfile(bd):
@@ -505,27 +526,43 @@ def ensure_default():
         if os.path.isfile(os.path.join(DIST, 'index.html')):
             return
         # nothing baked and nothing on the volume: build the blank-state page
-        r = subprocess.run([sys.executable, os.path.join(PIPELINE, 'build.py')],
-                           capture_output=True, text=True, timeout=300, cwd=PIPELINE)
+        r = run_build(offline, timeout=120 if offline else 300)
         if r.returncode == 0 and os.path.isfile(os.path.join(DIST, 'index.html')):
             log('boot: built the blank-state page')
             return
         log('boot: no page yet — press curate now in shelf settings, or wait for the 1st')
     except Exception as e:
-        log('boot: default page error: %s' % e)
+        log('boot: %s default page error: %s' % (kind, e))
 
 
-def main():
+def full_build():
+    """The boot full build, after the port is open: new covers and synopses."""
+    with BUILD_LOCK:
+        ensure_default(offline=False)
+
+
+def boot(port=None, host='0.0.0.0'):
+    """Quick build from saved data, open the port, then start the full build
+    in the background. A restart serves the page in seconds instead of after
+    every lookup (the full build alone can take minutes). Returns the bound
+    server and the full build's thread."""
     os.makedirs(CONFIG_DIR, exist_ok=True)
     os.makedirs(LOGSD, exist_ok=True)
     if not os.path.isdir(DIST):
         os.makedirs(DIST, exist_ok=True)
     ensure_personal_data()
     seed_baselines()
-    ensure_default()
+    ensure_default(offline=True)
+    srv = ThreadingHTTPServer((host, PORT if port is None else port), H)
+    log('The Shelf server on %s:%d' % (host, srv.server_address[1]))
+    full = threading.Thread(target=full_build, daemon=True)
+    full.start()
+    return srv, full
+
+
+def main():
+    srv, _ = boot()
     threading.Thread(target=scheduler, daemon=True).start()
-    srv = ThreadingHTTPServer(('0.0.0.0', PORT), H)
-    log('The Shelf server on 0.0.0.0:%d' % PORT)
     srv.serve_forever()
 
 if __name__ == '__main__':

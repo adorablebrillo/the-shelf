@@ -34,6 +34,11 @@ DESIGN = os.path.join(BASE, 'design')
 # the pipeline and server MUST share one dist dir via DIST_DIR (set in the
 # Dockerfile). Locally it stays pipeline/dist for repo layout compat.
 DIST = os.environ.get('DIST_DIR') or os.path.join(BASE, 'dist')
+# The quick boot build (server.py, before it opens the port): SHELF_OFFLINE=1
+# builds from saved data only — cached covers and cached synopses, no network
+# request at all — so a restart serves the page in seconds. The full build that
+# follows in the background fills what the quick one left out.
+OFFLINE = os.environ.get('SHELF_OFFLINE') == '1'
 
 MONTH_NAMES = ['JAN', 'FEB', 'MAR', 'APR', 'MAY', 'JUN', 'JUL', 'AUG', 'SEP', 'OCT', 'NOV', 'DEC']
 WORDS = {1: 'one', 2: 'two', 3: 'three', 4: 'four', 5: 'five', 6: 'six', 7: 'seven', 8: 'eight', 9: 'nine', 10: 'ten'}
@@ -366,17 +371,21 @@ def lookup_cover_url(title, author):
 
 def ensure_cover(img, title, author, covers_dir):
     """A usable LOCAL cover path — the declared image when it works, otherwise
-    fetched real cover art (cached by slug so rebuilds stay offline)."""
+    fetched real cover art (cached by slug so rebuilds stay offline).
+    OFFLINE: the slug cache or the declared image, never a request and never a
+    miss sentinel (a quick build cannot know a lookup would miss)."""
+    name = slug({'title': title or 'x', 'author': author or 'y'}) + '.jpg'
     if img:
         if img.startswith('assets/') and os.path.isfile(os.path.join(DIST, img)):
             return img
-        if img.startswith('http'):
+        if img.startswith('http') and not OFFLINE:
             local = download_cover({'img': img, 'title': title, 'author': author}, covers_dir)
             if local:
                 return local
-    name = slug({'title': title or 'x', 'author': author or 'y'}) + '.jpg'
     if os.path.isfile(os.path.join(covers_dir, name)):
         return 'assets/covers/%s' % name
+    if OFFLINE:
+        return img or ''
     # #42 review: cache the miss too — a '<slug>.none' sentinel keeps rebuilds
     # fully offline (no re-attempting three providers per artless volume).
     # Delete the sentinel to re-attempt a lookup by hand.
@@ -721,6 +730,18 @@ def pick_book(b, top_id, img):
     }
 
 
+def write_dist(name, text):
+    """Write one served file via a temp file + rename: the server keeps
+    serving while a build runs (the boot full build, a curate-now run), and a
+    request must never read a half-written page or data file."""
+    os.makedirs(DIST, exist_ok=True)
+    path = os.path.join(DIST, name)
+    tmp = '%s.tmp-%d' % (path, os.getpid())
+    with open(tmp, 'w') as f:
+        f.write(text)
+    os.replace(tmp, path)
+
+
 def copy_static():
     """Design runtime + art into dist (support.js, vendored React, .lavish assets)."""
     os.makedirs(os.path.join(DIST, 'assets', 'vendor'), exist_ok=True)
@@ -809,12 +830,10 @@ def main():
                 'hero': None, 'books': [], 'pending': [], 'series': [], 'resolved': [],
                 'seasons': SEASONS,
                 'criteria': CRITERIA}
-        os.makedirs(DIST, exist_ok=True)
-        open(os.path.join(DIST, 'shelf-data.js'), 'w').write(
-            'window.SHELF_DATA=' + json.dumps(data, ensure_ascii=False) + ';\n')
+        write_dist('shelf-data.js', 'window.SHELF_DATA=' + json.dumps(data, ensure_ascii=False) + ';\n')
         tpl = open(os.path.join(DESIGN, 'app.html')).read()
         tpl = tpl.replace('__SHELF_TITLE__', 'The Shelf \u2014 awaiting first run')
-        open(os.path.join(DIST, 'index.html'), 'w').write(tpl)
+        write_dist('index.html', tpl)
         print('built blank-state page (no months yet)')
         return 0
 
@@ -912,7 +931,8 @@ def main():
     vol_entries.sort(key=lambda e: vol_rank.get(e[0].get('state'), 9))  # stable: series order holds
     syn_entries += vol_entries
     syn_cache = synopses.load()
-    syn_stats = synopses.attach(syn_entries, syn_cache)
+    # OFFLINE: cached synopses only — a budget of 0 marks the rest pending
+    syn_stats = synopses.attach(syn_entries, syn_cache, budget=0 if OFFLINE else None)
     if not synopses.save(syn_cache):
         print('synopsis cache: write failed — rebuilds will refetch')
 
@@ -946,13 +966,11 @@ def main():
         print('WARNING: %d books have no identity: %s' % (len(orphans), orphans[:5]))
     data = {'month': month, 'hero': hero, 'books': book_list, 'pending': pending,
             'series': series, 'seasons': SEASONS, 'criteria': CRITERIA, 'resolved': resolved}
-    os.makedirs(DIST, exist_ok=True)
-    open(os.path.join(DIST, 'shelf-data.js'), 'w').write(
-        'window.SHELF_DATA=' + json.dumps(data, ensure_ascii=False) + ';\n')
+    write_dist('shelf-data.js', 'window.SHELF_DATA=' + json.dumps(data, ensure_ascii=False) + ';\n')
 
     tpl = open(os.path.join(DESIGN, 'app.html')).read()
     tpl = tpl.replace('__SHELF_TITLE__', 'The Shelf — %s · Sport Romance · Romantasy · Contemporary Romance' % ml['label'])
-    open(os.path.join(DIST, 'index.html'), 'w').write(tpl)
+    write_dist('index.html', tpl)
     print('built dist (current: %s, %d books, %d series, issue no. %d)'
           % (cur_ym, len(book_list), len(series), month['issue']))
     # last line on purpose: the server keeps the run log's tail, and the

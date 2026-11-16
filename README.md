@@ -27,6 +27,11 @@ Then open `http://[unraid-ip]:8787` → **shelf settings** → paste your OpenRo
 key, pick a model, save. It runs the 1st of every month at 09:00 (TZ) and
 rebuilds the page.
 
+After a restart or an update the page is back within seconds: the server first
+builds it from saved data only (cached covers and synopses), opens port 8787,
+and then runs the full build — new cover and synopsis lookups — in the
+background. The page updates when that full build ends.
+
 Full steps: [`UNRAID-INSTALL.md`](UNRAID-INSTALL.md)
 
 ## Install it on your phone
