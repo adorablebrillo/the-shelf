@@ -9,7 +9,7 @@ script feeds it live data via dist/shelf-data.js:
   books   — this month's picks (top pick first)
   series  — EVERY series she is in: read volumes (data/library.json) merged
             with released-unread / upcoming / announced (data/sequels.json)
-  quotes  — seasonal coffee-corner lines for the book month
+  seasons — the season table: dates, drink and quote pool for each season
   criteria — the filtering rules, shown in the footer
 
 Pure stdlib; assets + vendored runtime are copied into dist/ here too, so the
@@ -38,11 +38,18 @@ WORDS = {1: 'one', 2: 'two', 3: 'three', 4: 'four', 5: 'five', 6: 'six', 7: 'sev
 CRITERIA = ('M/F only · dark romance & dark academia welcome · no cowboy/western · spice 3–5 · trad-pub first, indie with proof · '
             'released last month · sequels only for series you are already in')
 
-QUOTES = {
+# The season table: ONE clock for the sidebar drink, its label,
+# the seasonal look and the reading-corner quote. Each season runs from its
+# start day to its end day inclusive ('MM-DD'); a season whose end is before its
+# start wraps the new year. Every day of the year belongs to exactly one season
+# (test_seasons.py owns that). The table ships to the page in shelf-data.js and
+# the page picks the season from the reader's LOCAL date (same clock as the
+# daily quote, #55), so it flips at local midnight — never at build time.
+_POOLS = {
     'winter': ['cocoa swirl, two marshmallows, one more chapter.',
                'snow outside — a whole shelf inside.',
                'hot cocoa, cold nights, warm plots.',
-               'december: cocoa in hand, epilogue in sight.',
+               'january: cocoa in hand, epilogue in sight.',
                'winter chapters read best under a blanket.',
                'a marshmallow melts; a plot thickens.',
                'tea for the throat, romance for the soul.',
@@ -75,7 +82,7 @@ QUOTES = {
                'chapters by the pool, condensation on the glass.',
                'july: sweet reads, cold drinks.',
                "heatwave? perfect — the book's in charge."],
-    'fall': ['september: pumpkin spice on the shelf, spice on the page.',
+    'autumn': ['september: pumpkin spice on the shelf, spice on the page.',
              "a good book, a warm cup — that's the whole agenda.",
              'curl up. the leaves changed, so did your TBR.',
              "one more chapter, one more cup — the fire can wait.",
@@ -87,9 +94,58 @@ QUOTES = {
              'sweater weather, paperback weather.',
              'the best plots brew slowly.',
              'every good book deserves a refill.'],
+    'christmas': ['november counts as christmas if the mug says so.',
+                  'peppermint mocha, fairy lights, one more chapter.',
+                  'deck the halls with paperbacks.',
+                  'a gingerbread latte and a slow-burn by the fire.',
+                  'all i want for christmas is an uninterrupted chapter.',
+                  'candy cane in the cocoa, cliffhanger on the page.',
+                  'the best presents have spines.',
+                  'wrapped in a blanket, wrapped up in a plot.',
+                  'tree lights on, phone down, book open.',
+                  'snowed in with a grumpy hero and a cocoa.',
+                  'mistletoe in the story, a book under the tree.',
+                  'an eggnog latte and an enemies-to-lovers.',
+                  'dear santa: more hours for reading, please.',
+                  'the fire crackles; so does the banter.',
+                  'silent night, loud plot twist.',
+                  'frosted windows, hot mocha, a happily-ever-after.',
+                  'cinnamon, clove and a very good book.',
+                  'stockings hung, mugs filled, chapters waiting.',
+                  'the lights are up, the mugs are out, the book is open.',
+                  'the prettiest pile under the tree is the book pile.',
+                  'a mountain of whipped cream, a page-turner to match.',
+                  "it's the most wonderful time to read in bed.",
+                  'jingle bells, turning pages, one warm mug.',
+                  'christmas morning: coffee first, then the epilogue.'],
 }
-SEASON_OF = {12: 'winter', 1: 'winter', 2: 'winter', 3: 'spring', 4: 'spring', 5: 'spring',
-             6: 'summer', 7: 'summer', 8: 'summer', 9: 'fall', 10: 'fall', 11: 'fall'}
+
+SEASONS = [
+    {'key': 'autumn', 'start': '09-01', 'end': '10-31',
+     'drink': {'img': 'assets/coffee-2.png', 'alt': 'Ink drawing of a spiced latte', 'label': 'pumpkin spice season'}},
+    {'key': 'christmas', 'start': '11-01', 'end': '01-06',
+     'drink': {'img': 'assets/coffee-winter-b.png', 'alt': 'Ink drawing of a candy cane cocoa', 'label': 'christmas cocoa season'}},
+    {'key': 'winter', 'start': '01-07', 'end': '02-29',
+     'drink': {'img': 'assets/coffee-winter-a.png', 'alt': 'Ink drawing of a winter cocoa', 'label': 'cocoa season'}},
+    {'key': 'spring', 'start': '03-01', 'end': '05-31',
+     'drink': {'img': 'assets/coffee-spring-a.png', 'alt': 'Ink drawing of a blossom latte', 'label': 'blossom season'}},
+    {'key': 'summer', 'start': '06-01', 'end': '08-31',
+     'drink': {'img': 'assets/coffee-summer-b.png', 'alt': 'Ink drawing of an iced coffee', 'label': 'iced coffee season'}},
+]
+for _s in SEASONS:
+    _s['quotes'] = _POOLS[_s['key']]
+
+
+def season_of(month, day):
+    """The season key for a calendar day — the same test the page runs on the
+    reader's local date (app.html seasonNow)."""
+    md = '%02d-%02d' % (month, day)
+    for s in SEASONS:
+        a, b = s['start'], s['end']
+        if (a <= md <= b) if a <= b else (md >= a or md <= b):
+            return s['key']
+    return None
+
 
 HEADERS = {'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 Chrome/125 Safari/537.36'}
 
@@ -654,7 +710,7 @@ def main():
         data = {'month': {'label': 'Awaiting first run', 'short': '\u2014', 'drop': '', 'count': 0,
                           'issue': 0, 'titles': 'no titles yet', 'shapeLine': '', 'light': False},
                 'hero': None, 'books': [], 'pending': [], 'series': [], 'resolved': [],
-                'quotes': QUOTES.get(SEASON_OF.get(datetime.now().month, 'fall'), QUOTES['fall']),
+                'seasons': SEASONS,
                 'criteria': CRITERIA}
         os.makedirs(DIST, exist_ok=True)
         open(os.path.join(DIST, 'shelf-data.js'), 'w').write(
@@ -786,15 +842,13 @@ def main():
         shutil.copytree(covers_dir, os.path.join(DIST, 'assets', 'covers'), dirs_exist_ok=True)
     except Exception as e:
         print('covers mirror: %s' % str(e)[:80])
-    # quotes follow the CALENDAR season — same clock the design's coffee art uses
-    quotes = QUOTES.get(SEASON_OF.get(datetime.now().month, 'fall'), QUOTES['fall'])
     # identity guard: every book the app can mark must carry a canonical id
     orphans = [b['t'] for s in series for b in s['books'] if not b.get('id')]
     orphans += [b['title'] for b in book_list if not b.get('id')]
     if orphans:
         print('WARNING: %d books have no identity: %s' % (len(orphans), orphans[:5]))
     data = {'month': month, 'hero': hero, 'books': book_list, 'pending': pending,
-            'series': series, 'quotes': quotes, 'criteria': CRITERIA, 'resolved': resolved}
+            'series': series, 'seasons': SEASONS, 'criteria': CRITERIA, 'resolved': resolved}
     os.makedirs(DIST, exist_ok=True)
     open(os.path.join(DIST, 'shelf-data.js'), 'w').write(
         'window.SHELF_DATA=' + json.dumps(data, ensure_ascii=False) + ';\n')

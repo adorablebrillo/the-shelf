@@ -70,7 +70,11 @@ One month's curated drop, numbered.
 One of the three curation lanes — sport romance · romantasy · contemporary romance.
 
 **Reading corner**:
-The rotating quote and seasonal brew panel at the top of Home.
+The panel at the top of Home that shows the season's quote of the day.
+
+**Season**:
+One of five date ranges that every day of the year falls into exactly once — autumn (1 Sep–31 Oct), Christmas (1 Nov–6 Jan), winter (7 Jan–end of February), spring (1 Mar–31 May), summer (1 Jun–31 Aug). The season, read from the reader's local date, sets the sidebar drink and its label, the quote of the day, and at Christmas the look (holly wreath, oxblood reading corner, lights, countdown). The one table lives in `pipeline/build.py` (`SEASONS`).
+_Avoid_: brew season, month season
 
 **Read & loved**:
 The Home block of everything marked read or loved in the past 30 days, dated by the day it was marked.
