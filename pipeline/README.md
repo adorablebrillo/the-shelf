@@ -33,6 +33,7 @@ pipeline/
 ├── test_watches.py    # author watches: page series extraction + the radar merge
 ├── test_pick.py       # pick_book survives model field drift (string spice/mmc)
 ├── test_seasons.py    # the season table: one season a day, Christmas boundaries, complete looks, corner contrast
+├── test_quick_build.py # the quick boot build (SHELF_OFFLINE=1): saved data only, no network request
 ├── design/            # the live design — app.html + support.js + vendored React
 ├── run.sh             # one-shot: fetch → reference → filter → curate → build [--deploy]
 └── data/              # candidates-*.json, filtered-*.json, month-*.json (history)
