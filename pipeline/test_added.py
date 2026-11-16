@@ -44,7 +44,8 @@ class AddedShipTests(unittest.TestCase):
         self.assertEqual(b['id'], book_key(ITEM['trackName'], ITEM['artistName']))
         self.assertTrue(b['added'])
         self.assertEqual((b['title'], b['author']), (ITEM['trackName'], ITEM['artistName']))
-        self.assertEqual((b['series'], b['seriesNum']), ('The Empyrean', '1'))
+        # the card's series line follows the picks' rule ('The Empyrean #1')
+        self.assertEqual((b['series'], b['seriesNum']), (build.pick_series(self.rec), '1'))
         self.assertEqual(b['img'], self.cached)
 
     def test_no_file_ships_nothing(self):
