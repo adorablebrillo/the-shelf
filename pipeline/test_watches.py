@@ -120,11 +120,15 @@ class SeriesMergeTests(unittest.TestCase):
     sequels map already knows."""
 
     def setUp(self):
+        # Release dates sit ahead of the real today: series_data() reads the
+        # clock, so a fixed date turns 'out' once the calendar passes it.
+        self.soon = (date.today() + timedelta(days=30)).isoformat()
+        self.later = (date.today() + timedelta(days=60)).isoformat()
         self.cfg = os.environ['CFG_DIR']
         json.dump({'series': [{'name': 'The Empyrean', 'author': 'Rebecca Yarros', 'books': ['Fourth Wing']}]},
                   open(os.path.join(self.cfg, 'library.json'), 'w'))
         json.dump({'series': [{'series': 'The Empyrean', 'author': 'Rebecca Yarros',
-                               'next_books': [{'title': 'Known Book (#2)', 'release_date': '2026-12-01'}]}]},
+                               'next_books': [{'title': 'Known Book (#2)', 'release_date': self.later}]}]},
                   open(os.path.join(self.cfg, 'sequels.json'), 'w'))
         self._orig = build.author_upcoming
         self._orig_lookup = build.lookup_cover_url
@@ -136,9 +140,9 @@ class SeriesMergeTests(unittest.TestCase):
     def test_upcoming_merges_with_countdown_and_dedupes(self):
         build.author_upcoming = lambda tracked, today, path=None: {
             build.norm_name('The Empyrean'): [
-                {'title': 'Fresh Book (#3)', 'release_date': '2026-11-03', 'status': 'soon', 'publisher': ''},
-                {'title': 'Known Book (#2)', 'release_date': '2026-12-01', 'status': 'soon', 'publisher': ''},
-                {'title': 'Fresh Book (#3)', 'release_date': '2026-11-03', 'status': 'soon', 'publisher': ''},
+                {'title': 'Fresh Book (#3)', 'release_date': self.soon, 'status': 'soon', 'publisher': ''},
+                {'title': 'Known Book (#2)', 'release_date': self.later, 'status': 'soon', 'publisher': ''},
+                {'title': 'Fresh Book (#3)', 'release_date': self.soon, 'status': 'soon', 'publisher': ''},
             ]}
         # hermetic (#42 review): no live cover lookups, no writes into the
         # tree's real cache — the fixture's 'Known Book' fetched a real
