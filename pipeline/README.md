@@ -30,7 +30,7 @@ pipeline/
 ├── test_filter.py     # the pairing screen's tests
 ├── test_watches.py    # author watches: page series extraction + the radar merge
 ├── test_pick.py       # pick_book survives model field drift (string spice/mmc)
-├── test_seasons.py    # the season table: every day has exactly one season, Christmas boundaries
+├── test_seasons.py    # the season table: one season a day, Christmas boundaries, complete looks, corner contrast
 ├── design/            # the live design — app.html + support.js + vendored React
 ├── run.sh             # one-shot: fetch → reference → filter → curate → build [--deploy]
 └── data/              # candidates-*.json, filtered-*.json, month-*.json (history)

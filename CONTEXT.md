@@ -73,7 +73,7 @@ One of the three curation lanes — sport romance · romantasy · contemporary r
 The panel at the top of Home that shows the season's quote of the day.
 
 **Season**:
-One of five date ranges that every day of the year falls into exactly once — autumn (1 Sep–31 Oct), Christmas (1 Nov–6 Jan), winter (7 Jan–end of February), spring (1 Mar–31 May), summer (1 Jun–31 Aug). The season, read from the reader's local date, sets the sidebar drink and its label, the quote of the day, and at Christmas the look (holly wreath, oxblood reading corner, lights, countdown). The one table lives in `pipeline/build.py` (`SEASONS`).
+One of five date ranges that every day of the year falls into exactly once — autumn (1 Sep–31 Oct), Christmas (1 Nov–6 Jan), winter (7 Jan–end of February), spring (1 Mar–31 May), summer (1 Jun–31 Aug). The season, read from the reader's local date, sets the sidebar drink and its label, the quote of the day (24 per season, in order from its first day) and the look: the drawings around the seal and its rim words, four small sidebar drawings, a sprig and a colour on the reading corner — autumn maple leaves on rust, Christmas holly on oxblood with lights and a countdown, winter pine and snow on midnight, spring blossom on rose, summer lemons on sea glass. Outside Christmas, a season also has its **moment**: petals, leaves or snow fall, or bubbles rise, once across the page on the first open of the reader's day (never under reduced motion). The one table lives in `pipeline/build.py` (`SEASONS`); the drawings live in `pipeline/design/app.html`.
 _Avoid_: brew season, month season
 
 **Read & loved**:
