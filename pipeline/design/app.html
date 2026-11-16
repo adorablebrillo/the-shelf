@@ -120,7 +120,7 @@
      under the season's key. The page sets the corner colours as custom
      properties on the corner (cornerStyle); without them they fall back to
      the plain parchment corner. The looks bend DESIGN.md at the reader's
-     request: the seal garlands, Christmas's glowing lights, and the once-a-day
+     request: the seal garlands, Christmas's glowing lights and gentle snow, and the once-a-day
      moment (petals, leaves or snow fall, or bubbles rise, one time). */
   [data-m="sidepanel"]{position:relative}
   [data-m="stars"]{position:absolute;left:0;top:0;width:100%;height:300px;pointer-events:none}
@@ -1094,7 +1094,7 @@ class Component extends DCLogic {
      of the reader's local day. The day is remembered in localStorage; if storage
      fails the moment does not play. An overlay only (never blocks a tap), about
      eight seconds, and skipped entirely under prefers-reduced-motion. Christmas
-     has its lights instead. */
+     has its lights and its gentle snow instead. */
   moment(){
     try{
       if(typeof window==='undefined'||!window.requestAnimationFrame)return;
