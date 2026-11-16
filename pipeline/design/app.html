@@ -120,7 +120,7 @@
      under the season's key. The page sets the corner colours as custom
      properties on the corner (cornerStyle); without them they fall back to
      the plain parchment corner. The looks bend DESIGN.md at the reader's
-     request: the seal garlands, Christmas's glowing lights, and the once-a-day
+     request: the seal garlands, Christmas's glowing lights and gentle snow, and the once-a-day
      moment (petals, leaves or snow fall, or bubbles rise, one time). */
   [data-m="sidepanel"]{position:relative}
   [data-m="stars"]{position:absolute;left:0;top:0;width:100%;height:300px;pointer-events:none}
@@ -145,6 +145,14 @@
   [data-m="lights"] svg:nth-child(7n+1) [data-m="bulb"]{animation-duration:4.6s;animation-delay:-3.1s}
   @keyframes flicker{0%,100%{opacity:1}6%{opacity:.4}9%{opacity:1}31%{opacity:.8}33%{opacity:.3}36%{opacity:.9}38%{opacity:1}64%{opacity:.65}66%{opacity:1}83%{opacity:.45}86%{opacity:1}}
   @media (prefers-reduced-motion:reduce){[data-m="bulb"]{animation:none !important}}
+  /* the snow (Christmas only, the reader's pick): small cream flakes drift down
+     the whole time the page is open, like the lights flicker. A fixed overlay
+     that never takes a click; the negative delays start each flake mid-fall so
+     the page opens already snowing. Reduced motion: no snow at all. */
+  [data-m="snow"]{position:fixed;inset:0;overflow:hidden;pointer-events:none;z-index:60}
+  [data-m="snow"] i{position:absolute;top:-8px;display:block;border-radius:50%;background:#F3EDE1;box-shadow:0 0 2px rgba(99,88,70,.45);opacity:0;animation:snowfall 20s linear infinite;will-change:transform}
+  @keyframes snowfall{0%{transform:translate3d(0,0,0);opacity:0}6%{opacity:.9}50%{transform:translate3d(9px,52vh,0)}94%{opacity:.8}100%{transform:translate3d(-4px,104vh,0);opacity:0}}
+  @media (prefers-reduced-motion:reduce){[data-m="snow"]{display:none !important}}
   @media (max-width:700px){
     [data-m="csprig"]{width:52px;height:40px;right:-6px;top:-9px}
     [data-m="lights"]{left:6px;right:40px;height:38px}
@@ -730,6 +738,7 @@
       <p style="margin:12px 0 0;font-size:10px;letter-spacing:.34em;text-transform:uppercase;color:#635846">The Shelf · {{ monthShort }}</p>
     </footer>
   </main>
+  <sc-if value="{{ isChristmas }}"><div data-m="snow" aria-hidden="true"><i style="left:32.8%;width:3px;height:3px;animation-duration:17.5s;animation-delay:-11.4s"></i><i style="left:80.0%;width:5px;height:5px;animation-duration:16.9s;animation-delay:-9.9s"></i><i style="left:22.4%;width:3px;height:3px;animation-duration:16.9s;animation-delay:-7.1s"></i><i style="left:10.6%;width:3px;height:3px;animation-duration:20.2s;animation-delay:-16.7s"></i><i style="left:92.0%;width:3px;height:3px;animation-duration:22.3s;animation-delay:-13.0s"></i><i style="left:56.8%;width:3px;height:3px;animation-duration:20.0s;animation-delay:-19.5s"></i><i style="left:54.9%;width:5px;height:5px;animation-duration:17.3s;animation-delay:-7.3s"></i><i style="left:13.2%;width:3px;height:3px;animation-duration:19.1s;animation-delay:-15.6s"></i><i style="left:11.8%;width:3px;height:3px;animation-duration:21.7s;animation-delay:-4.1s"></i><i style="left:54.0%;width:3px;height:3px;animation-duration:16.6s;animation-delay:-1.0s"></i><i style="left:49.2%;width:4px;height:4px;animation-duration:21.3s;animation-delay:-16.6s"></i><i style="left:57.6%;width:3px;height:3px;animation-duration:20.5s;animation-delay:-6.2s"></i><i style="left:68.4%;width:5px;height:5px;animation-duration:18.4s;animation-delay:-10.6s"></i><i style="left:49.0%;width:5px;height:5px;animation-duration:19.4s;animation-delay:-8.7s"></i><i style="left:95.1%;width:4px;height:4px;animation-duration:17.2s;animation-delay:-7.2s"></i><i style="left:16.4%;width:6px;height:6px;animation-duration:20.9s;animation-delay:-0.8s"></i><i style="left:9.4%;width:4px;height:4px;animation-duration:21.6s;animation-delay:-17.0s"></i><i style="left:34.3%;width:4px;height:4px;animation-duration:19.5s;animation-delay:-9.7s"></i><i style="left:8.5%;width:6px;height:6px;animation-duration:16.9s;animation-delay:-4.6s"></i><i style="left:65.1%;width:6px;height:6px;animation-duration:16.6s;animation-delay:-11.6s"></i><i style="left:56.9%;width:6px;height:6px;animation-duration:22.8s;animation-delay:-10.2s"></i><i style="left:38.7%;width:4px;height:4px;animation-duration:22.7s;animation-delay:-0.5s"></i><i style="left:35.8%;width:3px;height:3px;animation-duration:22.1s;animation-delay:-10.9s"></i><i style="left:75.0%;width:4px;height:4px;animation-duration:17.3s;animation-delay:-4.3s"></i><i style="left:89.1%;width:4px;height:4px;animation-duration:21.0s;animation-delay:-3.5s"></i><i style="left:54.2%;width:5px;height:5px;animation-duration:24.8s;animation-delay:-20.3s"></i><i style="left:28.5%;width:4px;height:4px;animation-duration:20.2s;animation-delay:-7.2s"></i><i style="left:93.0%;width:3px;height:3px;animation-duration:17.5s;animation-delay:-3.1s"></i><i style="left:64.6%;width:3px;height:3px;animation-duration:16.1s;animation-delay:-13.4s"></i><i style="left:27.0%;width:4px;height:4px;animation-duration:16.0s;animation-delay:-6.7s"></i></div></sc-if>
 </div>
 </x-dc>
 <script>
@@ -1085,7 +1094,7 @@ class Component extends DCLogic {
      of the reader's local day. The day is remembered in localStorage; if storage
      fails the moment does not play. An overlay only (never blocks a tap), about
      eight seconds, and skipped entirely under prefers-reduced-motion. Christmas
-     has its lights instead. */
+     has its lights and its gentle snow instead. */
   moment(){
     try{
       if(typeof window==='undefined'||!window.requestAnimationFrame)return;
