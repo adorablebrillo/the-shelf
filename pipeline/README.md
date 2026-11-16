@@ -27,13 +27,14 @@ pipeline/
 ├── test_shelf.py      # your-shelf exclusion tests
 ├── test_verdicts.py   # her_verdicts: the lookup, the capped lists, the `because` rule
 ├── test_reference.py  # the Goodreads reference: parsers (real fixtures), matchers, failure paths
-├── testdata/          # saved real pages for the reference parsers (list + one book page)
+├── testdata/          # saved real pages for the reference parsers (list + one book page) and Apple Books answers
 ├── test_filter.py     # the pairing screen's tests
 ├── test_marked_series.py # a read or loved pick tracks its series: marks, fallback, guarantee, author lane, Series page, curate's series copy
 ├── test_watches.py    # author watches: page series extraction + the radar merge
 ├── test_pick.py       # pick_book survives model field drift (string spice/mmc)
 ├── test_seasons.py    # the season table: one season a day, Christmas boundaries, complete looks, corner contrast
 ├── test_quick_build.py # the quick boot build (SHELF_OFFLINE=1): saved data only, no network request
+├── test_added.py      # the build ships books she added by search (#84)
 ├── design/            # the live design — app.html + support.js + vendored React
 ├── run.sh             # one-shot: fetch → reference → filter → curate → build [--deploy]
 └── data/              # candidates-*.json, filtered-*.json, month-*.json (history)

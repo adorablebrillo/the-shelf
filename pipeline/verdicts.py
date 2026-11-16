@@ -38,8 +38,9 @@ def _load(path):
 def book_details(data_dir):
     """Canonical id -> {title, author, series, lane, tropes} for every book the
     shelf has ever shown: past month picks (richest: lane and tropes), then the
-    volumes of library.json and sequels.json. The first source to name a book
-    wins, so a month pick's details beat a bare series volume."""
+    books she added by search (added-books.json, #84), then the volumes of
+    library.json and sequels.json. The first source to name a book wins, so a
+    month pick's details beat a bare series volume."""
     out = {}
 
     def add(title, author, **kw):
@@ -56,6 +57,12 @@ def book_details(data_dir):
             add(b.get('title') or '', b.get('author') or '', series=b.get('series') or '',
                 series_num=str(b.get('series_num') or ''),
                 lane=lane_of(b) if b.get('genre') else '', tropes=b.get('tropes') or [])
+
+    added = _load(os.path.join(paths.cfg_dir(), 'added-books.json')) or {}
+    for b in added.get('books', []) or []:
+        add(b.get('title') or '', b.get('author') or '', series=b.get('series') or '',
+            series_num=str(b.get('series_num') or ''),
+            lane=lane_of(b) if b.get('genre') else '')
 
     lib_path = paths.personal('library.json')[0]
     seq_path = paths.personal('sequels.json')[0]

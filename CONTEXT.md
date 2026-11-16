@@ -11,7 +11,7 @@ The landing section and the action surface — everything still awaiting a verdi
 _Avoid_: dashboard, landing page
 
 **My Shelf**:
-The aggregate of every book marked *want*, across all months. Ordered by issue, newest first; within an issue, the curated order. Its page header reads **My TBR list**.
+The aggregate of every book marked *want*, across all months, added books included. Ordered by issue, newest first; within an issue, the curated order; added books after the picks. Its page header reads **My TBR list**.
 _Avoid_: reading list, want list
 
 **Series**:
@@ -91,6 +91,10 @@ The instant title · author · series line shown inside the case. Never a native
 
 **Standalone**:
 A read book that isn't part of a series.
+
+**Added book**:
+A book the reader added herself with **+ add a book** (an Apple Books search at the top of My Shelf and the Archive), not one a run picked. It lives in `added-books.json` on the config volume, keyed by the same book identity as every pick, and takes a verdict like any book. It files on My Shelf or in the Archive only — never on Home — and taking its verdict back takes it off the shelf.
+_Avoid_: manual book, custom book
 
 **Watched authors**:
 Authors whose new releases every run looks for.

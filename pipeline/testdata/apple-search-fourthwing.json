@@ -1,0 +1,380 @@
+{
+ "resultCount": 12,
+ "results": [
+  {
+   "artistIds": [
+    802770747
+   ],
+   "trackCensoredName": "Fourth Wing",
+   "artistViewUrl": "https://books.apple.com/us/artist/rebecca-yarros/802770747?uo=4",
+   "trackViewUrl": "https://books.apple.com/us/book/fourth-wing/id6443545299?uo=4",
+   "artworkUrl60": "https://is1-ssl.mzstatic.com/image/thumb/Publication126/v4/a7/eb/7a/a7eb7abe-cd2d-267b-fbdb-5cb1d62cd26d/9781649374080.jpg/60x60bb.jpg",
+   "artworkUrl100": "https://is1-ssl.mzstatic.com/image/thumb/Publication126/v4/a7/eb/7a/a7eb7abe-cd2d-267b-fbdb-5cb1d62cd26d/9781649374080.jpg/100x100bb.jpg",
+   "artistId": 802770747,
+   "artistName": "Rebecca Yarros",
+   "releaseDate": "2023-05-02T07:00:00Z",
+   "genreIds": [
+    "10044",
+    "38",
+    "9020",
+    "11002"
+   ],
+   "kind": "ebook",
+   "currency": "USD",
+   "formattedPrice": "$14.99",
+   "trackName": "Fourth Wing",
+   "trackId": 6443545299,
+   "genres": [
+    "Fantasy",
+    "Books",
+    "Sci-Fi & Fantasy",
+    "Epic Fantasy"
+   ],
+   "price": 14.99,
+   "averageUserRating": 4.5,
+   "userRatingCount": 24592
+  },
+  {
+   "artistIds": [
+    802770747,
+    1822805825
+   ],
+   "trackCensoredName": "Fourth Wing, The Graphic Novel: Volume One",
+   "artistViewUrl": "https://books.apple.com/us/artist/rebecca-yarros-anabel-rossi/802770747?uo=4",
+   "trackViewUrl": "https://books.apple.com/us/book/fourth-wing-the-graphic-novel-volume-one/id6788968057?uo=4",
+   "artworkUrl60": "https://is1-ssl.mzstatic.com/image/thumb/Publication211/v4/be/40/4b/be404b65-524d-1860-ae71-833d8c18d74b/9780593838402.d.jpg/60x60bb.jpg",
+   "artworkUrl100": "https://is1-ssl.mzstatic.com/image/thumb/Publication211/v4/be/40/4b/be404b65-524d-1860-ae71-833d8c18d74b/9780593838402.d.jpg/100x100bb.jpg",
+   "artistId": 802770747,
+   "artistName": "Rebecca Yarros & Anabel Rossi",
+   "releaseDate": "2027-04-06T07:00:00Z",
+   "genreIds": [
+    "9026",
+    "38"
+   ],
+   "kind": "ebook",
+   "currency": "USD",
+   "trackName": "Fourth Wing, The Graphic Novel: Volume One",
+   "trackId": 6788968057,
+   "genres": [
+    "Comics & Graphic Novels",
+    "Books"
+   ]
+  },
+  {
+   "artistIds": [
+    802770747
+   ],
+   "trackCensoredName": "Fourth Wing - Version française",
+   "artistViewUrl": "https://books.apple.com/us/artist/rebecca-yarros/802770747?uo=4",
+   "trackViewUrl": "https://books.apple.com/us/book/fourth-wing-version-fran%C3%A7aise/id6477356924?uo=4",
+   "artworkUrl60": "https://is1-ssl.mzstatic.com/image/thumb/Publication126/v4/77/3f/f6/773ff685-7736-e15e-207c-9bc89e5524a1/9782755673081-001-x.jpeg/60x60bb.jpg",
+   "artworkUrl100": "https://is1-ssl.mzstatic.com/image/thumb/Publication126/v4/77/3f/f6/773ff685-7736-e15e-207c-9bc89e5524a1/9782755673081-001-x.jpeg/100x100bb.jpg",
+   "artistId": 802770747,
+   "artistName": "Rebecca Yarros",
+   "releaseDate": "2024-02-07T08:00:00Z",
+   "genreIds": [
+    "9003",
+    "38"
+   ],
+   "kind": "ebook",
+   "currency": "USD",
+   "formattedPrice": "$14.99",
+   "trackName": "Fourth Wing - Version française",
+   "trackId": 6477356924,
+   "genres": [
+    "Romance",
+    "Books"
+   ],
+   "price": 14.99
+  },
+  {
+   "artistIds": [
+    802770747
+   ],
+   "trackCensoredName": "Fourth Wing",
+   "artistViewUrl": "https://books.apple.com/us/artist/rebecca-yarros/802770747?uo=4",
+   "trackViewUrl": "https://books.apple.com/us/book/fourth-wing/id6465990861?uo=4",
+   "artworkUrl60": "https://is1-ssl.mzstatic.com/image/thumb/Publication112/v4/90/95/f3/9095f359-f5d4-eb56-7cac-0d2d18d53f1d/9789189516083.jpg/60x60bb.jpg",
+   "artworkUrl100": "https://is1-ssl.mzstatic.com/image/thumb/Publication112/v4/90/95/f3/9095f359-f5d4-eb56-7cac-0d2d18d53f1d/9789189516083.jpg/100x100bb.jpg",
+   "artistId": 802770747,
+   "artistName": "Rebecca Yarros",
+   "releaseDate": "2023-12-08T08:00:00Z",
+   "genreIds": [
+    "10044",
+    "38",
+    "9020",
+    "9031"
+   ],
+   "kind": "ebook",
+   "currency": "USD",
+   "formattedPrice": "$20.99",
+   "trackName": "Fourth Wing",
+   "trackId": 6465990861,
+   "genres": [
+    "Fantasy",
+    "Books",
+    "Sci-Fi & Fantasy",
+    "Fiction & Literature"
+   ],
+   "price": 20.99
+  },
+  {
+   "artistIds": [
+    802770747
+   ],
+   "trackCensoredName": "Fourth Wing – Flammengeküsst",
+   "artistViewUrl": "https://books.apple.com/us/artist/rebecca-yarros/802770747?uo=4",
+   "trackViewUrl": "https://books.apple.com/us/book/fourth-wing-flammengek%C3%BCsst/id6443992664?uo=4",
+   "artworkUrl60": "https://is1-ssl.mzstatic.com/image/thumb/Publication221/v4/7b/89/b4/7b89b425-5639-b171-b5ab-171f71831696/1038840888.jpg/60x60bb.jpg",
+   "artworkUrl100": "https://is1-ssl.mzstatic.com/image/thumb/Publication221/v4/7b/89/b4/7b89b425-5639-b171-b5ab-171f71831696/1038840888.jpg/100x100bb.jpg",
+   "artistId": 802770747,
+   "artistName": "Rebecca Yarros",
+   "releaseDate": "2023-06-15T07:00:00Z",
+   "genreIds": [
+    "10044",
+    "38",
+    "9020",
+    "9003",
+    "10058"
+   ],
+   "kind": "ebook",
+   "currency": "USD",
+   "formattedPrice": "$14.99",
+   "trackName": "Fourth Wing – Flammengeküsst",
+   "trackId": 6443992664,
+   "genres": [
+    "Fantasy",
+    "Books",
+    "Sci-Fi & Fantasy",
+    "Romance",
+    "Paranormal Romance"
+   ],
+   "price": 14.99
+  },
+  {
+   "artistIds": [
+    802770747
+   ],
+   "trackCensoredName": "Onyx Storm",
+   "artistViewUrl": "https://books.apple.com/us/artist/rebecca-yarros/802770747?uo=4",
+   "trackViewUrl": "https://books.apple.com/us/book/onyx-storm/id6480186648?uo=4",
+   "artworkUrl60": "https://is1-ssl.mzstatic.com/image/thumb/Publication211/v4/30/08/6d/30086da7-90b9-e83f-8881-f81eaf6ae1bd/9781649376947.jpg/60x60bb.jpg",
+   "artworkUrl100": "https://is1-ssl.mzstatic.com/image/thumb/Publication211/v4/30/08/6d/30086da7-90b9-e83f-8881-f81eaf6ae1bd/9781649376947.jpg/100x100bb.jpg",
+   "artistId": 802770747,
+   "artistName": "Rebecca Yarros",
+   "releaseDate": "2025-01-21T08:00:00Z",
+   "genreIds": [
+    "10058",
+    "38",
+    "9003",
+    "9020",
+    "10044",
+    "11002"
+   ],
+   "kind": "ebook",
+   "currency": "USD",
+   "formattedPrice": "$14.99",
+   "trackName": "Onyx Storm",
+   "trackId": 6480186648,
+   "genres": [
+    "Paranormal Romance",
+    "Books",
+    "Romance",
+    "Sci-Fi & Fantasy",
+    "Fantasy",
+    "Epic Fantasy"
+   ],
+   "price": 14.99,
+   "averageUserRating": 4.5,
+   "userRatingCount": 11110
+  },
+  {
+   "artistIds": [
+    802770747
+   ],
+   "trackCensoredName": "Threshing Day",
+   "artistViewUrl": "https://books.apple.com/us/artist/rebecca-yarros/802770747?uo=4",
+   "trackViewUrl": "https://books.apple.com/us/book/threshing-day/id6775515084?uo=4",
+   "artworkUrl60": "https://is1-ssl.mzstatic.com/image/thumb/Publication211/v4/bd/20/19/bd201947-420f-0ee9-7c1b-935b26eb266d/9781682818527.jpg/60x60bb.jpg",
+   "artworkUrl100": "https://is1-ssl.mzstatic.com/image/thumb/Publication211/v4/bd/20/19/bd201947-420f-0ee9-7c1b-935b26eb266d/9781682818527.jpg/100x100bb.jpg",
+   "artistId": 802770747,
+   "artistName": "Rebecca Yarros",
+   "releaseDate": "2026-09-29T07:00:00Z",
+   "genreIds": [
+    "10058",
+    "38",
+    "9003",
+    "9020",
+    "10044",
+    "11005"
+   ],
+   "kind": "ebook",
+   "currency": "USD",
+   "formattedPrice": "$11.99",
+   "trackName": "Threshing Day",
+   "trackId": 6775515084,
+   "genres": [
+    "Paranormal Romance",
+    "Books",
+    "Romance",
+    "Sci-Fi & Fantasy",
+    "Fantasy",
+    "Fantasy Short Stories"
+   ],
+   "price": 11.99,
+   "averageUserRating": 4.5,
+   "userRatingCount": 1553
+  },
+  {
+   "artistIds": [
+    802770747
+   ],
+   "trackCensoredName": "Iron Flame",
+   "artistViewUrl": "https://books.apple.com/us/artist/rebecca-yarros/802770747?uo=4",
+   "trackViewUrl": "https://books.apple.com/us/book/iron-flame/id6448919432?uo=4",
+   "artworkUrl60": "https://is1-ssl.mzstatic.com/image/thumb/Publication126/v4/ba/61/05/ba6105de-02ad-15d6-e308-e8fdf3f9f8af/9781649375858.jpg/60x60bb.jpg",
+   "artworkUrl100": "https://is1-ssl.mzstatic.com/image/thumb/Publication126/v4/ba/61/05/ba6105de-02ad-15d6-e308-e8fdf3f9f8af/9781649375858.jpg/100x100bb.jpg",
+   "artistId": 802770747,
+   "artistName": "Rebecca Yarros",
+   "releaseDate": "2023-11-07T08:00:00Z",
+   "genreIds": [
+    "11002",
+    "38",
+    "9020",
+    "10044"
+   ],
+   "kind": "ebook",
+   "currency": "USD",
+   "formattedPrice": "$14.99",
+   "trackName": "Iron Flame",
+   "trackId": 6448919432,
+   "genres": [
+    "Epic Fantasy",
+    "Books",
+    "Sci-Fi & Fantasy",
+    "Fantasy"
+   ],
+   "price": 14.99,
+   "averageUserRating": 4.5,
+   "userRatingCount": 20854
+  },
+  {
+   "artistIds": [
+    802770747
+   ],
+   "trackCensoredName": "Fourth wing",
+   "artistViewUrl": "https://books.apple.com/us/artist/rebecca-yarros/802770747?uo=4",
+   "trackViewUrl": "https://books.apple.com/us/book/fourth-wing/id6593674688?uo=4",
+   "artworkUrl60": "https://is1-ssl.mzstatic.com/image/thumb/Publication221/v4/0e/17/26/0e172610-03e1-5fb7-4497-3683c33096c9/9789635802623.jpg/60x60bb.jpg",
+   "artworkUrl100": "https://is1-ssl.mzstatic.com/image/thumb/Publication221/v4/0e/17/26/0e172610-03e1-5fb7-4497-3683c33096c9/9789635802623.jpg/100x100bb.jpg",
+   "artistId": 802770747,
+   "artistName": "Rebecca Yarros",
+   "releaseDate": "2024-07-30T07:00:00Z",
+   "genreIds": [
+    "10044",
+    "38",
+    "9020"
+   ],
+   "kind": "ebook",
+   "currency": "USD",
+   "formattedPrice": "$16.99",
+   "trackName": "Fourth wing",
+   "trackId": 6593674688,
+   "genres": [
+    "Fantasy",
+    "Books",
+    "Sci-Fi & Fantasy"
+   ],
+   "price": 16.99
+  },
+  {
+   "artistIds": [
+    802770747
+   ],
+   "trackCensoredName": "Fourth wing - Edizione speciale",
+   "artistViewUrl": "https://books.apple.com/us/artist/rebecca-yarros/802770747?uo=4",
+   "trackViewUrl": "https://books.apple.com/us/book/fourth-wing-edizione-speciale/id6469286181?uo=4",
+   "artworkUrl60": "https://is1-ssl.mzstatic.com/image/thumb/Publication116/v4/1f/c4/67/1fc4679e-79a1-54a2-6302-c3cd986422f9/9788892745216.jpg/60x60bb.jpg",
+   "artworkUrl100": "https://is1-ssl.mzstatic.com/image/thumb/Publication116/v4/1f/c4/67/1fc4679e-79a1-54a2-6302-c3cd986422f9/9788892745216.jpg/100x100bb.jpg",
+   "artistId": 802770747,
+   "artistName": "Rebecca Yarros",
+   "releaseDate": "2023-11-07T08:00:00Z",
+   "genreIds": [
+    "10044",
+    "38",
+    "9020",
+    "9031"
+   ],
+   "kind": "ebook",
+   "currency": "USD",
+   "formattedPrice": "$15.99",
+   "trackName": "Fourth wing - Edizione speciale",
+   "trackId": 6469286181,
+   "genres": [
+    "Fantasy",
+    "Books",
+    "Sci-Fi & Fantasy",
+    "Fiction & Literature"
+   ],
+   "price": 15.99
+  },
+  {
+   "artistIds": [
+    802770747
+   ],
+   "trackCensoredName": "Fourth Wing. Czwarte Skrzydło",
+   "artistViewUrl": "https://books.apple.com/us/artist/rebecca-yarros/802770747?uo=4",
+   "trackViewUrl": "https://books.apple.com/us/book/fourth-wing-czwarte-skrzyd%C5%82o/id6469114410?uo=4",
+   "artworkUrl60": "https://is1-ssl.mzstatic.com/image/thumb/Publication116/v4/ce/4c/1a/ce4c1ae6-0b0d-552d-2f35-a58fb0c268da/677089.jpg/60x60bb.jpg",
+   "artworkUrl100": "https://is1-ssl.mzstatic.com/image/thumb/Publication116/v4/ce/4c/1a/ce4c1ae6-0b0d-552d-2f35-a58fb0c268da/677089.jpg/100x100bb.jpg",
+   "artistId": 802770747,
+   "artistName": "Rebecca Yarros",
+   "releaseDate": "2023-09-27T07:00:00Z",
+   "genreIds": [
+    "10044",
+    "38",
+    "9020"
+   ],
+   "kind": "ebook",
+   "currency": "USD",
+   "formattedPrice": "$18.99",
+   "trackName": "Fourth Wing. Czwarte Skrzydło",
+   "trackId": 6469114410,
+   "genres": [
+    "Fantasy",
+    "Books",
+    "Sci-Fi & Fantasy"
+   ],
+   "price": 18.99
+  },
+  {
+   "artistIds": [
+    1752880535
+   ],
+   "trackCensoredName": "Summary of Fourth Wing by Rebecca Yarros",
+   "artistViewUrl": "https://books.apple.com/us/artist/easy-reads/1752880535?uo=4",
+   "trackViewUrl": "https://books.apple.com/us/book/summary-of-fourth-wing-by-rebecca-yarros/id6741243125?uo=4",
+   "artworkUrl60": "https://is1-ssl.mzstatic.com/image/thumb/Publication211/v4/17/a6/3b/17a63b1d-a69e-c22b-6746-30a8d7a68921/3a847b05-5589-451f-aa1e-3e000e126346_cover_image.jpg/60x60bb.jpg",
+   "artworkUrl100": "https://is1-ssl.mzstatic.com/image/thumb/Publication211/v4/17/a6/3b/17a63b1d-a69e-c22b-6746-30a8d7a68921/3a847b05-5589-451f-aa1e-3e000e126346_cover_image.jpg/100x100bb.jpg",
+   "artistId": 1752880535,
+   "artistName": "Easy Reads",
+   "releaseDate": "2025-01-27T08:00:00Z",
+   "genreIds": [
+    "10044",
+    "38",
+    "9020"
+   ],
+   "kind": "ebook",
+   "currency": "USD",
+   "formattedPrice": "$2.99",
+   "trackName": "Summary of Fourth Wing by Rebecca Yarros",
+   "trackId": 6741243125,
+   "genres": [
+    "Fantasy",
+    "Books",
+    "Sci-Fi & Fantasy"
+   ],
+   "price": 2.99
+  }
+ ]
+}

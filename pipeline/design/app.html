@@ -427,6 +427,35 @@
       <sc-if value="{{ hasWant }}">
         <p style="margin:10px 0 0;font-family:'Cormorant Garamond',Garamond,serif;font-style:italic;font-size:20px;color:#635846">{{ wantCount }} waiting · press read or loved and it moves to the archive.</p>
       </sc-if>
+      <div data-m="addbook" style="margin-top:18px">
+        <button type="button" onClick="{{ onAddToggle }}" aria-expanded="{{ addExpanded }}" style="font-size:11px;letter-spacing:.24em;text-transform:uppercase;color:#1E3A2F;border:1px solid #A8863F;padding:12px 18px;min-height:44px" style-hover="background:#1E3A2F;color:#F3EDE1;border-color:#1E3A2F">{{ addToggleLabel }}</button>
+        <sc-if value="{{ addOpen }}">
+          <section aria-label="Add a book" style="margin-top:14px;padding:18px 20px 6px;border:1px solid #C6BBA3;background:#F6F1E4">
+            <form role="search" onSubmit="{{ onAddSearch }}" style="display:flex;gap:10px;flex-wrap:wrap;align-items:stretch">
+              <label for="add-q" style="flex:1 1 100%;font-size:10.5px;letter-spacing:.28em;text-transform:uppercase;color:#635846">Search Apple Books by title or author</label>
+              <input id="add-q" name="q" type="text" autocomplete="off" placeholder="title or author" style="flex:1 1 220px;min-width:0;min-height:48px;box-sizing:border-box;background:#FBF6EC;border:1px solid #C6BBA3;padding:12px 14px;font-family:'EB Garamond',Georgia,serif;font-size:16px;color:#211E19"/>
+              <button type="submit" style="flex:0 0 auto;min-height:48px;padding:12px 22px;font-size:11px;letter-spacing:.24em;text-transform:uppercase;background:#1E3A2F;color:#F3EDE1;border:1px solid #1E3A2F" style-hover="background:#2A5241">search</button>
+            </form>
+            <p aria-live="polite" style="margin:12px 0 0;min-height:24px;font-family:'Cormorant Garamond',Garamond,serif;font-style:italic;font-size:18px;color:#635846">{{ addMsg }}</p>
+            <ul style="list-style:none;margin:6px 0 0;padding:0">
+              <sc-for list="{{ addRows }}" as="r" hint-placeholder-count="3">
+                <li style="display:grid;grid-template-columns:56px minmax(0,1fr);gap:16px;align-items:start;padding:14px 0;border-top:1px solid #D6CCB6">
+                  <div role="img" aria-label="{{ r.alt }}" style="{{ r.coverStyle }}"></div>
+                  <div style="min-width:0">
+                    <p style="margin:0;font-family:'Cormorant Garamond',Garamond,serif;font-weight:500;font-size:22px;line-height:1.15">{{ r.title }}</p>
+                    <p style="margin:4px 0 0;font-size:12px;letter-spacing:.13em;text-transform:uppercase;color:#635846">{{ r.meta }}</p>
+                    <div data-m="verdicts" style="display:flex;gap:6px;flex-wrap:wrap;margin-top:10px">
+                      <sc-for list="{{ r.pills }}" as="p" hint-placeholder-count="4">
+                        <button type="button" onClick="{{ p.onClick }}" aria-pressed="{{ p.on }}" aria-label="{{ p.aria }}" style="{{ p.style }}">{{ p.label }}</button>
+                      </sc-for>
+                    </div>
+                  </div>
+                </li>
+              </sc-for>
+            </ul>
+          </section>
+        </sc-if>
+      </div>
       <div style="height:1px;background:#A8863F;margin:20px 0 0"></div>
 
       <sc-if value="{{ noWant }}">
@@ -562,6 +591,35 @@
     <div data-screen-label="Archive">
       <p style="margin:0;font-size:10.5px;letter-spacing:.42em;text-transform:uppercase;color:#635846">04 · Archive</p>
       <h2 style="font-family:'Cormorant Garamond',Garamond,serif;font-weight:300;font-size:clamp(34px,5vw,56px);letter-spacing:.1em;text-transform:uppercase;margin:12px 0 0">The archive</h2>
+      <div data-m="addbook" style="margin-top:18px">
+        <button type="button" onClick="{{ onAddToggle }}" aria-expanded="{{ addExpanded }}" style="font-size:11px;letter-spacing:.24em;text-transform:uppercase;color:#1E3A2F;border:1px solid #A8863F;padding:12px 18px;min-height:44px" style-hover="background:#1E3A2F;color:#F3EDE1;border-color:#1E3A2F">{{ addToggleLabel }}</button>
+        <sc-if value="{{ addOpen }}">
+          <section aria-label="Add a book" style="margin-top:14px;padding:18px 20px 6px;border:1px solid #C6BBA3;background:#F6F1E4">
+            <form role="search" onSubmit="{{ onAddSearch }}" style="display:flex;gap:10px;flex-wrap:wrap;align-items:stretch">
+              <label for="add-q" style="flex:1 1 100%;font-size:10.5px;letter-spacing:.28em;text-transform:uppercase;color:#635846">Search Apple Books by title or author</label>
+              <input id="add-q" name="q" type="text" autocomplete="off" placeholder="title or author" style="flex:1 1 220px;min-width:0;min-height:48px;box-sizing:border-box;background:#FBF6EC;border:1px solid #C6BBA3;padding:12px 14px;font-family:'EB Garamond',Georgia,serif;font-size:16px;color:#211E19"/>
+              <button type="submit" style="flex:0 0 auto;min-height:48px;padding:12px 22px;font-size:11px;letter-spacing:.24em;text-transform:uppercase;background:#1E3A2F;color:#F3EDE1;border:1px solid #1E3A2F" style-hover="background:#2A5241">search</button>
+            </form>
+            <p aria-live="polite" style="margin:12px 0 0;min-height:24px;font-family:'Cormorant Garamond',Garamond,serif;font-style:italic;font-size:18px;color:#635846">{{ addMsg }}</p>
+            <ul style="list-style:none;margin:6px 0 0;padding:0">
+              <sc-for list="{{ addRows }}" as="r" hint-placeholder-count="3">
+                <li style="display:grid;grid-template-columns:56px minmax(0,1fr);gap:16px;align-items:start;padding:14px 0;border-top:1px solid #D6CCB6">
+                  <div role="img" aria-label="{{ r.alt }}" style="{{ r.coverStyle }}"></div>
+                  <div style="min-width:0">
+                    <p style="margin:0;font-family:'Cormorant Garamond',Garamond,serif;font-weight:500;font-size:22px;line-height:1.15">{{ r.title }}</p>
+                    <p style="margin:4px 0 0;font-size:12px;letter-spacing:.13em;text-transform:uppercase;color:#635846">{{ r.meta }}</p>
+                    <div data-m="verdicts" style="display:flex;gap:6px;flex-wrap:wrap;margin-top:10px">
+                      <sc-for list="{{ r.pills }}" as="p" hint-placeholder-count="4">
+                        <button type="button" onClick="{{ p.onClick }}" aria-pressed="{{ p.on }}" aria-label="{{ p.aria }}" style="{{ p.style }}">{{ p.label }}</button>
+                      </sc-for>
+                    </div>
+                  </div>
+                </li>
+              </sc-for>
+            </ul>
+          </section>
+        </sc-if>
+      </div>
       <div data-m="tabs" role="tablist" aria-label="Archive views" onkeydown="{{ arcKey }}" style="display:flex;gap:0;margin-top:20px;border:1px solid #A8863F;width:max-content;max-width:100%;flex-wrap:wrap">
         <button id="arc-tab-read" type="button" role="tab" aria-selected="{{ arcReadOn }}" aria-controls="arc-read" tabindex="{{ arcReadIdx }}" onClick="{{ showRead }}" style="{{ tabReadStyle }}">Read &amp; loved — {{ readLovedCount }}</button>
         <button id="arc-tab-nfm" type="button" role="tab" aria-selected="{{ arcNfmOn }}" aria-controls="arc-nfm" tabindex="{{ arcNfmIdx }}" onClick="{{ showNfm }}" style="{{ tabNfmStyle }}">Not for me — {{ notForMeCount }}</button>
@@ -641,7 +699,7 @@
               <div role="img" aria-label="{{ b.alt }}" style="{{ b.coverStyle }}"></div>
               <div style="min-width:0">
                 <p style="margin:0;font-family:'Cormorant Garamond',Garamond,serif;font-size:23px;line-height:1.16">{{ b.title }}</p>
-                <p style="margin:4px 0 0;font-size:12.5px;letter-spacing:.14em;text-transform:uppercase;color:#635846">{{ b.author }} · {{ b.publisher }} · {{ b.genre }}</p>
+                <p style="margin:4px 0 0;font-size:12.5px;letter-spacing:.14em;text-transform:uppercase;color:#635846">{{ b.pubGenreLine }}</p>
               </div>
               <div style="display:flex;align-items:center;justify-content:flex-end;gap:16px">
                 <span style="{{ b.tagStyle }}">{{ b.tag }}</span>
@@ -666,7 +724,7 @@
               <div role="img" aria-label="{{ b.alt }}" style="{{ b.coverStyle }}"></div>
               <div style="min-width:0">
                 <p style="margin:0;font-family:'Cormorant Garamond',Garamond,serif;font-size:23px;line-height:1.16">{{ b.title }}</p>
-                <p style="margin:4px 0 0;font-size:12.5px;letter-spacing:.14em;text-transform:uppercase;color:#635846">{{ b.author }} · {{ b.publisher }}</p>
+                <p style="margin:4px 0 0;font-size:12.5px;letter-spacing:.14em;text-transform:uppercase;color:#635846">{{ b.pubLine }}</p>
                 <sc-if value="{{ b.hasTropes }}">
                   <p style="margin:8px 0 0;font-size:14px;color:#4A443A">{{ b.tropeLine }}</p>
                 </sc-if>
@@ -988,6 +1046,7 @@ function hydrateIds(d){
 class Component extends DCLogic {
   state={ data:(typeof window!=='undefined'&&window.SHELF_DATA)?hydrateIds(window.SHELF_DATA):null,
     states:{}, ts:{}, open:{}, q:0, view:'home', tip:'', peek:'', peekVol:false, vol:'', volOf:'', volT:0, plate:'', plateId:'', plateT:0, lastTapId:'', lastTapT:0, reading:{}, syn:{}, arc:'read', sync:'?',
+    added:[], addOpen:false, addQ:'', addMsg:'', addResults:[],
     mobile:(typeof window!=='undefined'&&window.matchMedia)?window.matchMedia('(max-width:880px)').matches:false };
 
   /* ---- one identity per book ------------------------------------------
@@ -1027,6 +1086,47 @@ class Component extends DCLogic {
        shared id is simply cleared (the volume face reads out-now on its own) */
     const isPick=(d0.books||[]).concat(d0.pending||[],d0.resolved||[]).some(b=>b.id===id);
     this.apply(id, isVolume&&!isPick ? 'unread' : null);
+  }
+
+  /* ---- #84: add a book by search ---------------------------------------
+     A book the runs never picked: found on Apple Books, saved to the shelf
+     server's added-books file, and marked through the same /api/state path
+     as every other verdict. It is filed on My Shelf or in the Archive only —
+     never on Home, which stays for the issues' picks. */
+  loadAdded(){
+    try{ fetch('/api/books').then(r=>r.json()).then(j=>{
+      if(j&&Array.isArray(j.books))this.setState({added:j.books}); }).catch(()=>{}); }catch(e){}
+  }
+  toggleAdd(){
+    const open=!this.state.addOpen;
+    this.setState({addOpen:open});
+    if(open)setTimeout(()=>{try{const el=document.getElementById('add-q'); if(el)el.focus();}catch(e){}},0);
+  }
+  searchBooks(q){
+    q=String(q||'').trim();
+    if(!q){ this.setState({addMsg:'Type a title or an author first.',addResults:[]}); return; }
+    this.setState({addQ:q,addMsg:'Searching Apple Books\u2026',addResults:[]});
+    fetch('/api/search?q='+encodeURIComponent(q))
+      .then(r=>r.json().then(j=>({ok:r.ok,j})))
+      .then(({ok,j})=>{
+        if(this.state.addQ!==q)return;                 // a newer search won
+        const res=(j&&j.results)||[];
+        this.setState({addResults:res,addMsg:!ok?((j&&j.error)||'The search failed \u2014 try again.')
+          :(res.length?(res.length+(res.length===1?' book':' books')+' found \u2014 press a verdict to put one on your shelf.')
+          :'No books found for \u201c'+q+'\u201d.')}); })
+      .catch(()=>{ if(this.state.addQ===q)this.setState({addMsg:'The shelf server did not answer \u2014 try again.'}); });
+  }
+  addBook(r,verdict){
+    /* the mark lands at once (and toggles off on a second press, like every
+       verdict pill); the book record follows to the server */
+    this.setState(s=>({added:(s.added||[]).some(x=>x.id===r.id)?s.added:(s.added||[]).concat([{...r,img:r.cover||''}])}));
+    this.setBook(r.id,verdict);
+    try{ fetch('/api/books',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(r)})
+      .then(x=>x.json()).then(j=>{
+        if(j&&j.book)this.setState(s=>({added:(s.added||[]).filter(x=>x.id!==j.book.id).concat([j.book])}));
+        else this.setState({addMsg:(j&&j.error)||'The shelf server could not save that book.'}); })
+      .catch(()=>this.setState({addMsg:'The shelf server did not answer \u2014 the book is not saved yet.'}));
+    }catch(e){}
   }
 
   /* #41: the settings page script binds/unbinds with the view */
@@ -1310,6 +1410,7 @@ class Component extends DCLogic {
     this._t=setInterval(()=>this.setState(s=>({q:s.q+1})),6500);
     this._m=setTimeout(()=>this.moment(),900);
     this.pull();                                   // server is the source of record
+    this.loadAdded();                              // #84: books she added by search
     this._s=setInterval(()=>this.flushOutbox(),20000);
     if(typeof document!=='undefined')document.addEventListener('visibilitychange',()=>{
       if(!document.hidden){this.flushOutbox(); this.pull();}});
@@ -1346,6 +1447,9 @@ class Component extends DCLogic {
       mmcLabel:b.mmc+' / 5',
       mmcNote:b.lane==='romantasy'?'Xaden · Rhysand · Raihn energy':'same energy, no magic',
       tropeLine:(b.tropes||[]).join(' · '),
+      /* an added book (#84) has no publisher: never print an empty ' · ' slot */
+      pubLine:[b.author,b.publisher].filter(Boolean).join(' · '),
+      pubGenreLine:[b.author,b.publisher,b.genre].filter(Boolean).join(' · '),
       formatLine:(b.formats||[]).join(' · '),
       /* the verdict she asked for by name: "skip sounds like a browsing gesture;
          this is a verdict" -> the stored value stays 'skip', the label does not */
@@ -1393,7 +1497,16 @@ class Component extends DCLogic {
     /* every pick the app can still act on or has already resolved: the current
        month, the unresolved carry-overs, and the resolved books the pipeline
        still ships metadata for (so the Archive — and a reversal — always see them) */
-    const picks=(d.books||[]).concat(d.pending||[],d.resolved||[]);
+    /* #84: books she added by search join them — the build's copy (cached
+       cover + blurb) first, then any the server holds that the page predates.
+       They feed My Shelf and the Archive only: Home reads books/pending/resolved */
+    const shipped=d.added||[], shippedIds={};
+    shipped.forEach(b=>{shippedIds[b.id]=1;});
+    const added=shipped.concat((this.state.added||[]).filter(r=>r&&r.id&&!shippedIds[r.id])
+      .map(r=>({id:r.id,title:r.title||'',author:r.author||'',img:r.img||'',date:r.date||'',
+        genre:r.genre||'',series:r.series||'',seriesNum:r.series_num||'',tropes:[],hook:'',
+        formats:['Ebook'],added:true})));
+    const picks=(d.books||[]).concat(d.pending||[],d.resolved||[],added);
     // the release-day rule runs on the READER's local date — the countdowns
     // parse local midnights, so a UTC "today" would keep a released book in
     // the block for hours past (or before) its release in their timezone
@@ -1707,6 +1820,18 @@ class Component extends DCLogic {
           :'Hover for the title · click to put one back on the shelf · ')+shelved.length+' books here')
       :'Empty. Mark something read and it arrives.';
 
+    /* ---- #84: the add-a-book panel's results ----------------------------- */
+    const addRows=(this.state.addResults||[]).map(r=>{const st=S[r.id];
+      return {title:r.title, meta:[r.author,(r.date||'').slice(0,4)].filter(Boolean).join(' \u00b7 '),
+        alt:'Cover of '+r.title+' by '+r.author,
+        coverStyle:{width:'56px',aspectRatio:'2/3',border:'1px solid '+INK,backgroundColor:'#D8CFBA',
+          backgroundImage:r.cover?'url("'+r.cover+'")':'repeating-linear-gradient(90deg,#EFE7D6 0 5px,#E4DAC4 5px 10px)',
+          backgroundSize:'cover',backgroundPosition:'center'},
+        pills:[['want','want'],['read','read'],['loved','loved'],['skip','not for me']]
+          .map(v=>({label:v[1],on:st===v[0]?'true':'false',style:this.pill(st===v[0],v[0]==='skip'?MID:FOREST),
+            aria:v[0]==='want'?'want to read '+r.title:(v[0]==='read'?'mark '+r.title+' read':(v[0]==='loved'?'loved '+r.title:'not for me \u2014 '+r.title)),
+            onClick:()=>this.addBook(r,v[0])}))};});
+
     const sn=seasonNow(d,new Date()), season=sn.season, isXmas=season.key==='christmas';
     /* the corner's colours come from the season table, as custom properties
        the corner CSS reads; the bottom rule is the bottom-line colour at 40% */
@@ -1794,7 +1919,16 @@ class Component extends DCLogic {
         try{ const el=document.getElementById('arc-tab-'+next); if(el)el.focus(); }catch(_){} },
       readBySeries, readSeriesCount:readBySeries.length, noRead:readBySeries.length===0,
       soloRows, soloCount:soloRows.length, noSolo:soloRows.length===0,
-      archiveSpines, shelfLine, plate:this.state.plate||''
+      archiveSpines, shelfLine, plate:this.state.plate||'',
+
+      /* #84: add a book — one panel, at the top of My Shelf and the Archive */
+      addOpen:!!this.state.addOpen, addExpanded:this.state.addOpen?'true':'false',
+      addToggleLabel:this.state.addOpen?'close the search':'+ add a book',
+      onAddToggle:()=>this.toggleAdd(),
+      onAddSearch:(e)=>{ try{e.preventDefault();}catch(_){}
+        const f=e&&(e.currentTarget||e.target), el=f&&f.elements&&f.elements.q;
+        this.searchBooks(el?el.value:''); },
+      addMsg:this.state.addMsg||'', addRows
     };
   }
 }

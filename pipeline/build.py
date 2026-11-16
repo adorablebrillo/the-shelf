@@ -11,6 +11,8 @@ script feeds it live data via dist/shelf-data.js:
             with released-unread / upcoming / announced (data/sequels.json)
   seasons — the season table: dates, drink and quote pool for each season
   criteria — the filtering rules, shown in the footer
+  added   — books she added herself by search (/config/added-books.json, #84);
+            the app files them on My Shelf or in the Archive, never on Home
 
 Pure stdlib; assets + vendored runtime are copied into dist/ here too, so the
 same code path runs at image-bake time and after every pipeline run.
@@ -742,6 +744,30 @@ def write_dist(name, text):
     os.replace(tmp, path)
 
 
+def added_data(covers_dir):
+    """Books she added by search (#84), shaped like picks so the app's My Shelf
+    and Archive rows render them unchanged. A missing file is an empty list."""
+    try:
+        raw = json.load(open(os.path.join(paths.cfg_dir(), 'added-books.json'))).get('books') or []
+    except FileNotFoundError:
+        raw = []
+    except Exception as e:
+        print('added books: unreadable (%s) — shipping none' % str(e)[:60])
+        raw = []
+    out, seen = [], set()
+    for b in raw:
+        if not isinstance(b, dict):
+            continue
+        ab = pick_book(b, None, ensure_cover(b.get('img'), b.get('title'), b.get('author'), covers_dir))
+        if not ab['id'] or ab['id'] in seen:
+            continue
+        seen.add(ab['id'])
+        ab['added'] = True
+        ab['seriesNum'] = b.get('series_num') or ''
+        out.append(ab)
+    return out
+
+
 def copy_static():
     """Design runtime + art into dist (support.js, vendored React, .lavish assets)."""
     os.makedirs(os.path.join(DIST, 'assets', 'vendor'), exist_ok=True)
@@ -825,10 +851,22 @@ def main():
         # A blank install (the repo ships blank): a valid, quiet page — never a
         # 404, never a crash. The app renders its own empty states from this.
         copy_static()
+        covers_dir = os.path.join(BASE, 'data', 'covers')
+        os.makedirs(covers_dir, exist_ok=True)
+        added = added_data(covers_dir)
+        if added:
+            syn_cache = synopses.load()
+            synopses.attach([(b, b.get('title'), b.get('author')) for b in added], syn_cache,
+                            budget=0 if OFFLINE else None)
+            synopses.save(syn_cache)
+        try:
+            shutil.copytree(covers_dir, os.path.join(DIST, 'assets', 'covers'), dirs_exist_ok=True)
+        except Exception as e:
+            print('covers mirror: %s' % str(e)[:80])
         data = {'month': {'label': 'Awaiting first run', 'short': '\u2014', 'drop': '', 'count': 0,
                           'issue': 0, 'titles': 'no titles yet', 'shapeLine': '', 'light': False},
                 'hero': None, 'books': [], 'pending': [], 'series': [], 'resolved': [],
-                'seasons': SEASONS,
+                'added': added, 'seasons': SEASONS,
                 'criteria': CRITERIA}
         write_dist('shelf-data.js', 'window.SHELF_DATA=' + json.dumps(data, ensure_ascii=False) + ';\n')
         tpl = open(os.path.join(DESIGN, 'app.html')).read()
@@ -907,6 +945,10 @@ def main():
     print('carried over: %d unresolved books from %d earlier issues (%d held back by your shelf)'
           % (len(pending), len(set(p['issue']['ym'] for p in pending)), held_back))
 
+    added = added_data(covers_dir)
+    if added:
+        print('added books: %d shipped' % len(added))
+
     series = series_data(covers_dir)
     hero = hero_data(series)
     if hero:
@@ -925,6 +967,7 @@ def main():
     if hero:
         syn_entries.append((hero, hero.get('title'), hero.get('author')))
     syn_entries += [(b, b.get('title'), b.get('author')) for b in resolved]
+    syn_entries += [(b, b.get('title'), b.get('author')) for b in added]
     vol_rank = {'out': 0, 'soon': 1, 'tba': 2, 'read': 3}
     vol_entries = [(b, b.get('t'), s.get('author') or '')
                    for s in series for b in (s.get('books') or [])]
@@ -965,7 +1008,8 @@ def main():
     if orphans:
         print('WARNING: %d books have no identity: %s' % (len(orphans), orphans[:5]))
     data = {'month': month, 'hero': hero, 'books': book_list, 'pending': pending,
-            'series': series, 'seasons': SEASONS, 'criteria': CRITERIA, 'resolved': resolved}
+            'series': series, 'seasons': SEASONS, 'criteria': CRITERIA, 'resolved': resolved,
+            'added': added}
     write_dist('shelf-data.js', 'window.SHELF_DATA=' + json.dumps(data, ensure_ascii=False) + ';\n')
 
     tpl = open(os.path.join(DESIGN, 'app.html')).read()
