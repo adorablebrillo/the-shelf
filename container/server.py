@@ -7,7 +7,7 @@ import json, os, re, shutil, glob, sys, subprocess, tempfile, threading, time, u
 from contextlib import nullcontext
 from datetime import datetime
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
-from urllib.parse import urlparse
+from urllib.parse import urlparse, parse_qs, urlencode
 
 BASE = os.path.join(os.path.dirname(os.path.abspath(__file__)))
 # repo root: /app in the image; the checkout root locally (container/ holds the
@@ -25,6 +25,9 @@ STATE = os.path.join(CONFIG_DIR, 'reader-state.json')
 # the author watch list the Authors tab (ticket #8) writes; fetch.py reads it
 # every run (missing file is fine — nothing watched yet)
 AUTHORS = os.path.join(CONFIG_DIR, 'authors.json')
+# books she adds herself by search (ticket #84): the "add a book" panel on My
+# Shelf and the Archive writes here; build.py ships them as `added`
+ADDED = os.path.join(CONFIG_DIR, 'added-books.json')
 LOGSD = os.path.join(CONFIG_DIR, 'logs')
 
 # ---- personal data lives on the VOLUME -----------------------------------
@@ -309,6 +312,15 @@ class H(BaseHTTPRequestHandler):
             self._json(load_state())
         elif u.path == '/api/authors':
             self._json({'authors': load_authors()['authors']})
+        elif u.path == '/api/search':
+            q = (parse_qs(u.query).get('q') or [''])[0]
+            try:
+                self._json({'results': search_books(q)})
+            except Exception as e:
+                log('book search failed: %s' % str(e)[:80])
+                self._json({'error': 'Apple Books did not answer — try again', 'results': []}, 502)
+        elif u.path == '/api/books':
+            self._json({'books': load_added()['books']})
         elif u.path == '/api/status':
             s = load_settings()
             self._json({'key_set': bool(s.get('api_key')), 'model': s.get('model'),
@@ -372,6 +384,12 @@ class H(BaseHTTPRequestHandler):
                 return self._json({'error': err, 'authors': lst}, 400)
             log('author watch added: %s' % lst[-1]['name'])
             self._json({'ok': True, 'authors': lst})
+        elif u.path == '/api/books':
+            rec, err = added_add(body)
+            if err:
+                return self._json({'error': err}, 400)
+            log('book added: %s' % rec['id'][:60])
+            self._json({'ok': True, 'book': rec, 'books': load_added()['books']})
         elif u.path == '/api/run':
             s = load_settings()
             if not s.get('api_key'):
@@ -390,6 +408,10 @@ class H(BaseHTTPRequestHandler):
             lst = authors_remove(body.get('name'))
             log('author watch removed: %s' % str(body.get('name'))[:60])
             self._json({'ok': True, 'authors': lst})
+        elif u.path == '/api/books':
+            lst = added_remove(body.get('id'))
+            log('book removed: %s' % str(body.get('id'))[:60])
+            self._json({'ok': True, 'books': lst})
         else:
             self._json({'error': 'not found'}, 404)
 
@@ -492,6 +514,128 @@ def run_build(offline=False, timeout=300):
         env['SHELF_OFFLINE'] = '1'
     return subprocess.run([sys.executable, os.path.join(PIPELINE, 'build.py')], env=env,
                           capture_output=True, text=True, timeout=timeout, cwd=PIPELINE)
+
+
+# ---------- added books (ticket #84) ----------
+# A book the runs never picked, found by an Apple Books search. One record per
+# book identity (book_key, the id every mark keys on), so the reader's verdict
+# on it travels through /api/state like any other mark.
+ADDED_LOCK = threading.Lock()
+UA = {'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/125 Safari/537.36'}
+
+
+def _pipeline_import(name):
+    """A pipeline module (bookids, fetch) — /app/pipeline in the image, the
+    repo's pipeline/ in a checkout."""
+    for d in (PIPELINE, os.path.join(REPO, 'pipeline')):
+        if os.path.isdir(d) and d not in sys.path:
+            sys.path.insert(0, d)
+    return __import__(name)
+
+
+def apple_country():
+    try:
+        cfg = json.load(open(os.path.join(os.path.dirname(_pipeline_import('bookids').__file__), 'config.json')))
+        return str(cfg.get('apple_country') or 'us')
+    except Exception:
+        return 'us'
+
+
+def _get_text(url, timeout=20):
+    req = urllib.request.Request(url, headers=UA)
+    with urllib.request.urlopen(req, timeout=timeout) as r:
+        return r.read().decode('utf-8', 'replace')
+
+
+def _clean(v, n=200):
+    return ' '.join(str(v or '').split())[:n]
+
+
+def search_books(q, get_text=_get_text):
+    """Up to 10 Apple Books ebook results for a free-text query."""
+    q = _clean(q, 120)
+    if not q:
+        return []
+    url = 'https://itunes.apple.com/search?' + urlencode(
+        {'term': q, 'media': 'ebook', 'entity': 'ebook', 'limit': 10, 'country': apple_country()})
+    book_key = _pipeline_import('bookids').book_key
+    out, seen = [], set()
+    for it in (json.loads(get_text(url)) or {}).get('results') or []:
+        title, author = _clean(it.get('trackName')), _clean(it.get('artistName'))
+        bid = book_key(title, author)
+        if not title or not author or not bid or bid in seen:
+            continue   # Apple lists some books twice (two editions): one row each
+        seen.add(bid)
+        art = it.get('artworkUrl100') or it.get('artworkUrl60') or ''
+        out.append({'id': bid, 'title': title, 'author': author,
+                    'date': str(it.get('releaseDate') or '')[:10],
+                    'cover': art.replace('100x100bb', '600x600bb').replace('60x60bb', '600x600bb'),
+                    'genre': ' '.join((it.get('genres') or [])[:3]),
+                    'appleId': str(it.get('trackId') or ''),
+                    'url': str(it.get('trackViewUrl') or '').split('?')[0]})
+    return out[:10]
+
+
+def load_added():
+    """{v, books:[{id,title,author,date,img,genre,appleId,url,series,series_num,added}]}"""
+    try:
+        d = json.load(open(ADDED))
+        if isinstance(d.get('books'), list):
+            return d
+    except Exception:
+        pass
+    return {'v': 1, 'books': []}
+
+
+def save_added(d):
+    d['v'] = 1
+    _atomic_json(ADDED, d, indent=1)
+
+
+def added_add(book, get_text=_get_text):
+    """(record, error). Saves one searched book; adding it twice returns the
+    first record. Its Apple page is read once, outside the lock, for series."""
+    book = book if isinstance(book, dict) else {}
+    title, author = _clean(book.get('title')), _clean(book.get('author'))
+    bid = _pipeline_import('bookids').book_key(title, author)
+    if not title or not author or not bid:
+        return None, 'a book needs a title and an author'
+    same = [b for b in load_added()['books'] if b.get('id') == bid]
+    if same:
+        return same[0], None
+    url = str(book.get('url') or '').split('?')[0]
+    if not re.match(r'^https://books\.apple\.com/', url):
+        url = ''   # only Apple's own book pages are ever fetched
+    ser = {'series': '', 'num': ''}
+    if url:
+        try:
+            ser = _pipeline_import('fetch').page_series(get_text(url))
+        except Exception as e:
+            log('added book series lookup failed: %s' % str(e)[:80])
+    cover = str(book.get('cover') or '')
+    rec = {'id': bid, 'title': title, 'author': author,
+           'date': _clean(book.get('date'), 10), 'img': cover if cover.startswith('https://') else '',
+           'genre': _clean(book.get('genre'), 80), 'appleId': _clean(book.get('appleId'), 20),
+           'url': url, 'series': _clean(ser.get('series'), 120), 'series_num': _clean(ser.get('num'), 8),
+           'added': datetime.now().strftime('%Y-%m-%d')}
+    with ADDED_LOCK:
+        d = load_added()
+        same = [b for b in d['books'] if b.get('id') == bid]
+        if same:
+            return same[0], None
+        d['books'].append(rec)
+        save_added(d)
+    return rec, None
+
+
+def added_remove(bid):
+    with ADDED_LOCK:
+        d = load_added()
+        keep = [b for b in d['books'] if b.get('id') != bid]
+        if len(keep) != len(d['books']):
+            d['books'] = keep
+            save_added(d)
+    return d['books']
 
 
 def ensure_default(offline=False):
