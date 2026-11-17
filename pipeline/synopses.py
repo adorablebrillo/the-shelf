@@ -25,7 +25,8 @@ that it has none.
 
 Politeness: one book at a time, >=1.2s between requests and >=10s between
 Goodreads requests (config `goodreads_gap_seconds`), no more Goodreads
-requests in a build once Goodreads has answered with its bot challenge, and a
+requests in a build once Goodreads has answered with its bot challenge, new
+books ask Goodreads only in the first two-thirds of the build, and a
 per-build time budget (config `synopsis_budget_seconds`, default 180s) so a
 cold cache can never blow the boot rebuild's 300s timeout — the fill continues on the next
 build, and the run report says exactly how far it got. Everything is wrapped:
@@ -60,6 +61,11 @@ GAP = 1.2             # polite: one request at a time, never faster than this
 # every search and book page, and the other was challenged at the second
 # search. The pace lowers the odds; attach() handles the challenge itself.
 GOODREADS_GAP = float(CFG.get('goodreads_gap_seconds', 10))
+# At that pace a new book costs about 20s of Goodreads (search + page), so a
+# big batch — a Goodreads import — would leave most books 'not fetched yet'
+# for many builds. A new book asks Goodreads only in this first share of the
+# build's budget; past it, new books take Apple's copy, marked for retry.
+GOODREADS_SHARE = 2 / 3
 DEFAULT_BUDGET = 180  # seconds of fetching per build (config-overridable)
 
 _last = {'t': 0.0, 'goodreads': 0.0}
@@ -543,7 +549,9 @@ def attach(entries, cache, budget=None):
     asks Goodreads about once the books with no blurb have had their turn.
     Once Goodreads answers with its bot challenge, no more Goodreads requests
     go out this build: new books take Apple's copy (marked for retry) and the
-    retry pass waits for the next build.
+    retry pass waits for the next build. New books also stop asking Goodreads
+    once GOODREADS_SHARE of the budget is spent, so a big batch fills from
+    Apple instead of waiting blank; the retry pass may use the whole budget.
     The buckets are disjoint and sum to the books considered: fetched (this
     build, with text) + cached (with text) + none (no blurb anywhere, fresh or
     cached — unannounced stubs included) + pending (budget) + failed (retried).
@@ -591,12 +599,14 @@ def attach(entries, cache, budget=None):
                 else:
                     stats['cached'] += 1
                 continue
-        if time.time() - started >= budget:
+        spent = time.time() - started
+        if spent >= budget:
             got[k] = ('', 'pending')
             stats['pending'] += 1
             continue
         title, author = meta[k]
-        text, src, gr = lookup(title, author, goodreads=goodreads['on'])
+        ask = goodreads['on'] and spent < budget * GOODREADS_SHARE
+        text, src, gr = lookup(title, author, goodreads=ask)
         heard(gr)
         if src == 'fail':
             got[k] = ('', 'pending')          # transient: never cached, retried

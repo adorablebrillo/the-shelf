@@ -114,14 +114,15 @@ class FakeClock:
 
 class Base(unittest.TestCase):
     def setUp(self):
-        self._gap = (S.GAP, S.GOODREADS_GAP)
+        self._gap = (S.GAP, S.GOODREADS_GAP, S.GOODREADS_SHARE)
         self._get = S._get
         self._time = S.time
         S.GAP = S.GOODREADS_GAP = 0     # never sleep in tests
+        S.GOODREADS_SHARE = 1           # the whole budget, unless a test owns the share
         self.tmp = tempfile.mkdtemp(prefix='syn-test-')
 
     def tearDown(self):
-        S.GAP, S.GOODREADS_GAP = self._gap
+        S.GAP, S.GOODREADS_GAP, S.GOODREADS_SHARE = self._gap
         S._get = self._get
         S.time = self._time
         shutil.rmtree(self.tmp, ignore_errors=True)
@@ -726,6 +727,23 @@ class CacheTests(Base):
         self.assertEqual(len(net.calls), 2)                 # only the new book's lookup
         self.assertEqual(cache[old['id']]['retry'], 'goodreads')
         self.assertEqual((stats['fetched'], stats['cached'], stats['retry']), (1, 1, 1))
+
+    def test_a_big_batch_fills_from_apple_once_the_goodreads_share_is_spent(self):
+        # at the Goodreads pace a new book costs about 20 s, so a big batch (a
+        # Goodreads import) must not wait 'not fetched yet' build after build:
+        # past the share, new books take Apple's copy, marked for retry
+        S.GOODREADS_SHARE = 0.5
+        books = [self.book(id=i) for i in ('aaa--w', 'bbb--x', 'ccc--y', 'ddd--z')]
+        cache = {}
+        net = self.net(search=search_for('The Unknown', 'Riley Sager'), book=book_html(),
+                       apple=self.APPLE)
+        S.time = FakeClock(step=10)       # budget 40: Goodreads until 20 s, Apple until 40 s
+        stats = S.attach([(x, x['title'], x['author']) for x in books], cache, budget=40)
+        self.assertEqual([x['synopsisSrc'] for x in books], ['goodreads', 'apple', 'apple', 'pending'])
+        self.assertEqual(len([u for u in net.calls if 'goodreads.com' in u]), 2)
+        self.assertEqual(cache['bbb--x']['retry'], 'goodreads')
+        self.assertEqual(cache['ccc--y']['retry'], 'goodreads')
+        self.assertEqual((stats['fetched'], stats['pending'], stats['retry']), (3, 1, 2))
 
     def test_an_offline_build_never_asks_goodreads_again(self):
         b = self.book()
