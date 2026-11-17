@@ -198,7 +198,13 @@ _BAUTH = re.compile(r'''<a[^>]*class="authorName"[^>]*>(.*?)</a>''', re.S | re.I
 
 def parse_search(html):
     """A Goodreads search page -> [{title, author, url}] in rank order, or
-    None when the page is not what we expect (a markup change fails soft)."""
+    None when the page is not what we expect (a markup change fails soft).
+
+    Two page shapes: the classic table of rows, and the Next.js page Goodreads
+    serves since 2026-11 ('Book search results for ... | Goodreads'), whose
+    results live in its streamed data. A row from the Next.js page also
+    carries `description` — the result's own blurb as the search shows it
+    ('' when it has none, None when the page's data cannot say)."""
     if not html:
         return None
     out = []
@@ -213,6 +219,85 @@ def parse_search(html):
         if title and url.startswith('/book/show/'):
             out.append({'title': title, 'author': author,
                         'url': 'https://www.goodreads.com' + url})
+    return out or _parse_search_next(html)
+
+
+# The Next.js search page streams its content as React flight rows inside
+# `self.__next_f.push([1,"..."])` scripts. Each result is a props object
+# {"position": N, ..., "book": {"__typename": "Book", ...}}; a long string
+# (a blurb) is a "$<id>" reference to a text row '<id>:T<hex byte length>,'.
+_PUSH = re.compile(r'self\.__next_f\.push\(\[1,"((?:[^"\\]|\\.)*)"\]\)')
+_POSITION = re.compile(r'\{"position":(\d+),')
+
+
+def _flight(html):
+    """The page's streamed flight data as one string, or '' (fail soft)."""
+    try:
+        return ''.join(json.loads('"%s"' % p) for p in _PUSH.findall(html or ''))
+    except Exception:
+        return ''
+
+
+def _flight_text(raw, ref):
+    """Resolve a '$<id>' text reference against the flight data (UTF-8 bytes:
+    the row length counts bytes); a plain string is itself, no value is ''.
+    None when the reference cannot be resolved — unknown, not empty."""
+    if ref is None:
+        return ''
+    if not isinstance(ref, str):
+        return None
+    if not re.match(r'\$[0-9a-f]+$', ref):
+        return ref
+    m = re.search(rb'(?:^|\n)' + ref[1:].encode() + rb':T([0-9a-f]+),', raw)
+    if not m:
+        return None
+    return raw[m.end():m.end() + int(m.group(1), 16)].decode('utf-8', 'replace')
+
+
+def _first_book(o):
+    """The first Book node (one with a page) inside a result's props."""
+    if isinstance(o, dict):
+        if o.get('__typename') == 'Book' and o.get('webUrl'):
+            return o
+        o = list(o.values())
+    if isinstance(o, list):
+        for v in o:
+            b = _first_book(v)
+            if b:
+                return b
+    return None
+
+
+def _parse_search_next(html):
+    """The Next.js search page -> rows in rank order (by `position`), or None."""
+    data = _flight(html)
+    if not data:
+        return None
+    raw = data.encode('utf-8')
+    dec = json.JSONDecoder()
+    ranked = {}
+    for m in _POSITION.finditer(data):
+        try:
+            props, _ = dec.raw_decode(data, m.start())
+        except ValueError:
+            continue
+        b = _first_book(props)
+        if not b:
+            continue
+        url = (b.get('webUrl') or '').split('?')[0]
+        title = _clean(b.get('title'), 200)
+        node = (b.get('primaryContributorEdge') or {}).get('node')
+        author = _clean((node or {}).get('name') if isinstance(node, dict) else '', 120)
+        if title and url.startswith('https://www.goodreads.com/book/show/'):
+            desc = _flight_text(raw, b.get('description'))
+            ranked.setdefault(int(m.group(1)), {
+                'title': title, 'author': author, 'url': url,
+                'description': None if desc is None else _clean(desc)})
+    seen, out = set(), []
+    for _, row in sorted(ranked.items()):
+        if row['url'] not in seen:
+            seen.add(row['url'])
+            out.append(row)
     return out or None
 
 
@@ -272,7 +357,14 @@ def _suspect(html):
 
 
 def _looks_like_search(html):
-    low = (html or '')[:200000].lower()
+    """A real search page that shows no result rows: a genuine no-match.
+    The Next.js page carries 'searchresults' on every search (its other tabs'
+    loaders), so for it only its own no-results block counts — a results page
+    we cannot read must stay a transient 'fail', never a cached miss."""
+    low = (html or '').lower()
+    if 'book search results for' in low[:20000]:
+        return 'no-book-search-results' in low or 'nobooksearchresults' in low
+    low = low[:200000]
     return 'booktitle' in low or 'searchresults' in low
 
 
@@ -303,6 +395,11 @@ def goodreads_lookup(title, author):
         return ('', 'miss') if _looks_like_search(html) else ('', 'fail')
     url = None
     for r in rows:
+        # a result whose own blurb the search already shows as a stub ('1')
+        # is a placeholder edition: its page has nothing more — the next
+        # matching result (the real edition) is the one to read
+        if r.get('description') is not None and not _usable(r['description']):
+            continue
         if _entry_ok(title, author, r['title'], r['author']):
             url = r['url']
             break

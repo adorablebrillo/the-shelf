@@ -25,6 +25,7 @@ read-only, and never on the critical path. The markup can change; the parsers
 fail soft (None, never a raise).
 """
 import gzip
+import http.cookiejar
 import json
 import os
 import re
@@ -48,14 +49,21 @@ KINDLE_CAP = 4     # at most this many Goodreads book pages per run (the list is
 
 def _get(url, timeout=TIMEOUT):
     """One plain GET, browser-shaped, gzip-safe. Raises on failure — callers
-    decide what a failure means (never the run)."""
+    decide what a failure means (never the run).
+
+    Cookies a redirect sets are sent on the redirected request, as a browser
+    does: Goodreads' search answers a cookieless request with a 302 to itself
+    plus cookies, and a client that drops them loops until urllib gives up.
+    The jar lives for this one call — no state carries to the next request."""
     req = urllib.request.Request(url, headers={
         'User-Agent': UA,
         'Accept': 'text/html,application/xhtml+xml',
         'Accept-Language': 'en-US,en;q=0.9',
         'Accept-Encoding': 'gzip',
     })
-    with urllib.request.urlopen(req, timeout=timeout) as r:
+    opener = urllib.request.build_opener(
+        urllib.request.HTTPCookieProcessor(http.cookiejar.CookieJar()))
+    with opener.open(req, timeout=timeout) as r:
         raw = r.read()
         if (r.headers.get('Content-Encoding') or '').lower() == 'gzip':
             raw = gzip.decompress(raw)

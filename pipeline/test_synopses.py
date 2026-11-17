@@ -3,8 +3,10 @@
 
 Fixtures are REAL pages (saved under testdata, trimmed to the parsed nodes):
 the search page for 'Fourth Wing' (three ranked rows, incl. a junk 'Study
-Guide' result and a foreign edition) and a real book page. The parsers must
-return None (never raise) on any mutation of them.
+Guide' result and a foreign edition) and a real book page. Goodreads' newer
+Next.js search page is saved twice: the 'Fourth Wing' results (the first six
+ranked results of the page's streamed data) and a search with no result. The
+parsers must return None (never raise) on any mutation of them.
 
 No test may hit the network: every lookup goes through a fake _get.
 """
@@ -23,6 +25,8 @@ import synopses as S
 HERE = os.path.dirname(os.path.abspath(__file__))
 SEARCH_FX = os.path.join(HERE, 'testdata', 'gr-search-fourth-wing.html')
 BOOK_FX = os.path.join(HERE, 'testdata', 'gr-book-243596193.html')
+NEXT_SEARCH_FX = os.path.join(HERE, 'testdata', 'gr-search-next-fourth-wing.html')
+NEXT_EMPTY_FX = os.path.join(HERE, 'testdata', 'gr-search-next-no-results.html')
 
 
 def _read(path):
@@ -36,6 +40,10 @@ def search_html():
 
 def book_html():
     return _read(BOOK_FX)
+
+
+def next_search_html():
+    return _read(NEXT_SEARCH_FX)
 
 
 def search_for(title, author):
@@ -141,6 +149,40 @@ class SearchParseTests(Base):
         rows = S.parse_search(html)
         self.assertTrue(rows)
         self.assertEqual(rows[0]['author'], '')
+
+
+class NextSearchParseTests(Base):
+    """The Next.js search page Goodreads serves since 2026-11 ('Book search
+    results for ... | Goodreads'): no result rows in the markup — the results
+    live in the page's streamed data. The classic-row parser read 0 rows from
+    it, so every lookup failed over to Apple."""
+
+    def test_real_page_parses_in_rank_order(self):
+        rows = S.parse_search(next_search_html())
+        self.assertIsInstance(rows, list)
+        self.assertEqual(len(rows), 6)                 # the six results the fixture keeps
+        self.assertEqual(rows[0]['title'], 'Fourth Wing')
+        self.assertEqual(rows[0]['author'], 'Rebecca Yarros')
+        self.assertEqual(rows[0]['url'], 'https://www.goodreads.com/book/show/217165422-fourth-wing')
+        self.assertEqual(rows[1]['author'], 'SuperSummary')   # the study guide ranks second
+        self.assertEqual(rows[2]['url'], 'https://www.goodreads.com/book/show/61431922-fourth-wing')
+
+    def test_a_result_blurb_is_read_whole_from_its_text_row(self):
+        # a long blurb is a separate text row whose length counts UTF-8 bytes;
+        # the blurb holds curly quotes and bullets, so a character count would
+        # run past its end into the next row's data
+        rows = S.parse_search(next_search_html())
+        self.assertEqual(rows[0]['description'], '1')  # the placeholder edition's stub
+        d = rows[2]['description']
+        self.assertIn('Violet Sorrengail', d)
+        self.assertNotIn('"$"', d)
+        self.assertTrue(d.endswith('Book #3 Onyx Storm'), d[-60:])   # the blurb's own last line
+
+    def test_mutations_never_raise(self):
+        html = next_search_html()
+        for cut in (0, 100, len(html) // 3, len(html) // 2, len(html) - 50):
+            out = S.parse_search(html[:cut])
+            self.assertTrue(out is None or isinstance(out, list))
 
 
 class BookPageTests(Base):
@@ -368,6 +410,32 @@ class ChainTests(Base):
         big = '<html><body>' + 'x' * 5000 + '</body></html>'   # big, but not a search page
         self.net(search=big, apple={'results': []})
         self.assertEqual(S.resolve('The Unknown', 'Riley Sager'), ('', 'fail'))
+
+    def test_next_page_skips_a_placeholder_edition_for_the_real_one(self):
+        # the Next.js page's top 'Fourth Wing' result is a placeholder edition
+        # whose blurb is '1'; the real edition ranks third. The book fixture
+        # stands in for that edition's page, renamed to it.
+        page = book_html().replace('"title":"The Unknown"', '"title":"Fourth Wing"')
+        page = page.replace('"name":"Riley Sager"', '"name":"Rebecca Yarros"')
+        net = self.net(search=next_search_html(), book=page)
+        text, src = S.resolve('Fourth Wing', 'Rebecca Yarros')
+        self.assertEqual(src, 'goodreads')
+        self.assertIn('New Avalon', text)
+        self.assertEqual(len(net.calls), 2)            # search + one page
+        self.assertIn('/book/show/61431922', net.calls[1])
+
+    def test_next_page_with_no_result_is_a_miss(self):
+        net = self.net(search=_read(NEXT_EMPTY_FX), apple={'results': []})
+        self.assertEqual(S.resolve('Nobody Wrote This', 'No One'), ('', 'none'))
+        self.assertFalse([u for u in net.calls if '/book/show/' in u])
+
+    def test_a_next_results_page_we_cannot_read_is_transient(self):
+        # every Next.js search page names its other tabs' result loaders, so a
+        # results page whose data no longer parses must not pass as 'no
+        # result' — that would cache a false none
+        html = next_search_html().replace('self.__next_f.push', 'self.__changed.push')
+        self.net(search=html, apple={'results': []})
+        self.assertEqual(S.resolve('Fourth Wing', 'Rebecca Yarros'), ('', 'fail'))
 
     def test_a_challenged_book_page_is_transient(self):
         # the search matched, but the book page came back as a challenge
