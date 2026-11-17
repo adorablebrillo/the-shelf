@@ -741,7 +741,9 @@ def parse_goodreads(text):
         books.append({'id': bid, 'title': title, 'author': author, 'series': series,
                       'series_num': num, 'rating': rating, 's': verdict, 'reading': reading,
                       't': gr_time(row.get('Date Read'), row.get('Date Added')),
-                      'isbn13': re.sub(r'[^0-9Xx]', '', str(row.get('ISBN13') or ''))[:13]})
+                      'isbn13': re.sub(r'[^0-9Xx]', '', str(row.get('ISBN13') or ''))[:13],
+                      # the Goodreads Book Id: its own page is goodreads.com/book/show/<gr>
+                      'gr': re.sub(r'[^0-9]', '', str(row.get('Book Id') or ''))[:20]})
     return books, left, None
 
 
@@ -815,7 +817,7 @@ def import_goodreads(text, dry=True, track=None):
             d['books'].append({'id': b['id'], 'title': b['title'], 'author': b['author'],
                                'date': '', 'img': '', 'genre': '', 'appleId': '', 'url': '',
                                'series': b['series'], 'series_num': b['series_num'],
-                               'isbn13': b['isbn13'], 'added': today, 'from': 'goodreads'})
+                               'isbn13': b['isbn13'], 'gr': b['gr'], 'added': today, 'from': 'goodreads'})
             have.add(b['id'])
         keep = [n for n in (d.get('untracked') or []) if isinstance(n, str) and norm(n) not in ticked]
         keep_keys = {norm(n) for n in keep}

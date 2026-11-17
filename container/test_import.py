@@ -80,6 +80,7 @@ class ImportTests(unittest.TestCase):
         self.assertEqual((byid[FOURTH]['title'], byid[FOURTH]['series'], byid[FOURTH]['series_num']),
                          ('Fourth Wing', 'The Empyrean', '1'))
         self.assertEqual(byid[FOURTH]['isbn13'], '9781649374042')
+        self.assertEqual(byid[FOURTH]['gr'], '61431922')   # the export's Book Id
         self.assertEqual(byid[LOVERS]['series'], '')
         self.assertEqual(added['untracked'], ['Maple Hills'])
 
