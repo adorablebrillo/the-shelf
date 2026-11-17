@@ -20,7 +20,7 @@ pipeline/
 ├── windows.py         # target month + window end, shared by filter/curate
 ├── bookids.py         # the canonical book identity (book_key), shared by engine + app
 ├── shelf_state.py     # your verdicts: the exclusion set + split (ticket #7)
-├── sequels.py         # tracked series: library.json + sequels.json + the series her read/loved marks track; the sequel guarantee's match
+├── sequels.py         # tracked series: library.json + sequels.json + the series her read, loved and reading-now marks track; the sequel guarantee's match
 ├── verdicts.py        # your verdicts teach the model: marked ids -> books, the her_verdicts lists, the kept `because` (#83)
 ├── paths.py           # personal files: config volume first, repo copy as fallback
 ├── test_shape.py      # the shape rule's deterministic tests
@@ -29,7 +29,7 @@ pipeline/
 ├── test_reference.py  # the Goodreads reference: parsers (real fixtures), matchers, failure paths
 ├── testdata/          # saved real pages for the reference parsers (list + one book page) and Apple Books answers
 ├── test_filter.py     # the pairing screen's tests
-├── test_marked_series.py # a read or loved pick tracks its series: marks, fallback, guarantee, author lane, Series page, curate's series copy
+├── test_marked_series.py # a read, loved or reading-now pick tracks its series: marks, fallback, guarantee, author lane, Series page, curate's series copy
 ├── test_watches.py    # author watches: page series extraction + the radar merge
 ├── test_pick.py       # pick_book survives model field drift (string spice/mmc)
 ├── test_seasons.py    # the season table: one season a day, Christmas boundaries, complete looks, corner contrast

@@ -19,7 +19,7 @@ The section showing every open series with its full run, its next book, and per-
 _Avoid_: the lane
 
 **Archive**:
-The resolved side of the app — **Read & loved** (the stacks, everything read by series, standalones) and **Not for me** (set-aside books, each with *put it back*).
+The resolved side of the app — **Read & loved** (the stacks, everything read by series, standalones) and **Not for me** (set-aside books; pressing *not for me* again puts one back).
 _Avoid_: library
 
 **Settings**:
@@ -45,10 +45,16 @@ _Avoid_: favorite
 A verdict, not a browsing gesture. Sets the book aside in the Archive; nothing is deleted, and it can be put back.
 _Avoid_: skip, dismiss
 
+**reading now**:
+The book she is reading at the moment: *want* plus a reading flag that travels beside the verdicts, never as one. The book takes the first spot on My Shelf with a star, and a series volume shows a star on the Series page. Pressing it again leaves *want*; any other verdict clears the flag.
+
+**Verdict row**:
+The one control for a book's mark, on every book card and row: reading now · want · read · loved · not for me. The lit choice is the mark now; pressing it again takes the mark off (a pick goes back to Home as open, an added book leaves the shelf, a series volume goes back to out). In a list, the row shows only the current mark until she taps it. Home's picks keep their own four verdicts (they are open books only), and coming or announced volumes take no mark.
+
 ### Series
 
 **Tracked series**:
-A series she is in. It comes from `library.json`, from `sequels.json`, or from her marks: a book marked *read* or *loved* tracks its series, worked out again at each run (no file is written, and clearing the mark stops tracking at the next run). The author of a tracked series is searched every run, and a new book in it is a guaranteed pick (the sequel guarantee). A series tracked from marks shows on the Series page once a next book is known. A series she left unticked on the Goodreads import is never tracked from marks (the `untracked` list in `added-books.json`).
+A series she is in. It comes from `library.json`, from `sequels.json`, or from her marks: a book marked *read* or *loved*, or one she is reading now, tracks its series, worked out again at each run (no file is written, and clearing the mark stops tracking at the next run). The author of a tracked series is searched every run, and a new book in it is a guaranteed pick (the sequel guarantee). A series tracked from marks shows on the Series page once a next book is known. A series she left unticked on the Goodreads import is never tracked from marks (the `untracked` list in `added-books.json`).
 _Avoid_: followed series, the lane
 
 **Open series** / **Closed series**:
@@ -60,7 +66,7 @@ A series with at least one unread volume is open (it shows on the Series page); 
 The Home block of upcoming releases from tracked series, each with a countdown. Not markable — on release, a book leaves anticipation and becomes *out* (actionable) or a pick.
 
 **Out now (unread)**:
-A released volume in a tracked series that hasn't been marked. Actionable from My Shelf's "Out now in your series" block and the Series page.
+A released volume in a tracked series that hasn't been marked. Actionable from My Shelf's "Out now in your series" block and the Series page (its cover strip and the full run). The Series "mark next read" and "loved it" buttons offer an undo for the book just marked, until the next mark or a change of view.
 
 ### Surfaces
 

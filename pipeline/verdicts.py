@@ -95,6 +95,15 @@ def load_marks(cfg_dir=None, keep=STATE_LIST):
     return out
 
 
+def load_reading(cfg_dir=None):
+    """{id} of the books she is reading now: the reading channel of the
+    server's reader-state.json, a flag beside the verdicts (never one)."""
+    rs = os.path.join(cfg_dir or paths.cfg_dir(), 'reader-state.json')
+    state = _load(rs) or {}
+    return {bid for bid, r in (state.get('reading') or {}).items()
+            if isinstance(r, dict) and r.get('s')}
+
+
 def her_verdicts(marks, details, caps=CAPS):
     """-> (lists, missing). lists: {'loved': [...], 'want': [...],
     'not_for_me': [...]}, each newest mark first and capped. missing: how many
