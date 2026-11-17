@@ -35,6 +35,7 @@ pipeline/
 ├── test_seasons.py    # the season table: one season a day, Christmas boundaries, complete looks, corner contrast
 ├── test_quick_build.py # the quick boot build (SHELF_OFFLINE=1): saved data only, no network request
 ├── test_added.py      # the build ships books she added by search (#84)
+├── test_covers.py     # series cover lookups: a refused lookup is retried, a real miss is saved, old misses expire
 ├── design/            # the live design — app.html + support.js + vendored React
 ├── run.sh             # one-shot: fetch → reference → filter → curate → build [--deploy]
 └── data/              # candidates-*.json, filtered-*.json, month-*.json (history)

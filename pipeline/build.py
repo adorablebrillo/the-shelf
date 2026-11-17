@@ -17,7 +17,7 @@ script feeds it live data via dist/shelf-data.js:
 Pure stdlib; assets + vendored runtime are copied into dist/ here too, so the
 same code path runs at image-bake time and after every pipeline run.
 """
-import json, os, re, shutil, sys, urllib.request, urllib.parse, hashlib, calendar, glob
+import json, os, re, shutil, sys, time, urllib.request, urllib.parse, hashlib, calendar, glob
 from datetime import datetime
 import paths  # shared resolver: reader data lives on the volume (CFG_DIR)
 import synopses  # #51: the synopsis chain + its volume cache
@@ -223,6 +223,8 @@ def season_of(month, day):
     return None
 
 
+# a saved cover miss is looked up again after this many days
+COVER_MISS_DAYS = 30
 HEADERS = {'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 Chrome/125 Safari/537.36'}
 
 
@@ -324,15 +326,18 @@ def _title_ok(want, got):
 
 def lookup_cover_url(title, author):
     """Real cover art for a book: iTunes ebooks -> Google Books -> Open Library.
-    No API keys needed; returns a full-size-ish image URL or ''.
+    No API keys needed; returns a full-size-ish image URL, '' when every
+    provider answered and none has art (a real miss), or None when a provider
+    failed (refused with 403/429, quota, timeout) and none had art — a failure
+    is not a miss: the caller must not save it, the next build retries.
     Every provider must pass _title_ok — a wrong cover is worse than a
     placeholder (the #42 review found 'Untitled' borrowing Iron Flame's art)."""
     t = (title or '').strip()
     a = (author or '').strip()
     if not t or not _title_ok(t, t):
         return ''
-    tl = t.lower()
     last = a.split()[-1].lower() if a else ''
+    failed = False
     try:
         q = urllib.parse.urlencode({'term': ('%s %s' % (t, a)).strip(), 'media': 'ebook',
                                     'entity': 'ebook', 'limit': 8, 'country': CFG.get('apple_country', 'us')})
@@ -344,6 +349,7 @@ def lookup_cover_url(title, author):
             if art and author_ok and _title_ok(t, name):
                 return art.replace('100x100bb', '600x600bb').replace('60x60bb', '600x600bb').replace('100x100', '600x600')
     except Exception as e:
+        failed = True
         print('cover lookup (itunes): %s' % str(e)[:70])
     try:
         q = urllib.parse.quote('intitle:"%s"%s' % (t, (' inauthor:"%s"' % a) if a else ''))
@@ -357,6 +363,7 @@ def lookup_cover_url(title, author):
             if u and author_ok and _title_ok(t, vi.get('title')):
                 return u.replace('http://', 'https://').replace('&edge=curl', '')
     except Exception as e:
+        failed = True
         print('cover lookup (google): %s' % str(e)[:70])
     try:
         q = urllib.parse.quote(('%s %s' % (t, a)).strip())
@@ -367,8 +374,9 @@ def lookup_cover_url(title, author):
             if doc.get('cover_i') and author_ok and _title_ok(t, doc.get('title')):
                 return 'https://covers.openlibrary.org/b/id/%s-L.jpg' % doc['cover_i']
     except Exception as e:
+        failed = True
         print('cover lookup (openlibrary): %s' % str(e)[:70])
-    return ''
+    return None if failed else ''
 
 
 def ensure_cover(img, title, author, covers_dir):
@@ -389,17 +397,25 @@ def ensure_cover(img, title, author, covers_dir):
     if OFFLINE:
         return img or ''
     # #42 review: cache the miss too — a '<slug>.none' sentinel keeps rebuilds
-    # fully offline (no re-attempting three providers per artless volume).
-    # Delete the sentinel to re-attempt a lookup by hand.
+    # offline (no re-attempting three providers per artless volume). Only a
+    # real miss is saved: a refused or failed lookup is retried by the next
+    # build. A saved miss expires after COVER_MISS_DAYS, so art published
+    # later — and misses older builds saved for refusals — get a new lookup.
     miss = os.path.join(covers_dir, name[:-4] + '.none')
-    if os.path.isfile(miss):
-        return img or ''
+    try:
+        if time.time() - os.path.getmtime(miss) < COVER_MISS_DAYS * 86400:
+            return img or ''
+    except OSError:
+        pass                                  # no saved miss
     url = lookup_cover_url(title, author)
     if url:
         local = download_cover({'img': url, 'title': title, 'author': author}, covers_dir)
         if local:
             print('cover fetched: %s' % (title or '')[:44])
             return local
+        return img or ''                      # the art did not download: retried, not a miss
+    if url is None:
+        return img or ''                      # a provider failed: retried, not a miss
     try:
         with open(miss, 'w') as f:
             f.write('no cover found %s\n' % datetime.now().date().isoformat())
@@ -544,7 +560,7 @@ def series_data(covers_dir=None):
 
     covers_dir = covers_dir or os.path.join(BASE, 'data', 'covers')
     os.makedirs(covers_dir, exist_ok=True)
-    cov = {'resolved': 0, 'cached': 0, 'fetched': 0, 'placeholder': 0, 'preset': 0}
+    cov = {'resolved': 0, 'cached': 0, 'fetched': 0, 'placeholder': 0, 'noart': 0, 'preset': 0}
     handled = set()
 
     def attach_covers(books, author):
@@ -570,7 +586,7 @@ def series_data(covers_dir=None):
                 cov['resolved'] += 1
                 cov['cached' if was else 'fetched'] += 1
             else:
-                cov['placeholder'] += 1
+                cov['noart'] += 1             # looked up, no art yet (a miss or a failed lookup)
 
     used = set()
     out = []
@@ -631,10 +647,10 @@ def series_data(covers_dir=None):
                     'books': nb_list})
     if merged_total:
         print('author watches: %d upcoming series book(s) merged into the series lane' % merged_total)
-    total = cov['resolved'] + cov['placeholder']
+    total = cov['resolved'] + cov['noart'] + cov['placeholder']
     extra = (', %d pre-set' % cov['preset']) if cov['preset'] else ''
-    print('series covers: %d of %d volumes resolved real art (%d from cache, %d fetched%s), %d deliberate placeholders'
-          % (cov['resolved'], total, cov['cached'], cov['fetched'], extra, cov['placeholder']))
+    print('series covers: %d of %d volumes resolved real art (%d from cache, %d fetched%s), %d without art, %d deliberate placeholders'
+          % (cov['resolved'], total, cov['cached'], cov['fetched'], extra, cov['noart'], cov['placeholder']))
     return out
 
 
