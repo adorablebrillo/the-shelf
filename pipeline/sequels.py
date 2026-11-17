@@ -102,15 +102,19 @@ def untracked(cfg_dir=None):
 
 def from_marks(data_dir=None, cfg_dir=None):
     """The series tracked from her marks: the series of every book marked read
-    or loved that library.json and sequels.json do not already hold (by the
+    or loved, or that she is reading now, that library.json and sequels.json do not already hold (by the
     same name match the sequel guarantee uses), less the series she left
     unticked on the Goodreads import. Nothing is written.
 
     -> [{'series': name, 'author': author, 'books': [{'title', 'num', 'id'}]}]
+    (a book she is reading now also carries 'reading': True)
     sorted by series name."""
     import verdicts  # the reader-state reader and the book lookup (#83)
     data_dir = data_dir or DATA_DIR
-    marks = verdicts.load_marks(cfg_dir, keep=TRACK_VERDICTS)
+    # reading now is want plus the reading flag: she is in that series too
+    reading = verdicts.load_reading(cfg_dir)
+    marks = [m for m in verdicts.load_marks(cfg_dir, keep=TRACK_VERDICTS + ('want',))
+             if m[1] in TRACK_VERDICTS or m[0] in reading]
     if not marks:
         return []
     details = verdicts.book_details(data_dir)
@@ -134,7 +138,10 @@ def from_marks(data_dir=None, cfg_dir=None):
         if not num:
             m = re.search(r'#\s*([\d.]+)', d.get('series') or c.get('series') or '')
             num = m.group(1) if m else ''
-        g['books'].append({'title': title, 'num': num, 'id': bid})
+        bk = {'title': title, 'num': num, 'id': bid}
+        if bid in reading and _s == 'want':
+            bk['reading'] = True   # listed out, not read, on the Series page
+        g['books'].append(bk)
     for g in groups.values():
         g['books'].sort(key=lambda b: (_num(b['num']), b['title'].lower()))
     return sorted(groups.values(), key=lambda g: g['series'].lower())

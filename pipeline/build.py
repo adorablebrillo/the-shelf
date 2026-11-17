@@ -531,7 +531,7 @@ def series_data(covers_dir=None):
     for ser in seq.get('series', []):
         seqmap[norm_name(ser.get('series'))] = ser
 
-    # the series her read and loved marks track: they join the tracked map so
+    # the series her read, loved and reading-now marks track: they join the tracked map so
     # their next books merge the same way, and list only once one is known
     marked = {}
     for g in sequels.from_marks(os.path.join(BASE, 'data')):
@@ -636,10 +636,13 @@ def series_data(covers_dir=None):
         for b in nb_list:
             b['id'] = b.get('id') or book_key(b['t'], v2.get('author'))
         if k2 in marked:
-            if not nb_list:
+            # a book she is reading now is out and unread: it is a next book too
+            if not nb_list and not any(rb.get('reading') for rb in marked[k2]['books']):
                 continue  # no next book known yet: the Series page waits for one
-            read = [{'t': rb['title'], 'n': ('#' + rb['num']) if rb['num'] else '', 'd': 'read',
-                     'state': 'read', 'iso': '', 'id': rb['id']} for rb in marked[k2]['books']]
+            read = [{'t': rb['title'], 'n': ('#' + rb['num']) if rb['num'] else '',
+                     'd': 'reading' if rb.get('reading') else 'read',
+                     'state': 'out' if rb.get('reading') else 'read', 'iso': '', 'id': rb['id']}
+                    for rb in marked[k2]['books']]
             have = {x['t'].lower() for x in read}
             nb_list = read + [b for b in nb_list if b['t'].lower() not in have]
         attach_covers(nb_list, v2.get('author') or '')

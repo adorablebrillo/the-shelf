@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""A read or loved pick starts tracking its series (the "Do first" plan, piece 2).
+"""A read, loved or reading-now pick starts tracking its series (the "Do first" plan, piece 2).
 
 The reader state, month files, candidates files and series files are real
 files in a scratch config volume and data folder, shaped like the ones the
@@ -148,6 +148,18 @@ class MarkedSeriesTests(unittest.TestCase):
         self.assertEqual([(b['t'], b['n'], b['state']) for b in mist[0]['books']],
                          [('Ember Vow', '#1', 'read'), ('Ember Crown', '#2', 'soon')])
         self.assertEqual(mist[0]['books'][0]['id'], EMBER)   # the app's mark lands on the same book
+
+    def test_reading_now_tracks_its_series_and_lists_the_book_out(self):
+        # reading now is want plus the reading flag, as the page writes it;
+        # moving a book from read to reading now must keep its series tracked
+        write(os.path.join(self.cfg, 'reader-state.json'), {
+            'states': {EMBER: {'s': 'want', 't': 3}, POWER: {'s': 'want', 't': 2}},
+            'reading': {EMBER: {'s': True, 't': 3}, POWER: {'s': False, 't': 2}}})
+        marked = sequels.from_marks(self.data, self.cfg)
+        self.assertEqual([g['series'] for g in marked], ['Mist Court'])   # plain want tracks nothing
+        self.assertEqual(marked[0]['books'], [{'title': 'Ember Vow', 'num': '1', 'id': EMBER, 'reading': True}])
+        mist = self.series_page()   # the book itself is the next book: no other needed
+        self.assertEqual([(b['t'], b['state']) for b in mist[0]['books']], [('Ember Vow', 'out')])
 
     def test_curate_copies_the_candidate_series_onto_model_picks(self):
         end = curate.window_end(curate.MODE)
