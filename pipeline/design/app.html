@@ -1647,7 +1647,7 @@ class Component extends DCLogic {
       return {grHref:'',grLabel:'',grAria:'',grStyle:{}};
     const q=(t+' '+String(author||'').trim()).trim();
     return {
-      grHref:grUrl||('https://www.goodreads.com/search?q='+encodeURIComponent(q).replace(/%20/g,'+')),
+      grHref:(/^https:\/\/www\.goodreads\.com\/book\/show\//.test(grUrl||'')?grUrl:'')||('https://www.goodreads.com/search?q='+encodeURIComponent(q).replace(/%20/g,'+')),
       grLabel:'goodreads \u2197',
       grAria:t+' on Goodreads, opens a new tab',
       grStyle:{fontSize:'10.5px',letterSpacing:'.22em',textTransform:'uppercase',whiteSpace:'nowrap',
