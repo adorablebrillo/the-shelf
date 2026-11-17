@@ -46,6 +46,13 @@ def next_search_html():
     return _read(NEXT_SEARCH_FX)
 
 
+# the real AWS WAF body Goodreads serves a client it challenges (a ~2KB page
+# that runs a script instead of the page), trimmed to its markers
+WAF_PAGE = ('<!DOCTYPE html><html><head><title></title></head><body>'
+            '<script>window.awsWafCookieDomainList = [];window.gokuProps = {"key":"AQID"};</script>'
+            '</body></html>')
+
+
 def search_for(title, author):
     """The real search fixture, with its first ranked row answering for
     `title`/`author` — the row structure stays exactly the real page's."""
@@ -59,7 +66,8 @@ def search_for(title, author):
 
 
 class FakeNet:
-    """A deterministic _get: routes by URL, counts calls, fails on demand."""
+    """A deterministic _get: routes by URL, counts calls, fails on demand.
+    `search` may be a list: each search takes the next page, the last repeats."""
 
     def __init__(self, search=None, book=None, apple=None, fail_on=()):
         self.search = search
@@ -78,6 +86,8 @@ class FakeNet:
         if '/search?' in url:
             if self.search is None:
                 raise IOError('no fake search page')
+            if isinstance(self.search, list):
+                return self.search.pop(0) if len(self.search) > 1 else self.search[0]
             return self.search
         if '/book/show/' in url:
             if self.book is None:
@@ -124,10 +134,10 @@ class Base(unittest.TestCase):
 
 # ---------- the pace ----------
 class PaceTests(Base):
-    """Goodreads answers a caller that asks too fast with its bot challenge:
+    """Goodreads answers a client without a browser with its bot challenge:
     measured 2026-11, at the build's 1.2 s pace the second book's search was
-    already challenged (and its blurb fell back to Apple); at 10 s every
-    search and book page answered."""
+    challenged in 2 runs of 2; at 10 s, 3 runs of 4 read every search and book
+    page. The pace lowers the odds; CacheTests own what a challenge does."""
 
     def setUp(self):
         super().setUp()
@@ -432,10 +442,7 @@ class ChainTests(Base):
         # the real AWS WAF body Goodreads served after ~20 requests: a 200 with
         # a ~2KB CAPTCHA page. Treating it as "no blurb here" would poison the
         # cache with a false none — it must stay pending and be retried.
-        waf = ('<!DOCTYPE html><html><head><title></title></head><body>'
-               '<script>window.awsWafCookieDomainList = [];window.gokuProps = {"key":"AQID"};</script>'
-               '</body></html>')
-        self.net(search=waf, apple={'results': []})
+        self.net(search=WAF_PAGE, apple={'results': []})
         self.assertEqual(S.resolve('The Unknown', 'Riley Sager'), ('', 'fail'))
 
     def test_an_empty_body_is_transient(self):
@@ -647,6 +654,87 @@ class CacheTests(Base):
         self.assertEqual(b['synopsis'], '')
         self.assertEqual(stats['none'], 1)               # no blurb exists: a miss
         self.assertNotIn(b['id'], cache)                 # never a cache entry
+
+    # Goodreads challenges a client without a browser after a few requests
+    # (measured live 2026-11: the second book's search, even at the 10 s
+    # pace). The blurb must still come from Goodreads before Apple's copy.
+    APPLE = {'results': [{'trackName': 'The Unknown', 'artistName': 'Riley Sager',
+                          'description': 'In 1926, five women disappeared from a remote island '
+                                         'in Vermont; one hundred years later, it is happening again.'}]}
+
+    def retry_entry(self):
+        return {'text': self.APPLE['results'][0]['description'], 'src': 'apple',
+                'at': '2026-11-17', 'retry': 'goodreads'}
+
+    def test_a_challenge_pauses_goodreads_and_marks_apple_copies_for_retry(self):
+        a = self.book(id='aaa--x')
+        b = self.book(id='bbb--y')
+        c = self.book(id='ccc--z')
+        cache = {}
+        net = self.net(search=[search_for('The Unknown', 'Riley Sager'), WAF_PAGE],
+                       book=book_html(), apple=self.APPLE)
+        stats = S.attach([(x, x['title'], x['author']) for x in (a, b, c)], cache)
+        self.assertEqual([x['synopsisSrc'] for x in (a, b, c)], ['goodreads', 'apple', 'apple'])
+        goodreads = [u for u in net.calls if 'goodreads.com' in u]
+        self.assertEqual(len(goodreads), 3)       # a: search + page; b: the challenged search
+        self.assertEqual(len(net.calls), 5)       # then Apple for b and for c, nothing more
+        self.assertNotIn('retry', cache['aaa--x'])
+        self.assertEqual(cache['bbb--y']['retry'], 'goodreads')
+        self.assertEqual(cache['ccc--z']['retry'], 'goodreads')
+        self.assertEqual((stats['fetched'], stats['goodreads'], stats['apple'], stats['retry']),
+                         (3, 1, 2, 2))
+        self.assertTrue(S.report_line(stats).endswith(' / 2 apple until goodreads answers'))
+
+    def test_the_next_build_asks_goodreads_again_and_takes_its_blurb(self):
+        b = self.book()
+        cache = {b['id']: self.retry_entry()}
+        net = self.net(search=search_for('The Unknown', 'Riley Sager'), book=book_html(),
+                       apple=self.APPLE)
+        stats = S.attach([(b, b['title'], b['author'])], cache)
+        self.assertEqual(b['synopsisSrc'], 'goodreads')
+        self.assertIn('New Avalon', b['synopsis'])
+        self.assertEqual(len(net.calls), 2)       # search + page; Apple is not asked again
+        self.assertEqual(cache[b['id']]['src'], 'goodreads')
+        self.assertNotIn('retry', cache[b['id']])
+        self.assertEqual((stats['fetched'], stats['goodreads'], stats['retry']), (1, 1, 0))
+
+    def test_a_goodreads_miss_makes_the_apple_copy_final(self):
+        b = self.book()
+        cache = {b['id']: self.retry_entry()}
+        self.net(search=_read(NEXT_EMPTY_FX), apple=self.APPLE)   # Goodreads: no such book
+        stats = S.attach([(b, b['title'], b['author'])], cache)
+        self.assertEqual(b['synopsisSrc'], 'apple')
+        self.assertIn('five women', b['synopsis'])
+        self.assertNotIn('retry', cache[b['id']])
+        self.assertEqual((stats['cached'], stats['retry']), (1, 0))
+        net = self.net(search=search_for('The Unknown', 'Riley Sager'), book=book_html())
+        S.attach([(b, b['title'], b['author'])], cache)
+        self.assertEqual(net.calls, [])           # final: never asked again
+
+    def test_books_with_no_blurb_go_before_the_retries(self):
+        # an outage must not leave books blank: the budget fills a book with no
+        # blurb before it upgrades one that already shows Apple's copy
+        old = self.book(id='aaa--x')
+        new = self.book(id='bbb--y')
+        cache = {old['id']: self.retry_entry()}
+        net = self.net(search=search_for('The Unknown', 'Riley Sager'), book=book_html())
+        S.time = FakeClock(step=10)                 # budget 15 -> one lookup fits
+        stats = S.attach([(old, old['title'], old['author']), (new, new['title'], new['author'])],
+                         cache, budget=15)
+        self.assertEqual(new['synopsisSrc'], 'goodreads')
+        self.assertEqual(old['synopsisSrc'], 'apple')      # still shows Apple's copy
+        self.assertEqual(len(net.calls), 2)                 # only the new book's lookup
+        self.assertEqual(cache[old['id']]['retry'], 'goodreads')
+        self.assertEqual((stats['fetched'], stats['cached'], stats['retry']), (1, 1, 1))
+
+    def test_an_offline_build_never_asks_goodreads_again(self):
+        b = self.book()
+        cache = {b['id']: self.retry_entry()}
+        net = self.net(search=search_for('The Unknown', 'Riley Sager'), book=book_html())
+        S.attach([(b, b['title'], b['author'])], cache, budget=0)
+        self.assertEqual(net.calls, [])
+        self.assertEqual(b['synopsisSrc'], 'apple')
+        self.assertEqual(cache[b['id']]['retry'], 'goodreads')
 
     def test_series_volumes_key_on_their_canonical_id(self):
         # a volume dict (t, no author) still caches under the build's id

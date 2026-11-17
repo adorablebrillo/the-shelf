@@ -17,12 +17,17 @@ Cache: pipeline/data/synopsis-cache.json (the volume), keyed by the canonical
 book id — a book is looked up ONCE ever; rebuilds, container boots and
 pageviews never refetch. A definitive miss caches 'none' (delete the entry to
 re-attempt by hand); a request failure is never cached — the next build
-retries it.
+retries it. An Apple copy taken only because Goodreads did not answer (its bot
+challenge, an outage, a page we cannot read) is shown at once but cached with
+`retry: 'goodreads'`: a later build asks Goodreads again, after the books with
+no blurb at all, and the Apple copy becomes final only when Goodreads answers
+that it has none.
 
 Politeness: one book at a time, >=1.2s between requests and >=10s between
-Goodreads requests (config `goodreads_gap_seconds`), and a per-build time
-budget (config `synopsis_budget_seconds`, default 180s) so a cold cache can
-never blow the boot rebuild's 300s timeout — the fill continues on the next
+Goodreads requests (config `goodreads_gap_seconds`), no more Goodreads
+requests in a build once Goodreads has answered with its bot challenge, and a
+per-build time budget (config `synopsis_budget_seconds`, default 180s) so a
+cold cache can never blow the boot rebuild's 300s timeout — the fill continues on the next
 build, and the run report says exactly how far it got. Everything is wrapped:
 a synopsis failure never breaks a build or a run.
 
@@ -49,10 +54,11 @@ CFG = json.load(open(os.path.join(BASE, 'config.json')))
 CACHE_NAME = 'synopsis-cache.json'
 DESC_CAP = 2000       # a blurb, not a chapter
 GAP = 1.2             # polite: one request at a time, never faster than this
-# Goodreads answers a caller that asks faster with its bot challenge: measured
-# 2026-11 from one address, a 1.2s pace was challenged from the second book's
-# search on, a 10s pace read every search and book page. A challenged lookup
-# falls back to Apple's copy, so the pace decides where a blurb comes from.
+# Goodreads answers a client without a browser with its bot challenge after a
+# few requests. Measured 2026-11 from one address: at a 1.2s pace the second
+# book's search was challenged in 2 runs of 2; at a 10s pace 3 runs of 4 read
+# every search and book page, and the other was challenged at the second
+# search. The pace lowers the odds; attach() handles the challenge itself.
 GOODREADS_GAP = float(CFG.get('goodreads_gap_seconds', 10))
 DEFAULT_BUDGET = 180  # seconds of fetching per build (config-overridable)
 
@@ -384,19 +390,20 @@ def _looks_like_search(html):
 
 
 def goodreads_lookup(title, author):
-    """('text', 'goodreads') | ('', 'miss') | ('', 'fail').
+    """('text', 'goodreads') | ('', 'miss') | ('', 'fail') | ('', 'challenged').
 
     One search, then the matched book page. A search that redirects straight
     to a single book page is honored in place (no second request). A request
-    failure — or a rate-limit/challenge page — is 'fail': transient, never
-    cached, retried by the next build. A real page with nothing to give is a
-    'miss'."""
+    failure is 'fail'; a bot-challenge page (or an empty body) is
+    'challenged'. Both are transient, never cached as a miss, retried by a
+    later build — and 'challenged' tells attach() to stop asking Goodreads
+    this build. A real page with nothing to give is a 'miss'."""
     try:
         html = _get(search_url(title, author))
     except Exception:
         return ('', 'fail')
     if _suspect(html):
-        return ('', 'fail')
+        return ('', 'challenged')
     rows = parse_search(html)
     if rows is None:
         page = parse_book_page(html)          # the search redirected to a book
@@ -425,7 +432,7 @@ def goodreads_lookup(title, author):
     except Exception:
         return ('', 'fail')
     if _suspect(page_html):
-        return ('', 'fail')
+        return ('', 'challenged')
     page = parse_book_page(page_html, url)
     if page is None:
         return ('', 'fail')                   # markup change: retried, never a false 'none'
@@ -463,21 +470,32 @@ def apple_lookup(title, author):
     return ('', 'miss')
 
 
+def lookup(title, author, goodreads=True):
+    """The chain, plus the Goodreads outcome attach() needs: (text, src, gr).
+
+    src is 'goodreads' | 'apple' | 'none' | 'fail', as resolve() returns it.
+    gr is what Goodreads said: goodreads_lookup()'s outcome, or 'skipped' when
+    the caller asked not to ask it (goodreads=False). An Apple copy with any
+    gr but 'miss' is an Apple copy Goodreads may still beat."""
+    gr_text, gr = goodreads_lookup(title, author) if goodreads else ('', 'skipped')
+    if gr_text:
+        return (gr_text, 'goodreads', gr)
+    apple_text, apple_src = apple_lookup(title, author)
+    if apple_text:
+        return (apple_text, 'apple', gr)
+    if gr != 'miss' or apple_src == 'fail':
+        return ('', 'fail', gr)
+    return ('', 'none', gr)
+
+
 def resolve(title, author):
     """The chain: Goodreads page -> Apple description -> honest none.
 
     A Goodreads request failure falls through to Apple (an outage must not
     leave books blank); if either source failed and neither produced text the
     book stays pending — retried by the next build, never cached as empty."""
-    text, src = goodreads_lookup(title, author)
-    if text:
-        return (text, 'goodreads')
-    apple_text, apple_src = apple_lookup(title, author)
-    if apple_text:
-        return (apple_text, 'apple')
-    if src == 'fail' or apple_src == 'fail':
-        return ('', 'fail')
-    return ('', 'none')
+    text, src, _ = lookup(title, author)
+    return (text, src)
 
 
 # ---------- the volume cache ----------
@@ -520,17 +538,24 @@ def attach(entries, cache, budget=None):
 
     `entries` = [(book_dict, title, author)] in PRIORITY order — the caller
     puts the picks first so the decision surface fills before the long tail.
-    One lookup per NEW book ever; cached books cost nothing (no request).
+    One lookup per NEW book ever; cached books cost nothing (no request) —
+    except a cached Apple copy marked `retry: 'goodreads'`, which a second pass
+    asks Goodreads about once the books with no blurb have had their turn.
+    Once Goodreads answers with its bot challenge, no more Goodreads requests
+    go out this build: new books take Apple's copy (marked for retry) and the
+    retry pass waits for the next build.
     The buckets are disjoint and sum to the books considered: fetched (this
     build, with text) + cached (with text) + none (no blurb anywhere, fresh or
     cached — unannounced stubs included) + pending (budget) + failed (retried).
-    Returns the counts the run report prints."""
+    'retry' counts, apart from the buckets, the books whose Apple copy still
+    waits for Goodreads. Returns the counts the run report prints."""
     if budget is None:
         budget = CFG.get('synopsis_budget_seconds', DEFAULT_BUDGET)
     stats = {'fetched': 0, 'goodreads': 0, 'apple': 0, 'cached': 0,
-             'none': 0, 'pending': 0, 'failed': 0}
+             'none': 0, 'pending': 0, 'failed': 0, 'retry': 0}
     started = time.time()
-    got, meta, order = {}, {}, []
+    got, meta, order, retries = {}, {}, [], []
+    goodreads = {'on': True}
     for book, title, author in entries or []:
         k = book.get('id') or bookids.book_key(title, author)
         if not k or k in meta or k in got:
@@ -543,6 +568,11 @@ def attach(entries, cache, budget=None):
             continue
         meta[k] = (title, author)
         order.append(k)
+
+    def heard(gr):
+        if gr == 'challenged':
+            goodreads['on'] = False             # Goodreads said stop: stop, this build
+
     for k in order:
         ent = cache.get(k) if isinstance(cache, dict) else None
         if isinstance(ent, dict) and ent.get('src') in ('goodreads', 'apple', 'none'):
@@ -556,6 +586,8 @@ def attach(entries, cache, budget=None):
                 got[k] = (text, ent['src'])
                 if ent['src'] == 'none':
                     stats['none'] += 1          # a miss counts once — in 'none'
+                elif ent['src'] == 'apple' and ent.get('retry') == 'goodreads':
+                    retries.append(k)           # shown now; Goodreads asked below
                 else:
                     stats['cached'] += 1
                 continue
@@ -564,7 +596,8 @@ def attach(entries, cache, budget=None):
             stats['pending'] += 1
             continue
         title, author = meta[k]
-        text, src = resolve(title, author)
+        text, src, gr = lookup(title, author, goodreads=goodreads['on'])
+        heard(gr)
         if src == 'fail':
             got[k] = ('', 'pending')          # transient: never cached, retried
             stats['failed'] += 1
@@ -576,6 +609,27 @@ def attach(entries, cache, budget=None):
         else:
             stats['fetched'] += 1
             stats['goodreads' if src == 'goodreads' else 'apple'] += 1
+            if src == 'apple' and gr != 'miss':
+                cache[k]['retry'] = 'goodreads'     # Goodreads did not answer: ask again
+                stats['retry'] += 1
+    for k in retries:
+        title, author = meta[k]
+        if goodreads['on'] and time.time() - started < budget:
+            text, gr = goodreads_lookup(title, author)
+            heard(gr)
+            if text:
+                got[k] = (text, 'goodreads')
+                cache[k] = {'text': text, 'src': 'goodreads',
+                            'at': datetime.now().date().isoformat()}
+                stats['fetched'] += 1
+                stats['goodreads'] += 1
+                continue
+            if gr == 'miss':
+                cache[k].pop('retry', None)     # Goodreads has none: Apple's copy is final
+                stats['cached'] += 1
+                continue
+        stats['cached'] += 1                    # Apple's copy stands until Goodreads answers
+        stats['retry'] += 1
     for book, title, author in entries or []:
         k = book.get('id') or bookids.book_key(title, author)
         if k in got:
@@ -594,4 +648,6 @@ def report_line(stats):
         line += ' / %d pending (next build continues)' % stats['pending']
     if stats['failed']:
         line += ' / %d failed (retried next build)' % stats['failed']
+    if stats.get('retry'):
+        line += ' / %d apple until goodreads answers' % stats['retry']
     return line
