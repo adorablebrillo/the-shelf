@@ -53,6 +53,9 @@
   .loglink:hover{color:#211E19}
   /* dense-desktop hit areas (the phone block below raises these to 44) */
   [data-m="verdicts"] button{min-height:40px !important;padding:10px 14px !important}
+  /* the Goodreads link on every book (the phone block raises its hit area) */
+  .grlink:hover{color:#6E2A2A !important}
+  [data-m="antic"] .grlink:hover{color:#F3EDE1 !important}
   #set-refresh{position:relative}
   #set-refresh::after{content:"";position:absolute;inset:-12px -10px}
   #status-line{min-height:22px}
@@ -94,6 +97,8 @@
     [data-m="antic"] > div{padding:22px 16px !important}
     [data-m="setTabs"] button{min-height:44px !important}
     .loglink{display:inline-block;min-height:44px;padding:10px 0}
+    .grlink{position:relative;display:inline-block}
+    .grlink::after{content:"";position:absolute;inset:-14px -6px}
     [data-m="recentline"]{min-height:3.2em !important}
     [data-m="verdicts"] button{min-height:44px !important;padding:11px 16px !important;font-size:11.5px !important;letter-spacing:.14em !important}
     [data-m="tabs"] button{min-height:44px !important}
@@ -251,11 +256,14 @@
             <sc-if value="{{ heroSynShow }}">
               <div data-m="syn" style="{{ heroSynWrapStyle }}">
                 <sc-if value="{{ heroSynHas }}">
-                  <span data-m="verdicts"><button type="button" onClick="{{ onHeroSyn }}" aria-expanded="{{ heroSynExpanded }}" aria-label="{{ heroSynAria }}" style="{{ heroSynBtnStyle }}">{{ heroSynLabel }}</button></span>
+                  <div style="{{ heroSynRowStyle }}"><span data-m="verdicts"><button type="button" onClick="{{ onHeroSyn }}" aria-expanded="{{ heroSynExpanded }}" aria-label="{{ heroSynAria }}" style="{{ heroSynBtnStyle }}">{{ heroSynLabel }}</button></span><sc-if value="{{ heroGrHref }}"><a class="grlink" href="{{ heroGrHref }}" target="_blank" rel="noopener noreferrer" aria-label="{{ heroGrAria }}" style="{{ heroGrStyle }}">{{ heroGrLabel }}</a></sc-if></div>
                   <p style="{{ heroSynTextStyle }}">{{ heroSynText }}</p>
                 </sc-if>
                 <sc-if value="{{ heroSynNote }}">
                   <p style="{{ heroSynNoteStyle }}">{{ heroSynNote }}</p>
+                </sc-if>
+                <sc-if value="{{ heroGrAfterNote }}">
+                  <p style="margin:8px 0 0"><a class="grlink" href="{{ heroGrHref }}" target="_blank" rel="noopener noreferrer" aria-label="{{ heroGrAria }}" style="{{ heroGrStyle }}">{{ heroGrLabel }}</a></p>
                 </sc-if>
               </div>
             </sc-if>
@@ -269,6 +277,7 @@
               <div style="border:1px solid #3F6153;background:rgba(255,253,246,.04);padding:16px 18px">
                 <p style="margin:0;font-size:9.5px;letter-spacing:.3em;text-transform:uppercase;color:#C8B27A">{{ a.series }}</p>
                 <p style="margin:8px 0 0;font-family:'Cormorant Garamond',Garamond,serif;font-size:24px;line-height:1.14;color:#F3EDE1;overflow-wrap:anywhere">{{ a.title }}<sc-if value="{{ a.n }}"> <span style="font-size:15px;color:#BFD3C6">{{ a.n }}</span></sc-if></p>
+                <sc-if value="{{ a.grHref }}"><p style="margin:6px 0 0;line-height:1.2"><a class="grlink" href="{{ a.grHref }}" target="_blank" rel="noopener noreferrer" aria-label="{{ a.grAria }}" style="{{ a.grStyle }}">{{ a.grLabel }}</a></p></sc-if>
                 <p style="margin:8px 0 0;font-size:15px;line-height:1.5;color:#E6E0D2">{{ a.standing }}</p>
                 <div style="display:flex;align-items:baseline;gap:12px;margin-top:10px;padding-top:10px;border-top:1px solid #3F6153">
                   <span style="font-family:'Cormorant Garamond',Garamond,serif;font-size:30px;line-height:1;color:#C8B27A;font-variant-numeric:tabular-nums">{{ a.days }}</span>
@@ -297,7 +306,7 @@
         <ul style="list-style:none;margin:16px 0 0;padding:0;display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:4px 26px" data-m="recent">
           <sc-for list="{{ recentList }}" as="r" hint-placeholder-count="6">
             <li style="display:flex;align-items:baseline;gap:10px;padding:5px 0;border-top:1px solid #E1D8C4">
-              <span style="flex:1;min-width:0;font-family:'Cormorant Garamond',Garamond,serif;font-size:18px;line-height:1.3">{{ r.t }}</span>
+              <span style="flex:1;min-width:0;font-family:'Cormorant Garamond',Garamond,serif;font-size:18px;line-height:1.3">{{ r.t }}<sc-if value="{{ r.grHref }}"><span style="display:block;margin-top:3px;line-height:1.2"><a class="grlink" href="{{ r.grHref }}" target="_blank" rel="noopener noreferrer" aria-label="{{ r.grAria }}" style="{{ r.grStyle }}">{{ r.grLabel }}</a></span></sc-if></span>
               <span style="font-size:10px;letter-spacing:.14em;text-transform:uppercase;color:#635846;white-space:nowrap">{{ r.d }}</span>
               <span style="{{ r.tagStyle }}">{{ r.tag }}</span>
             </li>
@@ -329,11 +338,14 @@
               <sc-if value="{{ lead.synShow }}">
                 <div data-m="syn" style="{{ lead.synWrapStyle }}">
                   <sc-if value="{{ lead.synHas }}">
-                    <span data-m="verdicts"><button type="button" onClick="{{ lead.onSyn }}" aria-expanded="{{ lead.synExpanded }}" aria-label="{{ lead.synAria }}" style="{{ lead.synBtnStyle }}">{{ lead.synLabel }}</button></span>
+                    <div style="{{ lead.synRowStyle }}"><span data-m="verdicts"><button type="button" onClick="{{ lead.onSyn }}" aria-expanded="{{ lead.synExpanded }}" aria-label="{{ lead.synAria }}" style="{{ lead.synBtnStyle }}">{{ lead.synLabel }}</button></span><sc-if value="{{ lead.grHref }}"><a class="grlink" href="{{ lead.grHref }}" target="_blank" rel="noopener noreferrer" aria-label="{{ lead.grAria }}" style="{{ lead.grStyle }}">{{ lead.grLabel }}</a></sc-if></div>
                     <p style="{{ lead.synTextStyle }}">{{ lead.synText }}</p>
                   </sc-if>
                   <sc-if value="{{ lead.synNote }}">
                     <p style="{{ lead.synNoteStyle }}">{{ lead.synNote }}</p>
+                  </sc-if>
+                  <sc-if value="{{ lead.grAfterNote }}">
+                    <p style="margin:8px 0 0"><a class="grlink" href="{{ lead.grHref }}" target="_blank" rel="noopener noreferrer" aria-label="{{ lead.grAria }}" style="{{ lead.grStyle }}">{{ lead.grLabel }}</a></p>
                   </sc-if>
                 </div>
               </sc-if>
@@ -370,11 +382,14 @@
                   <sc-if value="{{ b.synShow }}">
                     <div data-m="syn" style="{{ b.synWrapStyle }}">
                       <sc-if value="{{ b.synHas }}">
-                        <span data-m="verdicts"><button type="button" onClick="{{ b.onSyn }}" aria-expanded="{{ b.synExpanded }}" aria-label="{{ b.synAria }}" style="{{ b.synBtnStyle }}">{{ b.synLabel }}</button></span>
+                        <div style="{{ b.synRowStyle }}"><span data-m="verdicts"><button type="button" onClick="{{ b.onSyn }}" aria-expanded="{{ b.synExpanded }}" aria-label="{{ b.synAria }}" style="{{ b.synBtnStyle }}">{{ b.synLabel }}</button></span><sc-if value="{{ b.grHref }}"><a class="grlink" href="{{ b.grHref }}" target="_blank" rel="noopener noreferrer" aria-label="{{ b.grAria }}" style="{{ b.grStyle }}">{{ b.grLabel }}</a></sc-if></div>
                         <p style="{{ b.synTextStyle }}">{{ b.synText }}</p>
                       </sc-if>
                       <sc-if value="{{ b.synNote }}">
                         <p style="{{ b.synNoteStyle }}">{{ b.synNote }}</p>
+                      </sc-if>
+                      <sc-if value="{{ b.grAfterNote }}">
+                        <p style="margin:8px 0 0"><a class="grlink" href="{{ b.grHref }}" target="_blank" rel="noopener noreferrer" aria-label="{{ b.grAria }}" style="{{ b.grStyle }}">{{ b.grLabel }}</a></p>
                       </sc-if>
                     </div>
                   </sc-if>
@@ -474,11 +489,14 @@
             <sc-if value="{{ b.synShow }}">
               <div data-m="syn" style="{{ b.synWrapStyle }}">
                 <sc-if value="{{ b.synHas }}">
-                  <span data-m="verdicts"><button type="button" onClick="{{ b.onSyn }}" aria-expanded="{{ b.synExpanded }}" aria-label="{{ b.synAria }}" style="{{ b.synBtnStyle }}">{{ b.synLabel }}</button></span>
+                  <div style="{{ b.synRowStyle }}"><span data-m="verdicts"><button type="button" onClick="{{ b.onSyn }}" aria-expanded="{{ b.synExpanded }}" aria-label="{{ b.synAria }}" style="{{ b.synBtnStyle }}">{{ b.synLabel }}</button></span><sc-if value="{{ b.grHref }}"><a class="grlink" href="{{ b.grHref }}" target="_blank" rel="noopener noreferrer" aria-label="{{ b.grAria }}" style="{{ b.grStyle }}">{{ b.grLabel }}</a></sc-if></div>
                   <p style="{{ b.synTextStyle }}">{{ b.synText }}</p>
                 </sc-if>
                 <sc-if value="{{ b.synNote }}">
                   <p style="{{ b.synNoteStyle }}">{{ b.synNote }}</p>
+                </sc-if>
+                <sc-if value="{{ b.grAfterNote }}">
+                  <p style="margin:8px 0 0"><a class="grlink" href="{{ b.grHref }}" target="_blank" rel="noopener noreferrer" aria-label="{{ b.grAria }}" style="{{ b.grStyle }}">{{ b.grLabel }}</a></p>
                 </sc-if>
               </div>
             </sc-if>
@@ -503,7 +521,7 @@
         <ul style="list-style:none;margin:0;padding:0">
           <sc-for list="{{ waitingVols }}" as="v" hint-placeholder-count="6">
             <li style="display:flex;align-items:baseline;gap:14px;flex-wrap:wrap;padding:12px 0;border-bottom:1px solid #E1D8C4">
-              <span style="flex:1;min-width:200px;font-family:'Cormorant Garamond',Garamond,serif;font-size:20px;line-height:1.3">{{ v.t }} <span style="font-size:14px;color:#635846">{{ v.n }}</span></span>
+              <span style="flex:1;min-width:200px;font-family:'Cormorant Garamond',Garamond,serif;font-size:20px;line-height:1.3">{{ v.t }} <span style="font-size:14px;color:#635846">{{ v.n }}</span><sc-if value="{{ v.grHref }}"><span style="display:block;margin-top:3px;line-height:1.2"><a class="grlink" href="{{ v.grHref }}" target="_blank" rel="noopener noreferrer" aria-label="{{ v.grAria }}" style="{{ v.grStyle }}">{{ v.grLabel }}</a></span></sc-if></span>
               <span style="font-size:11px;letter-spacing:.16em;text-transform:uppercase;color:#635846">{{ v.series }} · {{ v.d }}</span>
               <span data-m="verdicts" style="display:flex;gap:14px;flex-wrap:wrap;align-items:baseline">
               <button type="button" onClick="{{ v.onRead }}" style="font-size:10px;letter-spacing:.2em;text-transform:uppercase;color:#1E3A2F;border-bottom:1px solid #1E3A2F;padding:0 0 2px" style-hover="color:#6E2A2A;border-color:#6E2A2A">mark read</button>
@@ -557,6 +575,7 @@
               <p style="margin:0;font-size:9.5px;letter-spacing:.28em;text-transform:uppercase">{{ s.nextKind }}</p>
               <p style="margin:6px 0 0;font-family:'Cormorant Garamond',Garamond,serif;font-size:22px;line-height:1.16">{{ s.nextTitle }}</p>
               <p style="margin:3px 0 0;font-size:12.5px;letter-spacing:.1em;text-transform:uppercase">{{ s.nextMeta }}</p>
+              <sc-if value="{{ s.grHref }}"><p style="margin:8px 0 0;line-height:1.2"><a class="grlink" href="{{ s.grHref }}" target="_blank" rel="noopener noreferrer" aria-label="{{ s.grAria }}" style="{{ s.grStyle }}">{{ s.grLabel }}</a></p></sc-if>
             </div>
           </div>
           <sc-if value="{{ s.open }}">
@@ -571,11 +590,14 @@
                   <sc-if value="{{ bk.synShow }}">
                     <div data-m="syn" style="{{ bk.synWrapStyle }}">
                       <sc-if value="{{ bk.synHas }}">
-                        <span data-m="verdicts"><button type="button" onClick="{{ bk.onSyn }}" aria-expanded="{{ bk.synExpanded }}" aria-label="{{ bk.synAria }}" style="{{ bk.synBtnStyle }}">{{ bk.synLabel }}</button></span>
+                        <div style="{{ bk.synRowStyle }}"><span data-m="verdicts"><button type="button" onClick="{{ bk.onSyn }}" aria-expanded="{{ bk.synExpanded }}" aria-label="{{ bk.synAria }}" style="{{ bk.synBtnStyle }}">{{ bk.synLabel }}</button></span><sc-if value="{{ bk.grHref }}"><a class="grlink" href="{{ bk.grHref }}" target="_blank" rel="noopener noreferrer" aria-label="{{ bk.grAria }}" style="{{ bk.grStyle }}">{{ bk.grLabel }}</a></sc-if></div>
                         <p style="{{ bk.synTextStyle }}">{{ bk.synText }}</p>
                       </sc-if>
                       <sc-if value="{{ bk.synNote }}">
                         <p style="{{ bk.synNoteStyle }}">{{ bk.synNote }}</p>
+                      </sc-if>
+                      <sc-if value="{{ bk.grAfterNote }}">
+                        <p style="margin:8px 0 0"><a class="grlink" href="{{ bk.grHref }}" target="_blank" rel="noopener noreferrer" aria-label="{{ bk.grAria }}" style="{{ bk.grStyle }}">{{ bk.grLabel }}</a></p>
                       </sc-if>
                     </div>
                   </sc-if>
@@ -677,7 +699,7 @@
                   <li style="display:flex;align-items:center;gap:10px;padding:4px 0">
                     <span aria-hidden="true" style="{{ bk.thumbStyle }}"><img src="{{ bk.artSrc }}" alt="" style="position:absolute;top:0;left:0;width:100%;height:100%;object-fit:cover;display:none" data-art="1"/></span>
                     <span aria-hidden="true" style="flex:0 0 14px;font-size:11px;color:#A8863F">✓</span>
-                    <span style="flex:1;min-width:0;font-family:'Cormorant Garamond',Garamond,serif;font-size:19px;line-height:1.3">{{ bk.t }} <span style="font-size:13.5px;color:#635846">{{ bk.n }}</span></span>
+                    <span style="flex:1;min-width:0;font-family:'Cormorant Garamond',Garamond,serif;font-size:19px;line-height:1.3">{{ bk.t }} <span style="font-size:13.5px;color:#635846">{{ bk.n }}</span><sc-if value="{{ bk.grHref }}"><span style="display:block;margin-top:3px;line-height:1.2"><a class="grlink" href="{{ bk.grHref }}" target="_blank" rel="noopener noreferrer" aria-label="{{ bk.grAria }}" style="{{ bk.grStyle }}">{{ bk.grLabel }}</a></span></sc-if></span>
                     <span style="{{ bk.tagStyle }}">{{ bk.tag }}</span>
                     <span data-m="verdicts"><button type="button" aria-label="{{ bk.unreadLabel }}" onClick="{{ bk.onUnread }}" style="flex:0 0 auto;font-size:10px;letter-spacing:.2em;text-transform:uppercase;color:#6E2A2A;border-bottom:1px solid #A8863F;padding:0 0 1px" style-hover="color:#1E3A2F">mark unread</button></span>
                   </li>
@@ -702,6 +724,7 @@
               <div style="min-width:0">
                 <p style="margin:0;font-family:'Cormorant Garamond',Garamond,serif;font-size:23px;line-height:1.16">{{ b.title }}</p>
                 <p style="margin:4px 0 0;font-size:12.5px;letter-spacing:.14em;text-transform:uppercase;color:#635846">{{ b.pubGenreLine }}</p>
+                <sc-if value="{{ b.grHref }}"><p style="margin:6px 0 0;line-height:1.2"><a class="grlink" href="{{ b.grHref }}" target="_blank" rel="noopener noreferrer" aria-label="{{ b.grAria }}" style="{{ b.grStyle }}">{{ b.grLabel }}</a></p></sc-if>
               </div>
               <div style="display:flex;align-items:center;justify-content:flex-end;gap:16px">
                 <span style="{{ b.tagStyle }}">{{ b.tag }}</span>
@@ -727,6 +750,7 @@
               <div style="min-width:0">
                 <p style="margin:0;font-family:'Cormorant Garamond',Garamond,serif;font-size:23px;line-height:1.16">{{ b.title }}</p>
                 <p style="margin:4px 0 0;font-size:12.5px;letter-spacing:.14em;text-transform:uppercase;color:#635846">{{ b.pubLine }}</p>
+                <sc-if value="{{ b.grHref }}"><p style="margin:6px 0 0;line-height:1.2"><a class="grlink" href="{{ b.grHref }}" target="_blank" rel="noopener noreferrer" aria-label="{{ b.grAria }}" style="{{ b.grStyle }}">{{ b.grLabel }}</a></p></sc-if>
                 <sc-if value="{{ b.hasTropes }}">
                   <p style="margin:8px 0 0;font-size:14px;color:#4A443A">{{ b.tropeLine }}</p>
                 </sc-if>
@@ -1573,7 +1597,7 @@ class Component extends DCLogic {
         .map(v=>({label:v[1],on:st===v[0],style:this.pill(st===v[0],v[0]==='skip'?MID:FOREST),
           aria:v[0]==='want'?'want to read '+b.title:(v[0]==='read'?'mark '+b.title+' read':(v[0]==='loved'?'loved '+b.title:'not for me — '+b.title)),
           onClick:()=>this.setBook(b.id,v[0])})),
-      ...this.synFields(b.id,b.synopsis,b.synopsisSrc,false,b.title)
+      ...this.synFields(b.id,b.synopsis,b.synopsisSrc,false,b.title,b.author,b.grUrl)
     };
   }
 
@@ -1582,13 +1606,17 @@ class Component extends DCLogic {
      Cards show a clamped preview with an expander so one book cannot stretch
      the row; a book the sources have nothing for says so plainly, and one the
      fill has not reached yet says that instead — a blurb is never invented. */
-  synFields(id,text,src,dark,name){
+  synFields(id,text,src,dark,name,author,grUrl){
     const open=!!((this.state.syn||{})[id]);
     const has=!!(text||'');
     const ink=dark?{rule:'#3F6153',label:'#C8B27A',body:'#E6E0D2',note:'#BFD3C6'}
                  :{rule:'#C6BBA3',label:'#6E2A2A',body:'#4A443A',note:'#635846'};
-    return {
-      synShow:!!src,
+    const gr=this.grFields(name,author,dark,grUrl);
+    return {...gr,
+      /* the Goodreads link sits on the blurb's line, or alone after the note */
+      synShow:!!src||!!gr.grHref,
+      grAfterNote:!has&&!!gr.grHref,
+      synRowStyle:{display:'flex',flexWrap:'wrap',alignItems:'center',columnGap:'18px',rowGap:'4px'},
       synHas:has,
       synText:text||'',
       synExpanded:open?'true':'false',
@@ -1599,10 +1627,31 @@ class Component extends DCLogic {
       synBtnStyle:{fontSize:'10.5px',letterSpacing:'.22em',textTransform:'uppercase',color:ink.label,borderBottom:'1px solid #A8863F',padding:'0 0 2px'},
       synTextStyle:{margin:'10px 0 0',fontSize:'15.5px',lineHeight:'1.62',color:ink.body,maxWidth:'62ch',
         ...(open?{}:{display:'-webkit-box',WebkitLineClamp:'3',WebkitBoxOrient:'vertical',overflow:'hidden'})},
-      synNote:has?'':(src==='none'
+      synNote:(has||!src)?'':(src==='none'
         ?'no blurb found — goodreads and apple had none for this one.'
         :(src==='unannounced'?'not announced yet — no blurb to fetch.':'blurb not fetched yet.')),
       synNoteStyle:{margin:'0',fontStyle:'italic',fontSize:'15px',lineHeight:'1.5',color:ink.note}
+    };
+  }
+
+  /* ---- every book links to Goodreads -----------------------------------
+     A blurb can be thin, so each book carries a small "goodreads ↗" link
+     that opens in a new tab: the book's own page when the build ships a
+     checked grUrl, otherwise a Goodreads search for title + author (the
+     query synopses.search_url builds). An unannounced stub ('Untitled',
+     'TBA') gets no link, by the same rule as synopses.eligible. */
+  grFields(title,author,dark,grUrl){
+    const t=String(title||'').trim();
+    const n=t.toLowerCase().replace(/[^a-z0-9]/g,'');
+    if(!n||n.indexOf('untitled')===0||n==='tba'||n==='tbd'||n==='titletba')
+      return {grHref:'',grLabel:'',grAria:'',grStyle:{}};
+    const q=(t+' '+String(author||'').trim()).trim();
+    return {
+      grHref:grUrl||('https://www.goodreads.com/search?q='+encodeURIComponent(q).replace(/%20/g,'+')),
+      grLabel:'goodreads \u2197',
+      grAria:t+' on Goodreads, opens a new tab',
+      grStyle:{fontSize:'10.5px',letterSpacing:'.22em',textTransform:'uppercase',whiteSpace:'nowrap',
+        color:dark?'#BFD3C6':'#635846',borderBottom:'1px solid #A8863F',padding:'0 0 2px'}
     };
   }
 
@@ -1722,6 +1771,7 @@ class Component extends DCLogic {
         /* live guarantees a next volume; these ternaries are belt-and-braces */
         nextKind:next?(ns==='out'?'Out now, unread':ns==='soon'?'Coming':'Announced'):'Caught up',
         nextTitle:next?next.t:'Nothing waiting',
+        ...(next?this.grFields(next.t,s.author,false,next.grUrl):this.grFields('',s.author,false)),
         nextMeta:next?[next.n,(ns==='soon'&&dd!==null)?(next.d+' · in '+dd+'d'):(ns==='tba'?'':next.d)].filter(Boolean).join(' · '):'complete on your shelf',
         nextStyle:{marginTop:'16px',padding:'14px 16px',border:'1px solid '+(hot?BLOOD:LINE),
           background:hot?'#F3EAE2':'transparent',color:hot?BLOOD:INK},
@@ -1769,7 +1819,7 @@ class Component extends DCLogic {
             markStyle:{flex:'0 0 14px',fontSize:'11px',color:mark[vs].c,lineHeight:'1.9'},
             rowStyle:{display:'flex',alignItems:'baseline',gap:'10px'},
             style:{display:'block',padding:'8px 0',borderTop:'1px solid #D6CCB6',opacity:vs==='read'?.55:1},
-            ...this.synFields('vol|'+(b.id||b.t),b.synopsis,b.synopsisSrc,false,b.t)};})
+            ...this.synFields('vol|'+(b.id||b.t),b.synopsis,b.synopsisSrc,false,b.t,s.author,b.grUrl)};})
       };
     });
 
@@ -1802,6 +1852,7 @@ class Component extends DCLogic {
       :{position:'relative',width:'100%',aspectRatio:'2/3',background:'repeating-linear-gradient(90deg,#25493A 0 7px,#2A5241 7px 14px)',display:'flex',alignItems:'flex-end',padding:'10px'};
     const anticipations=soonAll.slice(1).map(x=>{const dd=Math.max(0,Math.ceil((new Date(x.b.iso+'T00:00:00')-new Date())/86400000));
       return {series:x.s.name,title:x.b.t,n:x.b.n||'',date:x.b.d,days:dd,
+        ...this.grFields(x.b.t,x.s.author,true,x.b.grUrl),
         daysLabel:dd===1?'day':'days',standing:standingFor(x.s)};});
 
     /* #51: the hero's own blurb — a client-picked release carries it on the
@@ -1810,7 +1861,7 @@ class Component extends DCLogic {
     const heroSynId='hero|'+(nx?(nx.b.id||heroTitle):(H.id||heroTitle));
     const heroSyn=nx?(nx.b.synopsis||''):(H.synopsis||'');
     const heroSynSrc=nx?(nx.b.synopsisSrc||''):(H.synopsisSrc||'');
-    const hs=this.synFields(heroSynId,heroSyn,heroSynSrc,true,heroTitle);
+    const hs=this.synFields(heroSynId,heroSyn,heroSynSrc,true,heroTitle,nx?nx.s.author:(H.author||''),nx?nx.b.grUrl:H.grUrl);
 
     /* ---- home: the month's picks, open books only ----------------------- */
     const openPicks=(d.books||[]).filter(b=>S[b.id]===undefined);
@@ -1829,10 +1880,10 @@ class Component extends DCLogic {
 
     /* ---- read & loved, past 30 days ------------------------------------- */
     const byId={};
-    (d.books||[]).forEach(b=>{ byId[b.id]={t:b.title,s:'standalone'}; });
-    (d.pending||[]).forEach(b=>{ if(!byId[b.id])byId[b.id]={t:b.title,s:'standalone'}; });
-    (d.resolved||[]).forEach(b=>{ if(!byId[b.id])byId[b.id]={t:b.title,s:'standalone'}; });
-    d.series.forEach(s=>s.books.forEach(b=>{ if(b.id)byId[b.id]={t:b.t+(b.n?' '+b.n:''),s:s.name,a:s.author}; }));
+    (d.books||[]).forEach(b=>{ byId[b.id]={t:b.title,s:'standalone',bt:b.title,a:b.author,gu:b.grUrl}; });
+    (d.pending||[]).forEach(b=>{ if(!byId[b.id])byId[b.id]={t:b.title,s:'standalone',bt:b.title,a:b.author,gu:b.grUrl}; });
+    (d.resolved||[]).forEach(b=>{ if(!byId[b.id])byId[b.id]={t:b.title,s:'standalone',bt:b.title,a:b.author,gu:b.grUrl}; });
+    d.series.forEach(s=>s.books.forEach(b=>{ if(b.id)byId[b.id]={t:b.t+(b.n?' '+b.n:''),s:s.name,a:s.author,bt:b.t,gu:b.grUrl}; }));
     const cutoff=Date.now()-30*86400000;
     const recent=[];
     Object.keys(S).forEach(id=>{
@@ -1842,7 +1893,7 @@ class Component extends DCLogic {
       if(!t||t<cutoff)return;
       const info=byId[id];
       if(!info||!info.t)return;
-      recent.push({t:info.t,series:info.s||'standalone',loved:v==='loved',ts:t,date:new Date(t).toLocaleDateString('en-GB',{day:'numeric',month:'short'})});
+      recent.push({t:info.t,bt:info.bt,a:info.a,gu:info.gu,series:info.s||'standalone',loved:v==='loved',ts:t,date:new Date(t).toLocaleDateString('en-GB',{day:'numeric',month:'short'})});
     });
     recent.sort((a,b)=>b.ts-a.ts);
     const lovedN=recent.filter(x=>x.loved).length;
@@ -1853,6 +1904,7 @@ class Component extends DCLogic {
         background:x.loved?BLOOD:CLOTH[(i+2)%CLOTH.length],border:'1px solid rgba(33,30,25,.45)',
         boxShadow:'inset 0 -7px 0 rgba(232,220,192,.45), inset 0 3px 0 rgba(232,220,192,.3)'}}));
     const recentList=recent.slice(0,6).map(x=>({t:x.t,d:x.date,tag:x.loved?'loved':'read',
+      ...this.grFields(x.bt||x.t,x.a,false,x.gu),
       tagStyle:{fontSize:'9.5px',letterSpacing:'.24em',textTransform:'uppercase',color:x.loved?BLOOD:MID}}));
     const recentLine=recent.length
       ?recent.length+' finished in the past 30 days · '+lovedN+' you loved'
@@ -1863,6 +1915,7 @@ class Component extends DCLogic {
     const waitingVols=[];
     live.forEach(s=>s.books.forEach(b=>{
       if(b.id&&!wantIds[b.id]&&vstate(s,b)==='out')waitingVols.push({t:b.t,n:b.n||'',series:s.name,
+        ...this.grFields(b.t,s.author,false,b.grUrl),
         d:(b.d==='read'||b.d==='reading')?'out now, unread':b.d,
         onRead:()=>this.apply(b.id,'read'),
         onLoved:()=>this.apply(b.id,'loved')});}));
@@ -1877,6 +1930,7 @@ class Component extends DCLogic {
       const rows=s.books.filter(b=>vstate(s,b)==='read');
       return {name:s.name,author:s.author,complete:rows.length>0&&rows.length===s.books.length,
         books:rows.map(b=>({t:b.t,n:b.n,tag:S[b.id]==='loved'?'loved':'read',
+          ...this.grFields(b.t,s.author,false,b.grUrl),
           unreadLabel:'mark '+b.t+' unread',
           art:b.img||'',
           artSrc:b.img||'data:image/gif;base64,R0lGODlhAQABAAAAACH5BAEKAAEALAAAAAABAAEAAAICTAEAOw==',
@@ -2003,6 +2057,8 @@ class Component extends DCLogic {
       heroSynExpanded:hs.synExpanded, heroSynLabel:hs.synLabel, onHeroSyn:hs.onSyn, heroSynAria:hs.synAria,
       heroSynWrapStyle:hs.synWrapStyle, heroSynBtnStyle:hs.synBtnStyle,
       heroSynTextStyle:hs.synTextStyle, heroSynNote:hs.synNote, heroSynNoteStyle:hs.synNoteStyle,
+      heroSynRowStyle:hs.synRowStyle, heroGrAfterNote:hs.grAfterNote,
+      heroGrHref:hs.grHref, heroGrLabel:hs.grLabel, heroGrAria:hs.grAria, heroGrStyle:hs.grStyle,
 
       /* read & loved — past 30 days */
       recentSpines, recentList,
