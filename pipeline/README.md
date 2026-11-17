@@ -26,8 +26,8 @@ pipeline/
 ├── test_shape.py      # the shape rule's deterministic tests
 ├── test_shelf.py      # your-shelf exclusion tests
 ├── test_verdicts.py   # her_verdicts: the lookup, the capped lists, the `because` rule
-├── test_reference.py  # the Goodreads reference: parsers (real fixtures), matchers, failure paths
-├── testdata/          # saved real pages for the reference parsers (list + one book page) and Apple Books answers
+├── test_reference.py  # the Goodreads reference: parsers (real fixtures), matchers, failure paths, the fetch's redirect cookies
+├── testdata/          # saved real pages for the Goodreads parsers (the month list, a book page, the classic and the Next.js search pages) and Apple Books answers
 ├── test_filter.py     # the pairing screen's tests
 ├── test_marked_series.py # a read, loved or reading-now pick tracks its series: marks, fallback, guarantee, author lane, Series page, curate's series copy
 ├── test_watches.py    # author watches: page series extraction + the radar merge

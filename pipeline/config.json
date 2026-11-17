@@ -26,5 +26,6 @@
   },
   "output_dir": "data",
   "dist_dir": "dist",
-  "synopsis_budget_seconds": 180
+  "synopsis_budget_seconds": 180,
+  "goodreads_gap_seconds": 10
 }

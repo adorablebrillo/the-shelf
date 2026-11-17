@@ -6,7 +6,8 @@ Run: cd pipeline && python3 -m unittest test_reference
 The parser fixtures are real pages saved from 2026-09-23 (the month list and
 one book page, trimmed to the nodes the parser reads — structure kept). The
 failure paths are pinned too: a broken fetch or a markup change must never
-break the run.
+break the run. The shared fetch's redirect handling runs against a local
+server that answers like Goodreads' search.
 """
 import json
 import os
@@ -20,6 +21,53 @@ import reference  # noqa: E402
 HERE = os.path.dirname(os.path.abspath(__file__))
 LIST_FIXTURE = os.path.join(HERE, 'testdata', 'gr-popular_by_date-2026-08.html')
 BOOK_FIXTURE = os.path.join(HERE, 'testdata', 'gr-book-243596193.html')
+
+
+class FetchTests(unittest.TestCase):
+    """Goodreads' search answers a request without cookies with a 302 to the
+    same address plus cookies (seen 2026-11: ccsid, locale,
+    logged_out_browsing_page_count, srb_10, _session_id2). A fetch that drops
+    them asks again without them, gets the same 302, and urllib stops with a
+    redirect-loop error — so every synopsis search failed."""
+
+    def setUp(self):
+        import http.server
+        import threading
+        seen = self.seen = []
+
+        class Search(http.server.BaseHTTPRequestHandler):
+            def do_GET(self):
+                seen.append(self.headers.get('Cookie') or '')
+                if 'ccsid=' not in (self.headers.get('Cookie') or ''):
+                    self.send_response(302)
+                    self.send_header('Location', 'http://127.0.0.1:%d%s' % (self.server.server_port, self.path))
+                    for name in ('ccsid', 'locale', 'logged_out_browsing_page_count', 'srb_10', '_session_id2'):
+                        self.send_header('Set-Cookie', '%s=1; path=/' % name)
+                    self.send_header('Content-Length', '0')
+                    self.end_headers()
+                    return
+                body = b'<html><title>Book search results</title></html>'
+                self.send_response(200)
+                self.send_header('Content-Type', 'text/html; charset=utf-8')
+                self.send_header('Content-Length', str(len(body)))
+                self.end_headers()
+                self.wfile.write(body)
+
+            def log_message(self, *a):
+                pass
+
+        self.srv = http.server.HTTPServer(('127.0.0.1', 0), Search)
+        threading.Thread(target=self.srv.serve_forever, daemon=True).start()
+
+    def tearDown(self):
+        self.srv.shutdown()
+        self.srv.server_close()
+
+    def test_a_redirect_that_sets_cookies_is_followed_with_them(self):
+        url = 'http://127.0.0.1:%d/search?q=Fourth+Wing+Rebecca+Yarros' % self.srv.server_port
+        self.assertEqual(reference._get(url, timeout=5), '<html><title>Book search results</title></html>')
+        self.assertEqual(len(self.seen), 2)            # the 302, then the page — no loop
+        self.assertIn('ccsid=1', self.seen[1])
 
 
 class ParseListTests(unittest.TestCase):

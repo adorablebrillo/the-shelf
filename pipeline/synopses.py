@@ -17,11 +17,18 @@ Cache: pipeline/data/synopsis-cache.json (the volume), keyed by the canonical
 book id — a book is looked up ONCE ever; rebuilds, container boots and
 pageviews never refetch. A definitive miss caches 'none' (delete the entry to
 re-attempt by hand); a request failure is never cached — the next build
-retries it.
+retries it. An Apple copy taken only because Goodreads did not answer (its bot
+challenge, an outage, a page we cannot read) is shown at once but cached with
+`retry: 'goodreads'`: a later build asks Goodreads again, after the books with
+no blurb at all, and the Apple copy becomes final only when Goodreads answers
+that it has none.
 
-Politeness: one book at a time, >=1.2s between requests, and a per-build time
-budget (config `synopsis_budget_seconds`, default 180s) so a cold cache can
-never blow the boot rebuild's 300s timeout — the fill continues on the next
+Politeness: one book at a time, >=1.2s between requests and >=10s between
+Goodreads requests (config `goodreads_gap_seconds`), no more Goodreads
+requests in a build once Goodreads has answered with its bot challenge, new
+books ask Goodreads only in the first two-thirds of the build, and a
+per-build time budget (config `synopsis_budget_seconds`, default 180s) so a
+cold cache can never blow the boot rebuild's 300s timeout — the fill continues on the next
 build, and the run report says exactly how far it got. Everything is wrapped:
 a synopsis failure never breaks a build or a run.
 
@@ -48,17 +55,35 @@ CFG = json.load(open(os.path.join(BASE, 'config.json')))
 CACHE_NAME = 'synopsis-cache.json'
 DESC_CAP = 2000       # a blurb, not a chapter
 GAP = 1.2             # polite: one request at a time, never faster than this
+# Goodreads answers a client without a browser with its bot challenge after a
+# few requests. Measured 2026-11 from one address: at a 1.2s pace the second
+# book's search was challenged in 2 runs of 2; at a 10s pace 3 runs of 4 read
+# every search and book page, and the other was challenged at the second
+# search. The pace lowers the odds; attach() handles the challenge itself.
+GOODREADS_GAP = float(CFG.get('goodreads_gap_seconds', 10))
+# At that pace a new book costs about 20s of Goodreads (search + page), so a
+# big batch — a Goodreads import — would leave most books 'not fetched yet'
+# for many builds. A new book asks Goodreads only in this first share of the
+# build's budget; past it, new books take Apple's copy, marked for retry.
+GOODREADS_SHARE = 2 / 3
 DEFAULT_BUDGET = 180  # seconds of fetching per build (config-overridable)
 
-_last = {'t': 0.0}
+_last = {'t': 0.0, 'goodreads': 0.0}
 
 
 def _get(url, timeout=25):
-    """One polite GET: at least GAP seconds after the previous request."""
-    dt = time.time() - _last['t']
-    if dt < GAP:
-        time.sleep(GAP - dt)
+    """One polite GET: at least GAP seconds after the previous request, and
+    at least GOODREADS_GAP after the previous Goodreads request."""
+    goodreads = '//www.goodreads.com/' in url
+    now = time.time()
+    wait = GAP - (now - _last['t'])
+    if goodreads:
+        wait = max(wait, GOODREADS_GAP - (now - _last['goodreads']))
+    if wait > 0:
+        time.sleep(wait)
     _last['t'] = time.time()
+    if goodreads:
+        _last['goodreads'] = _last['t']
     return R._get(url, timeout=timeout)
 
 
@@ -179,15 +204,17 @@ def _entry_ok(want_title, want_author, got_title, got_author):
 
 # A collection/boxed set that CONTAINS this book carries its name in the title
 # ('The Empyrean Series 3 Books Collection Set: Fourth Wing, Iron Flame, Onyx
-# Storm') — matching it would publish a set's blurb as the book's. The same
-# junk titles fetch.py drops (one list, same intent).
+# Storm', 'Throne of Glass, A Court of Thorns and Roses 2 Book Set Collection')
+# — matching it would publish a set's blurb as the book's. The same junk
+# titles fetch.py drops (one list, same intent).
 _JUNK = ('summary of', 'study guide', 'sparknotes', 'workbook', 'box set', 'boxset',
          'collection set', 'books collection', 'series set', 'omnibus', 'cliffsnotes')
+_JUNK_SET = re.compile(r'\bbooks? set\b')
 
 
 def _junk_title(t):
     low = (t or '').lower()
-    return any(j in low for j in _JUNK)
+    return any(j in low for j in _JUNK) or bool(_JUNK_SET.search(low))
 
 
 # ---------- parsers (fail soft: None, never a raise) ----------
@@ -198,7 +225,13 @@ _BAUTH = re.compile(r'''<a[^>]*class="authorName"[^>]*>(.*?)</a>''', re.S | re.I
 
 def parse_search(html):
     """A Goodreads search page -> [{title, author, url}] in rank order, or
-    None when the page is not what we expect (a markup change fails soft)."""
+    None when the page is not what we expect (a markup change fails soft).
+
+    Two page shapes: the classic table of rows, and the Next.js page Goodreads
+    serves since 2026-11 ('Book search results for ... | Goodreads'), whose
+    results live in its streamed data. A row from the Next.js page also
+    carries `description` — the result's own blurb as the search shows it
+    ('' when it has none, None when the page's data cannot say)."""
     if not html:
         return None
     out = []
@@ -213,6 +246,85 @@ def parse_search(html):
         if title and url.startswith('/book/show/'):
             out.append({'title': title, 'author': author,
                         'url': 'https://www.goodreads.com' + url})
+    return out or _parse_search_next(html)
+
+
+# The Next.js search page streams its content as React flight rows inside
+# `self.__next_f.push([1,"..."])` scripts. Each result is a props object
+# {"position": N, ..., "book": {"__typename": "Book", ...}}; a long string
+# (a blurb) is a "$<id>" reference to a text row '<id>:T<hex byte length>,'.
+_PUSH = re.compile(r'self\.__next_f\.push\(\[1,"((?:[^"\\]|\\.)*)"\]\)')
+_POSITION = re.compile(r'\{"position":(\d+),')
+
+
+def _flight(html):
+    """The page's streamed flight data as one string, or '' (fail soft)."""
+    try:
+        return ''.join(json.loads('"%s"' % p) for p in _PUSH.findall(html or ''))
+    except Exception:
+        return ''
+
+
+def _flight_text(raw, ref):
+    """Resolve a '$<id>' text reference against the flight data (UTF-8 bytes:
+    the row length counts bytes); a plain string is itself, no value is ''.
+    None when the reference cannot be resolved — unknown, not empty."""
+    if ref is None:
+        return ''
+    if not isinstance(ref, str):
+        return None
+    if not re.match(r'\$[0-9a-f]+$', ref):
+        return ref
+    m = re.search(rb'(?:^|\n)' + ref[1:].encode() + rb':T([0-9a-f]+),', raw)
+    if not m:
+        return None
+    return raw[m.end():m.end() + int(m.group(1), 16)].decode('utf-8', 'replace')
+
+
+def _first_book(o):
+    """The first Book node (one with a page) inside a result's props."""
+    if isinstance(o, dict):
+        if o.get('__typename') == 'Book' and o.get('webUrl'):
+            return o
+        o = list(o.values())
+    if isinstance(o, list):
+        for v in o:
+            b = _first_book(v)
+            if b:
+                return b
+    return None
+
+
+def _parse_search_next(html):
+    """The Next.js search page -> rows in rank order (by `position`), or None."""
+    data = _flight(html)
+    if not data:
+        return None
+    raw = data.encode('utf-8')
+    dec = json.JSONDecoder()
+    ranked = {}
+    for m in _POSITION.finditer(data):
+        try:
+            props, _ = dec.raw_decode(data, m.start())
+        except ValueError:
+            continue
+        b = _first_book(props)
+        if not b:
+            continue
+        url = (b.get('webUrl') or '').split('?')[0]
+        title = _clean(b.get('title'), 200)
+        node = (b.get('primaryContributorEdge') or {}).get('node')
+        author = _clean((node or {}).get('name') if isinstance(node, dict) else '', 120)
+        if title and url.startswith('https://www.goodreads.com/book/show/'):
+            desc = _flight_text(raw, b.get('description'))
+            ranked.setdefault(int(m.group(1)), {
+                'title': title, 'author': author, 'url': url,
+                'description': None if desc is None else _clean(desc)})
+    seen, out = set(), []
+    for _, row in sorted(ranked.items()):
+        if row['url'] not in seen:
+            seen.add(row['url'])
+            out.append(row)
     return out or None
 
 
@@ -272,24 +384,32 @@ def _suspect(html):
 
 
 def _looks_like_search(html):
-    low = (html or '')[:200000].lower()
+    """A real search page that shows no result rows: a genuine no-match.
+    The Next.js page carries 'searchresults' on every search (its other tabs'
+    loaders), so for it only its own no-results block counts — a results page
+    we cannot read must stay a transient 'fail', never a cached miss."""
+    low = (html or '').lower()
+    if 'book search results for' in low[:20000]:
+        return 'no-book-search-results' in low or 'nobooksearchresults' in low
+    low = low[:200000]
     return 'booktitle' in low or 'searchresults' in low
 
 
 def goodreads_lookup(title, author):
-    """('text', 'goodreads') | ('', 'miss') | ('', 'fail').
+    """('text', 'goodreads') | ('', 'miss') | ('', 'fail') | ('', 'challenged').
 
     One search, then the matched book page. A search that redirects straight
     to a single book page is honored in place (no second request). A request
-    failure — or a rate-limit/challenge page — is 'fail': transient, never
-    cached, retried by the next build. A real page with nothing to give is a
-    'miss'."""
+    failure is 'fail'; a bot-challenge page (or an empty body) is
+    'challenged'. Both are transient, never cached as a miss, retried by a
+    later build — and 'challenged' tells attach() to stop asking Goodreads
+    this build. A real page with nothing to give is a 'miss'."""
     try:
         html = _get(search_url(title, author))
     except Exception:
         return ('', 'fail')
     if _suspect(html):
-        return ('', 'fail')
+        return ('', 'challenged')
     rows = parse_search(html)
     if rows is None:
         page = parse_book_page(html)          # the search redirected to a book
@@ -303,6 +423,11 @@ def goodreads_lookup(title, author):
         return ('', 'miss') if _looks_like_search(html) else ('', 'fail')
     url = None
     for r in rows:
+        # a result whose own blurb the search already shows as a stub ('1')
+        # is a placeholder edition: its page has nothing more — the next
+        # matching result (the real edition) is the one to read
+        if r.get('description') is not None and not _usable(r['description']):
+            continue
         if _entry_ok(title, author, r['title'], r['author']):
             url = r['url']
             break
@@ -313,7 +438,7 @@ def goodreads_lookup(title, author):
     except Exception:
         return ('', 'fail')
     if _suspect(page_html):
-        return ('', 'fail')
+        return ('', 'challenged')
     page = parse_book_page(page_html, url)
     if page is None:
         return ('', 'fail')                   # markup change: retried, never a false 'none'
@@ -351,21 +476,32 @@ def apple_lookup(title, author):
     return ('', 'miss')
 
 
+def lookup(title, author, goodreads=True):
+    """The chain, plus the Goodreads outcome attach() needs: (text, src, gr).
+
+    src is 'goodreads' | 'apple' | 'none' | 'fail', as resolve() returns it.
+    gr is what Goodreads said: goodreads_lookup()'s outcome, or 'skipped' when
+    the caller asked not to ask it (goodreads=False). An Apple copy with any
+    gr but 'miss' is an Apple copy Goodreads may still beat."""
+    gr_text, gr = goodreads_lookup(title, author) if goodreads else ('', 'skipped')
+    if gr_text:
+        return (gr_text, 'goodreads', gr)
+    apple_text, apple_src = apple_lookup(title, author)
+    if apple_text:
+        return (apple_text, 'apple', gr)
+    if gr != 'miss' or apple_src == 'fail':
+        return ('', 'fail', gr)
+    return ('', 'none', gr)
+
+
 def resolve(title, author):
     """The chain: Goodreads page -> Apple description -> honest none.
 
     A Goodreads request failure falls through to Apple (an outage must not
     leave books blank); if either source failed and neither produced text the
     book stays pending — retried by the next build, never cached as empty."""
-    text, src = goodreads_lookup(title, author)
-    if text:
-        return (text, 'goodreads')
-    apple_text, apple_src = apple_lookup(title, author)
-    if apple_text:
-        return (apple_text, 'apple')
-    if src == 'fail' or apple_src == 'fail':
-        return ('', 'fail')
-    return ('', 'none')
+    text, src, _ = lookup(title, author)
+    return (text, src)
 
 
 # ---------- the volume cache ----------
@@ -408,17 +544,26 @@ def attach(entries, cache, budget=None):
 
     `entries` = [(book_dict, title, author)] in PRIORITY order — the caller
     puts the picks first so the decision surface fills before the long tail.
-    One lookup per NEW book ever; cached books cost nothing (no request).
+    One lookup per NEW book ever; cached books cost nothing (no request) —
+    except a cached Apple copy marked `retry: 'goodreads'`, which a second pass
+    asks Goodreads about once the books with no blurb have had their turn.
+    Once Goodreads answers with its bot challenge, no more Goodreads requests
+    go out this build: new books take Apple's copy (marked for retry) and the
+    retry pass waits for the next build. New books also stop asking Goodreads
+    once GOODREADS_SHARE of the budget is spent, so a big batch fills from
+    Apple instead of waiting blank; the retry pass may use the whole budget.
     The buckets are disjoint and sum to the books considered: fetched (this
     build, with text) + cached (with text) + none (no blurb anywhere, fresh or
     cached — unannounced stubs included) + pending (budget) + failed (retried).
-    Returns the counts the run report prints."""
+    'retry' counts, apart from the buckets, the books whose Apple copy still
+    waits for Goodreads. Returns the counts the run report prints."""
     if budget is None:
         budget = CFG.get('synopsis_budget_seconds', DEFAULT_BUDGET)
     stats = {'fetched': 0, 'goodreads': 0, 'apple': 0, 'cached': 0,
-             'none': 0, 'pending': 0, 'failed': 0}
+             'none': 0, 'pending': 0, 'failed': 0, 'retry': 0}
     started = time.time()
-    got, meta, order = {}, {}, []
+    got, meta, order, retries = {}, {}, [], []
+    goodreads = {'on': True}
     for book, title, author in entries or []:
         k = book.get('id') or bookids.book_key(title, author)
         if not k or k in meta or k in got:
@@ -431,6 +576,11 @@ def attach(entries, cache, budget=None):
             continue
         meta[k] = (title, author)
         order.append(k)
+
+    def heard(gr):
+        if gr == 'challenged':
+            goodreads['on'] = False             # Goodreads said stop: stop, this build
+
     for k in order:
         ent = cache.get(k) if isinstance(cache, dict) else None
         if isinstance(ent, dict) and ent.get('src') in ('goodreads', 'apple', 'none'):
@@ -444,15 +594,20 @@ def attach(entries, cache, budget=None):
                 got[k] = (text, ent['src'])
                 if ent['src'] == 'none':
                     stats['none'] += 1          # a miss counts once — in 'none'
+                elif ent['src'] == 'apple' and ent.get('retry') == 'goodreads':
+                    retries.append(k)           # shown now; Goodreads asked below
                 else:
                     stats['cached'] += 1
                 continue
-        if time.time() - started >= budget:
+        spent = time.time() - started
+        if spent >= budget:
             got[k] = ('', 'pending')
             stats['pending'] += 1
             continue
         title, author = meta[k]
-        text, src = resolve(title, author)
+        ask = goodreads['on'] and spent < budget * GOODREADS_SHARE
+        text, src, gr = lookup(title, author, goodreads=ask)
+        heard(gr)
         if src == 'fail':
             got[k] = ('', 'pending')          # transient: never cached, retried
             stats['failed'] += 1
@@ -464,6 +619,27 @@ def attach(entries, cache, budget=None):
         else:
             stats['fetched'] += 1
             stats['goodreads' if src == 'goodreads' else 'apple'] += 1
+            if src == 'apple' and gr != 'miss':
+                cache[k]['retry'] = 'goodreads'     # Goodreads did not answer: ask again
+                stats['retry'] += 1
+    for k in retries:
+        title, author = meta[k]
+        if goodreads['on'] and time.time() - started < budget:
+            text, gr = goodreads_lookup(title, author)
+            heard(gr)
+            if text:
+                got[k] = (text, 'goodreads')
+                cache[k] = {'text': text, 'src': 'goodreads',
+                            'at': datetime.now().date().isoformat()}
+                stats['fetched'] += 1
+                stats['goodreads'] += 1
+                continue
+            if gr == 'miss':
+                cache[k].pop('retry', None)     # Goodreads has none: Apple's copy is final
+                stats['cached'] += 1
+                continue
+        stats['cached'] += 1                    # Apple's copy stands until Goodreads answers
+        stats['retry'] += 1
     for book, title, author in entries or []:
         k = book.get('id') or bookids.book_key(title, author)
         if k in got:
@@ -482,4 +658,6 @@ def report_line(stats):
         line += ' / %d pending (next build continues)' % stats['pending']
     if stats['failed']:
         line += ' / %d failed (retried next build)' % stats['failed']
+    if stats.get('retry'):
+        line += ' / %d apple until goodreads answers' % stats['retry']
     return line
