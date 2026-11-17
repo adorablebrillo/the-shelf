@@ -19,7 +19,8 @@ pageviews never refetch. A definitive miss caches 'none' (delete the entry to
 re-attempt by hand); a request failure is never cached — the next build
 retries it.
 
-Politeness: one book at a time, >=1.2s between requests, and a per-build time
+Politeness: one book at a time, >=1.2s between requests and >=10s between
+Goodreads requests (config `goodreads_gap_seconds`), and a per-build time
 budget (config `synopsis_budget_seconds`, default 180s) so a cold cache can
 never blow the boot rebuild's 300s timeout — the fill continues on the next
 build, and the run report says exactly how far it got. Everything is wrapped:
@@ -48,17 +49,29 @@ CFG = json.load(open(os.path.join(BASE, 'config.json')))
 CACHE_NAME = 'synopsis-cache.json'
 DESC_CAP = 2000       # a blurb, not a chapter
 GAP = 1.2             # polite: one request at a time, never faster than this
+# Goodreads answers a caller that asks faster with its bot challenge: measured
+# 2026-11 from one address, a 1.2s pace was challenged from the second book's
+# search on, a 10s pace read every search and book page. A challenged lookup
+# falls back to Apple's copy, so the pace decides where a blurb comes from.
+GOODREADS_GAP = float(CFG.get('goodreads_gap_seconds', 10))
 DEFAULT_BUDGET = 180  # seconds of fetching per build (config-overridable)
 
-_last = {'t': 0.0}
+_last = {'t': 0.0, 'goodreads': 0.0}
 
 
 def _get(url, timeout=25):
-    """One polite GET: at least GAP seconds after the previous request."""
-    dt = time.time() - _last['t']
-    if dt < GAP:
-        time.sleep(GAP - dt)
+    """One polite GET: at least GAP seconds after the previous request, and
+    at least GOODREADS_GAP after the previous Goodreads request."""
+    goodreads = '//www.goodreads.com/' in url
+    now = time.time()
+    wait = GAP - (now - _last['t'])
+    if goodreads:
+        wait = max(wait, GOODREADS_GAP - (now - _last['goodreads']))
+    if wait > 0:
+        time.sleep(wait)
     _last['t'] = time.time()
+    if goodreads:
+        _last['goodreads'] = _last['t']
     return R._get(url, timeout=timeout)
 
 
@@ -179,15 +192,17 @@ def _entry_ok(want_title, want_author, got_title, got_author):
 
 # A collection/boxed set that CONTAINS this book carries its name in the title
 # ('The Empyrean Series 3 Books Collection Set: Fourth Wing, Iron Flame, Onyx
-# Storm') — matching it would publish a set's blurb as the book's. The same
-# junk titles fetch.py drops (one list, same intent).
+# Storm', 'Throne of Glass, A Court of Thorns and Roses 2 Book Set Collection')
+# — matching it would publish a set's blurb as the book's. The same junk
+# titles fetch.py drops (one list, same intent).
 _JUNK = ('summary of', 'study guide', 'sparknotes', 'workbook', 'box set', 'boxset',
          'collection set', 'books collection', 'series set', 'omnibus', 'cliffsnotes')
+_JUNK_SET = re.compile(r'\bbooks? set\b')
 
 
 def _junk_title(t):
     low = (t or '').lower()
-    return any(j in low for j in _JUNK)
+    return any(j in low for j in _JUNK) or bool(_JUNK_SET.search(low))
 
 
 # ---------- parsers (fail soft: None, never a raise) ----------

@@ -104,14 +104,14 @@ class FakeClock:
 
 class Base(unittest.TestCase):
     def setUp(self):
-        self._gap = S.GAP
+        self._gap = (S.GAP, S.GOODREADS_GAP)
         self._get = S._get
         self._time = S.time
-        S.GAP = 0                       # never sleep in tests
+        S.GAP = S.GOODREADS_GAP = 0     # never sleep in tests
         self.tmp = tempfile.mkdtemp(prefix='syn-test-')
 
     def tearDown(self):
-        S.GAP = self._gap
+        S.GAP, S.GOODREADS_GAP = self._gap
         S._get = self._get
         S.time = self._time
         shutil.rmtree(self.tmp, ignore_errors=True)
@@ -120,6 +120,47 @@ class Base(unittest.TestCase):
         f = FakeNet(**kw)
         S._get = f
         return f
+
+
+# ---------- the pace ----------
+class PaceTests(Base):
+    """Goodreads answers a caller that asks too fast with its bot challenge:
+    measured 2026-11, at the build's 1.2 s pace the second book's search was
+    already challenged (and its blurb fell back to Apple); at 10 s every
+    search and book page answered."""
+
+    def setUp(self):
+        super().setUp()
+        slept = self.slept = []
+
+        class Clock:
+            t = 1000.0
+
+            def time(self):
+                return self.t
+
+            def sleep(self, d):
+                slept.append(round(d, 3))
+                self.t += d
+
+        S.time = Clock()
+        S.GAP, S.GOODREADS_GAP = 1.2, 10.0
+        self._rget, self._lastv = S.R._get, dict(S._last)
+        S._last.update(t=0.0, goodreads=0.0)
+        S.R._get = lambda url, timeout=25: ''
+
+    def tearDown(self):
+        S.R._get = self._rget
+        S._last.clear()
+        S._last.update(self._lastv)
+        super().tearDown()
+
+    def test_goodreads_requests_are_paced_apart_and_apple_is_not_held_back(self):
+        S._get(S.search_url('Iron Flame', 'Rebecca Yarros'))              # first: no wait
+        S._get('https://www.goodreads.com/book/show/90202302-iron-flame')  # Goodreads pace
+        S._get('https://itunes.apple.com/search?term=Iron+Flame+Rebecca+Yarros')  # Apple: GAP only
+        S._get(S.search_url('Book Lovers', 'Emily Henry'))                # 10 s after the page
+        self.assertEqual(self.slept, [10.0, 1.2, 8.8])
 
 
 # ---------- the parsers ----------
@@ -455,6 +496,11 @@ class ChainTests(Base):
         text, src = S.resolve('Onyx Storm', 'Rebecca Yarros')
         self.assertEqual(src, 'apple')                 # never the set's blurb
         self.assertIn('storm is coming', text)
+        # the second live case (2026-11, the Next.js search): the first result
+        # by the author for 'A Court of Thorns and Roses' was this two-book set
+        self.assertFalse(S._entry_ok('A Court of Thorns and Roses', 'Sarah J. Maas',
+                                     'Throne of Glass, A Court of Thorns and Roses 2 Book Set Collection',
+                                     'Sarah J. Maas'))
 
     def test_a_junk_titled_page_is_not_this_book(self):
         page = book_html().replace('"title":"The Unknown"', '"title":"The Unknown Series Set"')
