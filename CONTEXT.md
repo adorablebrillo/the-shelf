@@ -23,7 +23,7 @@ The resolved side of the app — **Read & loved** (the stacks, everything read b
 _Avoid_: library
 
 **Settings**:
-The setup page: OpenRouter key, model, the curate-now run, and watched authors.
+The setup page: OpenRouter key, model, the curate-now run, watched authors, and the Goodreads import.
 
 ### Verdicts
 
@@ -48,7 +48,7 @@ _Avoid_: skip, dismiss
 ### Series
 
 **Tracked series**:
-A series she is in. It comes from `library.json`, from `sequels.json`, or from her marks: a book marked *read* or *loved* tracks its series, worked out again at each run (no file is written, and clearing the mark stops tracking at the next run). The author of a tracked series is searched every run, and a new book in it is a guaranteed pick (the sequel guarantee). A series tracked from marks shows on the Series page once a next book is known.
+A series she is in. It comes from `library.json`, from `sequels.json`, or from her marks: a book marked *read* or *loved* tracks its series, worked out again at each run (no file is written, and clearing the mark stops tracking at the next run). The author of a tracked series is searched every run, and a new book in it is a guaranteed pick (the sequel guarantee). A series tracked from marks shows on the Series page once a next book is known. A series she left unticked on the Goodreads import is never tracked from marks (the `untracked` list in `added-books.json`).
 _Avoid_: followed series, the lane
 
 **Open series** / **Closed series**:
@@ -93,8 +93,11 @@ The instant title · author · series line shown inside the case. Never a native
 A read book that isn't part of a series.
 
 **Added book**:
-A book the reader added herself with **+ add a book** (an Apple Books search at the top of My Shelf and the Archive), not one a run picked. It lives in `added-books.json` on the config volume, keyed by the same book identity as every pick, and takes a verdict like any book. It files on My Shelf or in the Archive only — never on Home — and taking its verdict back takes it off the shelf.
+A book the reader added herself with **+ add a book** (an Apple Books search at the top of My Shelf and the Archive) or brought in with the **Goodreads import**, not one a run picked. It lives in `added-books.json` on the config volume, keyed by the same book identity as every pick, and takes a verdict like any book. It files on My Shelf or in the Archive only — never on Home — and taking its verdict back takes it off the shelf.
 _Avoid_: manual book, custom book
+
+**Goodreads import**:
+The Settings **Import** tab: she chooses her Goodreads export file, sees a preview, then imports it. Read with 5 stars is *loved*; read with fewer or no stars is *read*; to-read is *want*; currently-reading is *want* plus reading now; a dnf or did-not-finish shelf is *not for me*; any other shelf is left out and counted. A mark is dated by Date Read, or Date Added when Date Read is empty. A mark already made in the app always wins, so importing the same file again adds nothing. The preview lists the series of her read books, ticked first when she read 2 or more of them or gave one 4 or 5 stars; only ticked series are tracked. Each imported book is an **added book**. The import makes no web lookups.
 
 **Watched authors**:
 Authors whose new releases every run looks for.
@@ -103,6 +106,6 @@ Authors whose new releases every run looks for.
 
 **Settings is a page, not a sheet.** The old modal (veil, dialog, focus trap, Escape-to-close) is retired; the nav's Settings button renders the page. The same controls, endpoints and tab machinery as the shipped sheet — a page script binds them when the view enters and stops the status poll when it leaves.
 
-**Tabs**: Shelf (key · model · save · curate now · status) and Authors (watched list with lanes, add + remove, the empty state). Roving tabindex + arrow keys, as the sheet had.
+**Tabs**: Shelf (key · model · save · curate now · status), Authors (watched list with lanes, add + remove, the empty state) and Import (the Goodreads export file, its preview with series ticks, import). Roving tabindex + arrow keys, as the sheet had.
 
 **Panels use inline `display`, not the `hidden` attribute** — the design runtime drops `hidden` during render, so `display:none` is the only reliable hide inside the dc root.

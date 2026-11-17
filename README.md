@@ -61,7 +61,7 @@ shelf keeps its reader data on the config volume (`/config`):
 | `library.json` · `sequels.json` | the series you're in and their next books |
 | `seed-reads.json` | your starting library + taste profile |
 | `taste-prompt.md` | the curator's brief for your shelf |
-| `added-books.json` | books you added yourself with **+ add a book** on My Shelf or the Archive (the app writes it) |
+| `added-books.json` | books you added yourself with **+ add a book** on My Shelf or the Archive, or imported from Goodreads (**settings → Import**); the app writes it |
 
 Every run resolves these volume-first (a boot seeder copies them in once, only
 from non-blank sources, and never overwrites). A fresh install stays blank until
@@ -73,6 +73,6 @@ you bring your own data.
 2. **filter** — the reader's hard rules (M/F only, dark romance & dark academia welcome, spice 3–5, a widening pool, trad-pub first) and **your shelf's verdicts**: not-for-me and already-read books never come back; every run reports how many candidates your shelf excluded
 3. **curate** — one curation call per run, up to three when a thin lane widens (`taste-prompt.md`) → up to 9 books shaped 3/3/3 (floor two per lane; thin lanes widen 30→60→90 days before being dropped), hooks, top pick, MMC vibe scores
 4. **build** — injects the month into the approved template → `index.html`; every book the page renders also carries a **real synopsis** — its Goodreads page (title + author lookup), Apple's description as fallback, and an honest line when neither has one — cached on the data volume, so a book is looked up once and rebuilds never refetch
-5. **serve + schedule** — Python-stdlib server, settings in `/config`, cron in-container; it also answers the **+ add a book** search (Apple Books) on My Shelf and the Archive and keeps those books in `/config/added-books.json`, which every build ships
+5. **serve + schedule** — Python-stdlib server, settings in `/config`, cron in-container; it also answers the **+ add a book** search (Apple Books) on My Shelf and the Archive and keeps those books in `/config/added-books.json`, which every build ships; **settings → Import** reads your Goodreads export file, shows what comes in, and imports it into the same file
 
 No Node, no pip installs, no databases. The whole thing is stdlib Python.

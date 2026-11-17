@@ -86,10 +86,25 @@ def _candidate_series(data_dir):
     return out
 
 
+def untracked(cfg_dir=None):
+    """Series she left unticked on the Goodreads import (#93), normalized: the
+    `untracked` list in added-books.json. Her marks never track these."""
+    try:
+        with open(os.path.join(cfg_dir or paths.cfg_dir(), 'added-books.json')) as f:
+            names = (json.load(f) or {}).get('untracked') or []
+    except FileNotFoundError:
+        return set()
+    except Exception as e:
+        print('sequels: added-books.json unreadable (%s) — no series skipped' % str(e)[:60])
+        return set()
+    return {norm_name(n) for n in names if isinstance(n, str) and norm_name(n)}
+
+
 def from_marks(data_dir=None, cfg_dir=None):
     """The series tracked from her marks: the series of every book marked read
     or loved that library.json and sequels.json do not already hold (by the
-    same name match the sequel guarantee uses). Nothing is written.
+    same name match the sequel guarantee uses), less the series she left
+    unticked on the Goodreads import. Nothing is written.
 
     -> [{'series': name, 'author': author, 'books': [{'title', 'num', 'id'}]}]
     sorted by series name."""
@@ -101,13 +116,14 @@ def from_marks(data_dir=None, cfg_dir=None):
     details = verdicts.book_details(data_dir)
     cands = _candidate_series(data_dir)
     existing = file_series()
+    skip = untracked(cfg_dir)
     groups = {}
     for bid, _s, t in sorted(marks, key=lambda m: m[2]):
         d = details.get(bid) or {}
         c = cands.get(bid) or {}
         name = series_name(d.get('series') or c.get('series'))
         key = norm_name(name)
-        if not key or is_sequel({'series': name}, existing):
+        if not key or key in skip or is_sequel({'series': name}, existing):
             continue
         title = d.get('title') or c.get('title') or ''
         author = d.get('author') or c.get('author') or ''

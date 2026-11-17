@@ -390,6 +390,21 @@ class H(BaseHTTPRequestHandler):
                 return self._json({'error': err}, 400)
             log('book added: %s' % rec['id'][:60])
             self._json({'ok': True, 'book': rec, 'books': load_added()['books']})
+        elif u.path == '/api/import/goodreads':
+            text = body.get('text')
+            if not isinstance(text, str) or not text.strip():
+                return self._json({'error': 'Choose your Goodreads export file first.'}, 400)
+            if len(text) > GR_MAX_BYTES:
+                return self._json({'error': 'That file is too large for a Goodreads export.'}, 400)
+            dry = body.get('dry') is not False
+            res, err = import_goodreads(text, dry=dry, track=body.get('track'))
+            if err:
+                return self._json({'error': err}, 400)
+            if not dry:
+                log('goodreads import: %d books (%s), %d left out, %d already marked, %d series not tracked'
+                    % (res['imported'], ', '.join('%d %s' % (n, k) for k, n in res['counts'].items()),
+                       res['left_out'], res['already'], len(res['untracked'])))
+            self._json({'ok': True, 'dry': dry, **res})
         elif u.path == '/api/run':
             s = load_settings()
             if not s.get('api_key'):
@@ -636,6 +651,191 @@ def added_remove(bid):
             d['books'] = keep
             save_added(d)
     return d['books']
+
+
+# ---------- Goodreads import (ticket #93) ----------
+# The Settings Import tab sends the Goodreads export file (My Books → Import
+# and export → Export Library). A dry call previews; the second call imports.
+# Every imported book is an added book (added-books.json) with its mark in the
+# reader state. No web lookups: covers and blurbs fill over later page builds.
+GR_REQUIRED = ('Title', 'Author', 'Exclusive Shelf')
+GR_DNF = ('dnf', 'didnotfinish')          # shelf names, letters and digits only
+GR_MAX_BYTES = 20 * 1024 * 1024
+
+
+def _gr_shelf(s):
+    return re.sub(r'[^a-z0-9]', '', str(s or '').lower())
+
+
+def gr_title(raw):
+    """'Fourth Wing (The Empyrean, #1)' -> ('Fourth Wing', 'The Empyrean', '1').
+    Goodreads writes the series and number in brackets at the end of a title."""
+    raw = _clean(raw)
+    m = re.search(r'\s*\(([^()]+?),?\s+#\s*(\d+(?:\.\d+)?)(?:\s*-\s*\d+(?:\.\d+)?)?\)\s*$', raw)
+    if not m:
+        return raw, '', ''
+    return raw[:m.start()].strip() or raw, m.group(1).strip(), m.group(2)
+
+
+def gr_time(*dates):
+    """The mark's time in ms: the first date given (Date Read, then Date Added),
+    at noon local time so the day never shifts. No date at all is 1 — the
+    oldest possible mark, still newer than no mark."""
+    for d in dates:
+        m = re.match(r'\s*(\d{4})[/-](\d{1,2})[/-](\d{1,2})', str(d or ''))
+        if m:
+            try:
+                return int(datetime(int(m.group(1)), int(m.group(2)), int(m.group(3)), 12).timestamp() * 1000)
+            except (ValueError, OverflowError):
+                continue
+    return 1
+
+
+def gr_verdict(exclusive, shelves, rating):
+    """(verdict, reading now, why left out). The agreed mapping: read with 5
+    stars is loved; read with fewer or no stars is read; to-read is want;
+    currently-reading is want plus reading now; a dnf shelf is not for me;
+    any other shelf is left out."""
+    ex = _gr_shelf(exclusive)
+    if ex in GR_DNF or any(_gr_shelf(s) in GR_DNF for s in shelves):
+        return 'skip', False, ''
+    if ex == 'read':
+        return ('loved' if rating == 5 else 'read'), False, ''
+    if ex == 'toread':
+        return 'want', False, ''
+    if ex == 'currentlyreading':
+        return 'want', True, ''
+    return None, False, 'on the shelf “%s”' % (_clean(exclusive, 60) or 'none')
+
+
+def parse_goodreads(text):
+    """-> (books, left_out, error). books: one dict per book in the file;
+    left_out: [{title, author, why}]."""
+    import csv, io
+    book_key = _pipeline_import('bookids').book_key
+    text = str(text or '').lstrip('﻿')
+    reader = csv.DictReader(io.StringIO(text))
+    if not reader.fieldnames or any(c not in reader.fieldnames for c in GR_REQUIRED):
+        return [], [], 'This is not a Goodreads export file: it has no Title, Author and Exclusive Shelf columns.'
+    books, left, seen = [], [], set()
+    for row in reader:
+        title, series, num = gr_title(row.get('Title'))
+        author = _clean(row.get('Author'))
+        bid = book_key(title, author)
+        if not title or not author or not bid:
+            left.append({'title': title, 'author': author, 'why': 'no title or author'})
+            continue
+        if bid in seen:
+            left.append({'title': title, 'author': author, 'why': 'listed twice'})
+            continue
+        try:
+            rating = int(str(row.get('My Rating') or '0').strip() or 0)
+        except ValueError:
+            rating = 0
+        shelves = [s for s in str(row.get('Bookshelves') or '').split(',') if s.strip()]
+        verdict, reading, why = gr_verdict(row.get('Exclusive Shelf'), shelves, rating)
+        if not verdict:
+            left.append({'title': title, 'author': author, 'why': why})
+            continue
+        seen.add(bid)
+        books.append({'id': bid, 'title': title, 'author': author, 'series': series,
+                      'series_num': num, 'rating': rating, 's': verdict, 'reading': reading,
+                      't': gr_time(row.get('Date Read'), row.get('Date Added')),
+                      'isbn13': re.sub(r'[^0-9Xx]', '', str(row.get('ISBN13') or ''))[:13]})
+    return books, left, None
+
+
+def gr_series(books):
+    """The series of the read and loved books, ticked first when she read 2 or
+    more of its books or gave one 4 or 5 stars. Sorted ticked first, then by
+    how many she read."""
+    norm = _pipeline_import('sequels').norm_name
+    groups = {}
+    for b in books:
+        if b['s'] not in ('read', 'loved') or not b['series']:
+            continue
+        key = norm(b['series'])
+        if not key:
+            continue
+        g = groups.setdefault(key, {'name': b['series'], 'author': b['author'], 'read': 0, 'top': 0})
+        g['read'] += 1
+        g['top'] = max(g['top'], b['rating'])
+    out = []
+    for g in groups.values():
+        out.append({'name': g['name'], 'author': g['author'], 'read': g['read'],
+                    'ticked': g['read'] >= 2 or g['top'] >= 4})
+    out.sort(key=lambda g: (not g['ticked'], -g['read'], g['name'].lower()))
+    return out
+
+
+def import_goodreads(text, dry=True, track=None):
+    """The preview (dry) or the import itself. track: the series names she
+    ticked; on an import, every other series found goes to the untracked list
+    in added-books.json, which the series tracked from marks skip. A mark the
+    app already holds — set or cleared — is never changed, so a second import
+    of the same file adds nothing."""
+    books, left, err = parse_goodreads(text)
+    if err:
+        return None, err
+    states = load_state().get('states') or {}
+    fresh = [b for b in books if b['id'] not in states]
+    already = [b for b in books if b['id'] in states]
+    series = gr_series(fresh)
+    counts = {'loved': 0, 'read': 0, 'want': 0, 'skip': 0}
+    for b in fresh:
+        counts[b['s']] += 1
+    why = {}
+    for x in left:
+        why[x['why']] = why.get(x['why'], 0) + 1
+    out = {'counts': counts, 'reading': sum(1 for b in fresh if b['reading']),
+           'total': len(fresh), 'left_out': len(left),
+           'left_why': [{'why': k, 'n': n} for k, n in sorted(why.items(), key=lambda kv: -kv[1])],
+           'already': len(already), 'series': series}
+    if dry:
+        return out, None
+
+    norm = _pipeline_import('sequels').norm_name
+    if track is None:
+        track = [g['name'] for g in series if g['ticked']]
+    ticked = {norm(n) for n in track if isinstance(n, str)}
+    unticked = {norm(g['name']): g['name'] for g in series if norm(g['name']) not in ticked}
+    try:
+        verdicts = _pipeline_import('verdicts')   # every book the shelf already shows
+        shown = verdicts.book_details(os.path.join(os.path.dirname(verdicts.__file__), 'data'))
+    except Exception as e:
+        log('goodreads import: book lookup failed (%s)' % str(e)[:80])
+        shown = {}
+    today = datetime.now().strftime('%Y-%m-%d')
+    with ADDED_LOCK:
+        d = load_added()
+        have = {b.get('id') for b in d['books']}
+        for b in fresh:
+            if b['id'] in have or b['id'] in shown:
+                continue   # a pick or a series volume already: the mark is enough
+            d['books'].append({'id': b['id'], 'title': b['title'], 'author': b['author'],
+                               'date': '', 'img': '', 'genre': '', 'appleId': '', 'url': '',
+                               'series': b['series'], 'series_num': b['series_num'],
+                               'isbn13': b['isbn13'], 'added': today, 'from': 'goodreads'})
+            have.add(b['id'])
+        keep = [n for n in (d.get('untracked') or []) if isinstance(n, str) and norm(n) not in ticked]
+        keep_keys = {norm(n) for n in keep}
+        d['untracked'] = sorted(keep + [n for k, n in unticked.items() if k not in keep_keys], key=str.lower)
+        save_added(d)
+    with STATE_LOCK:
+        cur = load_state()
+        st = cur.get('states') or {}
+        rd = cur.get('reading') or {}
+        for b in fresh:
+            if b['id'] in st:
+                continue   # marked while the preview was open: the app's mark wins
+            st[b['id']] = {'s': b['s'], 't': b['t']}
+            if b['reading'] and b['id'] not in rd:
+                rd[b['id']] = {'s': True, 't': b['t']}
+        cur['states'], cur['reading'] = st, rd
+        save_state(cur)
+    out['imported'] = len(fresh)
+    out['untracked'] = sorted(unticked.values(), key=str.lower)
+    return out, None
 
 
 def ensure_default(offline=False):
