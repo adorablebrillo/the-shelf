@@ -86,6 +86,8 @@
     [data-m="row"]{grid-template-columns:84px minmax(0,1fr) !important}
     [data-m="row"] > :nth-child(3){grid-column:1 / -1}
   }
+  /* #93: the hidden file field shows its keyboard focus on its visible label */
+  #gr-file:focus-visible + label{outline:2px solid #1E3A2F;outline-offset:3px}
   /* phone: the settings page stacks with the shell (#43 does the full pass) */
   @media (max-width:700px){
     [data-m="main"]{padding:30px 18px 64px !important}
@@ -467,7 +469,7 @@
           <div role="img" aria-label="{{ b.alt }}" style="{{ b.coverStyle }}"></div>
           <div style="min-width:0">
             <h3 style="font-family:'Cormorant Garamond',Garamond,serif;font-weight:500;font-size:28px;line-height:1.1;margin:0">{{ b.title }} <span aria-hidden="true" style="color:#A8863F">{{ b.star }}</span></h3>
-            <p style="margin:6px 0 0;font-size:13px;letter-spacing:.13em;text-transform:uppercase;color:#635846">{{ b.author }} · {{ b.genre }} · {{ b.date }}</p>
+            <p style="margin:6px 0 0;font-size:13px;letter-spacing:.13em;text-transform:uppercase;color:#635846">{{ b.shelfLine }}</p>
             <p style="margin:12px 0 0;font-family:'Cormorant Garamond',Garamond,serif;font-size:20px;line-height:1.45;max-width:56ch">{{ b.hook }}</p>
             <sc-if value="{{ b.synShow }}">
               <div data-m="syn" style="{{ b.synWrapStyle }}">
@@ -749,6 +751,7 @@
       <div data-m="setTabs" role="tablist" aria-label="Settings panels" style="display:flex;margin-top:24px;border-bottom:1px solid #C6BBA3">
         <button type="button" id="tab-shelf" role="tab" aria-selected="true" aria-controls="panel-shelf" tabindex="0" style="font-size:10.5px;letter-spacing:.28em;text-transform:uppercase;padding:12px 18px 11px;background:transparent;border:none;border-bottom:2px solid #1E3A2F;color:#211E19;cursor:pointer;min-height:44px">Shelf</button>
         <button type="button" id="tab-authors" role="tab" aria-selected="false" aria-controls="panel-authors" tabindex="-1" style="font-size:10.5px;letter-spacing:.28em;text-transform:uppercase;padding:12px 18px 11px;background:transparent;border:none;border-bottom:2px solid transparent;color:#635846;cursor:pointer;min-height:44px">Authors</button>
+        <button type="button" id="tab-import" role="tab" aria-selected="false" aria-controls="panel-import" tabindex="-1" style="font-size:10.5px;letter-spacing:.28em;text-transform:uppercase;padding:12px 18px 11px;background:transparent;border:none;border-bottom:2px solid transparent;color:#635846;cursor:pointer;min-height:44px">Import</button>
       </div>
 
       <div id="panel-shelf" role="tabpanel" aria-labelledby="tab-shelf">
@@ -787,6 +790,34 @@
           <p id="auth-msg" role="status" aria-live="polite" style="margin:12px 0 0;font-style:italic;font-size:14px;color:#635846;min-height:20px"></p>
           <div id="auth-list" style="margin-top:4px"></div>
           <p style="margin:16px 0 0;font-size:13px;color:#635846">The watch list feeds the monthly run — this month's page changes on the next curate.</p>
+        </section>
+      </div>
+
+      <div id="panel-import" role="tabpanel" aria-labelledby="tab-import" style="display:none">
+        <section aria-label="Import from Goodreads" style="max-width:720px">
+          <p style="margin:22px 0 0;font-size:16px;line-height:1.6;color:#4A443A">Bring your Goodreads history onto the shelf. On the Goodreads website, open My Books, then Import and export, then Export Library. Choose the file it gives you here. Nothing is saved until you press import.</p>
+          <p style="margin:26px 0 0;font-size:10.5px;letter-spacing:.28em;text-transform:uppercase;color:#635846">Goodreads export file</p>
+          <div style="display:flex;align-items:center;gap:14px;flex-wrap:wrap;margin-top:10px">
+            <input id="gr-file" type="file" accept=".csv,text/csv" style="position:absolute;width:1px;height:1px;opacity:0;overflow:hidden"/>
+            <label for="gr-file" style="display:inline-flex;align-items:center;min-height:48px;box-sizing:border-box;font-size:10.5px;letter-spacing:.28em;text-transform:uppercase;padding:14px 24px;border:1px solid #1E3A2F;color:#1E3A2F;background:transparent;cursor:pointer">choose the file</label>
+            <span id="gr-name" style="font-style:italic;font-size:15px;color:#635846;overflow-wrap:anywhere">no file chosen</span>
+          </div>
+          <p id="gr-msg" role="status" aria-live="polite" style="margin:12px 0 0;font-style:italic;font-size:14px;color:#635846;min-height:20px"></p>
+          <div id="gr-preview" style="display:none">
+            <div style="margin-top:14px;padding:18px 20px;border:1px solid #C6BBA3;background:#FBF6EC">
+              <p id="gr-counts" style="margin:0;font-family:'Cormorant Garamond',Garamond,serif;font-size:24px;line-height:1.3;color:#211E19"></p>
+              <p id="gr-extra" style="margin:8px 0 0;font-size:14px;line-height:1.6;color:#635846"></p>
+            </div>
+            <fieldset id="gr-series-box" style="margin:22px 0 0;padding:0;border:none;min-width:0">
+              <legend id="gr-series-h" style="padding:0;font-size:10.5px;letter-spacing:.28em;text-transform:uppercase;color:#635846"></legend>
+              <p style="margin:8px 0 0;font-size:14px;line-height:1.6;color:#635846">A new book in a ticked series is always a pick. Ticked first: series where you read 2 or more books, or gave one 4 or 5 stars.</p>
+              <div id="gr-series" style="margin-top:8px;max-height:360px;overflow-y:auto;border-top:1px solid #E3DAC6"></div>
+            </fieldset>
+            <div style="display:flex;gap:12px;flex-wrap:wrap;margin-top:22px">
+              <button type="button" id="gr-go" style="font-size:10.5px;letter-spacing:.28em;text-transform:uppercase;padding:14px 26px;min-height:48px;border:1px solid #1E3A2F;background:#1E3A2F;color:#F3EDE1;cursor:pointer"></button>
+            </div>
+          </div>
+          <p style="margin:18px 0 0;font-size:13px;line-height:1.6;color:#635846">A mark you already made in the app always wins. Importing the same file again adds nothing twice. Covers and blurbs fill in over the next page builds.</p>
         </section>
       </div>
     </div>
@@ -912,29 +943,104 @@
     j('/api/run',{method:'POST'}).then(function(r){var el=document.getElementById('run-state');if(el)el.textContent=r.error||'started — watch status';}).catch(function(){var el=document.getElementById('run-state');if(el)el.textContent='could not start — container offline?';});
     setTimeout(loadStatus,3000);
   }
+  var TABS=['shelf','authors','import'];
   function tab(which){
-    var on=which==='authors';
-    var ps=document.getElementById('panel-shelf'),pa=document.getElementById('panel-authors');
-    var ts=document.getElementById('tab-shelf'),ta=document.getElementById('tab-authors');
-    if(!ps||!pa||!ts||!ta)return;
     /* the dc runtime drops the `hidden` attribute — inline display is what it
        preserves, and display:none is equivalent for both sight and AT */
-    ps.style.display=on?'none':'block';pa.style.display=on?'block':'none';
-    ts.setAttribute('aria-selected',String(!on));ta.setAttribute('aria-selected',String(on));
-    ts.style.borderBottomColor=on?'transparent':'#1E3A2F';ts.style.color=on?'#635846':'#211E19';
-    ta.style.borderBottomColor=on?'#1E3A2F':'transparent';ta.style.color=on?'#211E19':'#635846';
-    ts.tabIndex=on?-1:0;ta.tabIndex=on?0:-1;
+    TABS.forEach(function(n){
+      var on=n===which,p=document.getElementById('panel-'+n),t=document.getElementById('tab-'+n);
+      if(!p||!t)return;
+      p.style.display=on?'block':'none';
+      t.setAttribute('aria-selected',String(on));
+      t.style.borderBottomColor=on?'#1E3A2F':'transparent';t.style.color=on?'#211E19':'#635846';
+      t.tabIndex=on?0:-1;
+    });
   }
   function tabKey(e){
     var keys=['ArrowRight','ArrowLeft','Home','End'];
     if(keys.indexOf(e.key)<0)return;
     e.preventDefault();
-    var ts=document.getElementById('tab-shelf');
-    var onShelf=!!ts&&ts.getAttribute('aria-selected')==='true';
-    /* two tabs: arrows toggle and wrap; Home/End jump */
-    var go=e.key==='Home'?'shelf':e.key==='End'?'authors':(onShelf?'authors':'shelf');
-    tab(go);
-    var el=document.getElementById(go==='authors'?'tab-authors':'tab-shelf');if(el)el.focus();
+    var cur=0;
+    TABS.forEach(function(n,i){var t=document.getElementById('tab-'+n);if(t&&t.getAttribute('aria-selected')==='true')cur=i;});
+    /* arrows move and wrap; Home/End jump */
+    var i=e.key==='Home'?0:e.key==='End'?TABS.length-1:(cur+(e.key==='ArrowRight'?1:TABS.length-1))%TABS.length;
+    tab(TABS[i]);
+    var el=document.getElementById('tab-'+TABS[i]);if(el)el.focus();
+  }
+
+  /* ---- Goodreads import (#93): preview the export file, then import ---- */
+  var grText='',grBusy=false;
+  function grMsg(t){var el=document.getElementById('gr-msg');if(el)el.textContent=t||'';}
+  function plural(n,one,many){return n+' '+(n===1?one:(many||one+'s'));}
+  function grPost(dry,track){
+    return fetch('/api/import/goodreads',{method:'POST',headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({text:grText,dry:dry,track:track})})
+      .then(function(r){return r.json().then(function(j){return {ok:r.ok,j:j};});});
+  }
+  function grTicked(){
+    var out=[],boxes=document.querySelectorAll('#gr-series input[type=checkbox]');
+    for(var i=0;i<boxes.length;i++){if(boxes[i].checked)out.push(boxes[i].value);}
+    return out;
+  }
+  function grSeriesHead(){
+    var all=document.querySelectorAll('#gr-series input[type=checkbox]').length;
+    var h=document.getElementById('gr-series-h');if(h)h.textContent='Series to track · '+grTicked().length+' of '+all;
+  }
+  function grShow(p){
+    var box=document.getElementById('gr-preview');if(!box)return;
+    var c=p.counts||{},parts=[];
+    if(c.read)parts.push(c.read+' read');if(c.loved)parts.push(c.loved+' loved');
+    if(c.want)parts.push(c.want+' want');if(c.skip)parts.push(c.skip+' not for me');
+    document.getElementById('gr-counts').textContent=parts.length?parts.join(' · '):'Nothing new to import';
+    var ex=[];
+    if(p.reading)ex.push(plural(p.reading,'book')+' you are reading now');
+    if(p.left_out)ex.push(plural(p.left_out,'book')+' left out ('+(p.left_why||[]).map(function(x){return x.n+' '+x.why;}).join(', ')+')');
+    if(p.already)ex.push(plural(p.already,'book')+' already marked in the app, left as they are');
+    document.getElementById('gr-extra').textContent=ex.join(' · ');
+    var host=document.getElementById('gr-series');host.innerHTML='';
+    (p.series||[]).forEach(function(g,i){
+      var row=document.createElement('label');
+      row.style.cssText='display:flex;align-items:center;gap:12px;min-height:48px;padding:6px 0;border-bottom:1px solid #E3DAC6;cursor:pointer';
+      var cb=document.createElement('input');cb.type='checkbox';cb.value=g.name;cb.checked=!!g.ticked;cb.id='gr-s-'+i;
+      cb.style.cssText='width:20px;height:20px;margin:0;accent-color:#1E3A2F;flex:0 0 auto';
+      cb.addEventListener('change',grSeriesHead);
+      var nm=document.createElement('span');nm.textContent=g.name;
+      nm.style.cssText="font-family:'Cormorant Garamond',Garamond,serif;font-size:20px;color:#211E19";
+      var n=document.createElement('span');n.textContent=g.author+' · '+g.read+' read';
+      n.style.cssText='margin-left:auto;font-size:13px;color:#635846;text-align:right';
+      row.appendChild(cb);row.appendChild(nm);row.appendChild(n);host.appendChild(row);
+    });
+    document.getElementById('gr-series-box').style.display=(p.series||[]).length?'block':'none';
+    grSeriesHead();
+    var go=document.getElementById('gr-go');
+    go.textContent='import '+plural(p.total||0,'book');go.disabled=!p.total;
+    go.style.opacity=p.total?'1':'.45';go.style.cursor=p.total?'pointer':'default';
+    box.style.display='block';
+  }
+  function grChoose(e){
+    var f=e.target.files&&e.target.files[0];
+    var box=document.getElementById('gr-preview');if(box)box.style.display='none';
+    if(!f)return;
+    var nm=document.getElementById('gr-name');if(nm)nm.textContent=f.name;
+    grMsg('Reading the file\u2026');
+    f.text().then(function(t){
+      grText=t;
+      return grPost(true);
+    }).then(function(r){
+      if(!r.ok||r.j.error){grMsg(r.j.error||'The shelf server could not read that file.');return;}
+      grMsg('Check what comes in, then press import.');grShow(r.j);
+    }).catch(function(){grMsg('The shelf server did not answer \u2014 try again.');});
+  }
+  function grImport(){
+    if(grBusy||!grText)return;
+    grBusy=true;grMsg('Importing\u2026');
+    grPost(false,grTicked()).then(function(r){
+      grBusy=false;
+      if(!r.ok||r.j.error){grMsg(r.j.error||'The import failed \u2014 try again.');return;}
+      var box=document.getElementById('gr-preview');if(box)box.style.display='none';
+      grMsg('Imported '+plural(r.j.imported||0,'book')+'. They are on My Shelf and in the Archive.');
+      try{window.dispatchEvent(new Event('shelf:imported'));}catch(_){}
+    }).catch(function(){grBusy=false;grMsg('The shelf server did not answer \u2014 nothing was imported.');});
   }
   /* #42/#41 review: the dc runtime cannot bind an inline onerror to a
      callable (it lands as a non-function and throws when the event fires),
@@ -976,10 +1082,11 @@
   /* the component calls these when the Settings view enters/leaves */
   window.SHELF_SETTINGS={
     enter:function(){
-      var ts=document.getElementById('tab-shelf'),ta=document.getElementById('tab-authors');
-      if(!ts||!ta)return;
-      ts.onclick=function(){tab('shelf');};ta.onclick=function(){tab('authors');};
-      ts.onkeydown=tabKey;ta.onkeydown=tabKey;
+      var ts=document.getElementById('tab-shelf');
+      if(!ts)return;
+      TABS.forEach(function(n){var t=document.getElementById('tab-'+n);if(t){t.onclick=function(){tab(n);};t.onkeydown=tabKey;}});
+      var gf=document.getElementById('gr-file');if(gf)gf.onchange=grChoose;
+      var gg=document.getElementById('gr-go');if(gg)gg.onclick=grImport;
       var an=document.getElementById('auth-name');if(an)an.onkeydown=function(e){if(e.key==='Enter')addAuthor();};
       var aa=document.getElementById('auth-add');if(aa)aa.onclick=addAuthor;
       var sv=document.getElementById('set-save');if(sv)sv.onclick=save;
@@ -1411,11 +1518,14 @@ class Component extends DCLogic {
     this._m=setTimeout(()=>this.moment(),900);
     this.pull();                                   // server is the source of record
     this.loadAdded();                              // #84: books she added by search
+    // #93: a Goodreads import adds books and marks on the server: fetch both
+    this._imp=()=>{ this.loadAdded(); this.pull(); };
+    if(typeof window!=='undefined')window.addEventListener('shelf:imported',this._imp);
     this._s=setInterval(()=>this.flushOutbox(),20000);
     if(typeof document!=='undefined')document.addEventListener('visibilitychange',()=>{
       if(!document.hidden){this.flushOutbox(); this.pull();}});
   }
-  componentWillUnmount(){ clearInterval(this._t); clearInterval(this._s); clearTimeout(this._m); if(this._mq&&this._mqListener)this._mq.removeEventListener('change',this._mqListener); }
+  componentWillUnmount(){ if(this._imp&&typeof window!=='undefined')window.removeEventListener('shelf:imported',this._imp); clearInterval(this._t); clearInterval(this._s); clearTimeout(this._m); if(this._mq&&this._mqListener)this._mq.removeEventListener('change',this._mqListener); }
 
   nav(on) {
     return { display:'flex', alignItems:'center', gap:'10px', width:'100%', padding:'13px 18px',
@@ -1450,6 +1560,8 @@ class Component extends DCLogic {
       /* an added book (#84) has no publisher: never print an empty ' · ' slot */
       pubLine:[b.author,b.publisher].filter(Boolean).join(' · '),
       pubGenreLine:[b.author,b.publisher,b.genre].filter(Boolean).join(' · '),
+      /* a Goodreads import (#93) carries no genre or date: skip empty slots too */
+      shelfLine:[b.author,b.genre,b.date].filter(Boolean).join(' · '),
       formatLine:(b.formats||[]).join(' · '),
       /* the verdict she asked for by name: "skip sounds like a browsing gesture;
          this is a verdict" -> the stored value stays 'skip', the label does not */

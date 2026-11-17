@@ -101,6 +101,14 @@ class MarkedSeriesTests(unittest.TestCase):
         self.assertEqual(self.names(), [])
         self.assertEqual(sequels.report_line([]), 'series: 0 tracked from your marks')
 
+    def test_series_left_unticked_on_the_goodreads_import_is_not_tracked(self):
+        # the import (#93) writes the series she left unticked beside the added books
+        write(os.path.join(self.cfg, 'added-books.json'), {'v': 1, 'books': [], 'untracked': ['Mist Court']})
+        self.mark({EMBER: {'s': 'loved', 't': 3}, STONE: {'s': 'read', 't': 4}})
+        self.assertEqual(self.names(), ['Harbor Lights'])
+        names = sequels.tracked_series(self.data, self.cfg)
+        self.assertFalse(sequels.is_sequel({'title': 'Ember Crown', 'series': 'Mist Court'}, names))
+
     def test_series_already_in_the_library_is_not_doubled(self):
         self.mark({IRON: {'s': 'loved', 't': 1}})
         self.assertEqual(self.names(), [])
