@@ -1051,8 +1051,12 @@
     for(var i=0;i<imgs.length;i++){
       var im=imgs[i];
       if(im.getAttribute('src').indexOf('data:')===0)continue;   // the transparent gif = no art by design
-      if(!im.getAttribute('data-bound')){
-        im.setAttribute('data-bound','1');
+      /* the mark is a node property, never an attribute: the runtime stamps
+         new covers (a switch to Series) by cloning, and a clone copies the
+         attributes but not the listeners — an attribute mark made a stamped
+         cover skip binding and stay hidden after it loaded */
+      if(!im.__artBound){
+        im.__artBound=true;
         im.addEventListener('error',function(){ setArt(this,false); });
         im.addEventListener('load',function(){ setArt(this,true); });
       }
