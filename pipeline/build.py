@@ -744,12 +744,10 @@ def pick_book(b, top_id, img):
     genre = (b.get('genre') or '').strip()
     # a pick's interest: the search that found it (its lane field, set by
     # fetch and copied onto the pick in curate), else the genre fallback —
-    # Home shows the interest name where it showed the lane name
+    # Home shows the interest name where it showed the lane name. The full
+    # name stays: the shape line counts these keys, and nothing on the card
+    # needs the old short forms (only 'romantasy' is compared, unchanged).
     lane = lanes.interest_of(b)
-    if lane == 'contemporary romance':
-        lane = 'contemporary'  # the card's short form; only 'romantasy' is compared
-    elif lane == 'sport romance':
-        lane = 'sport'
     rating = b.get('rating')
     if isinstance(rating, str):
         gr = rating
