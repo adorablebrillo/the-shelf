@@ -1,0 +1,26 @@
+# Home
+
+## Sub-features
+
+- The reading-now card at the top: the book she is reading now (a pick, a series volume, or an added book — the one place an added book shows on Home, never as a pick) with a one-tap **finished it**; when nothing is in progress, **choose your next book** with start buttons from My Shelf.
+- The issue line under the month's picks: `N of M still open · next issue in D days` with a thin progress bar; deciding the last pick presses an issue-complete stamp in, once.
+- The month's picks (lead card + grid), each with its four verdicts; decided picks clear from Home; carry-overs from earlier issues follow.
+- Anticipation: a row of countdown cards for tracked series, soonest first, horizontally scrollable on a phone.
+- Read & loved (past 30 days) and series at a glance, below.
+
+## How to get to it (user POV)
+
+Open the served page — Home is the landing section. On a phone (≤880 px) the sections sit in a fixed bar at the bottom of the screen; the sidebar keeps its compact masthead.
+
+## Driving it with chrome-devtools-axi
+
+- Set a reading-now book the honest way: click `want to read <pick>` on Home, open **My Shelf** from the bar, click `reading now — <title>`, return Home. An added book can instead be seeded server-side: `POST /api/state` with `states {id:{s:'want'}}` and `reading {id:{s:true}}` (ids from `container/dist/shelf-data.js`).
+- Press `mark <title> read — finished it` on the card and confirm: the card falls back (to another reading flag, or to choose your next book), the book files into the Archive, `reader-state.json` records `read` and a cleared reading flag.
+- Decide every open pick (`want`/`mark read`/`loved`/`not for me`) and watch the last one: the issue line reads `every pick decided · next issue in D days`, the stamp panel appears, confetti only for `read`/`loved`. Leave Home and return: the stamp is gone, the line stays.
+- Geometry: the reading card and the issue line must sit above the phone's bottom bar; measure with `eval` IIFEs over `getBoundingClientRect` (see SKILL.md's Drive).
+
+## Gotchas
+
+- `finished it` marks read, which files the book read — to undo, use the Archive's read row, not Home.
+- The stamp is session state (it shows once per completion, per visit); it is not in `reader-state.json`.
+- The line's `M` counts only the current month's picks; carry-overs are counted by the carried-over line below the grid.
