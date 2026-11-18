@@ -321,6 +321,12 @@ class H(BaseHTTPRequestHandler):
                 self._json({'error': 'Apple Books did not answer — try again', 'results': []}, 502)
         elif u.path == '/api/books':
             self._json({'books': load_added()['books']})
+        elif u.path == '/api/interests':
+            try:
+                self._json({'interests': load_interests()})
+            except Exception as e:
+                log('interests read failed: %s' % str(e)[:80])
+                self._json({'error': 'the interests file could not be read'}, 500)
         elif u.path == '/api/status':
             s = load_settings()
             self._json({'key_set': bool(s.get('api_key')), 'model': s.get('model'),
@@ -405,6 +411,13 @@ class H(BaseHTTPRequestHandler):
                     % (res['imported'], ', '.join('%d %s' % (n, k) for k, n in res['counts'].items()),
                        res['left_out'], res['already'], len(res['untracked'])))
             self._json({'ok': True, 'dry': dry, **res})
+        elif u.path == '/api/interests':
+            doc, err = save_interests(body)
+            if err:
+                return self._json({'error': err}, 400)
+            log('book-a-meter saved: %d interest(s), %d picks' %
+                (len(doc['interests']), doc['picks']))
+            self._json({'ok': True, 'interests': doc})
         elif u.path == '/api/run':
             s = load_settings()
             if not s.get('api_key'):
@@ -591,6 +604,112 @@ def search_books(q, get_text=_get_text):
     return out[:10]
 
 
+# ---- the Book-a-meter (THS-37 piece 2) ------------------------------------
+# The Settings Book-a-meter tab reads and writes interests.json — the doc the
+# runs read (pipeline/interests.py owns its shape and its defaults). One
+# writer at a time, like the reader state; a bad write must never reach a run.
+INTERESTS_LOCK = threading.Lock()
+
+
+def _interests_mod():
+    return _pipeline_import('interests')
+
+
+def load_interests():
+    """The Book-a-meter doc: the volume file, else the defaults a blank
+    install starts from."""
+    return _interests_mod().load()
+
+
+_DIALS = ('off', 'curious', 'into it', 'obsessed')
+_MODES = ('new', 'best ever', 'both')
+
+
+def sanitize_interests(body):
+    """(doc, error). The tab sends the whole doc; the known fields are
+    checked here, unknown keys ride along (piece 4 adds fields to an
+    interest), so the run never reads a shape it cannot trust."""
+    ints_mod = _interests_mod()
+    if not isinstance(body, dict):
+        return None, 'the Book-a-meter is not a saved list'
+    if not isinstance(body.get('interests'), list):
+        return None, 'the Book-a-meter needs its interests list'
+    doc = {}
+    nm = body.get('name')
+    doc['name'] = _clean(nm, 60) if isinstance(nm, str) and nm.strip() else ints_mod.DEFAULT_NAME
+    try:
+        picks = int(body.get('picks'))
+    except (TypeError, ValueError):
+        picks = ints_mod.DEFAULT_PICKS
+    doc['picks'] = max(1, min(60, picks))
+    sg = body.get('season_goal')
+    if sg is None:
+        doc['season_goal'] = None
+    else:
+        try:
+            doc['season_goal'] = max(1, min(365, int(sg)))
+        except (TypeError, ValueError):
+            doc['season_goal'] = None
+    doc['never'] = [_clean(w, 60).lower() for w in (body.get('never') or [])
+                    if isinstance(w, str) and w.strip()]
+    out, seen = [], set()
+    for i in body['interests']:
+        if not isinstance(i, dict):
+            return None, 'an interest is not a saved list entry'
+        label = _clean(i.get('label'), 80)
+        if not label:
+            return None, 'an interest needs a name'
+        iid = _clean(i.get('id'), 60) or re.sub(r'[^a-z0-9]+', '-', label.lower()).strip('-') or 'interest'
+        if iid in seen:
+            return None, 'two interests share the name ' + label
+        seen.add(iid)
+        rec = {k: v for k, v in i.items() if k not in ('id', 'label', 'kind', 'dial', 'mode', 'romance', 'terms')}
+        rec.update({
+            'id': iid, 'label': label,
+            'kind': 'topic' if i.get('kind') == 'topic' else 'story',
+        })
+        if i.get('dial') in _DIALS:
+            rec['dial'] = i['dial']
+        if i.get('mode') in _MODES:
+            rec['mode'] = i['mode']
+        if isinstance(i.get('romance'), bool):
+            rec['romance'] = i['romance']
+        if isinstance(i.get('terms'), list):
+            rec['terms'] = [_clean(w, 60) for w in i['terms'] if isinstance(w, str) and w.strip()][:8]
+        out.append(rec)
+    doc['interests'] = out
+    return doc, None
+
+
+def save_interests(body):
+    """(doc, error). Sanitize, then write the volume file the runs read."""
+    doc, err = sanitize_interests(body)
+    if err:
+        return None, err
+    with INTERESTS_LOCK:
+        if not _interests_mod().save(doc):
+            return None, 'the interests file could not be saved'
+    return doc, None
+
+
+def _interest_name(raw):
+    """The run's name for an interest given as its id or its label; '' when
+    the tab sent none. Unknown ids stay lowercased, so a run that reads the
+    interests file after a later rename still finds a filing that matches."""
+    raw = _clean(raw, 80)
+    if not raw:
+        return ''
+    low = raw.lower()
+    try:
+        ints_mod = _interests_mod()
+        for i in (load_interests().get('interests') or []):
+            if str(i.get('id') or '').lower() == low or str(i.get('label') or '').lower() == low:
+                return ints_mod.name(i)
+    except Exception:
+        pass
+    return low
+
+
 def load_added():
     """{v, books:[{id,title,author,date,img,genre,appleId,url,series,series_num,added}]}"""
     try:
@@ -615,9 +734,24 @@ def added_add(book, get_text=_get_text):
     bid = _pipeline_import('bookids').book_key(title, author)
     if not title or not author or not bid:
         return None, 'a book needs a title and an author'
+    interest = _interest_name(book.get('interest'))
     same = [b for b in load_added()['books'] if b.get('id') == bid]
     if same:
-        return same[0], None
+        rec = same[0]
+        # a book she added before the tab existed carries no interest: the
+        # tab's "+ add" files it now. One already filed under another
+        # interest stays there — one interest per book.
+        if interest and not rec.get('interest'):
+            with ADDED_LOCK:
+                d = load_added()
+                for b in d['books']:
+                    if b.get('id') == bid:
+                        b['interest'] = interest
+                        rec = b
+                save_added(d)
+        if book.get('reading'):
+            _mark_reading(rec['id'])
+        return rec, None
     url = str(book.get('url') or '').split('?')[0]
     if not re.match(r'^https://books\.apple\.com/', url):
         url = ''   # only Apple's own book pages are ever fetched
@@ -633,6 +767,8 @@ def added_add(book, get_text=_get_text):
            'genre': _clean(book.get('genre'), 80), 'appleId': _clean(book.get('appleId'), 20),
            'url': url, 'series': _clean(ser.get('series'), 120), 'series_num': _clean(ser.get('num'), 8),
            'added': datetime.now().strftime('%Y-%m-%d')}
+    if interest:
+        rec['interest'] = interest
     with ADDED_LOCK:
         d = load_added()
         same = [b for b in d['books'] if b.get('id') == bid]
@@ -640,7 +776,21 @@ def added_add(book, get_text=_get_text):
             return same[0], None
         d['books'].append(rec)
         save_added(d)
+    if book.get('reading'):
+        _mark_reading(rec['id'])
     return rec, None
+
+
+def _mark_reading(bid):
+    """The tab adds a book she is reading now: reading now is want plus a
+    reading flag (#57), so both channels carry it — want files it on My
+    Shelf, the flag gives it the first spot with a star."""
+    now = int(time.time() * 1000)
+    with STATE_LOCK:
+        cur = load_state()
+        cur['states'] = merge_states(cur.get('states'), {bid: {'s': 'want', 't': now}})
+        cur['reading'] = merge_states(cur.get('reading'), {bid: {'s': True, 't': now}})
+        save_state(cur)
 
 
 def added_remove(bid):

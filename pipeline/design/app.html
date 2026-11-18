@@ -95,7 +95,7 @@
   /* phone: the settings page stacks with the shell (#43 does the full pass) */
   @media (max-width:700px){
     [data-m="main"]{padding:30px 18px 64px !important}
-    [data-m="setTabs"] button{min-height:44px !important}
+    [data-m="setTabs"] button{min-height:44px !important;padding-left:10px !important;padding-right:10px !important;letter-spacing:.16em !important}
     .loglink{display:inline-block;min-height:44px;padding:10px 0}
     .grlink{position:relative;display:inline-block}
     .grlink::after{content:"";position:absolute;inset:-14px -6px}
@@ -863,10 +863,11 @@
     <div data-screen-label="Settings">
       <p style="margin:0;font-size:10.5px;letter-spacing:.42em;text-transform:uppercase;color:#635846">Setup</p>
       <h2 id="set-h" tabindex="-1" style="font-family:'Cormorant Garamond',Garamond,serif;font-weight:300;font-size:clamp(34px,5vw,56px);letter-spacing:.06em;margin:12px 0 0;outline:none">Shelf settings</h2>
-      <p style="margin:10px 0 0;font-size:11px;letter-spacing:.28em;text-transform:uppercase;color:#635846">Sport Romance · Romantasy · Contemporary Romance</p>
+      <p id="set-sub" style="margin:10px 0 0;font-size:11px;letter-spacing:.28em;text-transform:uppercase;color:#635846">Sport Romance · Romantasy · Contemporary Romance</p>
 
       <div data-m="setTabs" role="tablist" aria-label="Settings panels" style="display:flex;margin-top:24px;border-bottom:1px solid #C6BBA3">
         <button type="button" id="tab-shelf" role="tab" aria-selected="true" aria-controls="panel-shelf" tabindex="0" style="font-size:10.5px;letter-spacing:.28em;text-transform:uppercase;padding:12px 18px 11px;background:transparent;border:none;border-bottom:2px solid #1E3A2F;color:#211E19;cursor:pointer;min-height:44px">Shelf</button>
+        <button type="button" id="tab-bookameter" role="tab" aria-selected="false" aria-controls="panel-bookameter" tabindex="-1" style="font-size:10.5px;letter-spacing:.28em;text-transform:uppercase;padding:12px 18px 11px;background:transparent;border:none;border-bottom:2px solid transparent;color:#635846;cursor:pointer;min-height:44px">Book-a-meter</button>
         <button type="button" id="tab-authors" role="tab" aria-selected="false" aria-controls="panel-authors" tabindex="-1" style="font-size:10.5px;letter-spacing:.28em;text-transform:uppercase;padding:12px 18px 11px;background:transparent;border:none;border-bottom:2px solid transparent;color:#635846;cursor:pointer;min-height:44px">Authors</button>
         <button type="button" id="tab-import" role="tab" aria-selected="false" aria-controls="panel-import" tabindex="-1" style="font-size:10.5px;letter-spacing:.28em;text-transform:uppercase;padding:12px 18px 11px;background:transparent;border:none;border-bottom:2px solid transparent;color:#635846;cursor:pointer;min-height:44px">Import</button>
       </div>
@@ -888,6 +889,23 @@
           <p style="margin:12px 0 0;font-style:italic;font-size:14px;line-height:1.6;color:#635846;max-width:56ch">curate now re-runs for the last 30 days of releases. the 1st of every month still drops the full previous month.</p>
           <p id="run-state" role="status" aria-live="polite" style="margin:18px 0 0;font-family:'Cormorant Garamond',Garamond,serif;font-size:22px;color:#1E3A2F;min-height:28px"></p>
           <p id="status-line" style="margin:4px 0 0;font-size:14px;color:#635846"></p>
+        </section>
+      </div>
+
+      <div id="panel-bookameter" role="tabpanel" aria-labelledby="tab-bookameter" style="display:none">
+        <section aria-label="Book-a-meter" style="max-width:720px">
+          <p id="bm-intro" style="margin:22px 0 0;font-size:16px;line-height:1.6;color:#4A443A">Your Book-a-meter tells the curator what to look for. Turn a dial up for more picks, or off for none. A book you add for an interest shows on My Shelf, never on Home.</p>
+          <p id="bm-msg" role="status" aria-live="polite" style="margin:12px 0 0;min-height:20px;font-style:italic;font-size:14px;color:#6E2A2A"></p>
+          <div id="bm-interests" style="margin-top:8px"></div>
+          <div style="margin-top:18px">
+            <button type="button" id="bm-add-interest" data-act="addopen" style="min-height:48px;font-size:10.5px;letter-spacing:.28em;text-transform:uppercase;padding:14px 24px;border:1px solid #6E2A2A;color:#6E2A2A;background:transparent;cursor:pointer">+ add an interest</button>
+          </div>
+          <div id="bm-add-panel" style="display:none;margin-top:14px;padding:16px;border:1px dashed #C6BBA3;background:#FBF6EC"></div>
+          <p style="margin:26px 0 0;font-size:10.5px;letter-spacing:.28em;text-transform:uppercase;color:#635846">Never show me</p>
+          <div id="bm-never" style="display:flex;gap:8px;flex-wrap:wrap;margin-top:10px"></div>
+          <p style="margin:26px 0 0;font-size:10.5px;letter-spacing:.28em;text-transform:uppercase;color:#635846">Picks per issue</p>
+          <div id="bm-picks" style="display:flex;gap:16px;align-items:center;margin-top:10px"></div>
+          <p style="margin:18px 0 0;font-size:13px;line-height:1.6;color:#635846">Every change here saves at once — the next curate follows it.</p>
         </section>
       </div>
 
@@ -1060,7 +1078,7 @@
     j('/api/run',{method:'POST'}).then(function(r){var el=document.getElementById('run-state');if(el)el.textContent=r.error||'started — watch status';}).catch(function(){var el=document.getElementById('run-state');if(el)el.textContent='could not start — container offline?';});
     setTimeout(loadStatus,3000);
   }
-  var TABS=['shelf','authors','import'];
+  var TABS=['shelf','bookameter','authors','import'];
   function tab(which){
     /* the dc runtime drops the `hidden` attribute — inline display is what it
        preserves, and display:none is equivalent for both sight and AT */
@@ -1159,6 +1177,333 @@
       try{window.dispatchEvent(new Event('shelf:imported'));}catch(_){}
     }).catch(function(){grBusy=false;grMsg('The shelf server did not answer \u2014 nothing was imported.');});
   }
+  /* ---- the Book-a-meter tab (THS-37 piece 2) ----------------------------
+     One dial per interest, its mode, its own reading list (added books filed
+     under the interest), the never list and picks per issue. Everything saves
+     to interests.json at once — the file the runs read. The panel renders
+     itself; its controls answer through one delegated listener, because a
+     re-render replaces the nodes an inline binding would sit on. */
+  var BM=null, BM_BOOKS=[], BM_READING={}, BM_Q={}, BM_RES={}, BM_QOPEN={},
+      BM_ADD_OPEN=false, BM_CUSTOM='';
+  var BM_COLORS=['#1E3A2F','#6E2A2A','#A8863F','#C8704A','#5E7A8C','#9BA98A','#6B4E71','#C98F93','#4A443A','#7C8B4E'];
+  /* the catalog the tab offers. A story interest not yet in the file keeps
+     the romance rules only when it is one of the three the install starts
+     with; a typed interest is a real-life topic, and the run asks the
+     curator for its search words, so none are stored here. */
+  var BM_CATALOG=[
+    ['sport','Sport romance','story'],['romantasy','Romantasy','story'],['contemp','Contemporary romance','story'],
+    ['thriller','Thriller','story'],['mystery','Mystery','story'],['fantasy','Fantasy','story'],
+    ['scifi','Sci-fi','story'],['literary','Literary fiction','story'],['historical','Historical fiction','story'],
+    ['horror','Horror','story'],
+    ['baby','Baby development','topic'],['parenting','Parenting','topic'],['memoir','Memoir','topic'],
+    ['health','Health & wellbeing','topic'],['cooking','Cooking','topic'],['business','Business & money','topic'],
+    ['history','History','topic'],['science','Popular science','topic']
+  ];
+  var BM_NEVER_CHIPS=[
+    ['cowboys','cowboys & westerns'],['cliffhanger endings','cliffhanger endings'],
+    ['graphic violence','graphic violence'],['books over 600 pages','books over 600 pages'],
+    ['unrated self-published','unrated self-published']
+  ];
+  function bmMsg(t){var el=document.getElementById('bm-msg');if(el)el.textContent=t||'';}
+  function bmEl(tag,style,txt){var e=document.createElement(tag);if(style)e.style.cssText=style;if(txt!=null)e.textContent=txt;return e;}
+  function bmBtn(label,act,v,extra){
+    var b=bmEl('button','min-height:44px;cursor:pointer;'+(extra||''));
+    b.type='button';b.setAttribute('data-act',act);if(v!=null)b.setAttribute('data-v',v);
+    b.textContent=label;return b;
+  }
+  function bmFind(id){var l=BM&&BM.interests||[];for(var k=0;k<l.length;k++)if(l[k].id===id)return l[k];return null;}
+  function bmInName(i){return String(i.label||i.id||'').toLowerCase();}
+  function bmDialRow(i){
+    var seg=bmEl('div','display:flex;margin-top:10px');
+    [['off','off'],['curious','curious'],['into it','into it'],['obsessed','obsessed']].forEach(function(d,n){
+      var on=(i.dial||'into it')===d[0];
+      var b=bmBtn(d[1],'dial',d[0]);b.setAttribute('data-id',i.id);
+      b.style.cssText+='flex:1;border:1px solid #C6BBA3;'+(n<3?'border-right:none;':'')+(on?'background:#1E3A2F;color:#F3EDE1;':'background:transparent;color:#4A443A;')+'font-size:13px;padding:8px 4px';
+      seg.appendChild(b);
+    });
+    return seg;
+  }
+  function bmModeRow(i){
+    var seg=bmEl('div','display:flex;margin-top:6px');
+    [['new','new'],['best ever','best ever'],['both','both']].forEach(function(m,n){
+      var on=(i.mode||'new')===m[0];
+      var b=bmBtn(m[1],'imode',m[0]);b.setAttribute('data-id',i.id);
+      b.style.cssText+='flex:1;border:1px solid #C6BBA3;'+(n<2?'border-right:none;':'')+(on?'background:#6E2A2A;color:#F3EDE1;':'background:transparent;color:#4A443A;')+'font-size:13px;padding:8px 4px';
+      seg.appendChild(b);
+    });
+    return seg;
+  }
+  function bmSave(){
+    return fetch('/api/interests',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(BM)})
+      .then(function(r){return r.json().then(function(j){return {ok:r.ok,j:j};});})
+      .then(function(r){
+        if(r.ok){bmMsg('saved — the next run follows it.');bmSubLine(true);}
+        else bmMsg((r.j&&r.j.error)||'The shelf server could not save that.');
+      })
+      .catch(function(){bmMsg('The shelf server did not answer — nothing was saved.');});
+  }
+  function bmSubLine(save){
+    var sub=document.getElementById('set-sub');if(!sub||!BM)return;
+    var act=(BM.interests||[]).filter(function(i){return (i.dial||'into it')!=='off';});
+    sub.textContent=act.length?act.map(function(i){return i.label;}).join(' · '):'no interest is on yet';
+  }
+  function bmLoad(){
+    return Promise.all([
+      fetch('/api/interests').then(function(r){return r.json();}),
+      fetch('/api/books').then(function(r){return r.json();}).catch(function(){return {};}),
+      fetch('/api/state').then(function(r){return r.json();}).catch(function(){return {};})
+    ]).then(function(res){
+      var d=res[0];
+      if(!d||d.error||!d.interests){bmMsg((d&&d.error)||'The interests file could not be read — container offline?');return;}
+      BM=d.interests;
+      BM_BOOKS=(res[1]&&res[1].books)||[];
+      BM_READING=(res[2]&&res[2].reading)||{};
+      var tb=document.getElementById('tab-bookameter');if(tb)tb.textContent=BM.name||'Book-a-meter';
+      bmSubLine(false);bmRender();
+    }).catch(function(){bmMsg('The interests file could not be read — container offline?');});
+  }
+  function bmRender(){
+    var host=document.getElementById('bm-interests');if(!host||!BM)return;
+    host.innerHTML='';
+    (BM.interests||[]).forEach(function(i,k){host.appendChild(bmCard(i,k));});
+    if(!(BM.interests||[]).length)host.appendChild(bmEl('p','margin:6px 0 0;font-size:14px;color:#635846','No interest yet — add one below.'));
+    var ap=document.getElementById('bm-add-panel');if(ap)ap.style.display=BM_ADD_OPEN?'block':'none';
+    var ab=document.getElementById('bm-add-interest');if(ab)ab.style.display=BM_ADD_OPEN?'none':'inline-block';
+    if(BM_ADD_OPEN)bmRenderAdd();
+    bmRenderNever();bmRenderPicks();
+  }
+  function bmCard(i,k){
+    var col=BM_COLORS[k%BM_COLORS.length];
+    var card=bmEl('div','margin-top:14px;padding:14px 16px;border:1px solid #C6BBA3;background:#FBF6EC;border-left:4px solid '+col);
+    card.id='bm-card-'+i.id;
+    var head=bmEl('div','display:flex;align-items:center;gap:10px;flex-wrap:wrap');
+    head.appendChild(bmEl('span',"font-family:'Cormorant Garamond',Garamond,serif;font-size:22px;color:#211E19",i.label||i.id));
+    head.appendChild(bmEl('span','font-size:9.5px;letter-spacing:.22em;text-transform:uppercase;color:#635846;border:1px solid #C6BBA3;padding:3px 8px',i.kind==='topic'?'real life':'story'));
+    var rm=bmBtn('remove','rmtile');rm.setAttribute('data-id',i.id);
+    rm.style.cssText+='margin-left:auto;font-size:10px;letter-spacing:.24em;text-transform:uppercase;color:#6E2A2A;border:1px solid #6E2A2A;background:transparent;padding:9px 14px';
+    head.appendChild(rm);
+    card.appendChild(head);
+    card.appendChild(bmDialRow(i));
+    card.appendChild(bmModeRow(i));
+    if(i.romance)card.appendChild(bmEl('p','margin:8px 0 0;font-size:13px;color:#635846;font-style:italic','Keeps your romance rules — M/F only, no cowboys, spice welcome, dark welcome.'));
+    card.appendChild(bmRows(i));
+    var add=bmBtn('+ add a book','qopen');add.setAttribute('data-id',i.id);
+    add.style.cssText+='margin-top:8px;font-size:10.5px;letter-spacing:.2em;text-transform:uppercase;color:#6E2A2A;background:transparent;border:none;text-decoration:underline;text-decoration-color:#A8863F;text-underline-offset:5px;padding:0 2px';
+    add.textContent=BM_QOPEN[i.id]?'close the search':'+ add a book';
+    card.appendChild(add);
+    card.appendChild(bmSearch(i));
+    return card;
+  }
+  function bmRows(i){
+    var nm=bmInName(i);
+    var list=BM_BOOKS.filter(function(b){return String(b.interest||'').toLowerCase()===nm;});
+    var box=bmEl('div','margin-top:10px');
+    if(!list.length){
+      box.appendChild(bmEl('p','margin:4px 0 0;font-size:13px;color:#635846','No books here yet — add one so the curator knows your taste.'));
+      return box;
+    }
+    list.forEach(function(b){
+      var row=bmEl('div','display:flex;align-items:center;gap:10px;flex-wrap:wrap;padding:7px 0;border-top:1px solid #E3DAC6');
+      var t=bmEl('span','flex:1;min-width:0');
+      t.appendChild(bmEl('span','font-size:15px;color:#211E19',b.title));
+      t.appendChild(document.createTextNode(' '));
+      t.appendChild(bmEl('span','font-size:13px;color:#635846;font-style:italic','— '+b.author));
+      row.appendChild(t);
+      var rd=!!((BM_READING[b.id]||{}).s);
+      var rb=bmBtn(rd?'reading now ★':'reading now','reading',b.id);
+      rb.setAttribute('data-id',b.id);
+      rb.style.cssText+='font-size:10px;letter-spacing:.24em;text-transform:uppercase;padding:9px 14px;'+(rd?'border:1px solid #A8863F;color:#8A6C31;background:transparent;':'border:1px solid #C6BBA3;color:#635846;background:transparent;');
+      row.appendChild(rb);
+      var del=bmBtn('remove from shelf','removebook',b.id);
+      del.setAttribute('data-id',b.id);
+      del.style.cssText+='font-size:10px;letter-spacing:.24em;text-transform:uppercase;color:#6E2A2A;border:1px solid #6E2A2A;background:transparent;padding:9px 14px';
+      row.appendChild(del);
+      box.appendChild(row);
+    });
+    return box;
+  }
+  function bmSearch(i){
+    var box=bmEl('div','margin-top:10px;display:'+(BM_QOPEN[i.id]?'block':'none'));
+    var row=bmEl('div','display:flex;gap:8px');
+    var inp=bmEl('input','flex:1;min-width:0;min-height:44px;box-sizing:border-box;background:#FBF6EC;border:1px solid #C6BBA3;padding:10px 12px;font-family:\'EB Garamond\',Georgia,serif;font-size:16px;color:#211E19');
+    inp.type='search';inp.setAttribute('data-act','bm-q');inp.setAttribute('data-id',i.id);inp.value=BM_Q[i.id]||'';
+    inp.placeholder='search Apple Books';
+    var go=bmBtn('search','dosearch',i.id,'font-size:10.5px;letter-spacing:.24em;text-transform:uppercase;padding:12px 16px;border:1px solid #1E3A2F;background:#1E3A2F;color:#F3EDE1');
+    go.setAttribute('data-id',i.id);
+    row.appendChild(inp);row.appendChild(go);
+    var res=bmEl('div');
+    box.appendChild(row);box.appendChild(res);
+    bmRenderRes(i,res);
+    return box;
+  }
+  function bmRenderRes(i,resEl){
+    var res=resEl;
+    if(!res){var box=bmSearchHost(i);if(!box)return;res=box.lastChild;}
+    res.innerHTML='';
+    var q=BM_Q[i.id];
+    (BM_RES[i.id]||[]).forEach(function(r,n){
+      var row=bmEl('div','display:flex;align-items:center;gap:10px;flex-wrap:wrap;padding:7px 0;border-top:1px solid #E3DAC6');
+      var t=bmEl('span','flex:1;min-width:0');
+      t.appendChild(bmEl('span','font-size:15px;color:#211E19',r.title));
+      t.appendChild(document.createTextNode(' '));
+      t.appendChild(bmEl('span','font-size:13px;color:#635846;font-style:italic','— '+r.author));
+      row.appendChild(t);
+      var on=BM_BOOKS.filter(function(b){return b.id===r.id;})[0];
+      if(on){
+        row.appendChild(bmEl('span','font-size:13px;color:#635846;font-style:italic',on.interest&&on.interest!==bmInName(i)?'on the shelf — under '+on.interest:'on the shelf'));
+      } else {
+        var ab=bmBtn('+ add','addbook',n);ab.setAttribute('data-id',i.id);
+        ab.style.cssText+='font-size:10.5px;letter-spacing:.24em;text-transform:uppercase;padding:10px 14px;border:1px solid #1E3A2F;background:#1E3A2F;color:#F3EDE1';
+        row.appendChild(ab);
+      }
+      res.appendChild(row);
+    });
+    if(q&&!res.childNodes.length)res.appendChild(bmEl('p','margin:6px 0 0;font-size:13px;color:#635846','No books found for \u201c'+q+'\u201d.'));
+  }
+  function bmSearchHost(i){var c=document.getElementById('bm-card-'+i.id);return c?c.lastChild:null;}
+  function bmRenderAdd(){
+    var host=document.getElementById('bm-add-panel');if(!host)return;
+    host.innerHTML='';
+    [['story','Stories'],['topic','Real life']].forEach(function(g){
+      host.appendChild(bmEl('p','margin:12px 0 8px;font-size:10.5px;letter-spacing:.24em;text-transform:uppercase;color:#635846',g[1]));
+      var wrap=bmEl('div','display:flex;gap:8px;flex-wrap:wrap');
+      BM_CATALOG.filter(function(c){return c[2]===g[0]&&!bmFind(c[0]);}).forEach(function(c){
+        var b=bmBtn(c[1],'addtile',c[0]);b.setAttribute('data-label',c[1]);b.setAttribute('data-kind',c[2]);
+        b.style.cssText+='font-size:15px;padding:10px 13px;border:1px solid #C6BBA3;background:transparent;color:#211E19';
+        wrap.appendChild(b);
+      });
+      host.appendChild(wrap);
+    });
+    var row=bmEl('div','display:flex;gap:8px;margin-top:12px');
+    var inp=bmEl('input','flex:1;min-width:0;min-height:44px;box-sizing:border-box;background:#FBF6EC;border:1px solid #C6BBA3;padding:10px 12px;font-family:\'EB Garamond\',Georgia,serif;font-size:16px;color:#211E19');
+    inp.type='text';inp.setAttribute('data-act','bm-custom');inp.placeholder='your own interest — for example: sourdough';inp.value=BM_CUSTOM;
+    var go=bmBtn('add','addcustom','','font-size:10.5px;letter-spacing:.24em;text-transform:uppercase;padding:12px 16px;border:1px solid #1E3A2F;background:#1E3A2F;color:#F3EDE1');
+    row.appendChild(inp);row.appendChild(go);
+    host.appendChild(row);
+  }
+  function bmRenderNever(){
+    var host=document.getElementById('bm-never');if(!host||!BM)return;
+    host.innerHTML='';
+    var nv=(BM.never||[]).map(function(w){return String(w).toLowerCase();});
+    BM_NEVER_CHIPS.forEach(function(c){
+      var on=nv.indexOf(c[0])>=0;
+      var b=bmBtn(c[1],'neverchip',c[0]);
+      b.style.cssText+='font-size:14px;padding:9px 14px;border:1px solid '+(on?'#6E2A2A':'#C6BBA3')+';border-radius:22px;'+(on?'background:#6E2A2A;color:#F3EDE1;':'background:transparent;color:#211E19;');
+      host.appendChild(b);
+    });
+  }
+  function bmRenderPicks(){
+    var host=document.getElementById('bm-picks');if(!host||!BM)return;
+    host.innerHTML='';
+    var minus=bmBtn('\u2212','picks',-1,'font-size:16px;padding:8px 18px;border:1px solid #C6BBA3;background:transparent;color:#211E19');
+    var plus=bmBtn('+','picks',1,'font-size:16px;padding:8px 18px;border:1px solid #C6BBA3;background:transparent;color:#211E19');
+    host.appendChild(minus);
+    host.appendChild(bmEl('span',"font-family:'Cormorant Garamond',Garamond,serif;font-size:30px;color:#211E19;min-width:44px;text-align:center",String(BM.picks||12)));
+    host.appendChild(plus);
+    host.appendChild(bmEl('span','font-size:13px;color:#635846;font-style:italic','books in each monthly issue'));
+  }
+  function bmAddInterest(id,label,kind){
+    var romance=id==='sport'||id==='romantasy'||id==='contemp';
+    BM.interests.push({id:id,label:label,kind:kind,dial:'into it',mode:kind==='topic'?'both':'new',romance:romance});
+  }
+  function bmSearchFor(id){
+    var q=BM_Q[id];
+    if(!q||!String(q).trim()){bmMsg('Type a title or an author first.');return;}
+    bmMsg('Searching Apple Books\u2026');
+    fetch('/api/search?q='+encodeURIComponent(q))
+      .then(function(r){return r.json();})
+      .then(function(j){
+        BM_RES[id]=(j&&j.results)||[];
+        bmMsg(!j||j.error?((j&&j.error)||'The search failed — try again.'):'');
+        bmRenderRes(id);
+      })
+      .catch(function(){bmMsg('The shelf server did not answer — try again.');});
+  }
+  function bmClick(e){
+    var t=e.target&&e.target.closest?e.target.closest('[data-act]'):null;if(!t)return;
+    var act=t.getAttribute('data-act'),id=t.getAttribute('data-id'),v=t.getAttribute('data-v');
+    if(!BM)return;
+    if(act==='dial'){var i=bmFind(id);if(!i)return;i.dial=v;bmRender();bmSave();}
+    else if(act==='imode'){var j=bmFind(id);if(!j)return;j.mode=v;bmRender();bmSave();}
+    else if(act==='rmtile'){BM.interests=BM.interests.filter(function(x){return x.id!==id;});bmRender();bmSave();}
+    else if(act==='addtile'){bmAddInterest(v,t.getAttribute('data-label'),t.getAttribute('data-kind'));bmRender();bmSave();}
+    else if(act==='addcustom'){
+      var l=BM_CUSTOM.trim();
+      if(!l){bmMsg('Type a name first.');return;}
+      bmAddInterest('c-'+l.toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/^-+|-+$/g,''),l,'topic');
+      BM_CUSTOM='';bmRender();bmSave();
+    }
+    else if(act==='addopen'){BM_ADD_OPEN=!BM_ADD_OPEN;bmRender();}
+    else if(act==='qopen'){BM_QOPEN[id]=!BM_QOPEN[id];bmRender();}
+    else if(act==='dosearch'){bmSearchFor(id);}
+    else if(act==='addbook'){
+      var r=(BM_RES[id]||[])[+v];if(!r)return;
+      var body={id:r.id,title:r.title,author:r.author,date:r.date,cover:r.cover,genre:r.genre,appleId:r.appleId,url:r.url,interest:id,reading:true};
+      bmMsg('Adding\u2026');
+      fetch('/api/books',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)})
+        .then(function(x){return x.json();})
+        .then(function(j){
+          if(j&&j.book){
+            BM_BOOKS=j.books||BM_BOOKS;
+            BM_RES[id]=(BM_RES[id]||[]).filter(function(x){return x.id!==j.book.id;});
+            bmMsg('Added — it is on My Shelf, marked reading now.');
+            bmRender();
+            /* the marks and the added book changed on the server: the page's
+               own state needs a pull, and the import event is the hook the
+               shelf view already answers (loadAdded + pull) */
+            try{window.dispatchEvent(new Event('shelf:imported'));}catch(e){}
+          } else bmMsg((j&&j.error)||'The shelf server could not save that book.');
+        })
+        .catch(function(){bmMsg('The shelf server did not answer — the book is not saved yet.');});
+    }
+    else if(act==='reading'){
+      var cur=!!((BM_READING[id]||{}).s);
+      var now=Date.now(),next={s:!cur,t:now};
+      var body={reading:(function(){var o={};o[id]=next;return o;})()};
+      /* turning reading now ON is the verdict row's readingNow(): it files
+         the book as want too, so it lands on My Shelf; turning it off leaves
+         want, exactly as the row does */
+      if(!cur){var st={};st[id]={s:'want',t:now};body.states=st;}
+      fetch('/api/state',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)})
+        .then(function(x){return x.json();})
+        .then(function(j){
+          if(j&&j.ok){
+            BM_READING[id]=next;bmRender();
+            try{window.dispatchEvent(new Event('shelf:imported'));}catch(e){}   // the shelf view re-pulls
+          }
+          else bmMsg('The reading mark did not save — try again.');
+        })
+        .catch(function(){bmMsg('The shelf server did not answer — the mark did not save.');});
+    }
+    else if(act==='removebook'){
+      fetch('/api/books',{method:'DELETE',headers:{'Content-Type':'application/json'},body:JSON.stringify({id:id})})
+        .then(function(x){return x.json();})
+        .then(function(j){BM_BOOKS=(j&&j.books)||BM_BOOKS;bmMsg('Removed from the shelf.');bmRender();try{window.dispatchEvent(new Event('shelf:imported'));}catch(e){}})
+        .catch(function(){bmMsg('The shelf server did not answer — nothing was removed.');});
+    }
+    else if(act==='neverchip'){
+      var w=String(v).toLowerCase();
+      var nv=(BM.never||[]).map(function(x){return String(x).toLowerCase();});
+      var at=nv.indexOf(w);
+      if(at>=0)BM.never.splice(at,1);else BM.never.push(w);
+      bmRenderNever();bmSave();
+    }
+    else if(act==='picks'){
+      BM.picks=Math.max(6,Math.min(20,(BM.picks||12)+(+v)));
+      bmRenderPicks();bmSave();
+    }
+  }
+  function bmInput(e){
+    var t=e.target,a=t.getAttribute&&t.getAttribute('data-act');
+    if(a==='bm-q')BM_Q[t.getAttribute('data-id')]=t.value;
+    else if(a==='bm-custom')BM_CUSTOM=t.value;
+  }
+  function bmKey(e){
+    if(e.key!=='Enter')return;
+    var t=e.target,a=t.getAttribute&&t.getAttribute('data-act');
+    if(a==='bm-q'){e.preventDefault();bmSearchFor(t.getAttribute('data-id'));}
+    else if(a==='bm-custom'){e.preventDefault();var b=document.querySelector('#bm-add-panel [data-act=addcustom]');if(b)b.click();}
+  }
   /* #42/#41 review: the dc runtime cannot bind an inline onerror to a
      callable (it lands as a non-function and throws when the event fires),
      so the cover-art fallback binds real listeners here: a missing or broken
@@ -1218,6 +1563,14 @@
         if(m&&!m.options.length){loadModels(s&&s.model);}
       });
       loadAuthors();
+      var bmp=document.getElementById('panel-bookameter');
+      if(bmp&&!bmp.__bmBound){
+        bmp.__bmBound=true;
+        bmp.addEventListener('click',bmClick);
+        bmp.addEventListener('input',bmInput);
+        bmp.addEventListener('keydown',bmKey);
+      }
+      bmLoad();
       startPolling();
       var h=document.getElementById('set-h');if(h)h.focus();
     },
