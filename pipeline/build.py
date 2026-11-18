@@ -22,7 +22,7 @@ from datetime import datetime
 import paths  # shared resolver: reader data lives on the volume (CFG_DIR)
 import synopses  # #51: the synopsis chain + its volume cache
 import lanes
-from lanes import lane_of, counts as lane_counts, shape_str, shape_line
+from lanes import counts as lane_counts, shape_str, shape_line
 import interests
 from bookids import book_key
 from shelf_state import exclusion_set

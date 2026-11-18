@@ -5,7 +5,10 @@ Discovery runs entirely on Apple Books (the only source still live — the old
 charts-RSS / Reddit / Goodreads / romance.io fetches all died in 2026; see
 the skill's references/sources-and-fetch.md). Two nets:
 
-  · lane terms   — one query per entry in config.json `lane_terms`
+  · her interests — one query per search word of each active interest in
+                   interests.json (the Book-a-meter); a catalog interest takes
+                   its words from config.json `lane_terms`, a typed interest
+                   gets words suggested by the curator once and keeps them
   · author lane  — one query per author: the watched authors the reader keeps
                    in the app (CFG_DIR/authors.json — Settings → Authors; this
                    stage reads it, the UI ticket writes it) PLUS the authors of
@@ -13,7 +16,7 @@ the skill's references/sources-and-fetch.md). Two nets:
                    the series her read and loved marks track, seed-reads.json,
                    config `author_lane_extra`).
 
-Every record keeps WHERE it was found (query + lane). For each record inside
+Every record keeps WHERE it was found (query + interest). For each record inside
 the pool window the book's own Apple page is read once — cached in
 pipeline/data/publisher-cache.json — for publisher, language, isbn and
 audiobook availability. Foreign-language editions are excluded; audiobook
@@ -21,8 +24,8 @@ availability rides ON the ebook record (no blank-title audiobook records,
 no ebook/audio twins).
 
 Stdlib only. Per-call failures are counted and reported: nothing fails
-silently. The run ends with a per-lane report (candidates each lane produced,
-in the run's window and over the rolling 30 days).
+silently. The run ends with a per-interest report (candidates each interest
+produced, in the run's window and over the rolling 30 days).
 """
 import json, os, re, sys, time, urllib.request, urllib.parse, html as htmllib
 from datetime import date, datetime, timedelta
