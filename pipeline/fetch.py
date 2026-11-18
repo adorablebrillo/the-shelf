@@ -27,13 +27,16 @@ in the run's window and over the rolling 30 days).
 import json, os, re, sys, time, urllib.request, urllib.parse, html as htmllib
 from datetime import date, datetime, timedelta
 import paths  # shared resolver: reader data lives on the volume (CFG_DIR)
+import interests  # the Book-a-meter: the run searches HER interests
 import sequels  # the series her read and loved marks track
+import curate  # only for suggest_terms (a typed interest's search words) and api_key
 
 BASE = os.path.dirname(os.path.abspath(__file__))
 CFG = json.load(open(os.path.join(BASE, 'config.json')))
 # SHELF_MODE=scheduled -> the 1st-of-month drop curates the PREVIOUS month
 # SHELF_MODE=adhoc     -> "curate now": rolling last 30 days ending today
 MODE = os.environ.get('SHELF_MODE', 'scheduled')
+INTS = interests.load()  # main() replaces it with interests.ensure() (the run makes the file when missing)
 UA = {'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/125 Safari/537.36'}
 TODAY = date.today()
 POOL_BACK = TODAY - timedelta(days=int(CFG.get('pool_back_days', 120)))
@@ -347,17 +350,44 @@ def main():
     run_lo, run_hi = run_window()
     r30_lo = TODAY - timedelta(days=30)
 
-    # ---- lane terms ----
-    lane_terms = CFG.get('lane_terms') or {}
+    # ---- her interests (the Book-a-meter) ----
+    # the run makes the interests file on a blank install (from config
+    # lane_terms: the three romance interests, each "into it", mode new)
+    global INTS
+    INTS = interests.ensure()
+    best_names = set()
+    key = curate.api_key()
     term_count = 0
-    for lane, terms in lane_terms.items():
+    for i in INTS.get('interests') or []:
+        nm = interests.name(i)
+        label = i.get('label') or nm
+        if interests.dial(i) == 'off':
+            print('[interest] %s: dial off — not searched' % label)
+            continue
+        if interests.best_ever(i):
+            best_names.add(nm)  # books of any date: the pool window skips this interest
+        terms = interests.terms(i)
+        if not terms:
+            # a typed interest: the curator call suggests 3 to 5 words once,
+            # and the file keeps them
+            suggested = curate.suggest_terms(key, label) if key else []
+            if suggested:
+                i['terms'] = suggested
+                interests.save(INTS)
+                print('[interest] %s: curator suggested %d search word(s) — kept in interests.json'
+                      % (label, len(suggested)))
+                terms = suggested
+            else:
+                terms = [nm]
+                print('[interest] %s: no search words%s — searched its own name'
+                      % (label, '' if key else ' (no OpenRouter key)'))
         hits = 0
         for t in terms:
             term_count += 1
             for it in search(t, 100):
-                if add(t, lane, it):
+                if add(t, nm, it):
                     hits += 1
-        print('[lane] %s: %d terms -> %d raw results' % (lane, len(terms), hits))
+        print('[interest] %s: %d terms -> %d raw results' % (label, len(terms), hits))
 
     # ---- author lane ----
     authors = author_lane()
@@ -388,7 +418,10 @@ def main():
             d = None
         fwd = author_future if any((f or '').startswith('author:') for f in rec.get('found_by') or []) else POOL_FWD
         if d and not (POOL_BACK <= d <= fwd):
-            continue  # outside the pool window (backlist or far future)
+            # a best-ever interest owns this record: any date stays in the
+            # pool (the window rule skips that interest)
+            if not any(ln in best_names for ln in (rec.get('lanes') or [])):
+                continue  # outside the pool window (backlist or far future)
         if not d:
             undated += 1
         reason = foreign_reason(rec, key)
@@ -425,14 +458,21 @@ def main():
     for r in kept:
         buckets.setdefault(r.get('lane') or 'author (any lane)', []).append(r)
 
+    # the per-interest report: every interest in the file (searched or off),
+    # plus the author lane
+    report_names = [interests.name(i) for i in INTS.get('interests') or []] + ['author (any lane)']
+    report_labels = {interests.name(i): (i.get('label') or interests.name(i))
+                     for i in INTS.get('interests') or []}
+    report_labels['author (any lane)'] = 'author (any lane)'
     lanes_report = {}
-    for lane in list(lane_terms.keys()) + ['author (any lane)']:
-        recs = buckets.get(lane, [])
-        lanes_report[lane] = {
+    for nm in report_names:
+        recs = buckets.get(nm, [])
+        lanes_report[nm] = {
+            'label': report_labels[nm],
             'pooled': len(recs),
             'run_window': sum(1 for r in recs if r.get('date') and in_range(date.fromisoformat(r['date']), run_lo, run_hi)),
             'last_30d': sum(1 for r in recs if r.get('date') and in_range(date.fromisoformat(r['date']), r30_lo, TODAY)),
-            'terms': (lane_terms.get(lane) or []),
+            'terms': interests.terms(interests.by_name(INTS, nm) or {}),
         }
     pub_n = sum(1 for r in kept if r.get('pub_known'))
     audio_n = sum(1 for r in kept if r.get('audio'))
@@ -470,10 +510,10 @@ def main():
     rw = report['run_window']
     print('=== fetch report — mode %s · pool %s..%s · run window %s..%s ===' %
           (MODE, POOL_BACK, POOL_FWD, rw['from'], rw['to']))
-    print('%-24s %7s %11s %9s' % ('lane', 'pooled', 'run-window', 'last-30d'))
-    for lane in list(lane_terms.keys()) + ['author (any lane)']:
-        lr = lanes_report[lane]
-        print('%-24s %7d %11d %9d' % (lane, lr['pooled'], lr['run_window'], lr['last_30d']))
+    print('%-24s %7s %11s %9s' % ('interest', 'pooled', 'run-window', 'last-30d'))
+    for nm in report_names:
+        lr = lanes_report[nm]
+        print('%-24s %7d %11d %9d' % (report_labels[nm], lr['pooled'], lr['run_window'], lr['last_30d']))
     print('queries: %d lane terms + %d authors · authors with candidates: %d'
           % (term_count, len(authors), len(report['authors']['with_candidates'])))
     wc = report['authors']['watched_with_candidates']
