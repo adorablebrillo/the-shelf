@@ -48,6 +48,17 @@ class AddedShipTests(unittest.TestCase):
         self.assertEqual((b['series'], b['seriesNum']), (build.pick_series(self.rec), '1'))
         self.assertEqual(b['img'], self.cached)
 
+    def test_an_imported_goodreads_book_id_ships_as_the_books_own_page(self):
+        # THS-16 keeps the export's Book Id as `gr`; the link opens that page
+        self.rec['gr'] = '61431922'
+        with open(os.path.join(os.environ['CFG_DIR'], 'added-books.json'), 'w') as f:
+            json.dump({'v': 1, 'books': [self.rec]}, f)
+        self.assertEqual(build.added_data(self.covers)[0]['grUrl'],
+                         'https://www.goodreads.com/book/show/61431922')
+
+    def test_a_book_without_a_book_id_ships_no_goodreads_page(self):
+        self.assertNotIn('grUrl', build.added_data(self.covers)[0])
+
     def test_no_file_ships_nothing(self):
         os.remove(os.path.join(os.environ['CFG_DIR'], 'added-books.json'))
         self.assertEqual(build.added_data(self.covers), [])

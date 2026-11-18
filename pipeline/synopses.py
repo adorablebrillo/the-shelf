@@ -345,7 +345,7 @@ def _book_node(ap, url=None):
 
 
 def parse_book_page(html, url=None):
-    """A Goodreads book page -> {title, author, description} or None."""
+    """A Goodreads book page -> {title, author, description, id} or None."""
     j = R._next_data(html)
     if not j:
         return None
@@ -364,12 +364,25 @@ def parse_book_page(html, url=None):
             desc = _clean(v)
             if desc:
                 break
-    return {'title': (b.get('title') or '').strip(), 'author': author, 'description': desc}
+    return {'title': (b.get('title') or '').strip(), 'author': author, 'description': desc,
+            'id': gr_id(url) or re.sub(r'\D', '', str(b.get('legacyId') or ''))}
 
 # ---------- the lookup chain ----------
 def search_url(title, author):
     q = urllib.parse.urlencode({'q': ('%s %s' % (title, author)).strip()})
     return 'https://www.goodreads.com/search?' + q
+
+
+def gr_id(url):
+    """The Goodreads book id inside a /book/show/ address, or ''."""
+    m = re.search(r'/book/show/(\d+)', url or '')
+    return m.group(1) if m else ''
+
+
+def gr_url(gid):
+    """A book's own Goodreads page from its id (no title slug needed: Goodreads
+    redirects to the full address)."""
+    return 'https://www.goodreads.com/book/show/' + gid
 
 
 def _suspect(html):
@@ -395,32 +408,42 @@ def _looks_like_search(html):
     return 'booktitle' in low or 'searchresults' in low
 
 
-def goodreads_lookup(title, author):
-    """('text', 'goodreads') | ('', 'miss') | ('', 'fail') | ('', 'challenged').
+def goodreads_lookup(title, author, page=True):
+    """(text, outcome, gr): outcome 'goodreads' | 'miss' | 'fail' | 'challenged'.
 
     One search, then the matched book page. A search that redirects straight
     to a single book page is honored in place (no second request). A request
     failure is 'fail'; a bot-challenge page (or an empty body) is
     'challenged'. Both are transient, never cached as a miss, retried by a
     later build — and 'challenged' tells attach() to stop asking Goodreads
-    this build. A real page with nothing to give is a 'miss'."""
+    this build. A real page with nothing to give is a 'miss'.
+
+    gr is the Goodreads book id of the page the title and author check
+    matched ('' when nothing matched), kept even when that page has no blurb
+    or could not be read — the match, not the blurb, is what makes it sure.
+
+    page=False is the id-only ask for a book whose blurb is already cached:
+    it stops after the search and answers ('', 'found', gr) when a result
+    matches (the one request a cached book costs)."""
     try:
         html = _get(search_url(title, author))
     except Exception:
-        return ('', 'fail')
+        return ('', 'fail', '')
     if _suspect(html):
-        return ('', 'challenged')
+        return ('', 'challenged', '')
     rows = parse_search(html)
     if rows is None:
-        page = parse_book_page(html)          # the search redirected to a book
-        if page is not None:
-            d = _usable(page['description'])
-            if d and _entry_ok(title, author, page['title'], page['author']):
-                return (d, 'goodreads')
-            return ('', 'miss')
+        found = parse_book_page(html)         # the search redirected to a book
+        if found is not None:
+            if not _entry_ok(title, author, found['title'], found['author']):
+                return ('', 'miss', '')
+            d = _usable(found['description'])
+            if not page:
+                return ('', 'found', found['id'])
+            return (d, 'goodreads' if d else 'miss', found['id'])
         # a real search page with no result rows is a genuine no-match; any
         # other shape is a page we do not understand — retry, never poison
-        return ('', 'miss') if _looks_like_search(html) else ('', 'fail')
+        return ('', 'miss', '') if _looks_like_search(html) else ('', 'fail', '')
     url = None
     for r in rows:
         # a result whose own blurb the search already shows as a stub ('1')
@@ -432,24 +455,27 @@ def goodreads_lookup(title, author):
             url = r['url']
             break
     if not url:
-        return ('', 'miss')
+        return ('', 'miss', '')
+    gid = gr_id(url)
+    if not page:
+        return ('', 'found', gid)
     try:
         page_html = _get(url)
     except Exception:
-        return ('', 'fail')
+        return ('', 'fail', gid)
     if _suspect(page_html):
-        return ('', 'challenged')
-    page = parse_book_page(page_html, url)
-    if page is None:
-        return ('', 'fail')                   # markup change: retried, never a false 'none'
+        return ('', 'challenged', gid)
+    found = parse_book_page(page_html, url)
+    if found is None:
+        return ('', 'fail', gid)              # markup change: retried, never a false 'none'
     # the page must still be this book: a matched row can link a set or an
     # edition whose own title says so (the box-set lesson)
-    if page.get('title') and (not R._title_match(title, page['title']) or _junk_title(page['title'])):
-        return ('', 'miss')
-    desc = _usable(page.get('description'))
+    if found.get('title') and (not R._title_match(title, found['title']) or _junk_title(found['title'])):
+        return ('', 'miss', '')
+    desc = _usable(found.get('description'))
     if desc:
-        return (desc, 'goodreads')
-    return ('', 'miss')                       # the page itself carries no blurb
+        return (desc, 'goodreads', gid)
+    return ('', 'miss', gid)                  # the page itself carries no blurb
 
 
 def apple_lookup(title, author):
@@ -477,21 +503,22 @@ def apple_lookup(title, author):
 
 
 def lookup(title, author, goodreads=True):
-    """The chain, plus the Goodreads outcome attach() needs: (text, src, gr).
+    """The chain, plus what attach() needs from Goodreads: (text, src, gr, gid).
 
     src is 'goodreads' | 'apple' | 'none' | 'fail', as resolve() returns it.
     gr is what Goodreads said: goodreads_lookup()'s outcome, or 'skipped' when
     the caller asked not to ask it (goodreads=False). An Apple copy with any
-    gr but 'miss' is an Apple copy Goodreads may still beat."""
-    gr_text, gr = goodreads_lookup(title, author) if goodreads else ('', 'skipped')
+    gr but 'miss' is an Apple copy Goodreads may still beat. gid is the
+    matched Goodreads book id ('' when none matched)."""
+    gr_text, gr, gid = goodreads_lookup(title, author) if goodreads else ('', 'skipped', '')
     if gr_text:
-        return (gr_text, 'goodreads', gr)
+        return (gr_text, 'goodreads', gr, gid)
     apple_text, apple_src = apple_lookup(title, author)
     if apple_text:
-        return (apple_text, 'apple', gr)
+        return (apple_text, 'apple', gr, gid)
     if gr != 'miss' or apple_src == 'fail':
-        return ('', 'fail', gr)
-    return ('', 'none', gr)
+        return ('', 'fail', gr, gid)
+    return ('', 'none', gr, gid)
 
 
 def resolve(title, author):
@@ -500,7 +527,7 @@ def resolve(title, author):
     A Goodreads request failure falls through to Apple (an outage must not
     leave books blank); if either source failed and neither produced text the
     book stays pending — retried by the next build, never cached as empty."""
-    text, src, _ = lookup(title, author)
+    text, src = lookup(title, author)[:2]
     return (text, src)
 
 
@@ -540,7 +567,8 @@ def save(cache, path=None):
 
 # ---------- the pass build.py runs ----------
 def attach(entries, cache, budget=None):
-    """Ensure every rendered book carries synopsis + synopsisSrc.
+    """Ensure every rendered book carries synopsis + synopsisSrc, and grUrl
+    when its own Goodreads page is known.
 
     `entries` = [(book_dict, title, author)] in PRIORITY order — the caller
     puts the picks first so the decision surface fills before the long tail.
@@ -551,18 +579,27 @@ def attach(entries, cache, budget=None):
     go out this build: new books take Apple's copy (marked for retry) and the
     retry pass waits for the next build. New books also stop asking Goodreads
     once GOODREADS_SHARE of the budget is spent, so a big batch fills from
-    Apple instead of waiting blank; the retry pass may use the whole budget.
+    Apple instead of waiting blank; the retry and id passes may use the whole
+    budget.
+
+    The Goodreads book id a lookup matches is kept in the cache entry as `gr`
+    ('' = Goodreads has no sure match, final). A cached book that has no `gr`
+    yet gets it in a last pass, one search each, after the new books and the
+    retries; the fill continues on the next build. A book that already
+    carries a grUrl (an imported Book Id) keeps it and is never asked.
+
     The buckets are disjoint and sum to the books considered: fetched (this
     build, with text) + cached (with text) + none (no blurb anywhere, fresh or
     cached — unannounced stubs included) + pending (budget) + failed (retried).
     'retry' counts, apart from the buckets, the books whose Apple copy still
-    waits for Goodreads. Returns the counts the run report prints."""
+    waits for Goodreads; 'linked' the cached books given their id this build.
+    Returns the counts the run report prints."""
     if budget is None:
         budget = CFG.get('synopsis_budget_seconds', DEFAULT_BUDGET)
     stats = {'fetched': 0, 'goodreads': 0, 'apple': 0, 'cached': 0,
-             'none': 0, 'pending': 0, 'failed': 0, 'retry': 0}
+             'none': 0, 'pending': 0, 'failed': 0, 'retry': 0, 'linked': 0}
     started = time.time()
-    got, meta, order, retries = {}, {}, [], []
+    got, meta, order, retries, fills, ids = {}, {}, [], [], [], {}
     goodreads = {'on': True}
     for book, title, author in entries or []:
         k = book.get('id') or bookids.book_key(title, author)
@@ -576,10 +613,28 @@ def attach(entries, cache, budget=None):
             continue
         meta[k] = (title, author)
         order.append(k)
+    for book, title, author in entries or []:
+        # an id the book already carries (a Goodreads import's Book Id) wins
+        # over anything the lookup finds, for every place the book renders
+        k = book.get('id') or bookids.book_key(title, author)
+        if k in meta and gr_id(book.get('grUrl')) and k not in ids:
+            ids[k] = gr_id(book['grUrl'])
 
     def heard(gr):
         if gr == 'challenged':
             goodreads['on'] = False             # Goodreads said stop: stop, this build
+
+    def keep_id(k, gr, gid):
+        """Put what Goodreads said about the book's id in its cache entry: the
+        id when it matched, '' when it answered that nothing does, nothing
+        when it did not answer (asked again later)."""
+        ent = cache.get(k)
+        if not isinstance(ent, dict) or k in ids:
+            return
+        if gid:
+            ent['gr'] = ids[k] = gid
+        elif gr == 'miss':
+            ent['gr'] = ''
 
     for k in order:
         ent = cache.get(k) if isinstance(cache, dict) else None
@@ -592,9 +647,14 @@ def attach(entries, cache, budget=None):
                 cache.pop(k, None)
             else:
                 got[k] = (text, ent['src'])
+                if ent.get('gr') and k not in ids:
+                    ids[k] = ent['gr']
+                retry = ent['src'] == 'apple' and ent.get('retry') == 'goodreads'
+                if 'gr' not in ent and k not in ids and not retry:
+                    fills.append(k)             # blurb cached, id not asked yet
                 if ent['src'] == 'none':
                     stats['none'] += 1          # a miss counts once — in 'none'
-                elif ent['src'] == 'apple' and ent.get('retry') == 'goodreads':
+                elif retry:
                     retries.append(k)           # shown now; Goodreads asked below
                 else:
                     stats['cached'] += 1
@@ -606,7 +666,7 @@ def attach(entries, cache, budget=None):
             continue
         title, author = meta[k]
         ask = goodreads['on'] and spent < budget * GOODREADS_SHARE
-        text, src, gr = lookup(title, author, goodreads=ask)
+        text, src, gr, gid = lookup(title, author, goodreads=ask)
         heard(gr)
         if src == 'fail':
             got[k] = ('', 'pending')          # transient: never cached, retried
@@ -614,6 +674,7 @@ def attach(entries, cache, budget=None):
             continue
         got[k] = (text, src)
         cache[k] = {'text': text, 'src': src, 'at': datetime.now().date().isoformat()}
+        keep_id(k, gr, gid)
         if src == 'none':
             stats['none'] += 1
         else:
@@ -625,25 +686,38 @@ def attach(entries, cache, budget=None):
     for k in retries:
         title, author = meta[k]
         if goodreads['on'] and time.time() - started < budget:
-            text, gr = goodreads_lookup(title, author)
+            text, gr, gid = goodreads_lookup(title, author)
             heard(gr)
             if text:
                 got[k] = (text, 'goodreads')
                 cache[k] = {'text': text, 'src': 'goodreads',
                             'at': datetime.now().date().isoformat()}
+                keep_id(k, gr, gid)
                 stats['fetched'] += 1
                 stats['goodreads'] += 1
                 continue
+            keep_id(k, gr, gid)                 # a match with an unreadable page still counts
             if gr == 'miss':
                 cache[k].pop('retry', None)     # Goodreads has none: Apple's copy is final
                 stats['cached'] += 1
                 continue
         stats['cached'] += 1                    # Apple's copy stands until Goodreads answers
         stats['retry'] += 1
+    for k in fills:
+        if not goodreads['on'] or time.time() - started >= budget:
+            break
+        title, author = meta[k]
+        _, gr, gid = goodreads_lookup(title, author, page=False)
+        heard(gr)
+        keep_id(k, gr, gid)
+        if gid:
+            stats['linked'] += 1
     for book, title, author in entries or []:
         k = book.get('id') or bookids.book_key(title, author)
         if k in got:
             book['synopsis'], book['synopsisSrc'] = got[k]
+        if ids.get(k) and not gr_id(book.get('grUrl')):
+            book['grUrl'] = gr_url(ids[k])
     return stats
 
 
@@ -660,4 +734,6 @@ def report_line(stats):
         line += ' / %d failed (retried next build)' % stats['failed']
     if stats.get('retry'):
         line += ' / %d apple until goodreads answers' % stats['retry']
+    if stats.get('linked'):
+        line += ' / %d goodreads pages linked' % stats['linked']
     return line

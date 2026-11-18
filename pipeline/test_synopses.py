@@ -357,7 +357,7 @@ class LeadTrimTests(Base):
         b = {'id': 'onyxstorm--rebeccayarros', 'title': 'Onyx Storm', 'author': 'Rebecca Yarros'}
         cache = {b['id']: {'text': 'Accolades: AN INSTANT #1 NEW YORK TIMES BESTSELLER \u2022 TV series. '
                                    'The real blurb starts here and runs long enough to stand on its own, sentence after sentence.',
-                           'src': 'apple', 'at': '2026-09-23'}}
+                           'src': 'apple', 'at': '2026-09-23', 'gr': ''}}
         net = self.net()                               # nothing may be fetched
         stats = S.attach([(b, b['title'], b['author'])], cache)
         self.assertEqual(net.calls, [])
@@ -569,10 +569,10 @@ class CacheTests(Base):
         # review: the segments must reconcile with the books considered)
         a = self.book(id='nobodywrotethis--noone', title='Nobody Wrote This', author='No One')
         b = self.book()
-        cache = {a['id']: {'text': '', 'src': 'none', 'at': '2026-09-23'},
+        cache = {a['id']: {'text': '', 'src': 'none', 'at': '2026-09-23', 'gr': ''},
                  b['id']: {'text': 'A real blurb that is long enough to be usable here, sentence '
                                    'one, and a second sentence to clear the minimum.',
-                           'src': 'apple', 'at': '2026-09-23'}}
+                           'src': 'apple', 'at': '2026-09-23', 'gr': ''}}
         net = self.net()
         stats = S.attach([(a, a['title'], a['author']), (b, b['title'], b['author'])], cache)
         self.assertEqual(net.calls, [])
@@ -753,6 +753,187 @@ class CacheTests(Base):
         self.assertEqual(net.calls, [])
         self.assertEqual(b['synopsisSrc'], 'apple')
         self.assertEqual(cache[b['id']]['retry'], 'goodreads')
+
+    # ---- the book's own Goodreads page (THS-22 piece 2) ----
+    # search_for() answers with the real fixture's first row, whose address is
+    # /book/show/217165422-fourth-wing
+    OWN_ID = '217165422'
+    OWN_URL = 'https://www.goodreads.com/book/show/217165422'
+
+    def no_blurb_page(self):
+        html = book_html()
+        m = re.search(r'(<script id="__NEXT_DATA__" type="application/json">)(.*?)(</script>)', html, re.S)
+        data = json.loads(m.group(2))
+        for k, v in data['props']['pageProps']['apolloState'].items():
+            if k.startswith('Book:') and isinstance(v, dict) and v.get('title') == 'The Unknown':
+                v['description'] = ''
+                v.pop('description({"stripped":true})', None)
+        return html[:m.start(2)] + json.dumps(data) + html[m.end(2):]
+
+    def cached_goodreads(self, b, **extra):
+        return {b['id']: dict({'text': 'In 1926, five women disappeared from a remote island in '
+                                       'Vermont; one hundred years later, it is happening again.',
+                               'src': 'goodreads', 'at': '2026-11-01'}, **extra)}
+
+    def test_a_goodreads_match_keeps_its_id_and_the_book_ships_its_page(self):
+        b = self.book()
+        cache = {}
+        self.net(search=search_for('The Unknown', 'Riley Sager'), book=book_html())
+        S.attach([(b, b['title'], b['author'])], cache)
+        self.assertEqual(cache[b['id']]['gr'], self.OWN_ID)
+        self.assertEqual(b['grUrl'], self.OWN_URL)
+
+    def test_a_matched_page_with_no_blurb_still_gives_its_id(self):
+        # Apple's copy shows, and the link still opens the book's own page
+        b = self.book()
+        cache = {}
+        self.net(search=search_for('The Unknown', 'Riley Sager'), book=self.no_blurb_page(),
+                 apple=self.APPLE)
+        S.attach([(b, b['title'], b['author'])], cache)
+        self.assertEqual(b['synopsisSrc'], 'apple')
+        self.assertEqual(cache[b['id']]['gr'], self.OWN_ID)
+        self.assertEqual(b['grUrl'], self.OWN_URL)
+        self.assertNotIn('retry', cache[b['id']])       # Goodreads answered: nothing to retry
+
+    def test_a_search_that_lands_on_a_book_page_takes_the_pages_own_id(self):
+        b = self.book()
+        cache = {}
+        self.net(search=book_html())
+        S.attach([(b, b['title'], b['author'])], cache)
+        self.assertEqual(cache[b['id']]['gr'], '243596193')
+
+    def test_a_page_that_is_a_different_book_gives_no_id(self):
+        # the box-set lesson: a matched row whose page says otherwise is no match
+        b = self.book(title='Onyx Storm', author='Rebecca Yarros')
+        cache = {}
+        self.net(search=search_for('Onyx Storm', 'Rebecca Yarros'), book=book_html(),
+                 apple={'results': []})
+        S.attach([(b, b['title'], b['author'])], cache)
+        self.assertEqual(cache[b['id']].get('gr'), '')
+        self.assertNotIn('grUrl', b)
+
+    def test_no_match_on_goodreads_is_a_settled_no_page_not_a_retry(self):
+        b = self.book(id='nobodywrotethis--noone', title='Nobody Wrote This', author='No One')
+        cache = {}
+        self.net(search=_read(NEXT_EMPTY_FX), apple={'results': []})
+        S.attach([(b, b['title'], b['author'])], cache)
+        self.assertEqual(cache[b['id']]['gr'], '')
+        self.assertNotIn('grUrl', b)
+        net = self.net(search=_read(NEXT_EMPTY_FX))
+        S.attach([(b, b['title'], b['author'])], cache)
+        self.assertEqual(net.calls, [])
+
+    def test_a_cached_book_with_no_id_gets_it_from_one_search_and_never_again(self):
+        b = self.book()
+        cache = self.cached_goodreads(b)
+        net = self.net(search=search_for('The Unknown', 'Riley Sager'), book=book_html())
+        stats = S.attach([(b, b['title'], b['author'])], cache)
+        self.assertEqual(len(net.calls), 1)             # the search only: its blurb is cached
+        self.assertIn('/search?', net.calls[0])
+        self.assertEqual(cache[b['id']]['gr'], self.OWN_ID)
+        self.assertEqual(b['grUrl'], self.OWN_URL)
+        self.assertEqual((stats['cached'], stats['fetched'], stats['linked']), (1, 0, 1))
+        self.assertTrue(S.report_line(stats).endswith(' / 1 goodreads pages linked'))
+        net = self.net(search=search_for('The Unknown', 'Riley Sager'))
+        b2 = self.book()
+        S.attach([(b2, b2['title'], b2['author'])], cache)
+        self.assertEqual(net.calls, [])
+        self.assertEqual(b2['grUrl'], self.OWN_URL)     # from the cache, no request
+
+    def test_a_cached_book_goodreads_has_no_match_for_is_settled_without_a_link(self):
+        b = self.book(id='nobodywrotethis--noone', title='Nobody Wrote This', author='No One')
+        cache = {b['id']: {'text': '', 'src': 'none', 'at': '2026-11-01'}}
+        self.net(search=_read(NEXT_EMPTY_FX))
+        S.attach([(b, b['title'], b['author'])], cache)
+        self.assertEqual(cache[b['id']]['gr'], '')
+        self.assertNotIn('grUrl', b)
+        net = self.net(search=_read(NEXT_EMPTY_FX))
+        S.attach([(b, b['title'], b['author'])], cache)
+        self.assertEqual(net.calls, [])
+
+    def test_filling_ids_stops_at_a_challenge_and_asks_again_next_build(self):
+        a = self.book(id='aaa--x')
+        b = self.book(id='bbb--y')
+        cache = self.cached_goodreads(a)
+        cache.update(self.cached_goodreads(b))
+        net = self.net(search=[WAF_PAGE])
+        stats = S.attach([(x, x['title'], x['author']) for x in (a, b)], cache)
+        self.assertEqual(len(net.calls), 1)             # the challenge ends Goodreads for this build
+        self.assertNotIn('gr', cache['aaa--x'])         # unanswered: not settled
+        self.assertNotIn('gr', cache['bbb--y'])
+        self.assertEqual(stats['linked'], 0)
+        net = self.net(search=search_for('The Unknown', 'Riley Sager'))
+        S.attach([(x, x['title'], x['author']) for x in (a, b)], cache)
+        self.assertEqual(len(net.calls), 2)
+        self.assertEqual(cache['aaa--x']['gr'], self.OWN_ID)
+
+    def test_filling_ids_stays_inside_the_budget_in_priority_order(self):
+        books = [self.book(id=i) for i in ('aaa--x', 'bbb--y', 'ccc--z')]
+        cache = {}
+        for x in books:
+            cache.update(self.cached_goodreads(x))
+        net = self.net(search=search_for('The Unknown', 'Riley Sager'))
+        S.time = FakeClock(step=10)                     # budget 25: two searches fit
+        stats = S.attach([(x, x['title'], x['author']) for x in books], cache, budget=25)
+        self.assertEqual(len(net.calls), 2)
+        self.assertEqual(stats['linked'], 2)
+        self.assertIn('grUrl', books[0])
+        self.assertIn('grUrl', books[1])
+        self.assertNotIn('grUrl', books[2])
+        self.assertNotIn('gr', cache['ccc--z'])         # next build continues
+
+    def test_an_offline_build_asks_for_no_ids(self):
+        b = self.book()
+        cache = self.cached_goodreads(b)
+        net = self.net(search=search_for('The Unknown', 'Riley Sager'))
+        S.attach([(b, b['title'], b['author'])], cache, budget=0)
+        self.assertEqual(net.calls, [])
+        self.assertNotIn('grUrl', b)
+
+    def test_new_books_and_retries_go_before_the_id_fill(self):
+        old = self.book(id='aaa--x')
+        new = self.book(id='bbb--y')
+        cache = self.cached_goodreads(old)
+        net = self.net(search=search_for('The Unknown', 'Riley Sager'), book=book_html())
+        S.time = FakeClock(step=10)                     # budget 15: one request chain fits
+        S.attach([(old, old['title'], old['author']), (new, new['title'], new['author'])],
+                 cache, budget=15)
+        self.assertEqual(new['synopsisSrc'], 'goodreads')
+        self.assertIn('grUrl', new)
+        self.assertNotIn('grUrl', old)                  # the cached book waits its turn
+        self.assertEqual(len(net.calls), 2)
+
+    def test_an_imported_book_id_wins_and_costs_no_request(self):
+        imported = 'https://www.goodreads.com/book/show/61431922'
+        b = dict(self.book(), grUrl=imported)
+        cache = self.cached_goodreads(b, gr='999')      # even a cached id loses to the import
+        net = self.net(search=search_for('The Unknown', 'Riley Sager'), book=book_html())
+        S.attach([(b, b['title'], b['author'])], cache)
+        self.assertEqual(net.calls, [])
+        self.assertEqual(b['grUrl'], imported)
+        # the same book rendering elsewhere (a series volume) shows the same page
+        v = {'id': b['id'], 't': 'The Unknown'}
+        S.attach([(b, b['title'], b['author']), (v, 'The Unknown', 'Riley Sager')], cache)
+        self.assertEqual(v['grUrl'], imported)
+
+    def test_a_new_imported_book_keeps_its_id_through_the_lookup(self):
+        imported = 'https://www.goodreads.com/book/show/61431922'
+        b = dict(self.book(), grUrl=imported)
+        cache = {}
+        self.net(search=search_for('The Unknown', 'Riley Sager'), book=book_html())
+        S.attach([(b, b['title'], b['author'])], cache)
+        self.assertEqual(b['grUrl'], imported)
+        self.assertEqual(b['synopsisSrc'], 'goodreads')
+        self.assertNotIn('gr', cache[b['id']])          # the import owns the id
+
+    def test_a_matched_row_whose_page_is_challenged_keeps_its_id(self):
+        b = self.book()
+        cache = {}
+        self.net(search=search_for('The Unknown', 'Riley Sager'), book=WAF_PAGE, apple=self.APPLE)
+        S.attach([(b, b['title'], b['author'])], cache)
+        self.assertEqual(cache[b['id']]['retry'], 'goodreads')   # the blurb is still asked again
+        self.assertEqual(cache[b['id']]['gr'], self.OWN_ID)
+        self.assertEqual(b['grUrl'], self.OWN_URL)
 
     def test_series_volumes_key_on_their_canonical_id(self):
         # a volume dict (t, no author) still caches under the build's id
