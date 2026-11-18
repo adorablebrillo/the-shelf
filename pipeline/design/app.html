@@ -1267,7 +1267,6 @@ function hydrateIds(d){
   const fill=(arr,fba)=>{ (arr||[]).forEach(b=>{ if(b&&!b.id&&b.title!==undefined||b&&!b.id&&b.t!==undefined){ b.id=fb({t:b.t||b.title, author:b.author||fba||''}); } }); };
   (d.series||[]).forEach(s=>fill(s.books,s.author));
   fill(d.books); fill(d.pending);
-  if(d.hero&&!d.hero.id) d.hero.id=fb({t:d.hero.title,author:d.hero.author});
   return d;
 }
 

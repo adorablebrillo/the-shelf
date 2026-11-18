@@ -5,7 +5,6 @@ The page (pipeline/design/app.html) is a design-component runtime page; this
 script feeds it live data via dist/shelf-data.js:
 
   month   — the current drop (label, issue number, count)
-  hero    — the soonest upcoming release in ANY series she is reading
   books   — this month's picks (top pick first)
   series  — EVERY series she is in: read volumes (data/library.json) merged
             with released-unread / upcoming / announced (data/sequels.json)
@@ -503,8 +502,8 @@ def series_key_match(k, tracked):
 def author_upcoming(tracked, today, path=None):
     """Watched authors feed the tracked series (ticket #9): a candidates-file
     book whose Apple page names a series she tracks and whose release is still
-    ahead becomes that series' next_books entry — the radar lane and the hero
-    countdown pick it up like any other upcoming volume. Released books are
+    ahead becomes that series' next_books entry — the radar lane and the
+    anticipation countdowns pick it up like any other upcoming volume. Released books are
     never radar (they are picks once the window opens). Returns
     {normalized series name: [next_books entry]}."""
     if path is None:
@@ -683,42 +682,6 @@ def series_data(covers_dir=None):
     print('series covers: %d of %d volumes resolved real art (%d from cache, %d fetched%s), %d without art, %d deliberate placeholders'
           % (cov['resolved'], total, cov['cached'], cov['fetched'], extra, cov['noart'], cov['placeholder']))
     return out
-
-
-def hero_data(series):
-    """The soonest upcoming release across every series — the dark-green hero."""
-    cands = []
-    for s in series:
-        for b in s['books']:
-            if b.get('state') == 'soon' and b.get('iso'):
-                cands.append((b['iso'], s, b))
-    if not cands:
-        return None
-    iso, s, b = min(cands, key=lambda x: x[0])
-    reads = [x['t'] for x in s['books'] if x['state'] == 'read']
-    unread = next((x for x in s['books'] if x['state'] == 'out'), None)
-
-    def _join(names):
-        if len(names) > 1:
-            return ', '.join(names[:-1]) + ' and ' + names[-1]
-        return names[0] if names else ''
-
-    if reads:
-        standing = 'You have read %s.' % _join(reads[:4])
-        if unread:
-            n = (' (%s)' % unread['n']) if unread.get('n') else ''
-            standing += ' %s%s is still unread.' % (unread['t'], n)
-        else:
-            standing += ' You are up to date.'
-    elif unread:
-        n = (' (%s)' % unread['n']) if unread.get('n') else ''
-        standing = '%s%s is still unread.' % (unread['t'], n)
-    else:
-        standing = 'A new chapter in a series you already love.'
-    return {'title': b['t'], 'num': b.get('n') or '', 'author': s.get('author') or '',
-            'id': b.get('id') or book_key(b['t'], s.get('author')),
-            'publisher': s.get('publisher') or '', 'date': pretty_upper(iso), 'iso': iso,
-            'seriesRef': s.get('name') or '', 'standing': standing}
 
 
 def _int(v, default):
@@ -923,7 +886,7 @@ def main():
             print('covers mirror: %s' % str(e)[:80])
         data = {'month': {'label': 'Awaiting first run', 'short': '\u2014', 'drop': '', 'count': 0,
                           'issue': 0, 'titles': 'no titles yet', 'shapeLine': '', 'light': False},
-                'hero': None, 'books': [], 'pending': [], 'series': [], 'resolved': [],
+                'books': [], 'pending': [], 'series': [], 'resolved': [],
                 'added': added, 'seasons': SEASONS,
                 'criteria': CRITERIA}
         write_dist('shelf-data.js', 'window.SHELF_DATA=' + json.dumps(data, ensure_ascii=False) + ';\n')
@@ -1008,22 +971,17 @@ def main():
         print('added books: %d shipped' % len(added))
 
     series = series_data(covers_dir)
-    hero = hero_data(series)
-    if hero:
-        hero['cover'] = ensure_cover('', hero.get('title'), hero.get('author'), covers_dir)
 
     # ---- every rendered book carries a real synopsis (#51) -----------------
     # Her complaint: the one-line hooks are too thin to judge a book by. Each
     # book below gets its Goodreads blurb (Apple description as fallback), the
     # miss cached honestly. PRIORITY is the point: the picks she decides on
-    # fill first, then the hero, then the volumes she can still pick up, then
+    # fill first, then the volumes she can still pick up, then
     # the read ones — a cold cache fills across builds inside the politeness
     # budget (synopsis_budget_seconds), never blowing the boot rebuild's
     # timeout, and the report says exactly how far it got.
     syn_entries = [(b, b.get('title'), b.get('author')) for b in book_list]
     syn_entries += [(b, b.get('title'), b.get('author')) for b in pending]
-    if hero:
-        syn_entries.append((hero, hero.get('title'), hero.get('author')))
     syn_entries += [(b, b.get('title'), b.get('author')) for b in resolved]
     syn_entries += [(b, b.get('title'), b.get('author')) for b in added]
     vol_rank = {'out': 0, 'soon': 1, 'tba': 2, 'read': 3}
@@ -1068,7 +1026,7 @@ def main():
     orphans += [b['title'] for b in book_list if not b.get('id')]
     if orphans:
         print('WARNING: %d books have no identity: %s' % (len(orphans), orphans[:5]))
-    data = {'month': month, 'hero': hero, 'books': book_list, 'pending': pending,
+    data = {'month': month, 'books': book_list, 'pending': pending,
             'series': series, 'seasons': SEASONS, 'criteria': criteria_line(), 'resolved': resolved,
             'added': added}
     write_dist('shelf-data.js', 'window.SHELF_DATA=' + json.dumps(data, ensure_ascii=False) + ';\n')
