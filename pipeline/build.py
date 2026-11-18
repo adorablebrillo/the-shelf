@@ -748,6 +748,12 @@ def pick_book(b, top_id, img):
     # name stays: the shape line counts these keys, and nothing on the card
     # needs the old short forms (only 'romantasy' is compared, unchanged).
     lane = lanes.interest_of(b)
+    # the romance score rows (spice, MMC vibe, the archetype note) show only
+    # for a romance interest's picks — a real-life topic book's card reads
+    # like its book. An interest the file does not name keeps the rows (the
+    # pre-interests months rendered them for every pick).
+    _iobj = interests.by_name(INTS, lane)
+    score_rows = True if _iobj is None else interests.romance(_iobj)
     rating = b.get('rating')
     if isinstance(rating, str):
         gr = rating
@@ -766,7 +772,7 @@ def pick_book(b, top_id, img):
         'img': img or b.get('img') or '',
         'title': b.get('title') or '', 'series': pick_series(b),
         'author': b.get('author') or '', 'publisher': b.get('publisher') or '',
-        'date': b.get('date') or '', 'genre': genre, 'lane': lane,
+        'date': b.get('date') or '', 'genre': genre, 'lane': lane, 'scoreRows': score_rows,
         'spice': _int(b.get('spice'), 3), 'mmc': _int(mmc_score, 3),
         'fresh': bool(b.get('fresh')), 'gr': gr,
         'rating': rating if isinstance(rating, (int, float)) else None, 'count': '',
@@ -1040,10 +1046,10 @@ def main():
         'issue': len(order),
         'titles': WORDS.get(len(book_list), str(len(book_list))) + (' title' if len(book_list) == 1 else ' titles'),
     }
-    _lc = lane_counts(book_list)
     _inames = [interests.name(i) for i in interests.active(INTS)]  # interests.json owns the order
     _ilabels = {interests.name(i): (i.get('label') or interests.name(i))
                 for i in interests.active(INTS)}
+    _lc = lane_counts(book_list, order=_inames)  # a zero-pick interest shows its honest zero
     month['shape'] = shape_str(_lc, order=_inames)   # the shape it shipped (ticket #6)
     month['shapeLine'] = shape_line(_lc, order=_inames, labels=_ilabels)
     month['light'] = len(book_list) < CFG['target_books'][0]  # under the floor -> light month

@@ -233,6 +233,13 @@ def interests_block():
             interests.dial(i), 'a clear yes')
         lines.append('- %s (%s): %s; target %d of the %d picks; %s.'
                     % (label, dial_w, md, tgt, int(INTS.get('picks') or interests.DEFAULT_PICKS), rules))
+    non_rom = [i for i in act if not interests.romance(i)]
+    if non_rom:
+        # the review's one-line override: the hard-rules romance lines do not
+        # contradict the scoping — they simply do not hold for these interests
+        lines.append('Where an interest above says the romance rules do NOT apply, the earlier '
+                     "hard-rules lines (M/F only, no cowboy) do not hold for that interest's books — "
+                     "the engine's filter has already kept exactly what her interests ask for.")
     nv = interests.never(INTS)
     if nv:
         lines.append('She NEVER wants %s — in any interest; leave those out.' % ', '.join(nv))

@@ -327,6 +327,64 @@ class GapFillWindowTests(unittest.TestCase):
             curate.INTS = old_ints
 
 
+class CaptainPicksTests(unittest.TestCase):
+    """The captain took the reviewer's pick on all four open findings; these
+    pin what she chose, exactly as the review recorded them."""
+
+    def test_the_block_overrides_the_hard_rules_for_topics(self):
+        # pick 1: one line in the interests block names that the hard-rules
+        # romance lines do not hold for a non-romance interest's books
+        doc = interests.defaults()
+        doc['interests'].append({'id': 'baby', 'label': 'Baby development', 'kind': 'topic',
+                                 'dial': 'into it', 'mode': 'best ever', 'romance': False})
+        old_ints, curate.INTS = curate.INTS, doc
+        try:
+            block = curate.interests_block()
+            self.assertIn('do NOT apply', block)
+            self.assertIn('hard-rules lines (M/F only, no cowboy)', block)
+        finally:
+            curate.INTS = old_ints
+        # and a pure-romance meter carries no override line
+        self.assertNotIn('do NOT apply', curate.interests_block())
+
+    def test_the_blank_brief_teaches_the_fields_the_payload_carries(self):
+        # pick 2: the shipped blank taste brief matches the interests payload
+        import os
+        tp = open(os.path.join(os.path.dirname(os.path.abspath(__file__)), 'taste-prompt.md')).read()
+        self.assertIn('interest_windows', tp)
+        self.assertIn('interest_availability', tp)
+        self.assertNotIn('lane_windows', tp)
+        self.assertNotIn('lane_availability', tp)
+
+    def test_a_topic_pick_carries_no_romance_score_rows(self):
+        # pick 3: the spice/MMC row shows only for a romance interest's pick
+        import build
+        doc = interests.defaults()
+        doc['interests'].append({'id': 'baby', 'label': 'Baby development', 'kind': 'topic',
+                                 'dial': 'into it', 'mode': 'best ever', 'romance': False})
+        old_ints, build.INTS = build.INTS, doc
+        try:
+            topic_pick = build.pick_book({'title': 'The Weird Baby', 'author': 'T. Author',
+                                          'genre': 'Baby development', 'lane': 'baby development'}, None, '')
+            self.assertFalse(topic_pick['scoreRows'])
+            rom = build.pick_book({'title': 'Ice Hockey Hearts', 'author': 'A. Author',
+                                   'genre': 'Hockey', 'lane': 'sport romance'}, None, '')
+            self.assertTrue(rom['scoreRows'])
+        finally:
+            build.INTS = old_ints
+
+    def test_the_shape_line_shows_an_interests_honest_zero(self):
+        # pick 4: an interest that shipped zero keeps its zero on the line
+        from lanes import counts, shape_str, shape_line
+        c = counts([{'title': 'a', 'author': 'x', 'genre': 'Hockey', 'lane': 'sport romance'}],
+                   order=['sport romance', 'romantasy'])
+        self.assertEqual(c['romantasy'], 0)
+        self.assertEqual(shape_str(c, order=['sport romance', 'romantasy']), '1/0')
+        self.assertEqual(shape_line(c, order=['sport romance', 'romantasy'],
+                                    labels={'sport romance': 'Sport romance', 'romantasy': 'Romantasy'}),
+                         '1 Sport romance · 0 Romantasy')
+
+
 class GapFillBestEverTests(unittest.TestCase):
     """A best-ever interest has no window: an old, strongly rated leftover
     earns a gap fill a new-release interest's window would refuse."""
