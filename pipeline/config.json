@@ -3,7 +3,6 @@
   "max_candidates": 80,
   "window_months": 1,
   "target_books": [6, 9],
-  "genre_mix": {"sport romance": 3, "romantasy": 3, "contemporary romance": 3},
   "lane_floor": 2,
   "lane_widen_days": [30, 60, 90],
   "lane_terms": {

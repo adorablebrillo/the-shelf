@@ -397,7 +397,9 @@
                   <sc-if value="{{ b.waitNote }}">
                     <p style="margin:8px 0 0;font-size:10.5px;letter-spacing:.2em;text-transform:uppercase;color:#6E2A2A">{{ b.waitNote }}</p>
                   </sc-if>
-                  <p style="margin:10px 0 0;font-size:11.5px;letter-spacing:.1em;text-transform:uppercase;color:#635846">Spice {{ b.spiceLabel }} · MMC {{ b.mmcLabel }}</p>
+                  <sc-if value="{{ b.scoreRows }}">
+                    <p style="margin:10px 0 0;font-size:11.5px;letter-spacing:.1em;text-transform:uppercase;color:#635846">Spice {{ b.spiceLabel }} · MMC {{ b.mmcLabel }}</p>
+                  </sc-if>
                   <div data-m="verdicts" style="display:flex;gap:6px;flex-wrap:wrap;margin-top:14px;padding-top:14px;border-top:1px solid #C6BBA3">
                     <sc-for list="{{ b.pills }}" as="p" hint-placeholder-count="4">
                       <button type="button" onClick="{{ p.onClick }}" aria-pressed="{{ p.on }}" aria-label="{{ p.aria }}" style="{{ p.style }}">{{ p.label }}</button>
@@ -1634,7 +1636,7 @@ class Component extends DCLogic {
       rank:rank!==undefined?rank:('No. '+(i+1)),
       spiceLabel:b.spice+' / 5',
       mmcLabel:b.mmc+' / 5',
-      mmcNote:b.lane==='romantasy'?'Xaden · Rhysand · Raihn energy':'same energy, no magic',
+      mmcNote:!b.scoreRows?'':(b.lane==='romantasy'?'Xaden · Rhysand · Raihn energy':'same energy, no magic'),
       tropeLine:(b.tropes||[]).join(' · '),
       /* an added book (#84) has no publisher: never print an empty ' · ' slot */
       pubLine:[b.author,b.publisher].filter(Boolean).join(' · '),

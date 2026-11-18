@@ -19,7 +19,7 @@ Single-context: `CONTEXT.md` and `docs/adr/` at the repo root. See `docs/agents/
 ## Privacy
 
 This repo ships **blank**: never commit reader data (`library.json`,
-`sequels.json`, `seed-reads.json`, `taste-prompt.md`) or captures showing a
+`sequels.json`, `seed-reads.json`, `taste-prompt.md`, `interests.json`) or captures showing a
 real shelf. Personal files live on the config volume (`/config`) at runtime;
 prefer blank/UI-only views in evidence.
 

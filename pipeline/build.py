@@ -21,7 +21,9 @@ import json, os, re, shutil, sys, time, urllib.request, urllib.parse, hashlib, c
 from datetime import datetime
 import paths  # shared resolver: reader data lives on the volume (CFG_DIR)
 import synopses  # #51: the synopsis chain + its volume cache
-from lanes import lane_of, counts as lane_counts, shape_str, shape_line
+import lanes
+from lanes import counts as lane_counts, shape_str, shape_line
+import interests
 from bookids import book_key
 from shelf_state import exclusion_set
 from verdicts import because_line
@@ -30,6 +32,7 @@ import sequels  # the series her read and loved marks track
 BASE = os.path.dirname(os.path.abspath(__file__))
 ROOT = os.path.dirname(BASE)
 CFG = json.load(open(os.path.join(BASE, 'config.json')))
+INTS = interests.load()  # her Book-a-meter: the names and labels the page shows
 DESIGN = os.path.join(BASE, 'design')
 # In the container the SERVER serves /app/dist (server.py lives at /app).
 # Docker COPY flattens the repo's container/dist -> pipeline/dist symlink, so
@@ -46,6 +49,31 @@ MONTH_NAMES = ['JAN', 'FEB', 'MAR', 'APR', 'MAY', 'JUN', 'JUL', 'AUG', 'SEP', 'O
 WORDS = {1: 'one', 2: 'two', 3: 'three', 4: 'four', 5: 'five', 6: 'six', 7: 'seven', 8: 'eight', 9: 'nine', 10: 'ten'}
 CRITERIA = ('M/F only · dark romance & dark academia welcome · no cowboy/western · spice 3–5 · trad-pub first, indie with proof · '
             'released last month · sequels only for series you are already in')
+
+
+def criteria_line():
+    """The criteria strip, honest about her interests: the default text holds
+    while every active interest is a new-release romance and the never list is
+    her cowboys rule (the blank install's shelf). Anything else — a topic
+    interest, a best-ever mode, another never word — is said plainly."""
+    act = interests.active(INTS)
+    non_rom = [i for i in act if not interests.romance(i)]
+    best = [i for i in act if interests.best_ever(i)]
+    nv = interests.never(INTS)
+    if not non_rom and not best and nv == [w.lower() for w in interests.DEFAULT_NEVER]:
+        return CRITERIA
+    bits = []
+    rom = 'M/F only · dark romance & dark academia welcome · spice 3–5'
+    bits.append('romance interests: ' + rom if non_rom else rom)
+    if nv:
+        bits.append('never: ' + ' · '.join('no ' + w for w in nv))
+    bits.append('trad-pub first, indie with proof')
+    if best:
+        bits.append('new releases last month; best-ever interests any date, rated 4.0+')
+    else:
+        bits.append('released last month')
+    bits.append('sequels only for series you are already in')
+    return ' · '.join(bits)
 
 # The season table: ONE clock for the sidebar drink, its label, the seasonal
 # look and the reading-corner quote. Each season runs from its start day to its
@@ -714,12 +742,18 @@ def pick_series(b):
 
 def pick_book(b, top_id, img):
     genre = (b.get('genre') or '').strip()
-    if re.search(r'fae|dragon|fantasy|romantasy|vampire|fairy|witch', genre, re.I):
-        lane = 'romantasy'
-    elif re.search(r'hockey|f1|formula|football|baseball|sport|tennis|golf|soccer|racing', genre, re.I):
-        lane = 'sport'
-    else:
-        lane = 'contemporary'
+    # a pick's interest: the search that found it (its lane field, set by
+    # fetch and copied onto the pick in curate), else the genre fallback —
+    # Home shows the interest name where it showed the lane name. The full
+    # name stays: the shape line counts these keys, and nothing on the card
+    # needs the old short forms (only 'romantasy' is compared, unchanged).
+    lane = lanes.interest_of(b)
+    # the romance score rows (spice, MMC vibe, the archetype note) show only
+    # for a romance interest's picks — a real-life topic book's card reads
+    # like its book. An interest the file does not name keeps the rows (the
+    # pre-interests months rendered them for every pick).
+    _iobj = interests.by_name(INTS, lane)
+    score_rows = True if _iobj is None else interests.romance(_iobj)
     rating = b.get('rating')
     if isinstance(rating, str):
         gr = rating
@@ -738,7 +772,7 @@ def pick_book(b, top_id, img):
         'img': img or b.get('img') or '',
         'title': b.get('title') or '', 'series': pick_series(b),
         'author': b.get('author') or '', 'publisher': b.get('publisher') or '',
-        'date': b.get('date') or '', 'genre': genre, 'lane': lane,
+        'date': b.get('date') or '', 'genre': genre, 'lane': lane, 'scoreRows': score_rows,
         'spice': _int(b.get('spice'), 3), 'mmc': _int(mmc_score, 3),
         'fresh': bool(b.get('fresh')), 'gr': gr,
         'rating': rating if isinstance(rating, (int, float)) else None, 'count': '',
@@ -1012,9 +1046,12 @@ def main():
         'issue': len(order),
         'titles': WORDS.get(len(book_list), str(len(book_list))) + (' title' if len(book_list) == 1 else ' titles'),
     }
-    _lc = lane_counts(book_list)
-    month['shape'] = shape_str(_lc)          # the shape it shipped (ticket #6)
-    month['shapeLine'] = shape_line(_lc)
+    _inames = [interests.name(i) for i in interests.active(INTS)]  # interests.json owns the order
+    _ilabels = {interests.name(i): (i.get('label') or interests.name(i))
+                for i in interests.active(INTS)}
+    _lc = lane_counts(book_list, order=_inames)  # a zero-pick interest shows its honest zero
+    month['shape'] = shape_str(_lc, order=_inames)   # the shape it shipped (ticket #6)
+    month['shapeLine'] = shape_line(_lc, order=_inames, labels=_ilabels)
     month['light'] = len(book_list) < CFG['target_books'][0]  # under the floor -> light month
 
     for b in book_list:                      # this issue's own provenance
@@ -1032,12 +1069,14 @@ def main():
     if orphans:
         print('WARNING: %d books have no identity: %s' % (len(orphans), orphans[:5]))
     data = {'month': month, 'hero': hero, 'books': book_list, 'pending': pending,
-            'series': series, 'seasons': SEASONS, 'criteria': CRITERIA, 'resolved': resolved,
+            'series': series, 'seasons': SEASONS, 'criteria': criteria_line(), 'resolved': resolved,
             'added': added}
     write_dist('shelf-data.js', 'window.SHELF_DATA=' + json.dumps(data, ensure_ascii=False) + ';\n')
 
     tpl = open(os.path.join(DESIGN, 'app.html')).read()
-    tpl = tpl.replace('__SHELF_TITLE__', 'The Shelf — %s · Sport Romance · Romantasy · Contemporary Romance' % ml['label'])
+    _tlabels = [i.get('label') or interests.name(i) for i in interests.active(INTS)]
+    tpl = tpl.replace('__SHELF_TITLE__', 'The Shelf — %s%s' % (ml['label'],
+                     ((' · ' + ' · '.join(_tlabels)) if _tlabels else '')))
     write_dist('index.html', tpl)
     print('built dist (current: %s, %d books, %d series, issue no. %d)'
           % (cur_ym, len(book_list), len(series), month['issue']))

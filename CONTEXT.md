@@ -1,6 +1,6 @@
 # The Shelf
 
-A personal book-curation app: a monthly curated page of new romance releases plus the reader's own library, self-hosted on the reader's server. The public repo ships blank; one reader per install.
+A personal book-curation app: a monthly curated page of new releases across the reader's interests (the Book-a-meter) plus the reader's own library, self-hosted on the reader's server. The public repo ships blank; one reader per install.
 
 ## Language
 
@@ -76,8 +76,12 @@ The curated set for the current issue ("No. N · MONTH · x titles"). A decided 
 **Issue**:
 One month's curated drop, numbered.
 
-**Lane**:
-One of the three curation lanes — sport romance · romantasy · contemporary romance.
+**Interest**:
+One kind of book the reader wants: a story genre or a real-life topic. It has a name, a kind (story or topic), a dial (off, curious, into it, obsessed), a mode (new, best ever, both) and its own rules — the romance rules (M/F only, no cowboys, spice 3–5, dark welcome) hold only for romance interests, and the never list holds for every interest. The run searches each interest's own words and splits the picks by dial weight; a pick carries the interest of the search that found it. A best-ever interest takes books of any date, rated 4.0 or more. The list lives in interests.json on the config volume; a blank install starts with three romance interests — sport romance · romantasy · contemporary romance.
+_Avoid_: the lane
+
+**Book-a-meter**:
+The name of the interests list. It holds the interests, the never list, picks per issue and the season goal; the run makes the file on a first open.
 
 **Reading corner**:
 The panel at the top of Home that shows the season's quote of the day.
@@ -115,6 +119,6 @@ Authors whose new releases every run looks for.
 
 **Settings is a page, not a sheet.** The old modal (veil, dialog, focus trap, Escape-to-close) is retired; the nav's Settings button renders the page. The same controls, endpoints and tab machinery as the shipped sheet — a page script binds them when the view enters and stops the status poll when it leaves.
 
-**Tabs**: Shelf (key · model · save · curate now · status), Authors (watched list with lanes, add + remove, the empty state) and Import (the Goodreads export file, its preview with series ticks, import). Roving tabindex + arrow keys, as the sheet had.
+**Tabs**: Shelf (key · model · save · curate now · status), Authors (watched list with interests, add + remove, the empty state) and Import (the Goodreads export file, its preview with series ticks, import). Roving tabindex + arrow keys, as the sheet had.
 
 **Panels use inline `display`, not the `hidden` attribute** — the design runtime drops `hidden` during render, so `display:none` is the only reliable hide inside the dc root.

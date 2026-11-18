@@ -3,7 +3,7 @@
 Zero-dependency (pure Python stdlib) monthly engine for The Shelf.
 Runs anywhere — your Mac, your server's cron, or GitHub Actions. No Hermes
 involved: the only external calls are OpenRouter curation requests — one per run,
-up to three when a thin lane needs its window widened (the shape rule).
+up to three when a thin interest needs its window widened (the shape rule).
 
 ## Layout
 
@@ -11,12 +11,13 @@ up to three when a thin lane needs its window widened (the shape rule).
 pipeline/
 ├── config.json        # model, rules, deploy target
 ├── taste-prompt.md    # the curator brain — the reader's profile + rules (repo ships a generic default; a deployed shelf keeps its own in /config)
-├── fetch.py           # Apple Books search (lane terms + author lane), publisher/language/series per book
+├── fetch.py           # Apple Books search (her interests' words + author lane), publisher/language/series per book
 ├── reference.py       # Goodreads monthly release reference — best-effort, never breaks the run (#47)
 ├── filter.py          # hard rules + your shelf's verdicts (read/not-for-me never return)
-├── curate.py          # OpenRouter call(s) → curated month JSON, shaped 3/3/3 (ticket #6)
+├── curate.py          # OpenRouter call(s) → curated month JSON, split across her interests by dial (the Book-a-meter)
 ├── build.py           # month JSON → dist/index.html (design/app.html + manifest.webmanifest + assets/app-icon-*.png; blank installs get a valid empty-state page)
-├── lanes.py           # one lane mapping shared by curate/build/tests
+├── interests.py       # the Book-a-meter: interests.json (the volume file the run reads, made from lane_terms on a blank install), the dial split, the catalog terms
+├── lanes.py           # the genre fallback for books with no search provenance + the shape counts/lines
 ├── windows.py         # target month + window end, shared by filter/curate
 ├── bookids.py         # the canonical book identity (book_key), shared by engine + app
 ├── shelf_state.py     # your verdicts: the exclusion set + split (ticket #7)
@@ -24,6 +25,7 @@ pipeline/
 ├── verdicts.py        # your verdicts teach the model: marked ids -> books, the her_verdicts lists, the kept `because` (#83)
 ├── paths.py           # personal files: config volume first, repo copy as fallback
 ├── test_shape.py      # the shape rule's deterministic tests
+├── test_interests.py  # the Book-a-meter: defaults, the dial split, scoped rules, best-ever, the per-interest report
 ├── test_shelf.py      # your-shelf exclusion tests
 ├── test_verdicts.py   # her_verdicts: the lookup, the capped lists, the `because` rule
 ├── test_reference.py  # the Goodreads reference: parsers (real fixtures), matchers, failure paths, the fetch's redirect cookies

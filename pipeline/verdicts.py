@@ -16,7 +16,8 @@ only when it names a book in her loved or want list.
 import glob, json, os, re
 import paths
 from bookids import book_key
-from lanes import lane_of
+import interests
+INTS = interests.load()
 
 CAPS = {'loved': 25, 'want': 15, 'not_for_me': 25}
 # reader-state value -> list name ('skip' is the stored value of "not for me")
@@ -56,13 +57,13 @@ def book_details(data_dir):
         for b in body.get('books', []):
             add(b.get('title') or '', b.get('author') or '', series=b.get('series') or '',
                 series_num=str(b.get('series_num') or ''),
-                lane=lane_of(b) if b.get('genre') else '', tropes=b.get('tropes') or [])
+                lane=interests.of(b, INTS) if b.get('genre') else '', tropes=b.get('tropes') or [])
 
     added = _load(os.path.join(paths.cfg_dir(), 'added-books.json')) or {}
     for b in added.get('books', []) or []:
         add(b.get('title') or '', b.get('author') or '', series=b.get('series') or '',
             series_num=str(b.get('series_num') or ''),
-            lane=lane_of(b) if b.get('genre') else '')
+            lane=interests.of(b, INTS) if b.get('genre') else '')
 
     lib_path = paths.personal('library.json')[0]
     seq_path = paths.personal('sequels.json')[0]

@@ -36,7 +36,9 @@ from datetime import datetime
 
 import bookids
 import fetch
+import interests
 import lanes
+INTS = interests.load()  # her Book-a-meter: genre -> interest fallback
 import paths
 from shelf_state import exclusion_set
 from windows import target_month
@@ -301,7 +303,7 @@ def apple_candidate(e, mon, cache=None):
             'pub_source': 'apple-search',
         }
         try:
-            lane = lanes.lane_of(cand) or ''
+            lane = interests.of(cand, INTS) or ''
         except Exception:
             lane = ''
         cand['lane'] = lane
@@ -334,7 +336,7 @@ def kindle_candidate(e, mon):
         return None                      # the page did not answer for this entry
     genres = data.get('genres') or []
     try:
-        lane = lanes.lane_of({'genre': ' '.join(genres)}) or ''
+        lane = interests.of({'genre': ' '.join(genres)}, INTS) or ''
     except Exception:
         lane = ''
     return {

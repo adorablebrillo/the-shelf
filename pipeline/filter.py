@@ -1,5 +1,10 @@
 #!/usr/bin/env python3
-"""The Shelf pipeline — stage 2: apply the reader's hard rules to candidates."""
+"""The Shelf pipeline — stage 2: apply the reader's hard rules to candidates.
+The rules follow her interests (interests.json — the Book-a-meter): the
+romance screens (M/F only) hold for romance interests' books; the never
+list holds for every book; a best-ever interest skips the window (any
+date) and its books' quality proof is an Apple or Goodreads rating of 4.0
+or more."""
 import json, os, re, sys
 from datetime import datetime, date, timedelta
 
@@ -7,10 +12,13 @@ from datetime import datetime, date, timedelta
 # SHELF_MODE=adhoc     -> "curate now": a rolling window of the last 30 days
 MODE = os.environ.get('SHELF_MODE', 'scheduled')
 
+import interests  # her Book-a-meter: the rules below follow it
+
 from shelf_state import exclusion_set, exclude_by_shelf
 
 BASE = os.path.dirname(os.path.abspath(__file__))
 CFG = json.load(open(os.path.join(BASE, 'config.json')))
+INTS = interests.load()
 
 
 from windows import target_month, window_end  # one definition, shared with curate
@@ -52,6 +60,26 @@ def cowboy_screen(title, genre):
     """True = excluded: cowboy/cowgirl/western character romance (her rule)."""
     title, genre = (title or '').lower(), (genre or '').lower()
     return any(k in title for k in NO_COWBOY) or any(k in genre for k in NO_COWBOY)
+
+
+# a never word can name a whole family: her "cowboys" (the Book-a-meter's
+# never list) means every cowboy/western variant (issue #35), not just the
+# exact word. A word with no known family matches by itself.
+NEVER_FAMILIES = {'cowboys': NO_COWBOY, 'cowboy': NO_COWBOY, 'cowgirl': NO_COWBOY,
+                  'western': NO_COWBOY, 'ranch': NO_COWBOY, 'rodeo': NO_COWBOY}
+
+
+def never_words_screen(title, genre, words):
+    """True = excluded by the never list — which applies to every interest."""
+    title, genre = (title or '').lower(), (genre or '').lower()
+    for w in words:
+        fam = NEVER_FAMILIES.get(w)
+        if fam is not None:
+            if any(k in title for k in fam) or any(k in genre for k in fam):
+                return True
+        elif w and (w in title or w in genre):
+            return True
+    return False
 
 
 NO_QUEER = ('mm romance', 'male/male', 'mlm', 'gay romance', 'ff romance', 'female/female',
@@ -157,6 +185,10 @@ def cap_pool(kept, cap):
 
 
 def main():
+    # the run makes the interests file on a blank install — here too, so a
+    # filter-only run never reads interests it cannot name
+    global INTS
+    INTS = interests.ensure()
     import glob
     # resolve the target month from the mode (leftover files can't shift it)
     mon = target_month(MODE)
@@ -169,7 +201,9 @@ def main():
         src_path = files[-1]
     cands = json.load(open(src_path)).get('books', [])
     kept = []
-    dropped_cowboy = []
+    dropped_never = []
+    dropped_unrated = []
+    nv = interests.never(INTS)
     # #76: every series she is in (library.json + sequels.json + the series
     # her read and loved marks track) — a candidate continuing one is marked
     # here and can never be capped away below
@@ -178,23 +212,38 @@ def main():
     for b in cands:
         title = (b.get('title') or '').lower()
         genre = (b.get('genre') or '').lower()
-        if queer_screen(title, genre): continue
-        if cowboy_screen(title, genre):
-            dropped_cowboy.append(b.get('title') or '')
+        iobj = interests.by_name(INTS, interests.of(b, INTS))
+        # the romance screens hold for a romance interest's books; a book with
+        # no interest of its own still takes them (today's default: every
+        # candidate was screened)
+        is_romance = iobj is None or interests.romance(iobj)
+        if is_romance and queer_screen(title, genre): continue
+        if never_words_screen(title, genre, nv):
+            dropped_never.append(b.get('title') or '')
             continue
         # dark-romance hint: wanted, especially dark academia — the curator
         # favours these; it is never a screen
         b['dark_hint'] = dark_hint(title, genre, b.get('series'))
-        # keep the whole widening pool; in_window tags the base window
-        if MODE == 'adhoc':
+        # a best-ever interest skips the window rule: books of any date stay
+        # eligible (their proof is the rating gate below)
+        best = iobj is not None and interests.best_ever(iobj)
+        if best:
+            b['in_window'] = True
+        elif MODE == 'adhoc':
             b['in_window'] = adhoc_window_ok(b.get('date'))
         else:
             b['in_window'] = in_window(b.get('date'), mon)
-        if not pool_ok(b.get('date'), mon): continue
+        if not best and not pool_ok(b.get('date'), mon): continue
         pub = b.get('publisher') or ''
         cls = pub_class(pub)
         r = b.get('rating')
         rc = b.get('rating_count') or 0
+        if best:
+            # the topic proof: an Apple or Goodreads rating of 4.0 or more
+            if not (isinstance(r, (int, float)) and r >= CFG['trad_pub_score_rating']):
+                dropped_unrated.append(b.get('title') or '')
+                continue
+            b['best_ever_proven'] = True
         proven = isinstance(r, (int, float)) and r >= CFG['trad_pub_score_rating'] \
             and rc >= CFG.get('trad_pub_score_count', 100)
         b['trad'] = (cls == 'trad')
@@ -209,9 +258,12 @@ def main():
         if b['aseq']:
             aseq_n += 1
         kept.append(b)
-    if dropped_cowboy:
-        print('cowboy/western: dropped %d candidate(s) — %s'
-              % (len(dropped_cowboy), ', '.join(dropped_cowboy[:4])))
+    if dropped_never:
+        print('never list (%s): dropped %d candidate(s) — %s'
+              % (', '.join(nv), len(dropped_never), ', '.join(dropped_never[:4])))
+    if dropped_unrated:
+        print('best-ever interests: dropped %d unrated candidate(s) — %s'
+              % (len(dropped_unrated), ', '.join(dropped_unrated[:4])))
     print('sequels: %d series tracked · %d candidate(s) marked (never capped)'
           % (len(tracked), aseq_n))
     # your shelf steers the engine (ticket #7): resolved books never return
@@ -237,7 +289,11 @@ def main():
                    'mf_only': True, 'dark_romance_welcome': True, 'no_cowboy': True,
                    'spice_min': CFG['spice_min'],
                    'trad_first_indie_with_proof': True,
-                   'pool_back_days': CFG.get('pool_back_days', 120)}}, open(out, 'w'), indent=1)
+                   'pool_back_days': CFG.get('pool_back_days', 120),
+                   'interests': interests.names(INTS),
+                   'never': nv,
+                   'romance_rules': 'romance interests only',
+                   'best_ever_proof': 'any date, rated 4.0 or more'}}, open(out, 'w'), indent=1)
     nwin = sum(1 for b in kept if b.get('in_window'))
     print('filtered: %d / %d -> %s (%s; %d in-window + %d widened-pool, pool %dd)'
           % (len(kept), len(cands), out, MODE, nwin, len(kept) - nwin,

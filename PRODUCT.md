@@ -21,10 +21,11 @@ no accounts, no sharing, no growth loop.
 
 ## Product Purpose
 
-A monthly romance page: new releases across three lanes — sport romance,
-romantasy, contemporary romance — fetched from Apple Books (plus a Goodreads
-release reference), curated by a model against her taste profile, and served
-as one page from her own server. Success is a drop that feels hand-picked for
+A monthly curated page: new releases across her interests — the
+Book-a-meter, any story genre or real-life topic (a fresh install starts with
+sport romance, romantasy, contemporary romance) — fetched from Apple Books
+(plus a Goodreads release reference), curated by a model against her taste
+profile, and served as one page from her own server. Success is a drop that feels hand-picked for
 one person, where every verdict she gives visibly steers the next drop.
 
 ## Positioning
@@ -54,14 +55,15 @@ retain attention — the page is done when she has decided.
   (rating ≥ 4.0 and ≥ 100 ratings); dark romance — especially dark academia —
   welcome; no cowboy/cowgirl/western characters; spice 3–5; releases inside
   the run's own window; sequels only from series she is already in.
-- Shape: 3/3/3 up to nine books when every lane qualifies, floor of two per
-  lane, gaps filled from the strongest leftovers; thin months say so honestly.
+- Shape: picks split across her interests by dial weight (up to her picked
+  count), floor of two per interest, gaps filled from the strongest leftovers;
+  thin months say so honestly.
 - The reader flow: want · read · loved · not for me. Nothing expires; read and
   loved move to the archive; "not for me" sets a book aside and it never
   returns. No confirm dialogs; "not for me" everywhere (never "skip").
 - No buy links — discovery, not commerce.
 - Terminology that must survive: "My Shelf" (nav) with the page header
-  "My TBR list"; "want to read"; "not for me"; the three lane names
+  "My TBR list"; "want to read"; "not for me"; the interest names, shown
   "SPORT ROMANCE · ROMANTASY · CONTEMPORARY ROMANCE".
 
 ## Brand Commitments
