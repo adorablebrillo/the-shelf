@@ -77,11 +77,14 @@ The curated set for the current issue ("No. N · MONTH · x titles"). Home carri
 One month's curated drop, numbered.
 
 **Interest**:
-One kind of book the reader wants: a story genre or a real-life topic. It has a name, a kind (story or topic), a dial (off, curious, into it, obsessed), a mode (new, best ever, both) and its own rules — the romance rules (M/F only, no cowboys, spice 3–5, dark welcome) hold only for romance interests, and the never list holds for every interest. The run searches each interest's own words and splits the picks by dial weight; a pick carries the interest of the search that found it. A best-ever interest takes books of any date, rated 4.0 or more. The list lives in interests.json on the config volume; a blank install starts with three romance interests — sport romance · romantasy · contemporary romance.
+One kind of book the reader wants: a story genre or a real-life topic. It has a name, a kind (story or topic), a dial (off, curious, into it, obsessed), a mode (new, best ever, both) and its own rules — the romance rules (M/F only, no cowboys, spice 3–5, dark welcome) hold only for romance interests, and the never list holds for every interest. The run searches each interest's own words and splits the picks by dial weight; a pick carries the interest of the search that found it. A best-ever interest takes books of any date, rated 4.0 or more. A topic interest may also keep the baby's birth month and year (never a day): every run counts the age in whole months and names the **stage** it curates for. The list lives in interests.json on the config volume; a blank install starts with three romance interests — sport romance · romantasy · contemporary romance.
 _Avoid_: the lane
 
+**Stage**:
+The baby's age band a topic interest curates for, one of five: 0–3, 4–6, 7–12, 13–24 and 25–36 months, each with its themes (newborn sleep and feeding, first solids, first words, toddler talk, preschool play). The run works it out from the birth month and year and names it in the curator request; a child past 36 months has no stage, so the interest is curated as a plain topic.
+
 **Book-a-meter**:
-The name of the interests list. It holds the interests, the never list, picks per issue and the season goal; the run makes the file on a first open.
+The name of the interests list. It holds the interests, the never list, picks per issue and the season goal; the run makes the file on a first open. A topic interest in it may keep the baby's birth month and year, which the run reads as the stage.
 
 **Reading corner**:
 The panel at the top of Home that shows the season's quote of the day.

@@ -233,6 +233,13 @@ def interests_block():
             interests.dial(i), 'a clear yes')
         lines.append('- %s (%s): %s; target %d of the %d picks; %s.'
                     % (label, dial_w, md, tgt, int(INTS.get('picks') or interests.DEFAULT_PICKS), rules))
+        st = interests.stage(i)
+        if st:
+            # the reader keeps only the baby's birth month and year; the run
+            # works the age out and names the stage this interest means now
+            lines.append('    Her baby is %d months old, so this interest means %s: %s — '
+                         'pick books for that stage.'
+                         % (st['months'], st['name'], st['themes']))
     non_rom = [i for i in act if not interests.romance(i)]
     if non_rom:
         # the review's one-line override: the hard-rules romance lines do not

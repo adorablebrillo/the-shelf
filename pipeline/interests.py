@@ -19,8 +19,13 @@ regex in lanes.py is only the fallback for a book with no search provenance.
 Search words: a catalog interest (one of the story genres config.json
 `lane_terms` knows) takes its words from that table; a typed interest gets
 3-5 words suggested by the curator call once, and the file keeps them.
+
+A topic interest may keep the baby's birth month and year (`birth`,
+"YYYY-MM", never a day); the run works out the age in whole months and names
+the stage it curates for (STAGES), so the picks follow the baby's age.
 """
 import json, os, re
+from datetime import date
 import lanes  # the genre fallback for books with no search provenance
 import paths
 
@@ -45,6 +50,17 @@ DEFAULT_INTERESTS = (
 DIAL_WEIGHT = {'off': 0, 'curious': 1, 'into it': 2, 'obsessed': 3}
 DEFAULT_DIAL = 'into it'
 DEFAULT_MODE = 'new'
+
+# The baby's stages, from the reader's answers to the Book-a-meter plan
+# (THS-37 piece 4): five stages, in whole months, with the themes the plan
+# showed her. A topic interest older than the last stage gets no stage.
+STAGES = (
+    ((0, 3), '0–3 months', 'newborn sleep, feeding, crying'),
+    ((4, 6), '4–6 months', 'sleep regressions, first solids, rolling'),
+    ((7, 12), '7–12 months', 'crawling, first words, separation'),
+    ((13, 24), '13–24 months', 'toddler talk, tantrums, walking'),
+    ((25, 36), '25–36 months', 'potty learning, play, preschool'),
+)
 
 
 def _norm(s):
@@ -169,6 +185,41 @@ def romance(i):
     if 'romance' in i:
         return bool(i['romance'])
     return _norm(name(i)) in {_norm(l) for l in (CFG.get('lane_terms') or {})}
+
+
+def birth(i):
+    """The baby's birth month and year, as (year, month), or None. Only
+    "YYYY-MM" is read: the plan keeps the month and year, never a day."""
+    m = re.match(r'^\s*(\d{4})-(\d{1,2})', str(i.get('birth') or ''))
+    if not m:
+        return None
+    y, mo = int(m.group(1)), int(m.group(2))
+    return (y, mo) if 1 <= mo <= 12 else None
+
+
+def months_old(i, today=None):
+    """Whole months since the birth month, counted by calendar month — a
+    month and a year are all the file keeps. None without a birth."""
+    b = birth(i)
+    if not b:
+        return None
+    t = today or date.today()
+    return (t.year - b[0]) * 12 + (t.month - b[1])
+
+
+def stage(i, today=None):
+    """The stage this topic interest curates for, as {months, name, themes},
+    or None: a story interest never has one, nor does a topic with no birth,
+    a birth still to come, or a child past the plan's fifth stage."""
+    if (i.get('kind') or '').lower() != 'topic':
+        return None
+    n = months_old(i, today)
+    if n is None or n < 0:
+        return None
+    for (lo, hi), label, themes in STAGES:
+        if lo <= n <= hi:
+            return {'months': n, 'name': label, 'themes': themes}
+    return None
 
 
 def catalog_terms(i):
