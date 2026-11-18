@@ -532,6 +532,78 @@ class BadBirthWarningTests(unittest.TestCase):
                                       'dial': 'into it', 'mode': 'both', 'romance': False,
                                       'birth': '2025-08'}), [])
 
+class CatalogTests(unittest.TestCase):
+    """The survey's shelves: one table in code, so the tiles the reader picks
+    from and the words the run searches for are the same list."""
+
+    def test_the_catalog_carries_the_survey_shelves(self):
+        cat = interests.catalog()
+        ids = [c['id'] for c in cat]
+        for want in ('sport', 'romantasy', 'contemp', 'thriller', 'baby', 'cooking'):
+            self.assertIn(want, ids)
+        kinds = {c['id']: c['kind'] for c in cat}
+        self.assertEqual(kinds['romantasy'], 'story')
+        self.assertEqual(kinds['baby'], 'topic')
+
+    def test_a_catalog_interest_has_its_own_search_words(self):
+        self.assertTrue(interests.terms({'id': 'baby', 'label': 'Baby development'}))
+        self.assertTrue(interests.terms({'id': 'thriller', 'label': 'Thriller'}))
+
+    def test_a_renamed_interest_keeps_its_words(self):
+        """The lookup is by id, so a name the reader changed does not cost the
+        interest its search words."""
+        self.assertTrue(interests.terms({'id': 'baby', 'label': 'Books about my baby'}))
+
+    def test_a_typed_interest_has_no_words_until_the_curator_suggests_them(self):
+        self.assertEqual(interests.terms({'id': 'c-sourdough', 'label': 'Sourdough'}), [])
+
+
+class SaveTests(unittest.TestCase):
+    """The two writers of one file: the run adds the search words it found,
+    the survey writes the reader's answers. Neither may lose the other's work.
+    """
+
+    def setUp(self):
+        self.dir = tempfile.mkdtemp(prefix='shelf-interests-file-')
+        self.old = os.environ.get('CFG_DIR')
+        os.environ['CFG_DIR'] = self.dir
+
+    def tearDown(self):
+        if self.old is None:
+            os.environ.pop('CFG_DIR', None)
+        else:
+            os.environ['CFG_DIR'] = self.old
+
+    def _read(self):
+        return json.loads(open(interests.vol_path()).read())
+
+    def test_the_runs_save_keeps_the_readers_answers(self):
+        """The run started before the survey answered: its save must not roll
+        the reader's answers back."""
+        doc = interests.defaults()
+        doc['interests'][0]['dial'] = 'obsessed'
+        interests.save(doc)
+        run = interests.load()
+        run['interests'][0]['terms'] = ['hockey romance']
+        interests.save_terms(run)
+        out = self._read()
+        self.assertEqual(out['interests'][0]['dial'], 'obsessed')
+        self.assertEqual(out['interests'][0]['terms'], ['hockey romance'])
+
+    def test_the_surveys_save_keeps_the_runs_words(self):
+        """The survey writes the same file: the words the run found stay."""
+        doc = interests.defaults()
+        doc['interests'][0]['terms'] = ['hockey romance']
+        interests.save(doc)
+        survey = interests.load()
+        survey['interests'][0]['dial'] = 'curious'
+        del survey['interests'][0]['terms']
+        interests.save(survey)
+        out = self._read()
+        self.assertEqual(out['interests'][0]['dial'], 'curious')
+        self.assertEqual(out['interests'][0]['terms'], ['hockey romance'])
+
+
 
 if __name__ == '__main__':
     unittest.main()

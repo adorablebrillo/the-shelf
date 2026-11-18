@@ -48,6 +48,8 @@ DEFAULT_INTERESTS = (
 )
 
 DIAL_WEIGHT = {'off': 0, 'curious': 1, 'into it': 2, 'obsessed': 3}
+DIALS = ('off', 'curious', 'into it', 'obsessed')
+MODES = ('new', 'best ever', 'both')
 DEFAULT_DIAL = 'into it'
 DEFAULT_MODE = 'new'
 
@@ -61,6 +63,49 @@ STAGES = (
     ((13, 24), '13–24 months', 'toddler talk, tantrums, walking'),
     ((25, 36), '25–36 months', 'potty learning, play, preschool'),
 )
+
+# The survey's catalog: the interests a reader can pick, with the words the
+# run searches for them. One table, in code — the survey's shelves and the
+# run's searches read the same list. The three romance interests keep their
+# words in config.json lane_terms (the table the lanes came from).
+CATALOG = (
+    {'id': 'sport', 'label': 'Sport romance', 'kind': 'story'},
+    {'id': 'romantasy', 'label': 'Romantasy', 'kind': 'story'},
+    {'id': 'contemp', 'label': 'Contemporary romance', 'kind': 'story'},
+    {'id': 'thriller', 'label': 'Thriller', 'kind': 'story',
+     'terms': ['psychological thriller', 'crime thriller', 'domestic thriller']},
+    {'id': 'mystery', 'label': 'Mystery', 'kind': 'story',
+     'terms': ['detective mystery', 'cosy mystery', 'mystery novel']},
+    {'id': 'fantasy', 'label': 'Fantasy', 'kind': 'story',
+     'terms': ['epic fantasy', 'cosy fantasy', 'urban fantasy']},
+    {'id': 'scifi', 'label': 'Sci-fi', 'kind': 'story',
+     'terms': ['science fiction', 'space opera', 'dystopian fiction']},
+    {'id': 'literary', 'label': 'Literary fiction', 'kind': 'story',
+     'terms': ['literary fiction', 'literary novel', 'literary fiction debut']},
+    {'id': 'historical', 'label': 'Historical fiction', 'kind': 'story',
+     'terms': ['historical fiction', 'historical novel', 'historical saga']},
+    {'id': 'horror', 'label': 'Horror', 'kind': 'story',
+     'terms': ['horror novel', 'psychological horror', 'gothic horror']},
+    {'id': 'baby', 'label': 'Baby development', 'kind': 'topic',
+     'terms': ['baby development', 'infant development', 'newborn sleep']},
+    {'id': 'parenting', 'label': 'Parenting', 'kind': 'topic',
+     'terms': ['parenting books', 'raising a baby', 'toddler parenting']},
+    {'id': 'memoir', 'label': 'Memoir', 'kind': 'topic',
+     'terms': ['memoir', 'memoir books', 'memoir stories']},
+    {'id': 'health', 'label': 'Health & wellbeing', 'kind': 'topic',
+     'terms': ['health books', 'wellbeing books', 'nutrition books']},
+    {'id': 'cooking', 'label': 'Cooking', 'kind': 'topic',
+     'terms': ['cookbooks', 'baking books', 'cooking for beginners']},
+    {'id': 'business', 'label': 'Business & money', 'kind': 'topic',
+     'terms': ['business books', 'money books', 'personal finance books']},
+    {'id': 'history', 'label': 'History', 'kind': 'topic',
+     'terms': ['history books', 'world history books', 'histories']},
+    {'id': 'science', 'label': 'Popular science', 'kind': 'topic',
+     'terms': ['popular science', 'science books', 'science explained']},
+)
+# the romance catalog — the interests the romance rules hold for
+ROMANCE_IDS = ('sport', 'romantasy', 'contemp')
+
 
 
 def _norm(s):
@@ -132,16 +177,58 @@ def ensure(log=print):
 
 def save(doc, log=print):
     """Write the doc back to the volume (typed interests keep their suggested
-    search words this way)."""
+    search words this way). The words already on the volume win: a reader
+    who answers the survey must not lose what the run found."""
     p = vol_path()
     try:
         os.makedirs(os.path.dirname(p), exist_ok=True)
-        with open(p, 'w') as f:
+        doc = _keep_disk_terms(doc)   # before the file is opened: the words
+        with open(p, 'w') as f:       # on the volume are read from it
             json.dump(doc, f, indent=1)
         return True
     except Exception as e:
         log('interests: could not save (%s): %s' % (p, str(e)[:80]))
         return False
+
+
+def save_terms(doc, log=print):
+    """The run's save: only the search words it suggested for an interest.
+    Everything else on the volume wins, so a run can never roll back what the
+    reader changed while it ran."""
+    p = vol_path()
+    try:
+        cur = load()
+        by_id = {i.get('id'): i for i in cur.get('interests') or [] if isinstance(i, dict)}
+        for i in doc.get('interests') or []:
+            if not isinstance(i, dict) or not i.get('terms'):
+                continue
+            old = by_id.get(i.get('id'))
+            if old is not None and not old.get('terms'):
+                old['terms'] = i['terms']
+        os.makedirs(os.path.dirname(p), exist_ok=True)
+        with open(p, 'w') as f:
+            json.dump(cur, f, indent=1)
+        return True
+    except Exception as e:
+        log('interests: could not save the search words (%s): %s' % (p, str(e)[:80]))
+        return False
+
+
+def _keep_disk_terms(doc):
+    """The doc with the volume's search words filled in: an interest the run
+    gave words to keeps them, whatever the doc says."""
+    try:
+        cur = load()
+    except Exception:
+        return doc
+    by_id = {i.get('id'): i for i in cur.get('interests') or [] if isinstance(i, dict)}
+    for i in doc.get('interests') or []:
+        if not isinstance(i, dict):
+            continue
+        old = by_id.get(i.get('id'))
+        if old is not None and old.get('terms') and not i.get('terms'):
+            i['terms'] = old['terms']
+    return doc
 
 
 def name(i):
@@ -184,6 +271,8 @@ def romance(i):
     existed falls back to the catalog: a lane_terms name is a romance lane."""
     if 'romance' in i:
         return bool(i['romance'])
+    if (i.get('id') or '') in ROMANCE_IDS:
+        return True
     return _norm(name(i)) in {_norm(l) for l in (CFG.get('lane_terms') or {})}
 
 
@@ -238,10 +327,33 @@ def birth_unused(i):
     return ''
 
 
+
+def catalog():
+    """The survey's shelves: the catalog the reader picks from (id, label,
+    kind). The page reads it from the server, so the tiles and the run's
+    searches never drift apart."""
+    return [{'id': c['id'], 'label': c['label'], 'kind': c['kind']} for c in CATALOG]
+
+
+def by_id(i):
+    """The catalog entry with this interest's id, or None."""
+    iid = (i or {}).get('id')
+    for c in CATALOG:
+        if c['id'] == iid:
+            return c
+    return None
+
+
+
 def catalog_terms(i):
     """A catalog interest's search words: the lane_terms table in code (one
-    definition, shared with the lanes it replaces)."""
-    return list((CFG.get('lane_terms') or {}).get(name(i)) or [])
+    definition, shared with the lanes it replaces), else the survey catalog's
+    own words. A renamed interest keeps its words — the lookup is by id."""
+    t = list((CFG.get('lane_terms') or {}).get(name(i)) or [])
+    if t:
+        return t
+    c = by_id(i)
+    return list((c or {}).get('terms') or [])
 
 
 def terms(i):

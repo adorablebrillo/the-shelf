@@ -28,6 +28,10 @@ AUTHORS = os.path.join(CONFIG_DIR, 'authors.json')
 # books she adds herself by search (ticket #84): the "add a book" panel on My
 # Shelf and the Archive writes here; build.py ships them as `added`
 ADDED = os.path.join(CONFIG_DIR, 'added-books.json')
+# the Book-a-meter (THS-37): the reader's interests — the interests, the never
+# list, her picks and her season goal. The run reads it; the survey and the
+# Settings tab write it. One file, both front doors.
+INTERESTS = os.path.join(CONFIG_DIR, 'interests.json')
 LOGSD = os.path.join(CONFIG_DIR, 'logs')
 
 # ---- personal data lives on the VOLUME -----------------------------------
@@ -395,6 +399,22 @@ class H(BaseHTTPRequestHandler):
                 return self._json({'error': err}, 400)
             log('book added: %s' % rec['id'][:60])
             self._json({'ok': True, 'book': rec, 'books': load_added()['books']})
+        elif u.path == '/api/interests/split':
+            # the mix the reader's dials ask for, computed by the same rule the
+            # run uses — the page never keeps its own copy of it
+            draft = interests_from_body(body)
+            self._json({'ok': True, 'split': interests_split(draft)})
+        elif u.path == '/api/interests':
+            try:
+                doc = interests_save(body)
+            except ValueError as e:
+                return self._json({'error': str(e)[:160]}, 500)
+            except Exception as e:
+                log('interests: could not save (%s)' % str(e)[:80])
+                return self._json({'error': 'the shelf server could not save your interests'}, 500)
+            log('interests saved: %d interest(s), %d pick(s) an issue, surveyed %s'
+                % (len(doc['interests']), doc['picks'], doc['surveyed'] or 'no'))
+            self._json({'ok': True, **interests_payload(doc)})
         elif u.path == '/api/import/goodreads':
             text = body.get('text')
             if not isinstance(text, str) or not text.strip():
@@ -879,6 +899,156 @@ def added_remove(bid):
             d['books'] = keep
             save_added(d)
     return d['books']
+
+
+# ---- the Book-a-meter: the interests file (THS-37) ----
+# The run reads it; the survey and the Settings tab write it. The pipeline's
+# interests module owns the file's shape (the defaults, the dial split, which
+# interests the romance rules hold for) — the server only carries it.
+DIALS = ('off', 'curious', 'into it', 'obsessed')
+MODES = ('new', 'best ever', 'both')
+
+
+def _interests():
+    """The pipeline's interests module — one definition of the file."""
+    return _pipeline_import('interests')
+
+
+def load_interests():
+    """The reader's interests: the volume file, or the defaults a blank
+    install starts from. A corrupt file raises — the reader must never get
+    silent default picks over her own list."""
+    try:
+        doc = json.load(open(INTERESTS))
+    except FileNotFoundError:
+        return _interests().defaults()
+    except Exception as e:
+        raise ValueError('interests.json unreadable: %s' % str(e)[:120])
+    if not isinstance(doc, dict) or not isinstance(doc.get('interests'), list):
+        raise ValueError('interests.json has no interests list')
+    return doc
+
+
+def save_interests(doc):
+    """Write the interests file to the volume (atomic, like the other files).
+    The search words already on the volume win: the survey's save must not
+    lose what the run found for an interest."""
+    try:
+        with open(INTERESTS) as f:
+            cur = json.load(f)
+    except Exception:
+        cur = None
+    if isinstance(cur, dict) and isinstance(cur.get('interests'), list):
+        by_id = {i.get('id'): i for i in cur['interests'] if isinstance(i, dict)}
+        for i in doc.get('interests') or []:
+            old = by_id.get(i.get('id'))
+            if old is not None and old.get('terms') and not i.get('terms'):
+                i['terms'] = old['terms']
+    _atomic_json(INTERESTS, doc, indent=1)
+
+
+def interests_split(doc):
+    """The mix the reader's dials ask for: one row per active interest, in
+    file order. The page reads it, so the survey's preview and the run agree."""
+    m = _interests()
+    sp = m.split(doc)
+    out = []
+    for i in doc.get('interests') or []:
+        if m.dial(i) == 'off':
+            continue
+        nm = m.name(i)
+        out.append({'id': i.get('id') or '', 'label': i.get('label') or nm,
+                    'n': int(sp.get(nm) or 0)})
+    return out
+
+
+def interests_payload(doc):
+    """The Book-a-meter for the page: the interests, the never list, her
+    picks, her season goal, the survey's shelves — and whether the survey is
+    still owed (no surveyed day in the file)."""
+    m = _interests()
+    ints = []
+    for i in doc.get('interests') or []:
+        ints.append({'id': i.get('id') or '',
+                     'label': i.get('label') or i.get('id') or '',
+                     'kind': i.get('kind') or 'topic',
+                     'dial': m.dial(i), 'mode': m.mode(i),
+                     'romance': m.romance(i),
+                     'reading': [{'title': r.get('title') or '', 'author': r.get('author') or ''}
+                                 for r in (i.get('reading') or []) if isinstance(r, dict)]})
+    return {'v': 1,
+            'name': doc.get('name') or 'Book-a-meter',
+            'picks': int(doc.get('picks') or 12),
+            'never': m.never(doc),
+            'season_goal': doc.get('season_goal'),
+            'surveyed': doc.get('surveyed') or None,
+            'need_survey': not doc.get('surveyed'),
+            'interests': ints,
+            'catalog': m.catalog(),
+            'split': interests_split(doc)}
+
+
+def interests_save(body):
+    """The reader's answers, written to the volume. The survey stamps the day
+    it was answered; another writer (the Settings tab) leaves the old date
+    alone. Returns the saved doc."""
+    cur = load_interests()
+    ans = interests_from_body(body)
+    doc = {'v': 1, 'name': ans['name'], 'picks': ans['picks'], 'never': ans['never'],
+           'season_goal': ans['season_goal'], 'interests': ans['interests']}
+    doc['surveyed'] = _clean(body.get('surveyed') or cur.get('surveyed') or '', 32) or None
+    save_interests(doc)
+    return doc
+
+
+def interests_from_body(body):
+    """The reader's answers, checked and bounded: known fields only, nothing
+    longer than the file can hold, every dial and mode one the run knows."""
+    m = _interests()
+    body = body if isinstance(body, dict) else {}
+    name = _clean(body.get('name') or 'Book-a-meter', 60) or 'Book-a-meter'
+    try:
+        picks = int(body.get('picks') or 12)
+    except Exception:
+        picks = 12
+    picks = max(1, min(60, picks))
+    never = []
+    for w in (body.get('never') or [])[:30]:
+        w = _clean(w, 60).lower()
+        if w and w not in never:
+            never.append(w)
+    season = body.get('season_goal')
+    if season is not None:
+        try:
+            season = int(season)
+        except Exception:
+            season = None
+        if season is not None:
+            season = max(1, min(365, season))
+    ints = []
+    for i in (body.get('interests') or [])[:40]:
+        if not isinstance(i, dict):
+            continue
+        iid = _clean(i.get('id') or '', 60)
+        label = _clean(i.get('label') or '', 60)
+        if not iid or not label:
+            continue
+        kind = i.get('kind') if i.get('kind') in ('story', 'topic') else 'topic'
+        dial = i.get('dial') if i.get('dial') in DIALS else 'into it'
+        mode = i.get('mode') if i.get('mode') in MODES else ('new' if kind == 'story' else 'both')
+        reading = []
+        for r in (i.get('reading') or [])[:20]:
+            if not isinstance(r, dict):
+                continue
+            t = _clean(r.get('title') or '', 120)
+            a = _clean(r.get('author') or '', 120)
+            if t:
+                reading.append({'title': t, 'author': a})
+        ints.append({'id': iid, 'label': label, 'kind': kind, 'dial': dial, 'mode': mode,
+                     'romance': m.romance({'id': iid, 'label': label}),
+                     'reading': reading})
+    return {'name': name, 'picks': picks, 'never': never,
+            'season_goal': season, 'interests': ints}
 
 
 # ---------- Goodreads import (ticket #93) ----------

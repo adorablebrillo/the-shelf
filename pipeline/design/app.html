@@ -1636,6 +1636,503 @@
   };
 })();
 </script>
+<!-- The Book-a-meter survey (THS-37, piece 3).
+     Five steps before Home: the shelves, the dials, the never list, what she
+     reads now, and the mix — ending with the season-goal question THS-35's
+     Home block asks for. It shows while the interests file carries no
+     surveyed day: on a new install, and once on a shelf that already has
+     interests (they come in ticked). The file it writes is the one the run
+     reads; the Settings tab (the next piece) edits the same file. -->
+<script>
+(function(){
+'use strict';
+var DIALS=['off','curious','into it','obsessed'];
+var MODES=[['new','new releases'],['best ever','best ever'],['both','both']];
+var NEVER=[['cowboys','cowboys & westerns'],['cliffhanger','cliffhanger endings'],['violence','graphic violence']];
+var COLORS=['#1E3A2F','#6E2A2A','#A8863F','#C8704A','#5E7A8C','#9BA98A','#6B4E71','#C98F93','#4A443A','#7C8B4E'];
+var TITLES=[
+ ['Which shelves are yours?','Pick every kind of book you read. Stories, real life, or both.'],
+ ['How much of each?','Turn a dial up for more picks. Choose new releases, the best ever, or both.'],
+ ['Never show me','The curator leaves these out, in every interest.'],
+ ['What are you reading now?','Add a book and say what it is for.'],
+ ['Your Book-a-meter','This is the mix your next issue follows. Change it any time in Settings.']
+];
+var S=null,host=null,styled=false,oldOverflow='';
+
+function el(t,c,x){var e=document.createElement(t);if(c)e.className=c;if(x!=null)e.textContent=x;return e;}
+function btn(label,fn,aria){var b=el('button','',label);b.type='button';if(aria)b.setAttribute('aria-label',aria);if(fn)b.addEventListener('click',fn);return b;}
+function slug(s){return 'c-'+String(s||'').toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/^-+|-+$/g,'');}
+function today(){var d=new Date();return d.getFullYear()+'-'+('0'+(d.getMonth()+1)).slice(-2)+'-'+('0'+d.getDate()).slice(-2);}
+function find(id){for(var i=0;i<S.interests.length;i++)if(S.interests[i].id===id)return S.interests[i];return null;}
+function colorOf(id){for(var i=0;i<S.interests.length;i++)if(S.interests[i].id===id)return COLORS[i%COLORS.length];return COLORS[0];}
+function modeText(m){return m==='new'?'new releases only':m==='best ever'?'best ever':'best ever and new';}
+function grp(t){return el('p','grp',t);}
+
+var CSS=[
+'#shelf-survey{position:fixed;inset:0;z-index:9999;background:#EDE6D8;overflow-y:auto;',
+'font-family:"EB Garamond",Garamond,Georgia,serif;color:#211E19;-webkit-font-smoothing:antialiased}',
+'#shelf-survey .panel{max-width:720px;margin:0 auto;padding:32px 22px 72px}',
+'#shelf-survey .eyebrow{margin:0;font-size:10.5px;letter-spacing:.28em;text-transform:uppercase;color:#635846}',
+'#shelf-survey h2{font-family:"Cormorant Garamond",Garamond,serif;font-weight:300;font-size:clamp(28px,5vw,40px);line-height:1.15;margin:10px 0 8px;outline:none}',
+'#shelf-survey h2:focus,#shelf-survey h2:focus-visible{outline:none;box-shadow:none}',
+'#shelf-survey .sub{margin:0 0 18px;font-style:italic;font-size:16px;line-height:1.55;color:#635846}',
+'#shelf-survey .dots{display:flex;gap:6px;margin:12px 0 0}',
+'#shelf-survey .dots i{width:26px;height:3px;background:#C6BBA3;display:block}',
+'#shelf-survey .dots i.on{background:#1E3A2F}',
+'#shelf-survey .grp{margin:22px 0 8px;font-size:10.5px;letter-spacing:.24em;text-transform:uppercase;color:#635846}',
+'#shelf-survey .tiles{display:flex;flex-wrap:wrap;gap:8px}',
+'#shelf-survey .tile{font-family:inherit;font-size:16px;padding:11px 14px;min-height:44px;border:1px solid #C6BBA3;background:#FBF6EC;color:#211E19;cursor:pointer;border-radius:2px}',
+'#shelf-survey .tile[aria-pressed="true"]{background:#1E3A2F;border-color:#1E3A2F;color:#F3EDE1}',
+'#shelf-survey .tile .sw{display:inline-block;width:9px;height:9px;border-radius:50%;margin-right:8px}',
+'#shelf-survey input[type=text]{font-family:inherit;font-size:16px;min-height:44px;background:#FBF6EC;border:1px solid #C6BBA3;padding:10px 12px;color:#211E19;width:100%;box-sizing:border-box}',
+'#shelf-survey .row{display:flex;gap:8px;align-items:center}',
+'#shelf-survey .btn{font-family:inherit;font-size:10.5px;letter-spacing:.24em;text-transform:uppercase;padding:13px 20px;min-height:44px;border:1px solid #1E3A2F;background:#1E3A2F;color:#F3EDE1;cursor:pointer;white-space:nowrap}',
+'#shelf-survey .btn.quiet{background:transparent;color:#635846;border-color:#C6BBA3}',
+'#shelf-survey .lnk{font-family:inherit;font-size:11px;letter-spacing:.2em;text-transform:uppercase;color:#6E2A2A;background:transparent;border:none;text-decoration:underline;text-decoration-color:#A8863F;text-underline-offset:5px;padding:6px 2px;min-height:44px;cursor:pointer}',
+'#shelf-survey .card{background:#FBF6EC;border:1px solid #C6BBA3;border-left:4px solid #A8863F;padding:14px 16px;margin-bottom:10px}',
+'#shelf-survey .nm{font-family:"Cormorant Garamond",Garamond,serif;font-size:24px;line-height:1.15}',
+'#shelf-survey .kind{font-size:9.5px;letter-spacing:.22em;text-transform:uppercase;color:#635846;margin-left:8px}',
+'#shelf-survey .seg{display:flex;border:1px solid #C6BBA3;margin-top:10px;background:#F3EDE1}',
+'#shelf-survey .seg button{flex:1;font-family:inherit;font-size:14px;padding:10px 4px;min-height:44px;border:none;border-right:1px solid #C6BBA3;background:transparent;color:#4A443A;cursor:pointer}',
+'#shelf-survey .seg button:last-child{border-right:none}',
+'#shelf-survey .seg button[aria-pressed="true"]{background:#1E3A2F;color:#F3EDE1}',
+'#shelf-survey .seg.mode button[aria-pressed="true"]{background:#6E2A2A}',
+'#shelf-survey .tiny{font-size:14px;line-height:1.5;color:#635846;margin:8px 0 0}',
+'#shelf-survey .chip{font-family:inherit;font-size:15px;padding:10px 14px;min-height:44px;border:1px solid #C6BBA3;background:#FBF6EC;color:#211E19;cursor:pointer;border-radius:22px}',
+'#shelf-survey .chip[aria-pressed="true"]{background:#6E2A2A;border-color:#6E2A2A;color:#F3EDE1}',
+'#shelf-survey .res{display:flex;gap:12px;align-items:center;padding:10px 0;border-top:1px solid #C6BBA3}',
+'#shelf-survey .res .t{flex:1;min-width:0;font-size:16px;line-height:1.3}',
+'#shelf-survey .res .a{display:block;font-size:14px;color:#635846;font-style:italic}',
+'#shelf-survey .bar{display:flex;gap:12px;align-items:center;padding:9px 0;border-top:1px solid #C6BBA3}',
+'#shelf-survey .bar .lbl{flex:1;min-width:0;font-size:16px;line-height:1.3}',
+'#shelf-survey .bar .lbl small{display:block;font-size:13px;color:#635846;font-style:italic}',
+'#shelf-survey .bar .trk{height:8px;background:#F3EDE1;border:1px solid #C6BBA3;margin-top:5px}',
+'#shelf-survey .bar .fil{height:100%}',
+'#shelf-survey .bar .n{font-family:"Cormorant Garamond",Garamond,serif;font-size:28px;color:#211E19}',
+'#shelf-survey .nav{display:flex;justify-content:space-between;align-items:center;gap:12px;margin-top:26px;padding-top:18px;border-top:1px solid #C6BBA3}',
+'#shelf-survey .step{display:flex;align-items:center;gap:12px}',
+'#shelf-survey .step b{font-family:"Cormorant Garamond",Garamond,serif;font-size:34px;font-weight:500;min-width:46px;text-align:center}',
+'#shelf-survey .msg{margin:14px 0 0;font-style:italic;font-size:15px;color:#6E2A2A;min-height:22px}',
+'#shelf-survey ul{list-style:none;margin:8px 0 0;padding:0}',
+'#shelf-survey li{display:flex;gap:10px;align-items:baseline;padding:5px 0;border-top:1px solid #E1D8C4;font-size:16px}',
+'#shelf-survey li .star{color:#A8863F}',
+'#shelf-survey li .au{color:#635846;font-style:italic;font-size:14px}',
+'#shelf-survey .meter{text-align:center;margin:6px 0 0}',
+'#shelf-survey .meter p{margin:4px 0 0;font-size:15px;color:#635846}',
+'#shelf-survey .meter strong{color:#211E19}',
+'#shelf-survey .note{margin:26px 0 0;padding:14px 16px;border:1px dashed #C6BBA3;background:#FBF6EC;font-size:15px;line-height:1.6;color:#4A443A}',
+'#shelf-toast{position:fixed;left:50%;transform:translateX(-50%);bottom:24px;z-index:10000;',
+'background:#1E3A2F;color:#F3EDE1;padding:14px 22px;font-family:"EB Garamond",Garamond,Georgia,serif;font-size:17px;max-width:90vw}'
+].join('');
+
+function style(){
+  if(styled)return; styled=true;
+  var s=document.createElement('style'); s.textContent=CSS; document.head.appendChild(s);
+}
+
+/* ---- the five steps -------------------------------------------------- */
+function tileRow(items){
+  var row=el('div','tiles');
+  items.forEach(function(it){
+    var b=btn(it.label,it.onClick);
+    b.className='tile';
+    b.setAttribute('aria-pressed',String(!!it.on));
+    row.appendChild(b);
+  });
+  return row;
+}
+
+function segment(values,current,onPick,mode){
+  var d=el('div','seg'+(mode?' mode':''));
+  values.forEach(function(v){
+    var val=(typeof v==='string')?v:v[0], lab=(typeof v==='string')?v:v[1];
+    var b=btn(lab,function(){onPick(val);});
+    b.setAttribute('aria-pressed',String(current===val));
+    d.appendChild(b);
+  });
+  return d;
+}
+
+function textInput(placeholder,aria,value){
+  var i=document.createElement('input');
+  i.type='text'; i.placeholder=placeholder; i.setAttribute('aria-label',aria);
+  if(value)i.value=value;
+  return i;
+}
+
+function stepShelves(){
+  var f=document.createDocumentFragment(),stories=[],topics=[],own=[];
+  f.appendChild(grp('Stories'));
+  S.catalog.forEach(function(c){
+    if(c.kind!=='story')return;
+    var on=!!find(c.id);
+    stories.push({label:c.label,on:on,color:on?colorOf(c.id):'',onClick:function(){toggleCatalog(c);}});
+  });
+  f.appendChild(tileRow(stories));
+  f.appendChild(grp('Real life'));
+  S.catalog.forEach(function(c){
+    if(c.kind!=='topic')return;
+    var on=!!find(c.id);
+    topics.push({label:c.label,on:on,color:on?colorOf(c.id):'',onClick:function(){toggleCatalog(c);}});
+  });
+  f.appendChild(tileRow(topics));
+  S.interests.forEach(function(x){
+    if(x.id.indexOf('c-')!==0)return;
+    own.push({label:x.label,on:true,color:colorOf(x.id),onClick:function(){toggleOwn(x);}});
+  });
+  if(own.length){ f.appendChild(grp('Your own')); f.appendChild(tileRow(own)); }
+  f.appendChild(grp('Something else'));
+  var row=el('div','row'), input=textInput('for example: sourdough, Tudor history','Your own interest');
+  input.style.flex='1';
+  var add=btn('add',function(){
+    var v=input.value.trim();
+    if(!v)return;
+    var id=slug(v);
+    if(find(id)){input.value='';render();return;}
+    S.interests.push({id:id,label:v,kind:'topic',dial:'into it',mode:'both',romance:false,reading:[]});
+    input.value=''; askSplit(); render();
+  });
+  add.className='btn';
+  row.appendChild(input); row.appendChild(add);
+  f.appendChild(row);
+  f.appendChild(el('p','tiny','Your own interest is a real-life topic: the curator looks for new books and well-loved ones.'));
+  if(S.interests.length)
+    f.appendChild(el('p','tiny','Your shelf already has '+S.interests.length+' ticked. Unticking one takes it out of the next issue.'));
+  return f;
+}
+
+function toggleCatalog(c){
+  var cur=find(c.id);
+  if(cur){ S.interests=S.interests.filter(function(x){return x.id!==c.id;}); }
+  else {
+    S.interests.push({id:c.id,label:c.label,kind:c.kind,dial:'into it',
+      mode:c.kind==='story'?'new':'both',romance:c.id==='sport'||c.id==='romantasy'||c.id==='contemp',reading:[]});
+  }
+  askSplit(); render();
+}
+function toggleOwn(x){
+  S.interests=S.interests.filter(function(y){return y.id!==x.id;});
+  askSplit(); render();
+}
+
+function stepDials(){
+  if(!S.interests.length) return el('p','tiny','Go back and pick at least one shelf.');
+  var f=document.createDocumentFragment();
+  S.interests.forEach(function(x){
+    var card=el('div','card');
+    card.style.borderLeftColor=colorOf(x.id);
+    var head=el('div');
+    head.appendChild(el('span','nm',x.label));
+    head.appendChild(el('span','kind',x.kind==='story'?'story':'real life'));
+    card.appendChild(head);
+    card.appendChild(segment(DIALS,x.dial,function(v){x.dial=v;askSplit();render();}));
+    card.appendChild(segment(MODES,x.mode,function(v){x.mode=v;render();},true));
+    var note=x.dial==='off'?'Off this issue — the curator looks for nothing here.'
+      :'The curator looks here for '+x.dial+'.';
+    if(x.romance)note+=' The romance rules hold for this one.';
+    card.appendChild(el('p','tiny',note));
+    f.appendChild(card);
+  });
+  return f;
+}
+
+function stepNever(){
+  var f=document.createDocumentFragment();
+  f.appendChild(el('p','tiny','The curator leaves these out, in every interest. A word is matched against a book\u2019s title and its subject.'));
+  var row=el('div','tiles'),items=[];
+  NEVER.forEach(function(n){
+    var on=S.never.indexOf(n[0])>=0;
+    items.push({label:n[1],on:on,onClick:function(){toggleNever(n[0]);}});
+  });
+  S.never.forEach(function(w){
+    for(var i=0;i<NEVER.length;i++)if(NEVER[i][0]===w)return;
+    items.push({label:w+' \u00d7',on:true,onClick:function(){toggleNever(w);}});
+  });
+  items.forEach(function(it){
+    var b=btn(it.label,it.onClick);
+    b.className='chip';
+    b.setAttribute('aria-pressed',String(!!it.on));
+    row.appendChild(b);
+  });
+  f.appendChild(row);
+  f.appendChild(grp('Another word'));
+  var r2=el('div','row'),input=textInput('a word to leave out','A word to leave out');
+  input.style.flex='1';
+  r2.appendChild(input);
+  var nadd=btn('add',function(){
+    var v=input.value.trim().toLowerCase();
+    if(!v)return;
+    if(S.never.indexOf(v)<0)S.never.push(v);
+    input.value=''; render();
+  });
+  nadd.className='btn';
+  r2.appendChild(nadd);
+  f.appendChild(r2);
+  return f;
+}
+function toggleNever(w){
+  var i=S.never.indexOf(w);
+  if(i>=0)S.never.splice(i,1); else S.never.push(w);
+  render();
+}
+
+function stepReading(){
+  var f=document.createDocumentFragment();
+  if(!S.interests.length){ f.appendChild(el('p','tiny','Go back and pick at least one shelf first.')); return f; }
+  f.appendChild(el('p','tiny','Choose what the book is for, then find it in Apple Books. The curator reads these as examples of your taste.'));
+  var chips=el('div','tiles');
+  S.interests.forEach(function(x){
+    var b=btn(x.label,function(){S.forId=x.id;render();});
+    b.className='chip';
+    b.setAttribute('aria-pressed',String((S.forId||S.interests[0].id)===x.id));
+    chips.appendChild(b);
+  });
+  f.appendChild(chips);
+  f.appendChild(grp('Find a book'));
+  var row=el('div','row'),input=textInput('search Apple Books \u2014 try \u201cbaby\u201d','Search Apple Books',S.q);
+  input.style.flex='1';
+  row.appendChild(input);
+  var sbtn=btn('search',function(){search(input.value.trim());});
+  sbtn.className='btn';
+  row.appendChild(sbtn);
+  f.appendChild(row);
+  if(S.msg) f.appendChild(el('p','msg',S.msg));
+  var target=find(S.forId||S.interests[0].id);
+  S.results.forEach(function(r,ix){
+    var line=el('div','res'),t=el('div','t');
+    t.appendChild(document.createTextNode(r.title));
+    t.appendChild(el('span','a',r.author));
+    line.appendChild(t);
+    var has=target&&target.reading.some(function(b){return b.title===r.title;});
+    if(has){ line.appendChild(el('span','tiny','already added')); }
+    else {
+      var add=btn('+ add',function(){
+        var t2=find(S.forId||S.interests[0].id);
+        if(!t2)return;
+        t2.reading.push({title:r.title,author:r.author});
+        render();
+      });
+      line.appendChild(add);
+    }
+    f.appendChild(line);
+  });
+  S.interests.forEach(function(x){
+    if(!x.reading.length)return;
+    f.appendChild(grp('Reading for '+x.label));
+    var ul=el('ul');
+    x.reading.forEach(function(b,bi){
+      var li=el('li');
+      li.appendChild(el('span','star','\u2605'));
+      var span=el('span');
+      span.style.flex='1';
+      span.appendChild(document.createTextNode(b.title+' '));
+      span.appendChild(el('span','au','\u2014 '+b.author));
+      li.appendChild(span);
+      li.appendChild(btn('take off',function(){x.reading.splice(bi,1);render();},'take off '+b.title+' from '+x.label));
+      li.lastChild.className='lnk';
+      ul.appendChild(li);
+    });
+    f.appendChild(ul);
+  });
+  return f;
+}
+
+function search(q){
+  if(!q){ S.msg='Type a title or an author first.'; render(); return; }
+  S.q=q;
+  S.msg='Searching Apple Books\u2026'; S.results=[]; render();
+  fetch('/api/search?q='+encodeURIComponent(q))
+   .then(function(r){return r.json();})
+   .then(function(j){
+     var res=(j&&j.results)||[];
+     S.results=res;
+     S.msg=!res.length?'No books found for \u201c'+q+'\u201d.':'Found '+res.length+' book'+(res.length===1?'':'s')+'.';
+     render();
+   })
+   .catch(function(){ S.msg='The shelf server did not answer \u2014 try again.'; render(); });
+}
+
+function meter(){
+  var act=[],tot=0;
+  S.interests.forEach(function(x){
+    if(x.dial==='off')return;
+    act.push(x); tot+=(DIALS.indexOf(x.dial)||0)+1;
+  });
+  var w=320,h=190,cx=w/2,cy=h-16,r=w/2-26,a=Math.PI,svg='',big=null,bigA=Math.PI/2;
+  if(!act.length){
+    svg+='<path d="M'+(cx-r)+','+cy+' A'+r+','+r+' 0 0 1 '+(cx+r)+','+cy+'" fill="none" stroke="#C6BBA3" stroke-width="18"/>';
+  } else {
+    act.forEach(function(x){
+      var wt=(DIALS.indexOf(x.dial)||0)+1,d=Math.PI*wt/tot,a1=a-d;
+      var x0=cx+r*Math.cos(a),y0=cy-r*Math.sin(a),x1=cx+r*Math.cos(a1+0.012),y1=cy-r*Math.sin(a1+0.012);
+      svg+='<path d="M'+x0.toFixed(1)+','+y0.toFixed(1)+' A'+r+','+r+' 0 0 1 '+x1.toFixed(1)+','+y1.toFixed(1)+'" fill="none" stroke="'+colorOf(x.id)+'" stroke-width="18"/>';
+      if(!big||wt>((DIALS.indexOf(big.dial)||0)+1)){big=x;bigA=a-d/2;}
+      a=a1;
+    });
+  }
+  var nx=cx+(r-34)*Math.cos(bigA),ny=cy-(r-34)*Math.sin(bigA);
+  svg+='<line x1="'+cx+'" y1="'+cy+'" x2="'+nx.toFixed(1)+'" y2="'+ny.toFixed(1)+'" stroke="#211E19" stroke-width="2.5" stroke-linecap="round"/>';
+  svg+='<circle cx="'+cx+'" cy="'+cy+'" r="7" fill="#A8863F"/>';
+  var box=el('div','meter');
+  box.innerHTML='<svg viewBox="0 0 '+w+' '+h+'" width="100%" style="max-width:'+w+'px" role="img" aria-label="The meter: '+(big?big.label:'no interest is on')+'">'+svg+'</svg>'+
+    '<p>'+(big?'mostly <strong>'+big.label+'</strong>':'turn a dial up to start')+'</p>';
+  return box;
+}
+
+function stepMix(){
+  var f=document.createDocumentFragment();
+  f.appendChild(meter());
+  f.appendChild(grp('Your next issue'));
+  var rows=S.split||[];
+  if(!rows.length) f.appendChild(el('p','tiny','No interest is on. Turn a dial up.'));
+  rows.forEach(function(r){
+    var x=find(r.id)||{label:r.label,mode:'new'};
+    var pct=S.picks?Math.round(100*r.n/S.picks):0;
+    var bar=el('div','bar'),lbl=el('div','lbl');
+    lbl.appendChild(document.createTextNode(r.label+' '));
+    var mode=el('span','','\u00b7 '+modeText(x.mode));
+    mode.style.fontSize='13px'; mode.style.color='#635846';
+    lbl.appendChild(mode);
+    var trk=el('div','trk'),fil=el('div','fil');
+    fil.style.width=pct+'%'; fil.style.background=colorOf(r.id);
+    trk.appendChild(fil); lbl.appendChild(trk);
+    bar.appendChild(lbl);
+    var n=el('div','n',String(r.n));
+    bar.appendChild(n);
+    f.appendChild(bar);
+  });
+  f.appendChild(el('p','tiny',S.picks+' picks an issue, split by your dials, plus any new book in a series you are in.'));
+  f.appendChild(grp('How many books this season?'));
+  var step=el('div','step');
+  var less=btn('\u2212',function(){setSeason(-1);},'fewer books this season');
+  less.className='btn quiet';
+  step.appendChild(less);
+  step.appendChild(el('b','',S.season===null?'\u2014':String(S.season)));
+  var more=btn('+',function(){setSeason(1);},'more books this season');
+  more.className='btn quiet';
+  step.appendChild(more);
+  var skip=btn('skip',function(){S.season=null;render();});
+  skip.className='lnk';
+  step.appendChild(skip);
+  f.appendChild(step);
+  f.appendChild(el('p','tiny','Optional. Home\u2019s goals block shows it. Skip it and Home asks later.'));
+  if(S.msg) f.appendChild(el('p','msg',S.msg));
+  return f;
+}
+
+function setSeason(d){
+  if(d===0){ S.season=null; render(); return; }
+  var v=S.season===null?6:S.season;
+  v=Math.max(1,Math.min(60,v+d));
+  S.season=v; render();
+}
+
+/* ---- the panel ------------------------------------------------------- */
+function render(){
+  if(!host)return;
+  var st=S.step;
+  var panel=el('div','panel');
+  panel.setAttribute('role','document');
+  panel.appendChild(el('p','eyebrow',S.name+' \u00b7 step '+st+' of 5'));
+  var dots=el('div','dots');
+  dots.setAttribute('aria-hidden','true');
+  for(var i=1;i<=5;i++){var d=el('i',i<=st?'on':'');dots.appendChild(d);}
+  panel.appendChild(dots);
+  var h=el('h2','',TITLES[st-1][0]);
+  h.setAttribute('tabindex','-1');
+  panel.appendChild(h);
+  panel.appendChild(el('p','sub',TITLES[st-1][1]));
+  panel.appendChild(st===1?stepShelves():st===2?stepDials():st===3?stepNever():st===4?stepReading():stepMix());
+  if(st===5)
+    panel.appendChild(el('p','note','The next run reads this list: '+S.interests.length+' interest'+(S.interests.length===1?'':'s')+
+      ', '+S.picks+' picks an issue, and '+S.never.length+' word'+(S.never.length===1?'':'s')+' left out. Your taste brief is never edited.'));
+  var nav=el('div','nav');
+  if(st>1){var back=btn('back',function(){S.step--;S.msg='';render();});back.className='btn quiet';nav.appendChild(back);}
+  else nav.appendChild(el('span'));
+  if(st<5){var next=btn('next',function(){S.step++;S.msg='';render();});next.className='btn';nav.appendChild(next);}
+  else {var save=btn('save to my shelf',saveSurvey);save.className='btn';nav.appendChild(save);}
+  panel.appendChild(nav);
+  host.innerHTML='';
+  host.appendChild(panel);
+  if(st===1||st===5){var f=panel.querySelector('h2');if(f)f.focus();}
+}
+
+function askSplit(){
+  var draft={picks:S.picks,interests:S.interests.map(function(x){return {id:x.id,label:x.label,kind:x.kind,dial:x.dial,mode:x.mode};})};
+  fetch('/api/interests/split',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(draft)})
+   .then(function(r){return r.json();})
+   .then(function(j){ if(j&&j.split){S.split=j.split;render();} })
+   .catch(function(){});
+}
+
+function saveSurvey(){
+  var body={name:S.name,picks:S.picks,never:S.never,season_goal:S.season,surveyed:today(),
+    interests:S.interests.map(function(x){return {id:x.id,label:x.label,kind:x.kind,dial:x.dial,mode:x.mode,reading:x.reading};})};
+  S.msg='Saving\u2026'; render();
+  fetch('/api/interests',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)})
+   .then(function(r){return r.json().then(function(j){return {ok:r.ok,j:j};});})
+   .then(function(res){
+     if(!res.ok||!res.j||res.j.error){ S.msg=(res.j&&res.j.error)||'The shelf server could not save your answers.'; render(); return; }
+     close();
+     toast('Your '+S.name.toLowerCase()+' is saved \u2014 the next run follows it.');
+   })
+   .catch(function(){ S.msg='The shelf server did not answer \u2014 nothing was saved.'; render(); });
+}
+
+function toast(msg){
+  var t=el('div','',msg);
+  t.id='shelf-toast';
+  document.body.appendChild(t);
+  setTimeout(function(){ if(t.parentNode)t.parentNode.removeChild(t); },7000);
+}
+
+function open(){
+  if(host||!S)return;
+  style();
+  host=el('div','');
+  host.id='shelf-survey';
+  host.setAttribute('role','dialog');
+  host.setAttribute('aria-modal','true');
+  host.setAttribute('aria-label','Book-a-meter survey');
+  document.body.appendChild(host);
+  oldOverflow=document.body.style.overflow;
+  document.body.style.overflow='hidden';
+  render();
+}
+
+function close(){
+  if(host&&host.parentNode)host.parentNode.removeChild(host);
+  host=null;
+  document.body.style.overflow=oldOverflow;
+}
+
+function start(force){
+  fetch('/api/interests').then(function(r){return r.json();}).then(function(d){
+    if(!d||d.error)return;
+    S={name:d.name||'Book-a-meter',
+       picks:d.picks||12,
+       never:(d.never||[]).slice(),
+       season:(d.season_goal===null||d.season_goal===undefined)?null:d.season_goal,
+       interests:(d.interests||[]).map(function(i){
+         return {id:i.id,label:i.label,kind:i.kind||'topic',dial:i.dial||'into it',
+                 mode:i.mode||'new',romance:!!i.romance,
+                 reading:(i.reading||[]).map(function(r){return {title:r.title,author:r.author};})};
+       }),
+       catalog:d.catalog||[],split:d.split||[],step:1,forId:null,results:[],msg:''};
+    if(d.need_survey||force)open();
+  }).catch(function(){});
+}
+
+/* the Settings tab (the next piece) opens the same survey, filled in */
+window.SHELF_SURVEY={open:function(){ if(S){S.step=1;S.msg='';open();} else start(true); },reload:start};
+
+try{
+  if(document.readyState!=='loading')start();
+  else document.addEventListener('DOMContentLoaded',start);
+}catch(e){}
+})();
+</script>
+
 <script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;:{&quot;width&quot;:1180}}">
 const INK='#211E19', GOLD='#A8863F', GOLDD='#8A6C31', BLOOD='#6E2A2A', FOREST='#1E3A2F', MID='#635846', LINE='#C6BBA3';
 
