@@ -5,9 +5,9 @@ web app (Cormorant Garamond, forest-green hero panels) that curates **new
 releases across the reader's interests — the Book-a-meter, any genre or topic;
 a fresh install starts with three romance ones — sport romance, romantasy &
 contemporary romance — at up to 12 picks an issue** — for one reader, every 1st of
-the month: fetch → Goodreads reference → filter → OpenRouter curation → build → serve. Two views —
-*This month* (the drop, the series hero, every series she is in) and *The
-archive* (the reading room bookcase + everything she has read).
+the month: fetch → Goodreads reference → filter → OpenRouter curation → build → serve. Five sections — **Home**
+(the reading-now card, the issue line with its progress bar, the month's picks, a row of anticipation countdown cards),
+**My Shelf**, **Series**, **Archive** and **Settings**; on a phone the sections sit in a bar at the bottom of the screen.
 
 ## What's inside
 

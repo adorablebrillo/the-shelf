@@ -7,7 +7,7 @@ A personal book-curation app: a monthly curated page of new releases across the 
 ### Sections
 
 **Home**:
-The landing section and the action surface — everything still awaiting a verdict lives here (the current month's picks first, then anything open from earlier issues), together with the reading corner, anticipation, read & loved, and series at a glance.
+The landing section and the action surface — the reading-now card at the top (the book she is reading now, or choose your next book), then the month's picks with their issue line, then anything still open from earlier issues, together with the reading corner, anticipation, read & loved, and series at a glance. On a phone the sections sit in a bar at the bottom of the screen.
 _Avoid_: dashboard, landing page
 
 **My Shelf**:
@@ -46,7 +46,7 @@ A verdict, not a browsing gesture. Sets the book aside in the Archive; nothing i
 _Avoid_: skip, dismiss
 
 **reading now**:
-The book she is reading at the moment: *want* plus a reading flag that travels beside the verdicts, never as one. The book takes the first spot on My Shelf with a star, and a series volume shows a star on the Series page. Pressing it again leaves *want*; any other verdict clears the flag.
+The book she is reading at the moment: *want* plus a reading flag that travels beside the verdicts, never as one. The book takes the first spot on My Shelf with a star, a series volume shows a star on the Series page, and its card sits at the top of Home with a one-tap *finished it*. Pressing it again leaves *want*; any other verdict clears the flag.
 
 **Verdict row**:
 The one control for a book's mark, on every book card and row: reading now · want · read · loved · not for me. The lit choice is the mark now; pressing it again takes the mark off (a pick goes back to Home as open, an added book leaves the shelf, a series volume goes back to out). In a list, the row shows only the current mark until she taps it. Home's picks keep their own four verdicts (they are open books only), and coming or announced volumes take no mark.
@@ -63,7 +63,7 @@ A series with at least one unread volume is open (it shows on the Series page); 
 **Series volume states**: **read** · **out** (released, unread) · **coming** (dated, upcoming) · **announced** (no date).
 
 **Anticipation**:
-The Home block of upcoming releases from tracked series, each with a countdown. Not markable — on release, a book leaves anticipation and becomes *out* (actionable) or a pick.
+The Home row of countdown cards for upcoming releases from tracked series, soonest first. Not markable — on release, a book leaves anticipation and becomes *out* (actionable) or a pick.
 
 **Out now (unread)**:
 A released volume in a tracked series that hasn't been marked. Actionable from My Shelf's "Out now in your series" block and the Series page (its cover strip and the full run). The Series "mark next read" and "loved it" buttons offer an undo for the book just marked, until the next mark or a change of view.
@@ -71,7 +71,7 @@ A released volume in a tracked series that hasn't been marked. Actionable from M
 ### Surfaces
 
 **The month's picks**:
-The curated set for the current issue ("No. N · MONTH · x titles"). A decided pick clears from Home and lives in its section.
+The curated set for the current issue ("No. N · MONTH · x titles"). Home carries its issue line — how many picks are still open, with the days to the next issue — and a thin progress bar; deciding the last pick presses an issue-complete stamp in, once. A decided pick clears from Home and lives in its section.
 
 **Issue**:
 One month's curated drop, numbered.
@@ -103,7 +103,7 @@ The instant title · author · series line shown inside the case. Never a native
 A read book that isn't part of a series.
 
 **Added book**:
-A book the reader added herself with **+ add a book** (an Apple Books search at the top of My Shelf and the Archive) or brought in with the **Goodreads import**, not one a run picked. It lives in `added-books.json` on the config volume, keyed by the same book identity as every pick, and takes a verdict like any book. It files on My Shelf or in the Archive only — never on Home — and taking its verdict back takes it off the shelf.
+A book the reader added herself with **+ add a book** (an Apple Books search at the top of My Shelf and the Archive) or brought in with the **Goodreads import**, not one a run picked. It lives in `added-books.json` on the config volume, keyed by the same book identity as every pick, and takes a verdict like any book. It files on My Shelf or in the Archive only — never on Home as a pick, with one exception: the book she is reading now shows in Home's reading-now card as a progress book. Taking its verdict back takes it off the shelf.
 _Avoid_: manual book, custom book
 
 **Goodreads link**:
