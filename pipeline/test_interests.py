@@ -255,6 +255,78 @@ class ReportTests(unittest.TestCase):
         self.assertEqual(lanes.count('sport romance'), 3)
 
 
+class WidenLoopProvenanceTests(unittest.TestCase):
+    """The widening loop must count the model's picks by the interest of the
+    search that found them, not by the genre fallback — otherwise a mode-new
+    typed interest can never be seen to reach its floor and the run burns
+    every curation call widening."""
+
+    def test_typed_interest_reaches_its_floor_in_one_call(self):
+        doc = interests.defaults()
+        doc['interests'] = doc['interests'][:1]  # keep it small: one romance interest
+        doc['interests'].append({'id': 'baby', 'label': 'Baby books', 'kind': 'topic',
+                                 'dial': 'into it', 'mode': 'new', 'romance': False})
+        old_ints, curate.INTS = curate.INTS, doc
+        try:
+            # two candidates whose genre would fall back to contemporary,
+            # but the search that found them was the typed interest
+            cands = ([mk('s%d' % i, 'Hockey', 5, lane='sport romance') for i in range(3)]
+                     + [mk('b%d' % i, 'Sleep guide', 5, lane='baby books') for i in range(2)])
+            picked = {'books': [{'title': 's%d' % i, 'author': 'A. Author', 'genre': 'Hockey'} for i in range(3)]
+                      + [{'title': 'b%d' % i, 'author': 'A. Author', 'genre': 'Sleep guide'} for i in range(2)]}
+            calls = []
+
+            def fake(key, payload, taste):
+                calls.append(payload)
+                return picked
+            cur = curate.curate('k', {'books': cands}, 'taste', {}, '2026-08', 'rule',
+                                call=fake, log=lambda *a: None)
+            # the typed interest reached its floor on the first count: one call
+            self.assertEqual(len(calls), 1)
+            self.assertEqual(cur['lanes'].get('baby books'), 2)
+            self.assertEqual(cur['dropped_lanes'], [])
+        finally:
+            curate.INTS = old_ints
+
+
+class GapFillWindowTests(unittest.TestCase):
+    """gap_fill never treats a name the run does not know as any-date, and an
+    empty or all-off Book-a-meter never pads a month."""
+
+    def test_unknown_name_is_bounded_by_the_first_rung(self):
+        # a leftover whose genre falls back to a name no interest owns, dated
+        # 100 days back: bounded by the base window, not filled
+        cands = ([mk('s%d' % i, 'Hockey', 5) for i in range(3)]
+                 + [mk('old-unknown', 'Hockey', 100, 4.8, 900)])
+        picks = [{'title': 's%d' % i, 'author': 'A. Author', 'genre': 'Hockey'} for i in range(3)]
+        end = curate.window_end(curate.MODE)
+        fills = curate.gap_fill(picks, cands, 12,
+                                {'sport romance': 30, 'romantasy': 30, 'contemporary romance': 30},
+                                end)
+        self.assertEqual([f['title'] for f in fills], [])
+
+    def test_no_active_interests_never_pads(self):
+        # every dial off: the request said pick nothing — a leftover must not
+        # become a fill
+        doc = interests.defaults()
+        for i in doc['interests']:
+            i['dial'] = 'off'
+        old_ints, curate.INTS = curate.INTS, doc
+        try:
+            cands = [mk('s0', 'Hockey', 5, 4.8, 900)]
+            picked = {'books': []}
+            calls = []
+
+            def fake(key, payload, taste):
+                calls.append(payload)
+                return picked
+            cur = curate.curate('k', {'books': cands}, 'taste', {}, '2026-08', 'rule',
+                                call=fake, log=lambda *a: None)
+            self.assertEqual(cur['books'], [])  # no model picks, and no padding fill
+        finally:
+            curate.INTS = old_ints
+
+
 class GapFillBestEverTests(unittest.TestCase):
     """A best-ever interest has no window: an old, strongly rated leftover
     earns a gap fill a new-release interest's window would refuse."""

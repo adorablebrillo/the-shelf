@@ -100,7 +100,13 @@ def gap_fill(picks, cands, hi, lane_days, end):
         if len(picks) + len(out) >= hi:
             break
         nm = interests.of(c, INTS)
-        days = lane_days.get(nm)
+        if nm in lane_days:
+            days = lane_days[nm]   # None here means one thing: a best-ever interest
+        else:
+            # a name the run does not know (a renamed default, a genre
+            # fallback outside the file) is bounded by the first widening
+            # rung — never any-date
+            days = CFG.get('lane_widen_days', [30, 60, 90])[0]
         if days is not None:
             age = age_days(c.get('date'), end)
             if age is not None and age > days:
@@ -345,6 +351,13 @@ def curate(key, filtered, taste, seq, mon, window_rule, call=None, log=print, he
         if not cur or 'books' not in cur:
             log('CURATE output not valid JSON — try another model in config.json')
             return None
+        # count by the interest of the search that found each book, not by
+        # the genre fallback: copy candidate provenance onto the model's
+        # picks before counting (copy_series is idempotent, so the copy
+        # after the loop is unaffected). Without this, a mode-new typed
+        # interest can never be seen to reach its floor and the run widens
+        # 30 -> 60 -> 90, burning every curation call.
+        copy_series(cur['books'], cands)
         c = counts(cur['books'], order=inames)
         deficient = [nm for nm in inames if c.get(nm, 0) < floor]
         log('shape attempt %d: %s (windows %s)' % (i + 1, shape_str(c, order=inames),
@@ -370,7 +383,9 @@ def curate(key, filtered, taste, seq, mon, window_rule, call=None, log=print, he
     # the candidate's series and interest ride onto every model pick (gap
     # fills and guaranteed sequels are candidate records already)
     picks = copy_series(picks, cands)
-    fills = gap_fill(picks, cands, hi, lane_days, end)
+    # no active interests: the request told the model to pick nothing — a
+    # fill would be padding, and the never-pad rule holds over the cap
+    fills = gap_fill(picks, cands, hi, lane_days, end) if inames else []
     if fills:
         log('gap fill: +%d from the strongest leftovers (%s)' %
             (len(fills), ', '.join(interests.of(f, INTS) for f in fills)))
