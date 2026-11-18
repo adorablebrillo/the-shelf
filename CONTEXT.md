@@ -102,6 +102,9 @@ A read book that isn't part of a series.
 A book the reader added herself with **+ add a book** (an Apple Books search at the top of My Shelf and the Archive) or brought in with the **Goodreads import**, not one a run picked. It lives in `added-books.json` on the config volume, keyed by the same book identity as every pick, and takes a verdict like any book. It files on My Shelf or in the Archive only — never on Home — and taking its verdict back takes it off the shelf.
 _Avoid_: manual book, custom book
 
+**Goodreads link**:
+The small "goodreads ↗" link on every book (not unannounced volumes), opening in a new tab. It opens the book's own Goodreads page when the shelf is sure of it — the Book Id of a Goodreads import, else the page the synopsis lookup matched by title and author, kept as `gr` in `synopsis-cache.json` — and a Goodreads search for the title and author otherwise.
+
 **Goodreads import**:
 The Settings **Import** tab: she chooses her Goodreads export file, sees a preview, then imports it. Read with 5 stars is *loved*; read with fewer or no stars is *read*; to-read is *want*; currently-reading is *want* plus reading now; a dnf or did-not-finish shelf is *not for me*; any other shelf is left out and counted. A mark is dated by Date Read, or Date Added when Date Read is empty. A mark already made in the app always wins, so importing the same file again adds nothing. The preview lists the series of her read books, ticked first when she read 2 or more of them or gave one 4 or 5 stars; only ticked series are tracked. Each imported book is an **added book**. The import makes no web lookups.
 

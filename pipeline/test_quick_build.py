@@ -117,6 +117,25 @@ class QuickBuildTests(unittest.TestCase):
         # no miss sentinel: the quick build cannot know a lookup would miss
         self.assertEqual(glob.glob(os.path.join(self.pipe, 'data', 'covers', '*.none')), [])
 
+    def test_the_page_data_carries_each_books_own_goodreads_page(self):
+        # THS-22 piece 2: the cached Goodreads id of a pick, and the Book Id of
+        # an imported book, reach the page as grUrl; a book with neither has none
+        from bookids import book_key
+        with open(os.path.join(self.pipe, 'data', 'synopsis-cache.json'), 'w') as f:
+            json.dump({book_key('Onyx Storm', 'Rebecca Yarros'): {
+                'text': 'A real blurb that is long enough to be usable here, sentence one, '
+                        'and a second sentence to clear the minimum.',
+                'src': 'goodreads', 'at': '2026-11-01', 'gr': '216734532'}}, f)
+        with open(os.path.join(self.cfg, 'added-books.json'), 'w') as f:
+            json.dump({'v': 1, 'books': [{'title': 'Fourth Wing', 'author': 'Rebecca Yarros',
+                                          'gr': '61431922', 'added': '2026-11-16'}]}, f)
+        data = self._build(offline=True)
+        self.assertEqual(_CountingProxy.seen, [])
+        books = {b['title']: b for b in data['books']}
+        self.assertEqual(books['Onyx Storm']['grUrl'], 'https://www.goodreads.com/book/show/216734532')
+        self.assertNotIn('grUrl', books['Hooked on You'])
+        self.assertEqual(data['added'][0]['grUrl'], 'https://www.goodreads.com/book/show/61431922')
+
     def test_full_build_still_looks_up_what_is_missing(self):
         self._build(offline=False)
         self.assertTrue(_CountingProxy.seen, 'the full build must try the lookups')

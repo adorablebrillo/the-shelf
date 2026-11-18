@@ -783,6 +783,11 @@ def added_data(covers_dir):
         seen.add(ab['id'])
         ab['added'] = True
         ab['seriesNum'] = b.get('series_num') or ''
+        # a Goodreads import keeps the export's Book Id: its own page, surer
+        # than any lookup (synopses.attach keeps it over a found id)
+        gid = re.sub(r'\D', '', str(b.get('gr') or ''))
+        if gid:
+            ab['grUrl'] = synopses.gr_url(gid)
         out.append(ab)
     return out
 
