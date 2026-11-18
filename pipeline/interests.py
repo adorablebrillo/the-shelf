@@ -222,6 +222,22 @@ def stage(i, today=None):
     return None
 
 
+def birth_unused(i):
+    """Why this interest's birth month and year cannot do anything, or ''
+    when it can. A value that does not read as a month and year is a typo,
+    and a story interest never curates for an age: both would otherwise be
+    silent, and the reader sets the birth by hand until the Book-a-meter tab
+    ships. A birth still to come and a child past 36 months are not faults."""
+    v = str(i.get('birth') or '').strip()
+    if not v:
+        return ''
+    if birth(i) is None:
+        return 'is not a month and year (YYYY-MM)'
+    if (i.get('kind') or '').lower() != 'topic':
+        return 'does nothing on a story interest'
+    return ''
+
+
 def catalog_terms(i):
     """A catalog interest's search words: the lane_terms table in code (one
     definition, shared with the lanes it replaces)."""

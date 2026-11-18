@@ -13,7 +13,8 @@ three fixed lanes (piece 1), and a topic interest follows the baby's age
   · the run report prints one line per interest, with an honest zero;
   · a topic interest keeps the baby's birth month and year only, the age is
     counted in whole months, and the curator request names the stage
-    (0–3, 4–6, 7–12, 13–24, 25–36 months).
+    (0–3, 4–6, 7–12, 13–24, 25–36 months);
+  · a birth the run cannot use is named in the run's report, never swallowed.
 Run from pipeline/:  python3 -m unittest test_interests -v
 """
 import json
@@ -489,6 +490,47 @@ class BabyAgeTests(unittest.TestCase):
         finally:
             curate.INTS = old_ints
         self.assertNotIn('months old', plain)
+
+
+class BadBirthWarningTests(unittest.TestCase):
+    """A birth month and year the run cannot use is named in the run's
+    report, never swallowed: the reader sets it by hand until the
+    Book-a-meter tab ships."""
+
+    def report(self, interest):
+        doc = interests.defaults()
+        doc['interests'].append(interest)
+        cands = [mk('s%d' % i, 'Hockey', 5, lane='sport romance') for i in range(3)]
+        picked = {'books': [{'title': 's%d' % i, 'author': 'A. Author', 'genre': 'Hockey'}
+                            for i in range(3)]}
+        logs = []
+        old_ints, curate.INTS = curate.INTS, doc
+        try:
+            curate.curate('k', {'books': cands}, 'taste', {}, '2026-08', 'rule',
+                          call=lambda key, payload, taste: picked, log=logs.append)
+        finally:
+            curate.INTS = old_ints
+        return [l for l in logs if 'the birth month and year' in l]
+
+    def test_a_birth_that_does_not_read_is_named(self):
+        lines = self.report({'id': 'baby', 'label': 'Baby development', 'kind': 'topic',
+                             'dial': 'into it', 'mode': 'both', 'romance': False,
+                             'birth': 'agust 2025'})
+        self.assertEqual(len(lines), 1, lines)
+        self.assertIn('is not a month and year (YYYY-MM)', lines[0])
+        self.assertIn('agust 2025', lines[0])
+
+    def test_a_birth_on_a_story_interest_is_named(self):
+        lines = self.report({'id': 'sportier', 'label': 'Sportier romance', 'kind': 'story',
+                             'dial': 'into it', 'mode': 'new', 'romance': True,
+                             'birth': '2025-08'})
+        self.assertEqual(len(lines), 1, lines)
+        self.assertIn('does nothing on a story interest', lines[0])
+
+    def test_a_usable_birth_says_nothing(self):
+        self.assertEqual(self.report({'id': 'baby', 'label': 'Baby development', 'kind': 'topic',
+                                      'dial': 'into it', 'mode': 'both', 'romance': False,
+                                      'birth': '2025-08'}), [])
 
 
 if __name__ == '__main__':

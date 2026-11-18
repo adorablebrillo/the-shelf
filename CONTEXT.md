@@ -81,7 +81,7 @@ One kind of book the reader wants: a story genre or a real-life topic. It has a 
 _Avoid_: the lane
 
 **Stage**:
-The baby's age band a topic interest curates for, one of five: 0–3, 4–6, 7–12, 13–24 and 25–36 months, each with its themes (newborn sleep and feeding, first solids, first words, toddler talk, preschool play). The run works it out from the birth month and year and names it in the curator request; a child past 36 months has no stage, so the interest is curated as a plain topic.
+The baby's age band a topic interest curates for, one of five: 0–3, 4–6, 7–12, 13–24 and 25–36 months, each with its themes (newborn sleep and feeding, first solids, first words, toddler talk, preschool play). The run works it out from the birth month and year and names it in the curator request; a child past 36 months has no stage, so the interest is curated as a plain topic. A birth the run cannot use — one that does not read as a month and year, or one on a story interest — is named in the run's report, never passed over in silence.
 
 **Book-a-meter**:
 The name of the interests list. It holds the interests, the never list, picks per issue and the season goal; the run makes the file on a first open. A topic interest in it may keep the baby's birth month and year, which the run reads as the stage.

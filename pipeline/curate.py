@@ -429,6 +429,12 @@ def curate(key, filtered, taste, seq, mon, window_rule, call=None, log=print, he
             ((i.get('label') or nm), cand_n, pick_n,
              ' — ZERO' if pick_n == 0 else '',
              ' (off, not searched)' if interests.dial(i) == 'off' else ''))
+        # a birth the run cannot use would otherwise be silent, and the
+        # reader sets it by hand until the Book-a-meter tab ships
+        unused = interests.birth_unused(i)
+        if unused:
+            log('[interest] %s: the birth month and year "%s" %s — no stage this run; fix interests.json'
+                % ((i.get('label') or nm), str(i.get('birth')).strip(), unused))
     return cur
 
 
