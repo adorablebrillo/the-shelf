@@ -1237,7 +1237,10 @@
     return fetch('/api/interests',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(BM)})
       .then(function(r){return r.json().then(function(j){return {ok:r.ok,j:j};});})
       .then(function(r){
-        if(r.ok){bmMsg('saved — the next run follows it.');bmSubLine(true);}
+        if(r.ok){
+          BM=r.j;bmRender();bmSubLine(false);
+          bmMsg('saved — the next run follows it.');
+        }
         else bmMsg((r.j&&r.j.error)||'The shelf server could not save that.');
       })
       .catch(function(){bmMsg('The shelf server did not answer — nothing was saved.');});
@@ -1255,7 +1258,9 @@
     ]).then(function(res){
       var d=res[0];
       if(!d||d.error||!d.interests){bmMsg((d&&d.error)||'The interests file could not be read — container offline?');return;}
-      BM=d.interests;
+      /* the payload is the shared contract with the survey: shaped fields,
+         the computed mix and whether the survey is still owed */
+      BM=d;
       BM_BOOKS=(res[1]&&res[1].books)||[];
       BM_READING=(res[2]&&res[2].reading)||{};
       var tb=document.getElementById('tab-bookameter');if(tb)tb.textContent=BM.name||'Book-a-meter';
@@ -1297,11 +1302,30 @@
   function bmRows(i){
     var nm=bmInName(i);
     var list=BM_BOOKS.filter(function(b){return String(b.interest||'').toLowerCase()===nm;});
+    var inline=(i.reading||[]).filter(function(r){return r&&r.title;});
     var box=bmEl('div','margin-top:10px');
-    if(!list.length){
+    if(!list.length&&!inline.length){
       box.appendChild(bmEl('p','margin:4px 0 0;font-size:13px;color:#635846','No books here yet — add one so the curator knows your taste.'));
       return box;
     }
+    /* the survey's step-4 books live in the file itself (inline reading
+       entries); the tab shows them here and can take one off */
+    inline.forEach(function(r,bi){
+      var row=bmEl('div','display:flex;align-items:center;gap:10px;flex-wrap:wrap;padding:7px 0;border-top:1px solid #E3DAC6');
+      var t=bmEl('span','flex:1;min-width:0');
+      t.appendChild(bmEl('span','font-size:15px;color:#211E19',r.title));
+      if(r.author){
+        t.appendChild(document.createTextNode(' '));
+        t.appendChild(bmEl('span','font-size:13px;color:#635846;font-style:italic','— '+r.author));
+      }
+      row.appendChild(t);
+      var off=bmBtn('take off','unread',bi);off.setAttribute('data-id',i.id);
+      off.style.cssText+='font-size:10px;letter-spacing:.24em;text-transform:uppercase;color:#6E2A2A;border:1px solid #6E2A2A;background:transparent;padding:9px 14px';
+      row.appendChild(off);
+      box.appendChild(row);
+    });
+    /* books she added by search, filed under this interest: reading-now
+       toggle and the plain remove, like any added book */
     list.forEach(function(b){
       var row=bmEl('div','display:flex;align-items:center;gap:10px;flex-wrap:wrap;padding:7px 0;border-top:1px solid #E3DAC6');
       var t=bmEl('span','flex:1;min-width:0');
@@ -1404,7 +1428,7 @@
   }
   function bmAddInterest(id,label,kind){
     var romance=id==='sport'||id==='romantasy'||id==='contemp';
-    BM.interests.push({id:id,label:label,kind:kind,dial:'into it',mode:kind==='topic'?'both':'new',romance:romance});
+    BM.interests.push({id:id,label:label,kind:kind,dial:'into it',mode:kind==='topic'?'both':'new',romance:romance,reading:[]});
   }
   function bmSearchFor(id){
     var q=BM_Q[id];
@@ -1426,6 +1450,10 @@
     if(act==='dial'){var i=bmFind(id);if(!i)return;i.dial=v;bmRender();bmSave();}
     else if(act==='imode'){var j=bmFind(id);if(!j)return;j.mode=v;bmRender();bmSave();}
     else if(act==='rmtile'){BM.interests=BM.interests.filter(function(x){return x.id!==id;});bmRender();bmSave();}
+    else if(act==='unread'){
+      var iu=bmFind(id);if(!iu)return;
+      (iu.reading||[]).splice(+v,1);bmRender();bmSave();
+    }
     else if(act==='addtile'){bmAddInterest(v,t.getAttribute('data-label'),t.getAttribute('data-kind'));bmRender();bmSave();}
     else if(act==='addcustom'){
       var l=BM_CUSTOM.trim();

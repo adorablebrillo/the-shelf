@@ -1,8 +1,9 @@
 #!/usr/bin/env python3
 """The Book-a-meter tab (THS-37 piece 2) — the server contract behind
-/api/interests: the doc the runs read (pipeline/interests.py owns its shape)
-is what the tab reads, and a save from the tab writes the same shape or
-nothing at all.
+/api/interests, shared with the survey (the other writer of these routes):
+the page reads a payload the server shapes (never the raw file), saves
+through the same helpers, and asks /api/interests/split for the mix the run
+would pick.
 
 Run: cd container && python3 -m unittest test_bookameter
 
@@ -20,19 +21,16 @@ os.environ['CFG_DIR'] = TMP
 import server  # noqa: E402
 
 
-def _vol():
-    """The file the runs and the tab share, wherever this process's CFG_DIR
-    points (several test modules set it in one process — the module constant
-    of server may not match, but the pipeline resolves the env at call time)."""
-    return server._pipeline_import('interests').vol_path()
+def _clear():
+    if os.path.exists(server.INTERESTS):
+        os.remove(server.INTERESTS)
 
 
 class LoadTests(unittest.TestCase):
     """A blank install: the tab reads the same defaults the run would make."""
 
     def setUp(self):
-        if os.path.exists(_vol()):
-            os.remove(_vol())
+        _clear()
 
     def test_blank_volume_reads_the_default_book_a_meter(self):
         d = server.load_interests()
@@ -41,84 +39,97 @@ class LoadTests(unittest.TestCase):
         self.assertEqual(d['never'], ['cowboys'])
         self.assertEqual([i['label'] for i in d['interests']],
                          ['Sport romance', 'Romantasy', 'Contemporary romance'])
-        self.assertFalse(os.path.exists(_vol()))
+        self.assertFalse(os.path.exists(server.INTERESTS))
 
-    def test_round_trip(self):
-        doc, err = server.save_interests({
-            'name': 'Book-a-meter', 'picks': 9, 'never': ['graphic violence'],
-            'interests': [
-                {'id': 'sport', 'label': 'Sport romance', 'kind': 'story',
-                 'dial': 'obsessed', 'mode': 'new', 'romance': True},
-                {'id': 'baby', 'label': 'Baby development', 'kind': 'topic',
-                 'dial': 'curious', 'mode': 'both'},
-            ]})
-        self.assertIsNone(err)
-        self.assertEqual(server.load_interests(), doc)
-        on_disk = json.load(open(_vol()))
-        self.assertEqual(on_disk, doc)
+    def test_the_payload_shapes_what_the_page_reads(self):
+        p = server.interests_payload(server.load_interests())
+        self.assertEqual(p['name'], 'Book-a-meter')
+        self.assertEqual(p['picks'], 12)
+        self.assertEqual(p['never'], ['cowboys'])
+        self.assertIsNone(p['season_goal'])
+        self.assertIsNone(p['surveyed'])
+        self.assertTrue(p['need_survey'])
+        self.assertTrue(isinstance(p['catalog'], list))
+        self.assertEqual([i['id'] for i in p['interests']], ['sport', 'romantasy', 'contemp'])
+        first = p['interests'][0]
+        self.assertEqual((first['label'], first['kind'], first['dial'], first['mode'], first['romance']),
+                         ('Sport romance', 'story', 'into it', 'new', True))
+        self.assertEqual(first['reading'], [])
+        # the computed mix, by the same rule the run uses
+        self.assertEqual([s['n'] for s in p['split']], [4, 4, 4])
 
 
 class SaveTests(unittest.TestCase):
-    """A save from the tab is checked before it reaches the file a run reads:
-    a bad save writes nothing."""
+    """A save goes through the same helpers the survey uses: the page sends
+    its answers, the server bounds them and writes the file the runs read."""
 
     def setUp(self):
-        if os.path.exists(_vol()):
-            os.remove(_vol())
+        _clear()
 
-    def test_a_bad_save_writes_nothing(self):
-        for bad in (
-            {},                                   # no interests list
-            {'interests': 'sport'},               # not a list
-            {'interests': [{'id': 'x', 'label': ''}]},       # no name
-            {'interests': [{'id': 'x', 'label': 'A'}, {'id': 'x', 'label': 'B'}]},  # duplicate
-            {'interests': ['sport']},             # an interest is not a string
-        ):
-            doc, err = server.save_interests(bad)
-            self.assertIsNone(doc)
-            self.assertTrue(err, str(bad))
-            self.assertFalse(os.path.exists(_vol()))
+    def test_save_round_trips_through_the_payload(self):
+        doc = server.interests_save({
+            'name': 'Book-a-meter', 'picks': 9, 'never': ['graphic violence'],
+            'surveyed': '2026-11-18',
+            'interests': [
+                {'id': 'sport', 'label': 'Sport romance', 'kind': 'story',
+                 'dial': 'obsessed', 'mode': 'new'},
+                {'id': 'baby', 'label': 'Baby development', 'kind': 'topic',
+                 'dial': 'curious', 'mode': 'both',
+                 'reading': [{'title': 'Cribsheet', 'author': 'Emily Oster'}]},
+            ]})
+        self.assertEqual(doc['surveyed'], '2026-11-18')
+        self.assertEqual(server.load_interests(), doc)
+        p = server.interests_payload(doc)
+        self.assertFalse(p['need_survey'])
+        self.assertEqual(p['picks'], 9)
+        self.assertEqual(p['interests'][1]['reading'],
+                         [{'title': 'Cribsheet', 'author': 'Emily Oster'}])
+        # a later save without surveyed leaves the old date alone (a Settings
+        # tab save must never un-answer the survey)
+        doc2 = server.interests_save({'interests': doc['interests']})
+        self.assertEqual(doc2['surveyed'], '2026-11-18')
 
-    def test_known_fields_are_checked_and_defaults_fill_the_rest(self):
-        doc, err = server.save_interests({
+    def test_junk_entries_are_skipped_and_defaults_fill_the_rest(self):
+        doc = server.interests_save({
             'picks': 999, 'never': ['Cowboys & Westerns', '', 7],
-            'season_goal': None,
-            'interests': [{'id': 'x', 'label': 'Sourdough', 'kind': 'weird',
-                           'dial': 'zany', 'mode': 'sometimes', 'romance': 'yes'}]})
-        self.assertIsNone(err)
-        self.assertEqual(doc['picks'], 60)                # clamped to the ceiling
-        self.assertEqual(doc['never'], ['cowboys & westerns'])
-        self.assertIsNone(doc['season_goal'])
+            'interests': [
+                {'id': 'sport', 'label': 'Sport romance', 'kind': 'weird',
+                 'dial': 'zany', 'mode': 'sometimes'},
+                {'id': 'x', 'label': ''},           # no name: skipped
+                'not an interest',                  # skipped
+                {'id': '', 'label': 'no id'},       # skipped
+            ]})
+        self.assertEqual(doc['picks'], 60)                       # clamped
+        # a never word is a word: the loop keeps what survives the clean
+        self.assertEqual(doc['never'], ['cowboys & westerns', '7'])
+        self.assertEqual([i['id'] for i in doc['interests']], ['sport'])
         i = doc['interests'][0]
-        self.assertEqual(i['kind'], 'story')              # the only other kind
-        self.assertNotIn('dial', i)                       # junk never reaches the file
-        self.assertNotIn('mode', i)
-        self.assertNotIn('romance', i)
-        # the run reads the doc with its own fallbacks, so a missing dial or
-        # mode is the default: "into it", new
-        import interests
-        self.assertEqual(interests.dial(i), 'into it')
-        self.assertEqual(interests.mode(i), 'new')
-        self.assertFalse(interests.romance(i))
+        self.assertEqual(i['kind'], 'topic')   # an unknown kind is a real-life topic
+        self.assertEqual(i['dial'], 'into it')                   # the run's fallback
+        self.assertEqual(i['mode'], 'both')    # a topic's mode is both by default
+        self.assertTrue(i['romance'])                            # the catalog decides
+        self.assertEqual(i['reading'], [])
 
-    def test_unknown_keys_ride_along_for_the_next_piece(self):
-        doc, err = server.save_interests({
-            'interests': [{'id': 'baby', 'label': 'Baby development', 'kind': 'topic',
-                           'follow_age': True, 'age_months': 5}]})
-        self.assertIsNone(err)
-        self.assertEqual(doc['interests'][0]['follow_age'], True)
-        self.assertEqual(doc['interests'][0]['age_months'], 5)
+    def test_search_words_already_on_the_volume_win(self):
+        server.save_interests({'v': 1, 'name': 'Book-a-meter', 'picks': 12,
+                               'never': [], 'season_goal': None,
+                               'interests': [{'id': 'baby', 'label': 'Baby development',
+                                              'kind': 'topic', 'terms': ['infant sleep']}]})
+        doc = server.interests_save({
+            'interests': [{'id': 'baby', 'label': 'Baby development', 'kind': 'topic'}]})
+        self.assertEqual(doc['interests'][0]['terms'], ['infant sleep'])
 
-    def test_terms_are_kept_as_a_short_word_list(self):
-        doc, err = server.save_interests({
-            'interests': [{'id': 'baby', 'label': 'Baby development', 'kind': 'topic',
-                           'terms': ['baby sleep', 'infant development', '', None, 'x' * 100]}]})
-        self.assertIsNone(err)
-        self.assertEqual(doc['interests'][0]['terms'], ['baby sleep', 'infant development', 'x' * 60])
+    def test_split_comes_from_the_same_rule_the_run_uses(self):
+        server.interests_save({'picks': 12, 'interests': [
+            {'id': 'sport', 'label': 'Sport romance', 'kind': 'story', 'dial': 'obsessed'},
+            {'id': 'romantasy', 'label': 'Romantasy', 'kind': 'story', 'dial': 'curious'},
+            {'id': 'baby', 'label': 'Baby development', 'kind': 'topic', 'dial': 'off'}]})
+        r = server.interests_split(server.load_interests())
+        self.assertEqual([(s['id'], s['n']) for s in r], [('sport', 9), ('romantasy', 3)])
 
     def test_interest_name_resolves_id_and_label(self):
-        doc, _ = server.save_interests({
-            'interests': [{'id': 'baby', 'label': 'Baby development', 'kind': 'topic'}]})
+        server.interests_save({'interests': [
+            {'id': 'baby', 'label': 'Baby development', 'kind': 'topic'}]})
         self.assertEqual(server._interest_name('baby'), 'baby development')
         self.assertEqual(server._interest_name('Baby Development'), 'baby development')
         self.assertEqual(server._interest_name('sourdough'), 'sourdough')  # unknown stays

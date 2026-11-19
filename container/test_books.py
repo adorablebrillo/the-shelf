@@ -122,8 +122,7 @@ class InterestFilingTests(unittest.TestCase):
     same reading channel (#57) as a verdict-row press."""
 
     def setUp(self):
-        for f in (server.ADDED, server.STATE,
-                  server._pipeline_import('interests').vol_path()):
+        for f in (server.ADDED, server.STATE, server.INTERESTS):
             if os.path.exists(f):
                 os.remove(f)
         self.hit = server.search_books('fourth wing', get_text=Reader())[0]
