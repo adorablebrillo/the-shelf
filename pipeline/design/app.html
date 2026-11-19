@@ -651,7 +651,7 @@
     </sc-if>
 
     <sc-if value="{{ isSeries }}">
-    <div data-screen-label="Series">
+    <div data-screen-label="Series" style="{{ seriesScreenStyle }}">
       <p style="margin:0;font-size:10.5px;letter-spacing:.42em;text-transform:uppercase;color:#635846">03 · Series</p>
       <h2 style="font-family:'Cormorant Garamond',Garamond,serif;font-weight:300;font-size:clamp(34px,5vw,56px);letter-spacing:.1em;text-transform:uppercase;margin:12px 0 0">Your series</h2>
       <p style="margin:10px 0 0;font-family:'Cormorant Garamond',Garamond,serif;font-style:italic;font-size:20px;color:#635846">{{ seriesCount }} open · {{ seriesClosed }} finished and closed.</p>
@@ -662,7 +662,7 @@
       </sc-if>
 
       <sc-for list="{{ seriesList }}" as="s" hint-placeholder-count="8">
-        <div data-m="scard" style="padding:20px 0;border-bottom:1px solid #D6CCB6">
+        <div data-m="scard" data-series-name="{{ s.name }}" style="padding:20px 0;border-bottom:1px solid #D6CCB6">
           <div style="display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.15fr);gap:30px;align-items:center" data-m="two">
             <div style="min-width:0">
               <p style="margin:0;font-family:'Cormorant Garamond',Garamond,serif;font-size:23px;line-height:1.16">{{ s.name }}</p>
@@ -2346,7 +2346,14 @@ class Component extends DCLogic {
           color:ns==='out'?BLOOD:ns==='soon'?FOREST:MID},
         railStyle:{display:'block',position:'relative',width:'100%',height:'2px',background:'rgba(168,134,63,.28)',margin:'9px 0 7px'},
         fillStyle:{position:'absolute',left:0,top:0,bottom:0,width:pct+'%',background:ns==='out'?BLOOD:GOLD},
-        onClick:()=>this.setState({view:'series'})};
+        onClick:()=>this.setState({view:'series',seriesExtra:0},()=>{
+          const findCard=()=>Array.from(document.querySelectorAll('[data-screen-label="Series"] [data-m="scard"]')).find(el=>el.getAttribute('data-series-name')===s.name);
+          const card=findCard();
+          if(!card)return;
+          // A short page needs enough room below the target to align it at the top.
+          const extra=Math.max(0,Math.ceil(window.scrollY+card.getBoundingClientRect().top-(document.documentElement.scrollHeight-window.innerHeight)));
+          this.setState({seriesExtra:extra},()=>{const target=findCard();if(target)target.scrollIntoView({behavior:'instant',block:'start'});});
+        })};
     });
 
     /* ---- Series: every open series, urgency first, with the full run ----- */
@@ -2637,10 +2644,11 @@ class Component extends DCLogic {
     return {
       /* nav + shell */
       isHome:this.state.view==='home', isShelf:this.state.view==='shelf', isSeries:this.state.view==='series',
+      seriesScreenStyle:this.state.seriesExtra?{paddingBottom:this.state.seriesExtra+'px'}:{},
       isArchive:this.state.view==='archive', isSettings:this.state.view==='settings',
       goHome:()=>{this.settingsLeave();this.setState({view:'home',tip:'',peek:'',peekVol:false,vol:'',volOf:'',plate:'',plateId:'',rowOpen:'',volId:'',volSel:'',volSelOf:'',lastMark:null,issueDone:null});},
       goShelf:()=>{this.settingsLeave();this.setState({view:'shelf',tip:'',peek:'',peekVol:false,vol:'',volOf:'',plate:'',plateId:'',rowOpen:'',volId:'',volSel:'',volSelOf:'',lastMark:null,issueDone:null});},
-      goSeries:()=>{this.settingsLeave();this.setState({view:'series',tip:'',peek:'',peekVol:false,vol:'',volOf:'',plate:'',plateId:'',rowOpen:'',volId:'',volSel:'',volSelOf:'',lastMark:null,issueDone:null});},
+      goSeries:()=>{this.settingsLeave();this.setState({view:'series',seriesExtra:0,tip:'',peek:'',peekVol:false,vol:'',volOf:'',plate:'',plateId:'',rowOpen:'',volId:'',volSel:'',volSelOf:'',lastMark:null,issueDone:null});},
       goArchive:()=>{this.settingsLeave();this.setState({view:'archive',tip:'',peek:'',peekVol:false,vol:'',volOf:'',plate:'',plateId:'',rowOpen:'',volId:'',volSel:'',volSelOf:'',lastMark:null,issueDone:null});},
       goSettings:()=>{this.setState({view:'settings',tip:'',peek:'',peekVol:false,vol:'',volOf:'',plate:'',plateId:'',rowOpen:'',volId:'',volSel:'',volSelOf:'',lastMark:null,issueDone:null});this.settingsEnter();},
       navHome:this.nav(this.state.view==='home'), navShelf:this.nav(this.state.view==='shelf'),
