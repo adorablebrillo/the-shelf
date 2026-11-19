@@ -122,6 +122,6 @@ Authors whose new releases every run looks for.
 
 **Settings is a page, not a sheet.** The old modal (veil, dialog, focus trap, Escape-to-close) is retired; the nav's Settings button renders the page. The same controls, endpoints and tab machinery as the shipped sheet — a page script binds them when the view enters and stops the status poll when it leaves.
 
-**Tabs**: Shelf (key · model · save · curate now · status), Authors (watched list with interests, add + remove, the empty state) and Import (the Goodreads export file, its preview with series ticks, import). Roving tabindex + arrow keys, as the sheet had.
+**Tabs**: Shelf (key · model · save · curate now · status), Book-a-meter (the interests: one dial and a mode per interest, its reading list with **+ add a book**, the never list, picks per issue — every change saves to interests.json at once, and a book added for an interest is an added book marked reading now), Authors (watched list with interests, add + remove, the empty state) and Import (the Goodreads export file, its preview with series ticks, import). Roving tabindex + arrow keys, as the sheet had.
 
 **Panels use inline `display`, not the `hidden` attribute** — the design runtime drops `hidden` during render, so `display:none` is the only reliable hide inside the dc root.

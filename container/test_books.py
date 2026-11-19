@@ -116,5 +116,51 @@ class AddedBooksTests(unittest.TestCase):
         self.assertFalse(os.path.exists(server.ADDED))
 
 
+class InterestFilingTests(unittest.TestCase):
+    """THS-37 piece 2: the Book-a-meter tab's "+ add a book" saves an added
+    book with an interest field and the reading-now flag. The flag rides the
+    same reading channel (#57) as a verdict-row press."""
+
+    def setUp(self):
+        for f in (server.ADDED, server.STATE, server.INTERESTS):
+            if os.path.exists(f):
+                os.remove(f)
+        self.hit = server.search_books('fourth wing', get_text=Reader())[0]
+
+    def test_add_under_an_interest_files_it_and_marks_reading_now(self):
+        rec, err = server.added_add(dict(self.hit, interest='sport', reading=True), get_text=Reader())
+        self.assertIsNone(err)
+        # the tab sends the interest's id; the record keeps the run's name
+        self.assertEqual(rec['interest'], 'sport romance')
+        st = server.load_state()
+        self.assertEqual(st['states'][rec['id']]['s'], 'want')   # reading now = want + flag
+        self.assertTrue(st['reading'][rec['id']]['s'])
+
+    def test_add_without_interest_or_reading_leaves_state_alone(self):
+        rec, err = server.added_add(self.hit, get_text=Reader())
+        self.assertIsNone(err)
+        self.assertNotIn('interest', rec)
+        self.assertFalse(os.path.exists(server.STATE))
+
+    def test_readding_files_a_book_that_has_no_interest_yet(self):
+        first, _ = server.added_add(self.hit, get_text=Reader())
+        self.assertNotIn('interest', first)
+        again, err = server.added_add(dict(self.hit, interest='romantasy', reading=True), get_text=Reader())
+        self.assertIsNone(err)
+        self.assertEqual(again['id'], first['id'])
+        self.assertEqual(again['interest'], 'romantasy')
+        st = server.load_state()
+        self.assertEqual(st['states'][again['id']]['s'], 'want')
+        self.assertTrue(st['reading'][again['id']]['s'])
+
+    def test_a_book_already_under_another_interest_stays_there(self):
+        first, _ = server.added_add(dict(self.hit, interest='baby'), get_text=Reader())
+        again, err = server.added_add(dict(self.hit, interest='sport'), get_text=Reader())
+        self.assertIsNone(err)
+        self.assertEqual(again['id'], first['id'])
+        self.assertEqual(again['interest'], 'baby')
+        self.assertEqual(len(server.load_added()['books']), 1)
+
+
 if __name__ == '__main__':
     unittest.main()
