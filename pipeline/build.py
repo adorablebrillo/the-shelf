@@ -1026,9 +1026,21 @@ def main():
     orphans += [b['title'] for b in book_list if not b.get('id')]
     if orphans:
         print('WARNING: %d books have no identity: %s' % (len(orphans), orphans[:5]))
+    # THS-35 (Home part 3): the Book-a-meter widget on Home reads her interests
+    # — label, kind and dial per interest, in the file's order, so the page can
+    # show her meter. Display only: the page never edits it, and the reads it
+    # counts come from the page's own mark state, so a mark moves the number
+    # without a rebuild.
+    meter = {
+        'name': INTS.get('name') or interests.DEFAULT_NAME,
+        'interests': [{'label': i.get('label') or interests.name(i),
+                       'kind': i.get('kind') or 'story',
+                       'dial': i.get('dial') or interests.DEFAULT_DIAL}
+                      for i in (INTS.get('interests') or [])],
+    }
     data = {'month': month, 'books': book_list, 'pending': pending,
             'series': series, 'seasons': SEASONS, 'criteria': criteria_line(), 'resolved': resolved,
-            'added': added}
+            'added': added, 'meter': meter}
     write_dist('shelf-data.js', 'window.SHELF_DATA=' + json.dumps(data, ensure_ascii=False) + ';\n')
 
     tpl = open(os.path.join(DESIGN, 'app.html')).read()

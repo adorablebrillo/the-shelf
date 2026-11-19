@@ -7,7 +7,7 @@ A personal book-curation app: a monthly curated page of new releases across the 
 ### Sections
 
 **Home**:
-The landing section and the action surface — the reading-now card at the top (the book she is reading now, or choose your next book), then the month's picks with their issue line, then anything still open from earlier issues, together with the reading corner, anticipation, read & loved, and series at a glance. On a phone the sections sit in a bar at the bottom of the screen.
+The landing section and the action surface — the reading-now card at the top (the book she is reading now, or choose your next book), then the month's picks with their issue line, then anything still open from earlier issues, together with the Book-a-meter widget (display only: each interest's dial and the reads its topic books count; it reads interests.json, never edits it), the reading corner, anticipation, read & loved, and series at a glance. On a phone the sections sit in a bar at the bottom of the screen.
 _Avoid_: dashboard, landing page
 
 **My Shelf**:
