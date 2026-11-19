@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
-"""The Book-a-meter (THS-37 piece 1) — the run reads interests in place of
-the three fixed lanes. These tests own the new intents:
+"""The Book-a-meter (THS-37) — the run reads interests in place of the
+three fixed lanes (piece 1), and a topic interest follows the baby's age
+(piece 4). These tests own the new intents:
   · interests.py builds the default file from config.json lane_terms with the
     captain's answers (Book-a-meter, 12 picks, never ["cowboys"]);
   · the split follows dial weights, every active interest keeps at least 1,
@@ -9,7 +10,11 @@ the three fixed lanes. These tests own the new intents:
     regex;
   · the romance screens hold for romance interests only, the never list for
     every book; a best-ever interest skips the window and needs a 4.0+ rating;
-  · the run report prints one line per interest, with an honest zero.
+  · the run report prints one line per interest, with an honest zero;
+  · a topic interest keeps the baby's birth month and year only, the age is
+    counted in whole months, and the curator request names the stage
+    (0–3, 4–6, 7–12, 13–24, 25–36 months);
+  · a birth the run cannot use is named in the run's report, never swallowed.
 Run from pipeline/:  python3 -m unittest test_interests -v
 """
 import json
@@ -17,7 +22,7 @@ import os
 import sys
 import tempfile
 import unittest
-from datetime import timedelta
+from datetime import date, timedelta
 
 import curate
 import filter as flt
@@ -410,6 +415,122 @@ class GapFillBestEverTests(unittest.TestCase):
             self.assertIn('old1', [f['title'] for f in fills])
         finally:
             curate.INTS = old_ints
+
+
+class BabyAgeTests(unittest.TestCase):
+    """THS-37 piece 4: a topic interest keeps the baby's birth month and
+    year only, the age is counted in whole months, and the curator request
+    names the stage — the plan's five, 0–3 to 25–36 months."""
+
+    def topic(self, birth=None):
+        i = {'id': 'baby', 'label': 'Baby development', 'kind': 'topic',
+             'dial': 'into it', 'mode': 'both', 'romance': False}
+        if birth is not None:
+            i['birth'] = birth
+        return i
+
+    def test_every_stage_boundary_by_month_and_year(self):
+        # born August 2025; the plan's five stages, at each edge and one
+        # month past the last
+        i = self.topic('2025-08')
+        for day, name in (
+                (date(2025, 8, 1), '0–3 months'),     # the birth month itself
+                (date(2025, 11, 30), '0–3 months'),   # 3 months
+                (date(2025, 12, 1), '4–6 months'),    # 4 months
+                (date(2026, 2, 28), '4–6 months'),    # 6 months
+                (date(2026, 3, 1), '7–12 months'),    # 7 months
+                (date(2026, 8, 31), '7–12 months'),   # 12 months
+                (date(2026, 9, 1), '13–24 months'),   # 13 months
+                (date(2027, 8, 1), '13–24 months'),   # 24 months
+                (date(2027, 9, 1), '25–36 months'),   # 25 months
+                (date(2028, 8, 1), '25–36 months')):  # 36 months
+            st = interests.stage(i, day)
+            self.assertIsNotNone(st, day)
+            self.assertEqual(st['name'], name, day)
+        # 37 months is past the plan's fifth stage: no stage is named
+        self.assertIsNone(interests.stage(i, date(2028, 9, 1)))
+
+    def test_the_age_counts_calendar_months_not_days(self):
+        # a month and a year are all the file keeps, so the day of the run
+        # never moves the age, and a day written into the birth is ignored
+        self.assertEqual(interests.months_old(self.topic('2025-08'), date(2026, 3, 1)), 7)
+        self.assertEqual(interests.months_old(self.topic('2025-08'), date(2026, 3, 31)), 7)
+        self.assertEqual(interests.months_old(self.topic('2025-08-31'), date(2026, 3, 1)), 7)
+
+    def test_only_a_born_topic_interest_has_a_stage(self):
+        self.assertIsNone(interests.stage(self.topic()))                  # no birth kept
+        self.assertIsNone(interests.stage(self.topic('not-a-month')))
+        self.assertIsNone(interests.stage(self.topic('2025-13')))         # no such month
+        self.assertIsNone(interests.stage({'kind': 'story', 'birth': '2025-08'}))
+        self.assertIsNone(interests.stage(self.topic('2027-01'), date(2026, 3, 1)))  # not born yet
+
+    def test_the_request_names_the_stage_for_the_age_at_the_run(self):
+        # a baby 7 months old today: the plan's third stage, and the request
+        # says so in words the curator can act on
+        today = date.today()
+        y, m = today.year, today.month - 7
+        if m < 1:
+            y, m = y - 1, m + 12
+        birth = '%04d-%02d' % (y, m)
+        doc = interests.defaults()
+        doc['interests'].append(self.topic(birth))
+        old_ints, curate.INTS = curate.INTS, doc
+        try:
+            block = curate.interests_block()
+        finally:
+            curate.INTS = old_ints
+        self.assertIn('Her baby is 7 months old', block)
+        self.assertIn('7–12 months: crawling, first words, separation', block)
+
+        # the same interest with no birth: the request is the interest alone
+        doc['interests'][-1] = self.topic()
+        old_ints, curate.INTS = curate.INTS, doc
+        try:
+            plain = curate.interests_block()
+        finally:
+            curate.INTS = old_ints
+        self.assertNotIn('months old', plain)
+
+
+class BadBirthWarningTests(unittest.TestCase):
+    """A birth month and year the run cannot use is named in the run's
+    report, never swallowed: the reader sets it by hand until the
+    Book-a-meter tab ships."""
+
+    def report(self, interest):
+        doc = interests.defaults()
+        doc['interests'].append(interest)
+        cands = [mk('s%d' % i, 'Hockey', 5, lane='sport romance') for i in range(3)]
+        picked = {'books': [{'title': 's%d' % i, 'author': 'A. Author', 'genre': 'Hockey'}
+                            for i in range(3)]}
+        logs = []
+        old_ints, curate.INTS = curate.INTS, doc
+        try:
+            curate.curate('k', {'books': cands}, 'taste', {}, '2026-08', 'rule',
+                          call=lambda key, payload, taste: picked, log=logs.append)
+        finally:
+            curate.INTS = old_ints
+        return [l for l in logs if 'the birth month and year' in l]
+
+    def test_a_birth_that_does_not_read_is_named(self):
+        lines = self.report({'id': 'baby', 'label': 'Baby development', 'kind': 'topic',
+                             'dial': 'into it', 'mode': 'both', 'romance': False,
+                             'birth': 'agust 2025'})
+        self.assertEqual(len(lines), 1, lines)
+        self.assertIn('is not a month and year (YYYY-MM)', lines[0])
+        self.assertIn('agust 2025', lines[0])
+
+    def test_a_birth_on_a_story_interest_is_named(self):
+        lines = self.report({'id': 'sportier', 'label': 'Sportier romance', 'kind': 'story',
+                             'dial': 'into it', 'mode': 'new', 'romance': True,
+                             'birth': '2025-08'})
+        self.assertEqual(len(lines), 1, lines)
+        self.assertIn('does nothing on a story interest', lines[0])
+
+    def test_a_usable_birth_says_nothing(self):
+        self.assertEqual(self.report({'id': 'baby', 'label': 'Baby development', 'kind': 'topic',
+                                      'dial': 'into it', 'mode': 'both', 'romance': False,
+                                      'birth': '2025-08'}), [])
 
 
 if __name__ == '__main__':

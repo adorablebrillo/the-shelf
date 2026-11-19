@@ -233,6 +233,13 @@ def interests_block():
             interests.dial(i), 'a clear yes')
         lines.append('- %s (%s): %s; target %d of the %d picks; %s.'
                     % (label, dial_w, md, tgt, int(INTS.get('picks') or interests.DEFAULT_PICKS), rules))
+        st = interests.stage(i)
+        if st:
+            # the reader keeps only the baby's birth month and year; the run
+            # works the age out and names the stage this interest means now
+            lines.append('    Her baby is %d months old, so this interest means %s: %s — '
+                         'pick books for that stage.'
+                         % (st['months'], st['name'], st['themes']))
     non_rom = [i for i in act if not interests.romance(i)]
     if non_rom:
         # the review's one-line override: the hard-rules romance lines do not
@@ -422,6 +429,12 @@ def curate(key, filtered, taste, seq, mon, window_rule, call=None, log=print, he
             ((i.get('label') or nm), cand_n, pick_n,
              ' — ZERO' if pick_n == 0 else '',
              ' (off, not searched)' if interests.dial(i) == 'off' else ''))
+        # a birth the run cannot use would otherwise be silent, and the
+        # reader sets it by hand until the Book-a-meter tab ships
+        unused = interests.birth_unused(i)
+        if unused:
+            log('[interest] %s: the birth month and year "%s" %s — no stage this run; fix interests.json'
+                % ((i.get('label') or nm), str(i.get('birth')).strip(), unused))
     return cur
 
 

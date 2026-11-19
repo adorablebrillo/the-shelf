@@ -16,7 +16,7 @@ pipeline/
 ├── filter.py          # hard rules + your shelf's verdicts (read/not-for-me never return)
 ├── curate.py          # OpenRouter call(s) → curated month JSON, split across her interests by dial (the Book-a-meter)
 ├── build.py           # month JSON → dist/index.html (design/app.html + manifest.webmanifest + assets/app-icon-*.png; blank installs get a valid empty-state page)
-├── interests.py       # the Book-a-meter: interests.json (the volume file the run reads, made from lane_terms on a blank install), the dial split, the catalog terms
+├── interests.py       # the Book-a-meter: interests.json (the volume file the run reads, made from lane_terms on a blank install), the dial split, the catalog terms, the baby's stages
 ├── lanes.py           # the genre fallback for books with no search provenance + the shape counts/lines
 ├── windows.py         # target month + window end, shared by filter/curate
 ├── bookids.py         # the canonical book identity (book_key), shared by engine + app
@@ -25,7 +25,7 @@ pipeline/
 ├── verdicts.py        # your verdicts teach the model: marked ids -> books, the her_verdicts lists, the kept `because` (#83)
 ├── paths.py           # personal files: config volume first, repo copy as fallback
 ├── test_shape.py      # the shape rule's deterministic tests
-├── test_interests.py  # the Book-a-meter: defaults, the dial split, scoped rules, best-ever, the per-interest report
+├── test_interests.py  # the Book-a-meter: defaults, the dial split, scoped rules, best-ever, the per-interest report, the baby's stages
 ├── test_shelf.py      # your-shelf exclusion tests
 ├── test_verdicts.py   # her_verdicts: the lookup, the capped lists, the `because` rule
 ├── test_reference.py  # the Goodreads reference: parsers (real fixtures), matchers, failure paths, the fetch's redirect cookies
