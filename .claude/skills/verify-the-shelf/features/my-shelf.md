@@ -2,6 +2,7 @@
 
 ## Sub-features
 
+- An armchair reader appears below the empty-state instructions and disappears when My Shelf has a want-marked book.
 - The TBR list: every book marked *want*, the reading-now book starred first.
 - The verdict row on every row: reading now · want · read · loved · not for me (pressing the lit mark takes it off).
 - **+ add a book**: Apple Books search, then a verdict files the found book as an added book.

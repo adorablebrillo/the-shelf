@@ -47,6 +47,27 @@
      A 300px auto-fit floor could never fit 3 at 1280: the sidebar leaves the
      grid only 908px, so 3 tracks need a floor of <=290. */
   [data-m="picksgrid"]{grid-template-columns:repeat(3,minmax(0,1fr))}
+  /* Decorative illustrations retain their own space and never obscure copy. */
+  [data-m="shop-art"]{display:block;width:180px;height:152px;object-fit:contain;max-width:100%;margin:0 auto;flex:none}
+  [data-m="corner-art-row"]{display:flex;align-items:center;gap:16px}
+  [data-m="corner-art-row"] [data-m="cornerquote"]{flex:1;min-width:0}
+  [data-m="woman-art"]{display:block;width:112px;height:96px;object-fit:contain;flex:none}
+  [data-season="autumn"] [data-m="woman-art"], [data-season="christmas"] [data-m="woman-art"], [data-season="winter"] [data-m="woman-art"]{filter:brightness(0) invert(90%) sepia(12%)}
+  [data-m="empty-art"]{display:block;object-fit:contain;max-width:100%;margin:16px auto 0}
+  [data-illustration="man"]{width:240px;height:200px}
+  [data-illustration="cafe"]{width:280px;height:218px}
+  @media (min-width:881px) and (min-height:861px){[data-m="sidepanel"]{gap:8px !important}}
+  @media (max-width:880px), (max-height:860px){[data-m="shop-art"]{display:none}}
+  @media (max-width:700px){
+    [data-m="cornerin"]{position:relative}
+    [data-m="cornerin"] [data-m="recentline"]{min-height:1.6em !important}
+    [data-m="cornerin"] > div:first-child{padding-right:72px}
+    [data-m="corner-art-row"] [data-m="cornerquote"]{margin-right:72px !important}
+    [data-season="christmas"] [data-m="corner-art-row"] [data-m="cornerquote"]{margin-right:0 !important}
+    [data-m="woman-art"]{position:absolute;right:18px;top:26px;width:56px;height:48px}
+    [data-illustration="man"]{width:220px;height:184px}
+    [data-illustration="cafe"]{width:240px;height:187px}
+  }
   @media (max-width:1247px){[data-m="picksgrid"]{grid-template-columns:repeat(2,minmax(0,1fr))}}
   @media (max-width:1000px){[data-m="picksgrid"]{grid-template-columns:1fr}}
   .loglink{color:#A8863F;text-decoration:underline;text-underline-offset:2px;cursor:pointer}
@@ -255,6 +276,8 @@
         <button type="button" onClick="{{ goSettings }}" aria-current="{{ isSettings }}" style="{{ navSettings }}"><span style="flex:1;min-width:0;text-align:left">Settings</span></button>
       </nav>
 
+      <img data-m="shop-art" src="assets/shop-warm.png" width="180" height="152" alt="" aria-hidden="true" />
+
       <div style="margin-top:auto;padding:0 24px">
         <div style="height:1px;background:#3F6153"></div>
         <p style="margin:14px 0 0;font-size:10px;line-height:1.8;letter-spacing:.1em;color:#BFD3C6">{{ counts }}</p>
@@ -288,7 +311,10 @@
             <p data-m="eyebrow" style="margin:0;font-size:10px;letter-spacing:.34em;text-transform:uppercase;color:#635846">My reading corner · {{ monthLabel }}</p>
             <sc-if value="{{ hasCountdown }}"><p data-m="countdown" style="margin:0;padding-right:34px;font-size:10px;letter-spacing:.3em;text-transform:uppercase;color:#6E2A2A">{{ countdown }}</p></sc-if>
           </div>
+          <div data-m="corner-art-row">
           <p data-m="cornerquote" style="margin:12px 0 0;max-width:42ch;min-height:2.56em;font-family:'Cormorant Garamond',Garamond,serif;font-style:italic;font-size:clamp(22px,3vw,33px);line-height:1.28">{{ quote }}</p>
+            <img data-m="woman-art" src="assets/woman.png" width="112" height="96" alt="" aria-hidden="true" />
+          </div>
           <p data-m="recentline" style="margin:18px 0 0;padding-top:14px;border-top:1px solid #C6BBA3;min-height:1.6em;font-size:10px;letter-spacing:.28em;text-transform:uppercase;color:#6E2A2A">{{ recentLine }}</p>
         </div>
       </section>
@@ -598,6 +624,7 @@
 
       <sc-if value="{{ noWant }}">
         <p style="margin:22px 0 0;font-family:'Cormorant Garamond',Garamond,serif;font-style:italic;font-size:20px;color:#635846">Nothing here yet. Press <em>want</em> on a pick and it lands on this shelf.</p>
+        <img data-m="empty-art" data-illustration="man" src="assets/man.png" width="240" height="200" alt="" aria-hidden="true" />
       </sc-if>
 
       <sc-for list="{{ wantList }}" as="b" hint-placeholder-count="2">
@@ -659,6 +686,7 @@
 
       <sc-if value="{{ noSeries }}">
         <p style="margin:22px 0 0;font-family:'Cormorant Garamond',Garamond,serif;font-style:italic;font-size:20px;color:#635846">No open series — everything you have tracked is finished.</p>
+        <img data-m="empty-art" data-illustration="cafe" src="assets/cafe.png" width="280" height="218" alt="" aria-hidden="true" />
       </sc-if>
 
       <sc-for list="{{ seriesList }}" as="s" hint-placeholder-count="8">
