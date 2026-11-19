@@ -6,7 +6,8 @@ releases across the reader's interests — the Book-a-meter, any genre or topic;
 a fresh install starts with three romance ones — sport romance, romantasy &
 contemporary romance — at up to 12 picks an issue** — for one reader, every 1st of
 the month: fetch → Goodreads reference → filter → OpenRouter curation → build → serve. Five sections — **Home**
-(the reading-now card, the issue line with its progress bar, the month's picks, a row of anticipation countdown cards),
+(the reading-now card, the issue line with its progress bar, the month's picks, the Book-a-meter widget with each
+interest's dial, a row of anticipation countdown cards),
 **My Shelf**, **Series**, **Archive** and **Settings**; on a phone the sections sit in a bar at the bottom of the screen.
 
 ## What's inside

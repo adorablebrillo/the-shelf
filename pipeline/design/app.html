@@ -459,6 +459,36 @@
         </sc-if>
       </section>
 
+      <!-- THS-35 (Home part 3): the Book-a-meter widget — her interests and
+           their dials, read-only, shipped from interests.json by the build.
+           The dials change in Settings, never here; the reads the footer line
+           counts come from the page's own mark state. -->
+      <sc-if value="{{ hasMeter }}">
+      <section aria-label="Your Book-a-meter" data-m="meter" style="margin-top:46px">
+        <div style="display:flex;align-items:baseline;justify-content:space-between;gap:16px;flex-wrap:wrap">
+          <h2 style="font-family:'Cormorant Garamond',Garamond,serif;font-weight:500;font-size:clamp(23px,3vw,32px);letter-spacing:.14em;text-transform:uppercase;margin:0">Book-a-meter</h2>
+          <button type="button" onClick="{{ goSettings }}" style="font-size:10.5px;letter-spacing:.24em;text-transform:uppercase;color:#6E2A2A;border-bottom:1px solid #A8863F;padding:0 0 2px" style-hover="color:#1E3A2F">change in Settings</button>
+        </div>
+        <div style="height:1px;background:#A8863F;margin:14px 0 0"></div>
+        <div style="display:grid;grid-template-columns:1fr;margin-top:4px">
+          <sc-for list="{{ meterRows }}" as="r" hint-placeholder-count="3">
+            <div style="display:flex;align-items:baseline;gap:12px;padding:12px 0;border-bottom:1px solid #E1D8C4">
+              <span style="flex:1;min-width:0;font-family:'Cormorant Garamond',Garamond,serif;font-size:20px;line-height:1.25;{{ r.dim }}">{{ r.label }}</span>
+              <span style="font-size:10px;letter-spacing:.2em;text-transform:uppercase;color:#635846;white-space:nowrap">{{ r.dial }}</span>
+              <span aria-hidden="true" style="display:inline-flex;gap:5px;flex:0 0 auto">
+                <sc-for list="{{ r.dots }}" as="dt" hint-placeholder-count="4">
+                  <span style="{{ dt }}"></span>
+                </sc-for>
+              </span>
+            </div>
+          </sc-for>
+        </div>
+        <sc-if value="{{ meterReason }}">
+        <p style="margin:14px 0 0;font-size:11.5px;letter-spacing:.2em;text-transform:uppercase;color:#635846">{{ meterReason }}</p>
+        </sc-if>
+      </section>
+      </sc-if>
+
       <!-- THS-39 (Home part 1): anticipation becomes a row of countdown
            cards, soonest first. The old hero panel retires; every tracked
            release counts the same. -->
@@ -2415,6 +2445,40 @@ class Component extends DCLogic {
         ...this.grFields(x.b.t,x.s.author,true,x.b.grUrl),
         daysLabel:dd===1?'day':'days'};});
 
+    /* ---- THS-35 (Home part 3): the Book-a-meter widget -------------------
+       Her interests and their dials, from the meter doc the build ships
+       (interests.json — the Book-a-meter). Display only: the dials change in
+       Settings, never here. Four strength dots per dial: off 0, curious 2,
+       into it 3, obsessed 4 — the accepted preview's scale. The footer line
+       counts at render time from her marks, so deciding a book moves the
+       number without a rebuild: how many of the topic-interest books the
+       page knows are read or loved ("reading for a reason"). */
+    const meterInterests=(d.meter&&d.meter.interests)||[];
+    const DIALS=['off','curious','into it','obsessed'];
+    const DIAL_FILL={'off':0,'curious':2,'into it':3,'obsessed':4};
+    const meterRows=meterInterests.map(i=>{
+      const dial=DIALS.includes(i.dial)?i.dial:'into it';
+      const fill=DIAL_FILL[dial];
+      return {label:i.label||'', dial,
+        dim:dial==='off'?'opacity:.55':'',
+        dots:[0,1,2,3].map(k=>({width:'9px',height:'9px',borderRadius:'50%',display:'inline-block',
+          background:k<fill?'#6E2A2A':'#D6CCB6'}))};
+    });
+    const topicNames={};
+    meterInterests.forEach(i=>{ if(i.kind==='topic')topicNames[(i.label||'').toLowerCase()]=1; });
+    let reasonTotal=0, reasonRead=0;
+    picks.forEach(b=>{
+      if(!b.lane||!topicNames[b.lane])return;
+      reasonTotal++;
+      if(S[b.id]==='read'||S[b.id]==='loved')reasonRead++;
+    });
+    const reasonTopics=[];
+    picks.forEach(b=>{ if(b.lane&&topicNames[b.lane]&&reasonTopics.indexOf(b.lane)<0)reasonTopics.push(b.lane); });
+    const meterReason=reasonTotal
+      ?('Reading for a reason: '+reasonRead+' of '+reasonTotal+' '
+        +(reasonTopics.length===1?reasonTopics[0]:'topic')+' book'+(reasonTotal===1?'':'s')+' read')
+      :'';
+
     /* ---- home: the month's picks, open books only ----------------------- */
     const openPicks=(d.books||[]).filter(b=>S[b.id]===undefined);
     /* a reversed resolved book returns to Home here, stamped with its issue */
@@ -2606,6 +2670,9 @@ class Component extends DCLogic {
       /* anticipation — a row of countdown cards */
       hasAnticipations:anticipations.length>0,
       anticipations,
+
+      /* THS-35 (Home part 3): the Book-a-meter widget */
+      hasMeter:meterRows.length>0, meterRows, meterReason,
 
       /* read & loved — past 30 days */
       recentSpines, recentList,
