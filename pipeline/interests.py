@@ -175,20 +175,22 @@ def ensure(log=print):
     return doc
 
 
-def save(doc, log=print):
-    """Write the doc back to the volume (typed interests keep their suggested
-    search words this way). The words already on the volume win: a reader
-    who answers the survey must not lose what the run found."""
-    p = vol_path()
-    try:
-        os.makedirs(os.path.dirname(p), exist_ok=True)
-        doc = _keep_disk_terms(doc)   # before the file is opened: the words
-        with open(p, 'w') as f:       # on the volume are read from it
-            json.dump(doc, f, indent=1)
-        return True
-    except Exception as e:
-        log('interests: could not save (%s): %s' % (p, str(e)[:80]))
-        return False
+def merge_terms(base, other):
+    """The search words of `other` merged into `base`, interest by interest:
+    an interest in `base` with no words of its own takes the words `other`
+    gives it, and words that are already there are never overwritten.
+
+    One rule for the two writers of the file — the run, which adds the words
+    it found, and the reader's own answers — so neither can drop the other's
+    work."""
+    by_id = {i.get('id'): i for i in (base.get('interests') or []) if isinstance(i, dict)}
+    for i in (other.get('interests') or []):
+        if not isinstance(i, dict) or not i.get('terms'):
+            continue
+        old = by_id.get(i.get('id'))
+        if old is not None and not old.get('terms'):
+            old['terms'] = i['terms']
+    return base
 
 
 def save_terms(doc, log=print):
@@ -197,14 +199,7 @@ def save_terms(doc, log=print):
     reader changed while it ran."""
     p = vol_path()
     try:
-        cur = load()
-        by_id = {i.get('id'): i for i in cur.get('interests') or [] if isinstance(i, dict)}
-        for i in doc.get('interests') or []:
-            if not isinstance(i, dict) or not i.get('terms'):
-                continue
-            old = by_id.get(i.get('id'))
-            if old is not None and not old.get('terms'):
-                old['terms'] = i['terms']
+        cur = merge_terms(load(), doc)
         os.makedirs(os.path.dirname(p), exist_ok=True)
         with open(p, 'w') as f:
             json.dump(cur, f, indent=1)
@@ -212,23 +207,6 @@ def save_terms(doc, log=print):
     except Exception as e:
         log('interests: could not save the search words (%s): %s' % (p, str(e)[:80]))
         return False
-
-
-def _keep_disk_terms(doc):
-    """The doc with the volume's search words filled in: an interest the run
-    gave words to keeps them, whatever the doc says."""
-    try:
-        cur = load()
-    except Exception:
-        return doc
-    by_id = {i.get('id'): i for i in cur.get('interests') or [] if isinstance(i, dict)}
-    for i in doc.get('interests') or []:
-        if not isinstance(i, dict):
-            continue
-        old = by_id.get(i.get('id'))
-        if old is not None and old.get('terms') and not i.get('terms'):
-            i['terms'] = old['terms']
-    return doc
 
 
 def name(i):

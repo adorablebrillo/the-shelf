@@ -577,12 +577,18 @@ class SaveTests(unittest.TestCase):
     def _read(self):
         return json.loads(open(interests.vol_path()).read())
 
+    def _write(self, doc):
+        """The file as it stands on the volume (what a writer leaves there)."""
+        os.makedirs(self.dir, exist_ok=True)
+        with open(interests.vol_path(), 'w') as f:
+            json.dump(doc, f, indent=1)
+
     def test_the_runs_save_keeps_the_readers_answers(self):
-        """The run started before the survey answered: its save must not roll
+        """The run started before the reader answered: its save must not roll
         the reader's answers back."""
         doc = interests.defaults()
         doc['interests'][0]['dial'] = 'obsessed'
-        interests.save(doc)
+        self._write(doc)
         run = interests.load()
         run['interests'][0]['terms'] = ['hockey romance']
         interests.save_terms(run)
@@ -590,18 +596,18 @@ class SaveTests(unittest.TestCase):
         self.assertEqual(out['interests'][0]['dial'], 'obsessed')
         self.assertEqual(out['interests'][0]['terms'], ['hockey romance'])
 
-    def test_the_surveys_save_keeps_the_runs_words(self):
-        """The survey writes the same file: the words the run found stay."""
-        doc = interests.defaults()
-        doc['interests'][0]['terms'] = ['hockey romance']
-        interests.save(doc)
-        survey = interests.load()
-        survey['interests'][0]['dial'] = 'curious'
-        del survey['interests'][0]['terms']
-        interests.save(survey)
-        out = self._read()
-        self.assertEqual(out['interests'][0]['dial'], 'curious')
-        self.assertEqual(out['interests'][0]['terms'], ['hockey romance'])
+    def test_the_shared_rule_gives_the_words_of_the_other_writer(self):
+        """One rule for both writers: an interest with no words of its own
+        takes the words the other writer gives it, and words that are already
+        there are never overwritten."""
+        base = {'interests': [{'id': 'baby', 'label': 'Baby development'}]}
+        other = {'interests': [{'id': 'baby', 'label': 'Baby development',
+                                'terms': ['baby development']}]}
+        merged = interests.merge_terms(base, other)
+        self.assertEqual(merged['interests'][0]['terms'], ['baby development'])
+        kept = {'interests': [{'id': 'baby', 'terms': ['kept']}]}
+        interests.merge_terms(kept, other)
+        self.assertEqual(kept['interests'][0]['terms'], ['kept'])
 
 
 
