@@ -48,7 +48,7 @@
      grid only 908px, so 3 tracks need a floor of <=290. */
   [data-m="picksgrid"]{grid-template-columns:repeat(3,minmax(0,1fr))}
   /* Decorative illustrations retain their own space and never obscure copy. */
-  [data-m="shop-art"]{display:block;width:180px;height:152px;object-fit:contain;max-width:100%;margin:0 auto;flex:none}
+  [data-m="shop-art"]{display:block;width:180px;height:152px;object-fit:contain;max-width:100%;min-height:0;margin:8px auto;flex:0 1 152px}
   [data-m="corner-art-row"]{display:flex;align-items:center;gap:16px}
   [data-m="corner-art-row"] [data-m="cornerquote"]{flex:1;min-width:0}
   [data-m="woman-art"]{display:block;width:112px;height:96px;object-fit:contain;flex:none}
@@ -56,15 +56,16 @@
   [data-m="empty-art"]{display:block;object-fit:contain;max-width:100%;margin:16px auto 0}
   [data-illustration="man"]{width:240px;height:200px}
   [data-illustration="cafe"]{width:280px;height:218px}
-  @media (min-width:881px) and (min-height:861px){[data-m="sidepanel"]{gap:8px !important}}
+  @media (min-width:881px) and (min-height:861px){[data-m="sidepanel"]{box-sizing:border-box;gap:8px !important}}
   @media (max-width:880px), (max-height:860px){[data-m="shop-art"]{display:none}}
   @media (max-width:700px){
     [data-m="cornerin"]{position:relative}
+    [data-m="corner"] [data-m="cornerin"]{padding-bottom:10px !important}
     [data-m="cornerin"] [data-m="recentline"]{min-height:1.6em !important}
-    [data-m="cornerin"] > div:first-child{padding-right:72px}
+    [data-m="cornerin"] [data-m="eyebrow"]{max-width:calc(100% - 63px)}
+    [data-m="cornerin"] [data-m="countdown"]{padding-right:0 !important}
     [data-m="corner-art-row"] [data-m="cornerquote"]{margin-right:72px !important}
-    [data-season="christmas"] [data-m="corner-art-row"] [data-m="cornerquote"]{margin-right:0 !important}
-    [data-m="woman-art"]{position:absolute;right:18px;top:26px;width:56px;height:48px}
+    [data-m="woman-art"]{position:absolute;right:9px;top:48px;width:56px;height:48px}
     [data-illustration="man"]{width:220px;height:184px}
     [data-illustration="cafe"]{width:240px;height:187px}
   }
@@ -129,6 +130,9 @@
   }
   @media (max-width:340px){
     [data-m="cornerquote"]{min-height:3.84em !important}
+    [data-season="christmas"] [data-m="cornerin"]{padding-bottom:7px !important}
+    [data-season="christmas"] [data-m="woman-art"]{top:32px}
+    [data-season="christmas"] [data-m="corner-art-row"] [data-m="cornerquote"]{margin:16px 0 0 !important}
   }
   /* #43: the phone nav — the buttons carry width:100% for the sidebar look, so
      the design's row+wrap collapse needs them auto-sized to act as a top row.
