@@ -28,7 +28,7 @@ AUTHORS = os.path.join(CONFIG_DIR, 'authors.json')
 # books she adds herself by search (ticket #84): the "add a book" panel on My
 # Shelf and the Archive writes here; build.py ships them as `added`
 ADDED = os.path.join(CONFIG_DIR, 'added-books.json')
-# the Book-a-meter (THS-37): the reader's interests — the interests, the never
+# the book brew (THS-37): the reader's interests — the interests, the never
 # list, her picks and her season goal. The run reads it; the survey and the
 # Settings tab write it. One file, both front doors.
 INTERESTS = os.path.join(CONFIG_DIR, 'interests.json')
@@ -727,7 +727,7 @@ def added_remove(bid):
     return d['books']
 
 
-# ---- the Book-a-meter: the interests file (THS-37) ----
+# ---- the book brew: the interests file (THS-37) ----
 # The run reads it; the survey and the Settings tab write it. The pipeline's
 # interests module owns the file's shape (the defaults, the dial split, which
 # interests the romance rules hold for) — the server only carries it.
@@ -787,7 +787,7 @@ def interests_split(doc):
 
 
 def interests_payload(doc):
-    """The Book-a-meter for the page: the interests, the never list, her
+    """The book brew for the page: the interests, the never list, her
     picks, her season goal, the survey's shelves — and whether the survey is
     still owed (no surveyed day in the file)."""
     m = _interests()
@@ -801,7 +801,7 @@ def interests_payload(doc):
                      'reading': [{'title': r.get('title') or '', 'author': r.get('author') or ''}
                                  for r in (i.get('reading') or []) if isinstance(r, dict)]})
     return {'v': 1,
-            'name': doc.get('name') or 'Book-a-meter',
+            'name': m.display_name(doc.get('name')),
             'picks': int(doc.get('picks') or 12),
             'never': m.never(doc),
             'season_goal': doc.get('season_goal'),
@@ -830,7 +830,7 @@ def interests_from_body(body):
     longer than the file can hold, every dial and mode one the run knows."""
     m = _interests()
     body = body if isinstance(body, dict) else {}
-    name = _clean(body.get('name') or 'Book-a-meter', 60) or 'Book-a-meter'
+    name = _clean(body.get('name') or m.DEFAULT_NAME, 60) or m.DEFAULT_NAME
     try:
         picks = int(body.get('picks') or 12)
     except Exception:

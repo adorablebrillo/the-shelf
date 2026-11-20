@@ -1,13 +1,13 @@
 # The Shelf
 
-A personal book-curation app: a monthly curated page of new releases across the reader's interests (the Book-a-meter) plus the reader's own library, self-hosted on the reader's server. The public repo ships blank; one reader per install.
+A personal book-curation app: a monthly curated page of new releases across the reader's interests (the book brew) plus the reader's own library, self-hosted on the reader's server. The public repo ships blank; one reader per install.
 
 ## Language
 
 ### Sections
 
 **Home**:
-The landing section and the action surface — the reading-now card at the top (the book she is reading now, or choose your next book), then the month's picks with their issue line, then anything still open from earlier issues, together with the Book-a-meter widget (display only: each interest's dial and the reads its topic books count; it reads interests.json, never edits it), the reading corner, anticipation, read & loved, and series at a glance. On a phone the sections sit in a bar at the bottom of the screen.
+The landing section and the action surface — the reading-now card at the top (the book she is reading now, or choose your next book), then the month's picks with their issue line, then anything still open from earlier issues, together with the book brew widget (display only: each interest's dial and the reads its topic books count; it reads interests.json, never edits it), the reading corner, anticipation, read & loved, and series at a glance. On a phone the sections sit in a bar at the bottom of the screen.
 _Avoid_: dashboard, landing page
 
 **My Shelf**:
@@ -83,11 +83,12 @@ _Avoid_: the lane
 **Stage**:
 The baby's age band a topic interest curates for, one of five: 0–3, 4–6, 7–12, 13–24 and 25–36 months, each with its themes (newborn sleep and feeding, first solids, first words, toddler talk, preschool play). The run works it out from the birth month and year and names it in the curator request; a child past 36 months has no stage, so the interest is curated as a plain topic. A birth the run cannot use — one that does not read as a month and year, or one on a story interest — is named in the run's report, never passed over in silence.
 
-**Book-a-meter**:
-The name of the interests list. It holds the interests, the never list, picks per issue and the season goal; the run makes the file on a first open. A topic interest in it may keep the baby's birth month and year, which the run reads as the stage.
+**The book brew**:
+The name of the interests list, shown as **The book brew** unless the reader types her own name (a file that still says "Book-a-meter", its old name, shows the new one; the file is not rewritten). It holds the interests, the never list, picks per issue and the season goal; the run makes the file on a first open. A topic interest in it may keep the baby's birth month and year, which the run reads as the stage.
+_Avoid_: Book-a-meter (the old name), meter, counter
 
 **Survey**:
-The five-step setup that fills the Book-a-meter: the shelves, the dials, the never list, what she reads now, and the mix with the season goal. It shows while the interests file carries no surveyed day — on a new install, and once on a shelf that already has interests, which come in ticked. Its answers are the interests file the run reads; the Book-a-meter tab changes the same file later. The last step asks the season goal, and skipping it is allowed.
+The five-step setup that fills the book brew: the shelves, the dials, the never list, what she reads now, and the mix with the season goal. It shows while the interests file carries no surveyed day — on a new install, and once on a shelf that already has interests, which come in ticked. Its answers are the interests file the run reads; the book brew tab changes the same file later. The last step asks the season goal, and skipping it is allowed.
 _Avoid_: onboarding quiz, interest wizard
 
 **Reading corner**:
@@ -126,6 +127,6 @@ Authors whose new releases every run looks for.
 
 **Settings is a page, not a sheet.** The old modal (veil, dialog, focus trap, Escape-to-close) is retired; the nav's Settings button renders the page. The same controls, endpoints and tab machinery as the shipped sheet — a page script binds them when the view enters and stops the status poll when it leaves.
 
-**Tabs**: Shelf (key · model · save · curate now · status), Book-a-meter (the interests: one dial and a mode per interest, its reading list with **+ add a book**, the never list, picks per issue — every change saves to interests.json at once, and a book added for an interest is an added book marked reading now), Authors (watched list with interests, add + remove, the empty state) and Import (the Goodreads export file, its preview with series ticks, import). Roving tabindex + arrow keys, as the sheet had.
+**Tabs**: Shelf (key · model · save · curate now · status), The book brew (the interests: one dial and a mode per interest, its reading list with **+ add a book**, the never list, picks per issue — every change saves to interests.json at once, and a book added for an interest is an added book marked reading now), Authors (watched list with interests, add + remove, the empty state) and Import (the Goodreads export file, its preview with series ticks, import). Roving tabindex + arrow keys, as the sheet had.
 
 **Panels use inline `display`, not the `hidden` attribute** — the design runtime drops `hidden` during render, so `display:none` is the only reliable hide inside the dc root.

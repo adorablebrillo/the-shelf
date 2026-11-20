@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """The Shelf — the genre fallback, shared by curate/build/tests.
 
-The run curates the reader's interests (interests.py — the Book-a-meter),
+The run curates the reader's interests (interests.py — the book brew),
 not a fixed lane tuple: a book's interest comes from the search that found
 it. This module is the fallback for books without search provenance (a
 Goodreads reference find, an old month file): it maps a genre to one of the

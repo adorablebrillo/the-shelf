@@ -6,7 +6,7 @@ charts-RSS / Reddit / Goodreads / romance.io fetches all died in 2026; see
 the skill's references/sources-and-fetch.md). Two nets:
 
   · her interests — one query per search word of each active interest in
-                   interests.json (the Book-a-meter); a catalog interest takes
+                   interests.json (the book brew); a catalog interest takes
                    its words from config.json `lane_terms`, a typed interest
                    gets words suggested by the curator once and keeps them
   · author lane  — one query per author: the watched authors the reader keeps
@@ -30,7 +30,7 @@ produced, in the run's window and over the rolling 30 days).
 import json, os, re, sys, time, urllib.request, urllib.parse, html as htmllib
 from datetime import date, datetime, timedelta
 import paths  # shared resolver: reader data lives on the volume (CFG_DIR)
-import interests  # the Book-a-meter: the run searches HER interests
+import interests  # the book brew: the run searches HER interests
 import sequels  # the series her read and loved marks track
 import curate  # only for suggest_terms (a typed interest's search words) and api_key
 
@@ -353,7 +353,7 @@ def main():
     run_lo, run_hi = run_window()
     r30_lo = TODAY - timedelta(days=30)
 
-    # ---- her interests (the Book-a-meter) ----
+    # ---- her interests (the book brew) ----
     # the run makes the interests file on a blank install (from config
     # lane_terms: the three romance interests, each "into it", mode new)
     global INTS

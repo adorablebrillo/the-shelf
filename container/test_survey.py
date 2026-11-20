@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""The Book-a-meter over the server (THS-37 piece 3) — the survey's two
+"""The book brew over the server (THS-37 piece 3) — the survey's two
 doors: what the survey shows (GET /api/interests) and what it saves
 (POST /api/interests). These tests own the intents:
   · a shelf whose file carries no surveyed day owes the survey, and the
@@ -30,7 +30,7 @@ def survey_body(**over):
     """The answers the survey posts: the reader's three romance interests,
     the never list she keeps, 12 picks an issue and no season goal."""
     body = {
-        'name': 'Book-a-meter',
+        'name': 'The book brew',
         'picks': 12,
         'never': ['cowboys'],
         'season_goal': None,
@@ -99,7 +99,7 @@ class SurveySaveTests(unittest.TestCase):
                                    'reading': [{'title': 'Cribsheet', 'author': 'Emily Oster'}]})
         server.interests_save(body)
         raw = json.loads(open(server.INTERESTS).read())
-        self.assertEqual(raw['name'], 'Book-a-meter')
+        self.assertEqual(raw['name'], 'The book brew')
         self.assertEqual(raw['picks'], 12)
         self.assertEqual(raw['never'], ['cowboys'])
         self.assertEqual(raw['season_goal'], 6)

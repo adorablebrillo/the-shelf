@@ -31,7 +31,7 @@ import sequels  # the series her read and loved marks track
 BASE = os.path.dirname(os.path.abspath(__file__))
 ROOT = os.path.dirname(BASE)
 CFG = json.load(open(os.path.join(BASE, 'config.json')))
-INTS = interests.load()  # her Book-a-meter: the names and labels the page shows
+INTS = interests.load()  # her book brew: the names and labels the page shows
 DESIGN = os.path.join(BASE, 'design')
 # In the container the SERVER serves /app/dist (server.py lives at /app).
 # Docker COPY flattens the repo's container/dist -> pipeline/dist symlink, so
@@ -1026,13 +1026,13 @@ def main():
     orphans += [b['title'] for b in book_list if not b.get('id')]
     if orphans:
         print('WARNING: %d books have no identity: %s' % (len(orphans), orphans[:5]))
-    # THS-35 (Home part 3): the Book-a-meter widget on Home reads her interests
+    # THS-35 (Home part 3): the book brew widget on Home reads her interests
     # — label, kind and dial per interest, in the file's order, so the page can
     # show her meter. Display only: the page never edits it, and the reads it
     # counts come from the page's own mark state, so a mark moves the number
     # without a rebuild.
     meter = {
-        'name': INTS.get('name') or interests.DEFAULT_NAME,
+        'name': interests.display_name(INTS.get('name')),
         'interests': [{'label': i.get('label') or interests.name(i),
                        'kind': i.get('kind') or 'story',
                        'dial': i.get('dial') or interests.DEFAULT_DIAL}

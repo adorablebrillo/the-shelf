@@ -52,3 +52,10 @@ height) and reference them from the marked block by **commit-SHA raw URL** —
 Pin the SHA of the commit that adds the files (not a branch name): the images then
 render in the PR immediately and survive branch deletion. Scratch captures stay in
 `captures/`, which is git-ignored.
+
+## Theme
+
+Bookstore coffee shop is the vibe for The Shelf, and everything follows it:
+design, illustrations, naming and user-facing copy. Café words go in names and
+headings (the interests feature is **The book brew**). Buttons and explanations
+stay plain, understandable and accessible.

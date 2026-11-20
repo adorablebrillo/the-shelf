@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
-"""The Book-a-meter widget on Home (THS-35 piece 3) — the build ships her
+"""The book brew widget on Home (THS-35 piece 3) — the build ships her
 interests to the page.
 
-The widget reads interests.json (the Book-a-meter, THS-37 piece 1): label,
+The widget reads interests.json (the book brew, THS-37 piece 1): label,
 kind and dial per interest, in the file's order, so Home shows her meter.
 A blank install (no interests.json) falls back to the three default romance
 interests, each "into it" — the same doc the run reads.
@@ -80,7 +80,8 @@ class MeterDataTests(unittest.TestCase):
                        ]}, f)
         data = self._build()
         meter = data['meter']
-        self.assertEqual(meter['name'], 'Book-a-meter')
+        # the file still carries the old default name: the page shows the new one
+        self.assertEqual(meter['name'], 'The book brew')
         self.assertEqual([i['label'] for i in meter['interests']],
                          ['Baby development', 'Sport romance', 'Fae courts'])
         self.assertEqual(meter['interests'][0],
@@ -88,12 +89,20 @@ class MeterDataTests(unittest.TestCase):
         self.assertEqual(meter['interests'][1]['dial'], 'obsessed')
         self.assertEqual(meter['interests'][2]['dial'], 'off')
 
+    def test_a_custom_name_ships_as_typed(self):
+        with open(os.path.join(self.cfg, 'interests.json'), 'w') as f:
+            json.dump({'v': 1, 'name': 'My taste', 'picks': 12, 'never': [],
+                       'season_goal': None, 'interests': [
+                           {'id': 'sport', 'label': 'Sport romance', 'kind': 'story',
+                            'dial': 'into it', 'romance': True, 'mode': 'new'}]}, f)
+        self.assertEqual(self._build()['meter']['name'], 'My taste')
+
     def test_a_blank_install_ships_the_three_default_dials(self):
         # no interests.json on the volume: the same doc the run reads — the
         # three romance interests the shelf starts with, each "into it"
         data = self._build()
         meter = data['meter']
-        self.assertEqual(meter['name'], 'Book-a-meter')
+        self.assertEqual(meter['name'], 'The book brew')
         self.assertEqual(meter['interests'], [
             {'label': 'Sport romance', 'kind': 'story', 'dial': 'into it'},
             {'label': 'Romantasy', 'kind': 'story', 'dial': 'into it'},
