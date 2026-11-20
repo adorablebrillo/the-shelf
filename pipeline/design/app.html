@@ -1216,12 +1216,15 @@
   /* main scrolls across the whole column, so the wheel works over the margin; the padding keeps the page's own 1060px reading width. */
   html.christmas-active [data-m="main"]{height:calc(100dvh - 110px);overflow-y:auto;box-sizing:border-box;scrollbar-gutter:stable;max-width:none !important}
   @media(min-width:881px){html.christmas-active [data-m="main"]{padding-right:max(48px,calc(100% - 1108px)) !important}}
-  #christmas-play .snow-ledge-wrap{position:fixed;left:276px;right:0;bottom:0;height:110px;z-index:40;pointer-events:none;background:#EDE6D8}
+  /* The ledge is opaque, so it takes taps itself; a tap never reaches a control scrolled behind it. */
+  #christmas-play .snow-ledge-wrap{position:fixed;left:276px;right:0;bottom:0;height:110px;z-index:40;touch-action:pan-y;background:#EDE6D8}
   @media(max-width:880px){
     /* On phones the page scrolls as usual, so the header scrolls away; only the ledge and bottom bar stay fixed. */
     html.christmas-active [data-m="frame"]{height:auto;overflow:visible;padding-bottom:calc(166px + env(safe-area-inset-bottom,0px))}
     html.christmas-active [data-m="main"]{height:auto;overflow:visible;min-height:0;scrollbar-gutter:auto}
     #christmas-play .snow-ledge-wrap{left:0;bottom:calc(56px + env(safe-area-inset-bottom,0px))}
+    /* Keyboard focus and scrollIntoView stop above the ledge and the bottom bar. */
+    html.christmas-active{scroll-padding-bottom:calc(166px + env(safe-area-inset-bottom,0px))}
   }
   #christmas-play .snow-brush-strip{position:absolute;bottom:0;left:0;right:0;height:16px;pointer-events:none}
   #christmas-play .snow-brush-strip.brushing{pointer-events:auto;touch-action:none;cursor:crosshair}
@@ -3535,7 +3538,7 @@ class Component extends DCLogic {
           const card=findCard();
           if(!card)return;
           // A short page needs enough room below the target to align it at the top.
-          // At Christmas the reading area, not the window, is the scroller.
+          // At Christmas on a desktop the reading area is the scroller; on phones the window is.
           const main=document.querySelector('[data-m="main"]'), box=main&&getComputedStyle(main).overflowY==='auto'?main:null;
           const extra=box
             ?Math.max(0,Math.ceil(box.scrollTop+card.getBoundingClientRect().top-box.getBoundingClientRect().top-(box.scrollHeight-box.clientHeight)))

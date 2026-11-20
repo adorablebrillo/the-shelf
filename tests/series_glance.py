@@ -10,8 +10,9 @@ import sys
 from playwright.sync_api import sync_playwright
 
 url = sys.argv[1]
-# At Christmas the reading area scrolls instead of the window, so the card
-# aligns with its top and the refresh check reads its scroll position.
+# At Christmas on a desktop the reading area scrolls instead of the window, so
+# the card aligns with its top and the refresh check reads its scroll position;
+# phones scroll the window as usual.
 AREA = "(() => { const m = document.querySelector('[data-m=\"main\"]'); return m && getComputedStyle(m).overflowY === 'auto' ? m : null; })()"
 with sync_playwright() as p:
     options = {'headless': True}
