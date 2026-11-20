@@ -15,7 +15,7 @@ The Shelf is a self-hosted web app: a Python pipeline (`pipeline/build.py`) buil
    python3 .claude/skills/verify-the-shelf/seed-demo.py <scratch-cfg-dir> "$(pwd)"
    ```
 
-   Writes made-up `library.json`, `sequels.json`, `added-books.json` into the scratch cfg dir and made-up `month-2026-10.json` / `month-2026-11.json` into `pipeline/data/` (git-ignored). A current-month file must carry `"mode": "adhoc"` or the build purges it.
+   Writes made-up `library.json`, `sequels.json`, `added-books.json` into the scratch cfg dir and made-up `month-2026-10.json` / `month-2026-11.json` into `pipeline/data/` (git-ignored). A current-month file must carry `"mode": "adhoc"` or the build purges it. A fresh volume opens on the first-open survey; add `--surveyed` to also write a surveyed `interests.json` (a blank install's defaults, no season goal) when the check starts on Home.
 
 2. Build the page offline (no network lookups at all):
 

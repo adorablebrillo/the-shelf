@@ -17,10 +17,12 @@ Drives the made-up shelf served by verify-the-shelf. It writes reading days and
 marks into the served shelf's `reader-state.json` — and a reading day cannot be
 taken back over the API — so run it against a scratch volume only, never a
 reader's own, and delete `reader-state.json` between runs. Home sits under the
-first-open survey until the interests file has a surveyed day, so the test sets
-that one key in the scratch volume's own interests.json before it starts.
+first-open survey until the interests file has a surveyed day, so seed the
+scratch volume with `seed-demo.py <cfg> <root> --surveyed` before launch; the
+test only confirms the server no longer owes the survey and writes no
+interests.
 
-Run: python3 tests/home_progress.py http://127.0.0.1:8811 <scratch-cfg-dir>
+Run: python3 tests/home_progress.py http://127.0.0.1:8811
 Requires Python Playwright and a locally installed Chromium browser. Set
 CHROME_PATH when Playwright's own Chromium is not installed.
 """
@@ -33,11 +35,8 @@ import urllib.request
 from datetime import date, datetime, timedelta
 
 HERE = os.path.dirname(os.path.abspath(__file__))
-CFG = os.path.abspath(sys.argv[2])   # the served shelf's scratch volume
-os.environ['CFG_DIR'] = CFG          # the pipeline modules read that volume
 sys.path.insert(0, os.path.join(HERE, '..', 'pipeline'))
 from build import SEASONS            # the one season table the page and the corner read
-import interests                     # the one definition of the interests file
 from playwright.sync_api import sync_playwright
 
 URL = sys.argv[1].rstrip('/')
@@ -58,14 +57,8 @@ def get():
 
 def survey_done():
     """Home sits under the first-open survey until the interests file carries
-    a surveyed day. This test drives Home, not the survey, so it sets that one
-    key in the volume's file (the defaults a new install starts from, when
-    there is no file yet) and leaves every other field as it is."""
-    doc = interests.load()
-    if not doc.get('surveyed'):
-        doc['surveyed'] = TODAY.isoformat()
-        with open(os.path.join(CFG, 'interests.json'), 'w') as f:
-            json.dump(doc, f, indent=1)
+    a surveyed day. The fixture sets it before launch (seed-demo --surveyed);
+    the test only reads it back from the server."""
     served = json.loads(urllib.request.urlopen(URL + '/api/interests', timeout=15).read().decode())
     assert served.get('need_survey') is False, 'the server still owes the survey: %r' % (served.get('surveyed'),)
 

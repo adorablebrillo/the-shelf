@@ -3,12 +3,19 @@
 sequels.json, added-books.json into a CFG_DIR of your choice, plus two made-up
 month files into pipeline/data/. Made-up titles only — never the reader's own
 shelf (the public repo ships blank; captures must show no real reader data).
-Usage: python3 .claude/skills/verify-the-shelf/seed-demo.py <scratch-cfg-dir> [repo-root]
+Usage: python3 .claude/skills/verify-the-shelf/seed-demo.py <scratch-cfg-dir> [repo-root] [--surveyed]
+--surveyed also writes the scratch volume's interests.json as a blank install's
+defaults with the survey answered (a surveyed day, no season goal), so the page
+opens straight on Home instead of the first-open survey. Leave it off to
+verify the survey itself.
 """
 import json, os, sys
+from datetime import date
 
-cfg = sys.argv[1]
-root = sys.argv[2] if len(sys.argv) > 2 else os.path.dirname(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))))
+flags = [a for a in sys.argv[1:] if a.startswith('--')]
+args = [a for a in sys.argv[1:] if not a.startswith('--')]
+cfg = args[0]
+root = args[1] if len(args) > 1 else os.path.dirname(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))))
 os.makedirs(cfg, exist_ok=True)
 os.makedirs(os.path.join(root, 'pipeline', 'data'), exist_ok=True)
 
@@ -80,6 +87,15 @@ json.dump({"mode": "adhoc", "top_pick": "p1", "books": [
          ["forbidden", "coach's daughter"], "The league's curfew rule was not written for them.",
          "Spice-forward but the midnight deadline keeps it honest.")
 ]}, open(os.path.join(root, 'pipeline', 'data', 'month-2026-11.json'), 'w'), indent=2)
+
+if '--surveyed' in flags:
+    os.environ['CFG_DIR'] = os.path.abspath(cfg)
+    sys.path.insert(0, os.path.join(root, 'pipeline'))
+    import interests  # the one definition of a blank install's file
+    doc = interests.defaults()
+    doc['surveyed'] = date.today().isoformat()
+    json.dump(doc, open(os.path.join(cfg, 'interests.json'), 'w'), indent=1)
+    print('seeded a surveyed interests.json (defaults, no season goal) into', cfg)
 
 print('seeded made-up shelf into', cfg)
 print('seeded made-up months 2026-10 and 2026-11 (current-month files need "mode": "adhoc")')

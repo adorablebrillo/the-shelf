@@ -29,6 +29,8 @@ Open the served page — Home is the landing section. On a phone (≤880 px) the
 
 ## Gotchas
 
+- A fresh volume opens on the first-open survey, which covers Home. Answer it first, or seed the volume with `seed-demo.py <cfg> <root> --surveyed` before launch to start on Home.
+
 - `finished it` marks read, which files the book read — to undo, use the Archive's read row, not Home.
 - The issue-complete panel above the picks is session state (it shows once per completion, per visit); the kept stamp for the same issue lives in `reader-state.json` under `stamps` and never comes off.
 - A reading day is never a verdict: it travels on its own `days` channel, which the run does not read, and it merges by union — no device can clear another's day.
