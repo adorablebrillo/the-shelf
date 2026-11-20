@@ -60,12 +60,21 @@
   @media (max-width:880px), (max-height:860px){[data-m="shop-art"]{display:none}}
   @media (max-width:700px){
     [data-m="cornerin"]{position:relative}
-    [data-m="corner"] [data-m="cornerin"]{padding-bottom:10px !important}
     [data-m="cornerin"] [data-m="recentline"]{min-height:1.6em !important}
-    [data-m="cornerin"] [data-m="eyebrow"]{max-width:calc(100% - 63px)}
-    [data-m="cornerin"] [data-m="countdown"]{padding-right:0 !important}
-    [data-m="corner-art-row"] [data-m="cornerquote"]{margin-right:72px !important}
-    [data-m="woman-art"]{position:absolute;right:9px;top:48px;width:56px;height:48px}
+    [data-m="woman-art"]{position:absolute;width:56px;height:48px}
+    /* Keep the Christmas reader clear of the lights and countdown. */
+    [data-season="christmas"] [data-m="cornerin"]{padding-bottom:10px !important}
+    [data-season="christmas"] [data-m="eyebrow"]{max-width:calc(100% - 63px)}
+    [data-season="christmas"] [data-m="countdown"]{padding-right:0 !important}
+    [data-season="christmas"] [data-m="corner-art-row"] [data-m="cornerquote"]{margin-right:72px !important}
+    [data-season="christmas"] [data-m="woman-art"]{right:9px;top:48px}
+    /* Other seasons keep the reader in the header and the quote full-width. */
+    [data-m="frame"]:not([data-season="christmas"]) [data-m="cornerin"]{padding:8px 18px !important}
+    [data-m="frame"]:not([data-season="christmas"]) [data-m="woman-art"]{top:8px !important;left:18px !important;right:auto !important}
+    [data-m="frame"]:not([data-season="christmas"]) [data-m="corner-art-row"] [data-m="cornerquote"]{margin:16px 0 0 !important}
+    [data-m="frame"]:not([data-season="christmas"]) [data-m="cornerin"] > div:first-child{min-height:48px !important}
+    [data-m="frame"]:not([data-season="christmas"]) [data-m="recentline"]{margin-top:5px !important;padding-top:4px !important}
+    [data-m="frame"]:not([data-season="christmas"]) [data-m="eyebrow"]{margin-left:72px !important;max-width:calc(100% - 90px) !important}
     [data-illustration="man"]{width:220px;height:184px}
     [data-illustration="cafe"]{width:240px;height:187px}
   }
