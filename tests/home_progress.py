@@ -16,10 +16,11 @@ motion emulated for real, and the seal's own computed style is read back.
 Drives the made-up shelf served by verify-the-shelf. It writes reading days and
 marks into the served shelf's `reader-state.json` — and a reading day cannot be
 taken back over the API — so run it against a scratch volume only, never a
-reader's own, and delete `reader-state.json` between runs. It also marks the
-shelf's interests surveyed, so Home is not under the first-open survey.
+reader's own, and delete `reader-state.json` between runs. Home sits under the
+first-open survey until the interests file has a surveyed day, so the test sets
+that one key in the scratch volume's own interests.json before it starts.
 
-Run: python3 tests/home_progress.py http://127.0.0.1:8811
+Run: python3 tests/home_progress.py http://127.0.0.1:8811 <scratch-cfg-dir>
 Requires Python Playwright and a locally installed Chromium browser. Set
 CHROME_PATH when Playwright's own Chromium is not installed.
 """
@@ -32,8 +33,11 @@ import urllib.request
 from datetime import date, datetime, timedelta
 
 HERE = os.path.dirname(os.path.abspath(__file__))
+CFG = os.path.abspath(sys.argv[2])   # the served shelf's scratch volume
+os.environ['CFG_DIR'] = CFG          # the pipeline modules read that volume
 sys.path.insert(0, os.path.join(HERE, '..', 'pipeline'))
 from build import SEASONS            # the one season table the page and the corner read
+import interests                     # the one definition of the interests file
 from playwright.sync_api import sync_playwright
 
 URL = sys.argv[1].rstrip('/')
@@ -54,15 +58,16 @@ def get():
 
 def survey_done():
     """Home sits under the first-open survey until the interests file carries
-    a surveyed day. This test drives Home, not the survey, so it marks the
-    made-up shelf's own interests surveyed and keeps everything else in them."""
-    doc = json.loads(urllib.request.urlopen(URL + '/api/interests', timeout=15).read().decode())
-    if doc.get('surveyed'):
-        return
-    doc['surveyed'] = TODAY.isoformat()
-    req = urllib.request.Request(URL + '/api/interests', data=json.dumps(doc).encode(),
-                                 headers={'Content-Type': 'application/json'}, method='POST')
-    urllib.request.urlopen(req, timeout=15).read()
+    a surveyed day. This test drives Home, not the survey, so it sets that one
+    key in the volume's file (the defaults a new install starts from, when
+    there is no file yet) and leaves every other field as it is."""
+    doc = interests.load()
+    if not doc.get('surveyed'):
+        doc['surveyed'] = TODAY.isoformat()
+        with open(os.path.join(CFG, 'interests.json'), 'w') as f:
+            json.dump(doc, f, indent=1)
+    served = json.loads(urllib.request.urlopen(URL + '/api/interests', timeout=15).read().decode())
+    assert served.get('need_survey') is False, 'the server still owes the survey: %r' % (served.get('surveyed'),)
 
 
 def wait_for(what, fn, timeout=8.0):
@@ -124,8 +129,11 @@ with sync_playwright() as p:
         now_ms = int(datetime.now().timestamp() * 1000)
         book = ids[0]
 
-        # a known starting point: no mark on the books this run counts
-        post({'states': {i: {'s': None, 't': now_ms} for i in ids[:goal + 2]}})
+        # a known starting point: no mark on the books this run counts. The
+        # book step 3 dates before the season is left out: a newer clear on it
+        # would win over that older mark, and the step would prove nothing.
+        late_id = ids[goal + 1]
+        post({'states': {i: {'s': None, 't': now_ms} for i in ids[:goal + 1]}})
 
         # 1 · one tap on the card logs today, and the button says so
         post({'states': {book: {'s': 'want', 't': now_ms}},
@@ -167,15 +175,16 @@ with sync_playwright() as p:
 
         # 3 · the ring counts the season's own days only
         inside = ids[1:1 + goal - 2]
-        late_id = ids[goal + 1]
         late_ms = int(datetime.combine(out_of_season, datetime.min.time()).timestamp() * 1000)
         post({'states': {i: {'s': 'read', 't': now_ms} for i in inside}})
-        post({'states': {late_id: {'s': 'read', 't': late_ms}}})
+        late = post({'states': {late_id: {'s': 'read', 't': late_ms}}})['states'].get(late_id)
+        assert late == {'s': 'read', 't': late_ms}, \
+            'the server does not hold the read dated %s: %r' % (out_of_season, late)
         page.reload(wait_until='networkidle')
         head = page.locator('[data-m="season"] h2').inner_text().lower()
         assert head == '%d of %d books this season' % (len(inside), goal), \
             'the ring counted a mark dated %s, before the season began: %r' % (out_of_season, head)
-        # the ring's own number is SVG text, so it is read as text, not as a box
+        # the ring's own number, as the page draws it over the ring
         assert page.locator('[data-m="ringdone"]').text_content() == str(len(inside))
         print('ring: %r with one mark dated %s (before the season)'
               % (head, out_of_season), flush=True)
