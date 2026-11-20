@@ -2,6 +2,7 @@
 
 ## Sub-features
 
+- Decorative reader artwork sits in the reading corner. The desktop sidebar shows a bookshop only above 880 px wide and 860 px high.
 - The reading-now card at the top: the book she is reading now (a pick, a series volume, or an added book — the one place an added book shows on Home, never as a pick) with a one-tap **finished it**; when nothing is in progress, **choose your next book** with start buttons from My Shelf.
 - The issue line under the month's picks: `N of M still open · next issue in D days` with a thin progress bar; deciding the last pick presses an issue-complete stamp in, once.
 - The month's picks (lead card + grid), each with its four verdicts; decided picks clear from Home; carry-overs from earlier issues follow.

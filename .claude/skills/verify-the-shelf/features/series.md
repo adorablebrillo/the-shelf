@@ -2,6 +2,7 @@
 
 ## Sub-features
 
+- A café illustration appears below the no-open-series message, or beside the heading when an open series exists (hidden below 380px wide).
 - Every open series, urgency first: out-now first, then soonest coming, then announced.
 - The full run per series: cover strip with volume markers (read ✓ · out ◆ · soon ○ · tba ·), the peek line, tap-to-open verdict rows.
 - `mark <next> read` / `loved it` with an undo until the next mark or view change.

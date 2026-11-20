@@ -803,11 +803,11 @@ def copy_static():
             shutil.copy2(src, dst)
         else:
             print('missing static: %s' % src)
-    # every app icon (adding a size = drop the file + a manifest entry)
+    # Copy local design artwork and app icons into the served assets directory.
     icons = os.path.join(DESIGN, 'assets')
     if os.path.isdir(icons):
         for fn in sorted(os.listdir(icons)):
-            if fn.startswith('app-icon') and fn.endswith('.png'):
+            if fn.endswith('.png'):
                 shutil.copy2(os.path.join(icons, fn), os.path.join(DIST, 'assets', fn))
     for cand in (os.path.join(ROOT, 'assets'), os.path.join(ROOT, '.lavish', 'assets')):
         if os.path.isdir(cand):
