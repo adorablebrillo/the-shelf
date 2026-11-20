@@ -16,7 +16,8 @@ motion emulated for real, and the seal's own computed style is read back.
 Drives the made-up shelf served by verify-the-shelf. It writes reading days and
 marks into the served shelf's `reader-state.json` — and a reading day cannot be
 taken back over the API — so run it against a scratch volume only, never a
-reader's own, and delete `reader-state.json` between runs.
+reader's own, and delete `reader-state.json` between runs. It also marks the
+shelf's interests surveyed, so Home is not under the first-open survey.
 
 Run: python3 tests/home_progress.py http://127.0.0.1:8811
 Requires Python Playwright and a locally installed Chromium browser. Set
@@ -49,6 +50,19 @@ def post(payload):
 
 def get():
     return json.loads(urllib.request.urlopen(API, timeout=15).read().decode())
+
+
+def survey_done():
+    """Home sits under the first-open survey until the interests file carries
+    a surveyed day. This test drives Home, not the survey, so it marks the
+    made-up shelf's own interests surveyed and keeps everything else in them."""
+    doc = json.loads(urllib.request.urlopen(URL + '/api/interests', timeout=15).read().decode())
+    if doc.get('surveyed'):
+        return
+    doc['surveyed'] = TODAY.isoformat()
+    req = urllib.request.Request(URL + '/api/interests', data=json.dumps(doc).encode(),
+                                 headers={'Content-Type': 'application/json'}, method='POST')
+    urllib.request.urlopen(req, timeout=15).read()
 
 
 def wait_for(what, fn, timeout=8.0):
@@ -86,6 +100,8 @@ SEASON_LABEL = (SEASON['key'].capitalize() + ' ' + str(START.year)).lower()
 out_of_season = START - timedelta(days=3)
 rest_week_day = TODAY - timedelta(days=14)      # two Mondays back: one week between
 in_season_gap = rest_week_day >= START
+
+survey_done()
 
 with sync_playwright() as p:
     options = {'headless': True}
