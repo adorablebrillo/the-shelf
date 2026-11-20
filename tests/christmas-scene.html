@@ -58,8 +58,9 @@ async function journey(n){
   assert(Array.from(d.querySelectorAll('[data-slot]')).every(b=>b.textContent.startsWith('Remove')),'Undo did not restore the trees');
   const before=q('#snow-drift').getAttribute('d');q('[data-snow="sweep"]').click();
   assert(q('#snow-drift').getAttribute('d')!==before,'Sweep did not clear a path');
-  root.style.setProperty('--dur-med','0s');q('[data-snow="plough"]').click();
-  assert(q('#snow-status').textContent.includes('ground is clear'),'Reduced-motion plough did not finish immediately');
+  q('[data-snow="plough"]').click();
+  for(let i=0;i<80&&!q('#snow-status').textContent.includes('ground is clear');i++)await wait(100);
+  assert(q('#snow-status').textContent.includes('ground is clear'),'The plough did not finish clearing the ground');
   assert(root.style.getPropertyValue('--snow-frost')===frost,'Plough removed book frost');
   assert(Array.from(d.querySelectorAll('[data-slot]')).every(b=>b.textContent.startsWith('Remove')),'Plough removed trees');
   q('[data-snow="clear"]').click();assert(root.style.getPropertyValue('--snow-frost')==='0px','Clear did not remove frost');

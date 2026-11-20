@@ -1213,7 +1213,9 @@
   #christmas-play .snow-ledge{display:block;width:100%;height:110px;border-bottom:1px solid #8A6C31;touch-action:pan-y}
   /* Reserve the lower page ledge rather than placing the scene after the page. */
   html.christmas-active [data-m="frame"]{height:100dvh;min-height:0 !important;overflow:hidden;box-sizing:border-box}
-  html.christmas-active [data-m="main"]{height:calc(100dvh - 110px);overflow-y:auto;box-sizing:border-box;scrollbar-gutter:stable}
+  /* main scrolls across the whole column, so the wheel works over the margin; the padding keeps the page's own 1060px reading width. */
+  html.christmas-active [data-m="main"]{height:calc(100dvh - 110px);overflow-y:auto;box-sizing:border-box;scrollbar-gutter:stable;max-width:none !important}
+  @media(min-width:881px){html.christmas-active [data-m="main"]{padding-right:max(48px,calc(100% - 1108px)) !important}}
   #christmas-play .snow-ledge-wrap{position:fixed;left:276px;right:0;bottom:0;height:110px;z-index:40;pointer-events:none;background:#EDE6D8}
   @media(max-width:880px){
     html.christmas-active [data-m="frame"]{grid-template-rows:auto minmax(0,1fr);padding-bottom:calc(166px + env(safe-area-inset-bottom,0px))}
@@ -1255,12 +1257,8 @@
   const slots=Array.from(panel.querySelectorAll('[data-slot]'));
   function save(){previous={bins:state.bins.slice(),frost:state.frost,plants:state.plants.slice()};}
   function say(text){status.textContent=text;}
-  function reduced(){
-    if(motion.matches)return true;
-    const style=getComputedStyle(document.documentElement);
-    return ['--dur-med','--dur-slow'].some(k=>{const v=style.getPropertyValue(k).trim();return v!==''&&parseFloat(v)===0;});
-  }
-  function resize(){const d=1; canvas.width=Math.round(innerWidth*d);canvas.height=Math.round(innerHeight*d);ctx.setTransform(d,0,0,d,0,0);}
+  function reduced(){return motion.matches;}
+  function resize(){const d=Math.min(window.devicePixelRatio||1,2); canvas.width=Math.round(innerWidth*d);canvas.height=Math.round(innerHeight*d);ctx.setTransform(d,0,0,d,0,0);}
   function objectScale(){const r=ledge.getBoundingClientRect();return r.width?750*r.height/(110*r.width):1;}
   function paintDrift(){
     let d='M0 110';state.bins.forEach((v,i)=>{d+='L'+(i*10)+' '+(110-v*16);});path.setAttribute('d',d+'L750 110H0Z');
@@ -3535,7 +3533,11 @@ class Component extends DCLogic {
           const card=findCard();
           if(!card)return;
           // A short page needs enough room below the target to align it at the top.
-          const extra=Math.max(0,Math.ceil(window.scrollY+card.getBoundingClientRect().top-(document.documentElement.scrollHeight-window.innerHeight)));
+          // At Christmas the reading area, not the window, is the scroller.
+          const main=document.querySelector('[data-m="main"]'), box=main&&getComputedStyle(main).overflowY==='auto'?main:null;
+          const extra=box
+            ?Math.max(0,Math.ceil(box.scrollTop+card.getBoundingClientRect().top-box.getBoundingClientRect().top-(box.scrollHeight-box.clientHeight)))
+            :Math.max(0,Math.ceil(window.scrollY+card.getBoundingClientRect().top-(document.documentElement.scrollHeight-window.innerHeight)));
           this.setState({seriesExtra:extra},()=>{
             /* THS-43: the room added below can reach the layout a beat after this
                callback, and a scroll made then stops short of the top. Scroll,

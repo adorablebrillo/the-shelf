@@ -30,7 +30,7 @@ Open the served page — Home is the landing section. On a phone (≤880 px) the
 - Tap a series at a glance and confirm its card reaches the top of Series. Scroll elsewhere and wait through the 6.5-second refresh; the page must not jump back. Check at phone and desktop widths.
 - Geometry: the reading card and the issue line must sit above the phone's bottom bar; measure with `eval` IIFEs over `getBoundingClientRect` (see SKILL.md's Drive).
 
-- For the repeatable Christmas journey, start `python3 tests/christmas-proxy.py` beside the made-up Shelf server, open `http://127.0.0.1:8812/journey`, and run ten journeys. Stop the proxy afterward.
+- For the repeatable Christmas journey, start `python3 tests/christmas-proxy.py` beside the made-up Shelf server, open `http://127.0.0.1:8812/journey`, and run ten journeys. Stop the proxy afterward. With Playwright, `python3 tests/christmas_reduced_motion.py <url>` checks the reduced-motion plough, and `python3 tests/series_glance.py <url>` checks opening a series from Home; at Christmas the reading area, not the window, scrolls, so check a 1440 px width too.
 - At Christmas, follow the page to the lower snow ledge. Plant all three trees, remove one and undo. Sweep, plough and clear; plough retains frost and trees, while clear removes frost but retains trees. Pause and turn effects off; confirm navigation and verdicts still work.
 - Check the reserved drift strip with brush mode on and off. Compare the 120-second drift and frost caps, then check a hidden page and reduced motion. The effects preference persists on the device; trees and snow do not persist after closing the page.
 

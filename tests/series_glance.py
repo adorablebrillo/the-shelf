@@ -10,6 +10,9 @@ import sys
 from playwright.sync_api import sync_playwright
 
 url = sys.argv[1]
+# At Christmas the reading area scrolls instead of the window, so the card
+# aligns with its top and the refresh check reads its scroll position.
+AREA = "(() => { const m = document.querySelector('[data-m=\"main\"]'); return m && getComputedStyle(m).overflowY === 'auto' ? m : null; })()"
 with sync_playwright() as p:
     options = {'headless': True}
     if os.environ.get('CHROME_PATH'):
@@ -23,13 +26,13 @@ with sync_playwright() as p:
             page.get_by_role('region', name='Series at a glance').get_by_role('button', name=name).click()
             target = page.locator('[data-m="scard"]').filter(has=page.get_by_text(name, exact=True))
             target.wait_for()
-            page.wait_for_function("name => { const card = [...document.querySelectorAll('[data-m=\"scard\"]')].find(e => e.textContent.includes(name)); return card && Math.abs(card.getBoundingClientRect().top) < 2; }", arg=name, timeout=3000)
-            top = target.evaluate('(e) => e.getBoundingClientRect().top')
+            page.wait_for_function("([name, area]) => { const card = [...document.querySelectorAll('[data-m=scard]')].find(e => e.textContent.includes(name)); return card && Math.abs(card.getBoundingClientRect().top - (eval(area) ? eval(area).getBoundingClientRect().top : 0)) < 2; }", arg=[name, AREA], timeout=3000)
+            top = target.evaluate('(e, area) => e.getBoundingClientRect().top - (eval(area) ? eval(area).getBoundingClientRect().top : 0)', AREA)
             print(f'{width}: {name} top={top:.1f}', flush=True)
             assert abs(top) < 2, f'{name} did not reach the top: {top}'
-            page.evaluate('window.scrollTo(0, 0)')
+            page.evaluate('area => { const a = eval(area); if (a) a.scrollTop = 0; else window.scrollTo(0, 0); }', AREA)
             page.wait_for_timeout(7000)
-            assert page.evaluate('window.scrollY') == 0, 'periodic refresh repeated the scroll'
+            assert page.evaluate('area => { const a = eval(area); return a ? a.scrollTop : window.scrollY; }', AREA) == 0, 'periodic refresh repeated the scroll'
             page.close()
     finally:
         browser.close()
