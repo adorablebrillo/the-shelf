@@ -4,7 +4,7 @@ Serves the built page, holds settings (OpenRouter key, model), schedules the
 monthly run (1st, 09:00), exposes a small JSON API used by the in-page
 Settings pane. Pure stdlib — no pip installs."""
 import json, os, re, shutil, glob, sys, subprocess, tempfile, threading, time, urllib.request
-from contextlib import nullcontext
+from contextlib import contextmanager, nullcontext
 from datetime import datetime
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from urllib.parse import urlparse, parse_qs, urlencode
@@ -365,7 +365,11 @@ class H(BaseHTTPRequestHandler):
             # verdict now fires two posts (states + reading) at once, and a
             # check-in can post its reading day beside them
             dropped = 0
-            with STATE_LOCK:
+            stamps_in = body.get('stamps') if isinstance(body.get('stamps'), dict) else {}
+            season_in = any(isinstance(k, str) and k.startswith('season:') for k in stamps_in)
+            # a season stamp is checked against her goal under the goal's own
+            # lock, so no goal save lands between the check and the write
+            with (interests_locked() if season_in else nullcontext()), STATE_LOCK:
                 cur = load_state()
                 cur['states'] = merge_states(cur.get('states'), body.get('states') or {})
                 # #57: the reading channel — its own map beside the marks, merged
@@ -386,8 +390,10 @@ class H(BaseHTTPRequestHandler):
                 # mark: per key, newest write wins, and both devices' stamps
                 # add up.
                 if 'stamps' in body:
-                    cur['stamps'], sd = merge_stamps(cur.get('stamps'), body.get('stamps'))
-                    dropped += sd
+                    incoming, held = season_checked(cur.get('stamps'), body.get('stamps'),
+                                                    body.get('season_goal'))
+                    cur['stamps'], sd = merge_stamps(cur.get('stamps'), incoming)
+                    dropped += sd + held
                 save_state(cur)
             live = [k for k, v in cur['states'].items() if isinstance(v, dict) and v.get('s')]
             gone = [k for k, v in cur['states'].items() if isinstance(v, dict) and v.get('s') is None]
@@ -921,9 +927,43 @@ def interests_payload(doc):
 
 
 # The survey, the book brew tab and Home's goal question all write
-# interests.json; one lock makes each read-change-write whole, so no writer
-# saves over a field another one just changed.
+# interests.json, and so does the run (its search words); one lock makes each
+# read-change-write whole, so no writer saves over a field another one just
+# changed. The thread lock orders this server's writers; the file lock
+# (pipeline interests.locked) orders them against the run's process.
 INTERESTS_LOCK = threading.Lock()
+
+
+@contextmanager
+def interests_locked():
+    with INTERESTS_LOCK, _interests().locked(INTERESTS):
+        yield
+
+
+def season_checked(kept, incoming, goal):
+    """A season stamp is kept for good, so a new one is accepted only with
+    the goal the page checked it against, and only when that goal is still
+    the one she gave (the survey answered, the goal set). The caller holds
+    interests_locked(). Returns (stamps to merge, season stamps held back)."""
+    if not isinstance(incoming, dict):
+        return incoming, 0
+    kept = kept if isinstance(kept, dict) else {}
+    doc = load_interests()
+    raw = doc.get('season_goal') if doc.get('surveyed') else None
+    try:
+        mine = None if raw is None or isinstance(raw, bool) else int(str(raw).strip())
+    except ValueError:
+        mine = None
+    ok = (mine is not None and 1 <= mine <= 365
+          and isinstance(goal, int) and not isinstance(goal, bool) and goal == mine)
+    out, held = {}, 0
+    for k, v in incoming.items():
+        if (isinstance(k, str) and k.startswith('season:') and not ok
+                and not (kept.get(k) or {}).get('s')):
+            held += 1
+            continue
+        out[k] = v
+    return out, held
 
 
 def interests_save(body):
@@ -934,7 +974,7 @@ def interests_save(body):
     does not); the survey stamps the day it was answered and another writer
     leaves the old date alone. Returns the saved doc."""
     body = body if isinstance(body, dict) else {}
-    with INTERESTS_LOCK:
+    with interests_locked():
         cur = load_interests()
         ans = interests_from_body(body)
         old = {i.get('id'): i for i in (cur.get('interests') or []) if isinstance(i, dict)}
@@ -965,7 +1005,7 @@ def interests_set_season_goal(body):
         return None, 'Choose how many books this season.'
     if n < 1 or n > 365:
         return None, 'A season goal is from 1 to 365 books.'
-    with INTERESTS_LOCK:
+    with interests_locked():
         doc = load_interests()
         doc['season_goal'] = n
         save_interests(doc)

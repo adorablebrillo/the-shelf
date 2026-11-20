@@ -491,7 +491,7 @@
                 <button type="button" onClick="{{ goalLess }}" disabled="{{ goalLessOff }}" aria-label="fewer books this season" style="{{ goalBtn }}">&minus;</button>
                 <output data-m="goaldraft" aria-live="polite" style="min-width:2.2em;text-align:center;font-family:'Cormorant Garamond',Garamond,serif;font-size:24px;color:#2B2118">{{ goalDraft }}</output>
                 <button type="button" onClick="{{ goalMore }}" disabled="{{ goalMoreOff }}" aria-label="more books this season" style="{{ goalBtn }}">+</button>
-                <button type="button" data-m="goalset" onClick="{{ goalSave }}" style="{{ goalSetBtn }}">set my goal</button>
+                <button type="button" data-m="goalset" onClick="{{ goalSave }}" disabled="{{ goalSaving }}" style="{{ goalSetBtn }}">set my goal</button>
               </div>
               <sc-if value="{{ goalMsg }}"><p role="status" style="margin:8px 0 0;font-size:12px;color:#6E2A2A">{{ goalMsg }}</p></sc-if>
             </div>
@@ -520,7 +520,7 @@
         <button type="button" onClick="{{ goalLess }}" disabled="{{ goalLessOff }}" aria-label="fewer books this season" style="{{ goalBtn }}">&minus;</button>
         <output data-m="goaldraft" aria-live="polite" style="min-width:2.2em;text-align:center;font-family:'Cormorant Garamond',Garamond,serif;font-size:24px;color:#2B2118">{{ goalDraft }}</output>
         <button type="button" onClick="{{ goalMore }}" disabled="{{ goalMoreOff }}" aria-label="more books this season" style="{{ goalBtn }}">+</button>
-        <button type="button" data-m="goalset" onClick="{{ goalSave }}" style="{{ goalSetBtn }}">set my goal</button>
+        <button type="button" data-m="goalset" onClick="{{ goalSave }}" disabled="{{ goalSaving }}" style="{{ goalSetBtn }}">set my goal</button>
       </div>
       <sc-if value="{{ goalMsg }}"><p role="status" style="margin:8px 0 0;font-size:12px;color:#6E2A2A">{{ goalMsg }}</p></sc-if>
     </div>
@@ -2665,15 +2665,18 @@ class Component extends DCLogic {
      started meanwhile — an older answer never replaces a newer one. */
   loadGoal(){
     if(typeof fetch==='undefined')return Promise.resolve(null);
-    const seq=this._goalSeq=(this._goalSeq||0)+1;
+    /* a save of her goal outranks a read: a read that a save overlaps is
+       dropped, its answer and its failure alike */
+    const seq=this._goalSeq=(this._goalSeq||0)+1, saves=this._goalSaves||0;
+    const stale=()=>seq!==this._goalSeq||this._goalSaving||(this._goalSaves||0)!==saves;
     return fetch('/api/interests').then(r=>r.ok?r.json():Promise.reject(r.status)).then(j=>{
-      if(seq!==this._goalSeq)return null;
+      if(stale())return null;
       const n=goalOfBrew(j&&j.season_goal), owed=!j||j.need_survey!==false;
       const g={n, live:true, confirmed:!owed&&n!==null, ask:!owed&&n===null};
       this.setState({goal:g});
       return g;
     }).catch(()=>{
-      if(seq===this._goalSeq){
+      if(!stale()){
         clearTimeout(this._goalRetry);
         this._goalRetry=setTimeout(()=>{this.loadGoal().then(g=>{if(g)this.pressStamps(false,g);});},20000);
       }
@@ -2681,10 +2684,11 @@ class Component extends DCLogic {
     });
   }
   saveGoal(){
+    if(this._goalSaving)return;                    // one save at a time
     const n=goalOfBrew(this.state.goalDraft);
     if(!n)return;
-    const seq=this._goalSeq=(this._goalSeq||0)+1;
-    this.setState({goalMsg:'Saving\u2026'});
+    this._goalSaving=true; this._goalSaves=(this._goalSaves||0)+1;
+    this.setState({goalMsg:'Saving\u2026', goalSaving:true});
     fetch('/api/interests/season-goal',{method:'POST',headers:{'Content-Type':'application/json'},
       body:JSON.stringify({season_goal:n})})
      .then(r=>r.json().then(j=>({ok:r.ok,j})))
@@ -2692,12 +2696,12 @@ class Component extends DCLogic {
        if(!ok||!j||j.error){this.setState({goalMsg:(j&&j.error)||'The shelf server could not save your goal.'});return;}
        const sn=goalOfBrew(j.season_goal);
        const g={n:sn, live:true, confirmed:sn!==null, ask:sn===null};
-       this.setState({goalMsg:''});
-       if(seq!==this._goalSeq)return;
-       this.setState({goal:g});
+       this._goalSeq=(this._goalSeq||0)+1;          // every read in flight is older
+       this.setState({goal:g, goalMsg:''});
        setTimeout(()=>{try{this.pressStamps(true,g);}catch(e){}},0);
      })
-     .catch(()=>this.setState({goalMsg:'The shelf server did not answer \u2014 nothing was saved.'}));
+     .catch(()=>this.setState({goalMsg:'The shelf server did not answer \u2014 nothing was saved.'}))
+     .then(()=>{this._goalSaving=false; this.setState({goalSaving:false});});
   }
   /* `checked` is a goal the server has just answered. A season stamp is kept
      for good, so it is pressed only against such a goal, and only one she
@@ -2705,9 +2709,11 @@ class Component extends DCLogic {
   pressStamps(celebrate,checked){
     const cur=this.state.stamps||{};
     let fresh=this.stampCandidates(checked).filter(c=>!cur[c.key]);
-    if(fresh.some(c=>c.season)&&!(checked&&checked.confirmed)){
-      if(!checked)this.loadGoal().then(g=>{if(g)try{this.pressStamps(celebrate,g);}catch(e){}});
-      fresh=fresh.filter(c=>!c.season);
+    const season=fresh.filter(c=>c.season);
+    fresh=fresh.filter(c=>!c.season);
+    if(season.length){
+      if(checked&&checked.confirmed)this.keepSeason(season,checked,celebrate);
+      else if(!checked)this.loadGoal().then(g=>{if(g)try{this.pressStamps(celebrate,g);}catch(e){}});
     }
     if(!fresh.length)return;
     const now=Date.now(), next={...cur}, delta={};
@@ -2716,6 +2722,37 @@ class Component extends DCLogic {
     this.persist(undefined,undefined,undefined,undefined,next);
     this.syncChannel('stamps',delta);
     if(celebrate)this.confetti();
+  }
+  /* A season stamp goes straight to the server with the goal it was checked
+     against, and shows as kept only once the server keeps it: the server
+     checks that goal under the same lock as a goal save. It never waits in
+     the outbox, so no retry can send it later against a changed goal. */
+  keepSeason(cands,checked,celebrate){
+    if(typeof fetch==='undefined')return;
+    if(this._seasonKeeping){this._seasonAgain=celebrate||!!this._seasonAgain; return;}
+    const t=Date.now(), delta={};
+    cands.forEach(c=>{delta[c.key]={s:true,t};});
+    this._seasonKeeping=true;
+    fetch('/api/state',{method:'POST',headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({stamps:delta, season_goal:checked.n})})
+     .then(r=>r.ok?r.json():Promise.reject(r.status))
+     .then(j=>{
+       const rem=(j&&j.stamps)||{}, kept=Object.keys(delta).filter(k=>(rem[k]||{}).s);
+       if(!kept.length)return;
+       const next={...(this.state.stamps||{})};
+       kept.forEach(k=>{next[k]={s:true,t:Number(rem[k].t)||t};});
+       this.setState({stamps:next, justStamp:kept});
+       this.persist(undefined,undefined,undefined,undefined,next);
+       if(celebrate)this.confetti();
+     })
+     .catch(()=>{})
+     .then(()=>{
+       this._seasonKeeping=false;
+       if(this._seasonAgain!==undefined){         // a press came while this one ran
+         const c=this._seasonAgain; this._seasonAgain=undefined;
+         this.loadGoal().then(g=>{if(g)try{this.pressStamps(c,g);}catch(e){}});
+       }
+     });
   }
   verdictRow(id,title,opts){
     opts=opts||{};
@@ -3001,7 +3038,12 @@ class Component extends DCLogic {
         if(rt>lt){ ls[k]={s:!!r.s,t:rt}; }
         else if(lt>rt){ upS[k]=ls[k]; }
       });
-      Object.keys(ls).forEach(k=>{ if(!(k in remS)&&!upS[k])upS[k]=ls[k]; });
+      Object.keys(ls).forEach(k=>{
+        if(k in remS||upS[k])return;
+        /* a season stamp the server never kept is not hers: drop it, never send it */
+        if(k.indexOf('season:')===0){delete ls[k]; return;}
+        upS[k]=ls[k];
+      });
       this.setState({states:st, ts, reading:rd, days:ld, stamps:ls, sync:'ok'});
       this.persist(st,ts,rd,ld,ls);
       if(Object.keys(up).length)this.sync(up); else this.flushOutbox();
@@ -3116,12 +3158,13 @@ class Component extends DCLogic {
     this._imp=()=>{ this.loadAdded(); this.pull(); };
     if(typeof window!=='undefined')window.addEventListener('shelf:imported',this._imp);
     /* the survey and the book brew tab save her goal: read it again */
-    this.loadGoal();
+    this._goalStamps=()=>this.loadGoal().then(g=>{if(g)try{this.pressStamps(false,g);}catch(e){}});
+    this._goalStamps();
     this._goal=()=>this.loadGoal().then(g=>{if(g)try{this.pressStamps(true,g);}catch(e){}});
     if(typeof window!=='undefined')window.addEventListener('shelf:interests',this._goal);
     this._s=setInterval(()=>this.flushOutbox(),20000);
     if(typeof document!=='undefined')document.addEventListener('visibilitychange',()=>{
-      if(!document.hidden){this.flushOutbox(); this.pull(); this.loadGoal();}});
+      if(!document.hidden){this.flushOutbox(); this.pull(); this._goalStamps();}});
   }
   componentWillUnmount(){ if(this._imp&&typeof window!=='undefined')window.removeEventListener('shelf:imported',this._imp); if(this._goal&&typeof window!=='undefined')window.removeEventListener('shelf:interests',this._goal); clearTimeout(this._goalRetry); clearInterval(this._t); clearInterval(this._s); clearTimeout(this._m); if(this._mq&&this._mqListener)this._mq.removeEventListener('change',this._mqListener); }
 
@@ -3783,7 +3826,7 @@ class Component extends DCLogic {
       goalAsk, goalDraft, goalMsg:this.state.goalMsg||'', goalBtn,
       goalSetBtn:{...goalBtn,background:'#2B2118',color:'#F3EDE1',borderColor:'#2B2118'},
       goalLess:goalStep(-1), goalMore:goalStep(1), goalSave:()=>this.saveGoal(),
-      goalLessOff:goalDraft<=1, goalMoreOff:goalDraft>=60,
+      goalLessOff:goalDraft<=1, goalMoreOff:goalDraft>=60, goalSaving:!!this.state.goalSaving,
 
       /* the stamps she keeps */
       hasStamps:stampList.length>0, stamps:stampList, stampCount,

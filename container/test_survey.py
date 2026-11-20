@@ -18,7 +18,9 @@ paths at import time), so the suite runs against a throwaway volume.
 import json
 import os
 import tempfile
+import threading
 import unittest
+from unittest import mock
 
 TMP = tempfile.mkdtemp(prefix='shelf-interests-test-')
 os.environ['CFG_DIR'] = TMP
@@ -208,6 +210,33 @@ class HomeSeasonGoalTests(unittest.TestCase):
         server.interests_set_season_goal({'season_goal': 8})
         server.interests_save(survey_body(season_goal=None))
         self.assertIsNone(json.loads(open(server.INTERESTS).read())['season_goal'])
+
+    def test_the_runs_save_waits_for_the_servers_writers(self):
+        """The run's search-word save is another process in production: it
+        waits for the same lock as the server's writers and then reads the
+        file again, so a goal Home saved meanwhile is not rolled back."""
+        m = server._interests()
+        # the run finds the file from CFG_DIR, as the server does; other test
+        # modules point CFG_DIR elsewhere when the whole suite runs
+        env = mock.patch.dict(os.environ, {'CFG_DIR': server.CONFIG_DIR})
+        env.start()
+        self.addCleanup(env.stop)
+        run_doc = m.load()   # what the run read when it started
+        for i in run_doc['interests']:
+            if i['id'] == 'sport':
+                i['terms'] = ['sports romance']
+        done = threading.Event()
+        with server.interests_locked():
+            t = threading.Thread(target=lambda: (m.save_terms(run_doc, log=lambda *a: None), done.set()))
+            t.start()
+            self.assertFalse(done.wait(0.4), 'the run wrote while the server held the lock')
+            doc = server.load_interests()
+            doc['season_goal'] = 8
+            server.save_interests(doc)
+        self.assertTrue(done.wait(5))
+        raw = json.loads(open(server.INTERESTS).read())
+        self.assertEqual(raw['season_goal'], 8)
+        self.assertEqual([i.get('terms') for i in raw['interests'] if i['id'] == 'sport'], [['sports romance']])
 
     def test_an_impossible_goal_is_refused_and_nothing_is_written(self):
         before = open(server.INTERESTS).read()

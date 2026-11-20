@@ -6,7 +6,10 @@ if skipped." The number the survey saves fills the ring straight away, with no
 new run of the shelf; a survey that skipped the number leaves Home to ask it,
 and the answer from Home is saved and kept. A season stamp is kept for good,
 so none is pressed while the survey is still owed, while Home still asks, or
-against a goal another device has since raised. On a phone the question sits
+against a goal another device has since raised — not when the goal read
+fails, nor when the goal changes while the stamp is on its way to the server.
+A save of her goal outranks a goal read that overlaps it, and a double click
+saves once. On a phone the question sits
 under the issue line, so the reading-now card and the issue line keep the
 first screen.
 
@@ -56,6 +59,24 @@ def no_season_stamp(page, why):
     then the server must still hold no season stamp."""
     page.wait_for_timeout(2500)
     assert season_stamps() == [], '%s: %r' % (why, season_stamps())
+
+
+def page_season_stamps(page):
+    """The season stamps the page itself holds as kept (its stored state,
+    which the stamp row draws)."""
+    return page.evaluate("""() => { const m = JSON.parse(localStorage.getItem('shelf.marks') || '{}');
+      return Object.keys(m.stamps || {}).filter(k => k.startsWith('season:') && m.stamps[k].s); }""")
+
+
+def tab_return(page):
+    page.evaluate("() => document.dispatchEvent(new Event('visibilitychange'))")
+
+
+def wait_for(page, cond, why, secs=8):
+    end = time.time() + secs
+    while not cond():
+        assert time.time() < end, why
+        page.wait_for_timeout(100)
 
 
 def read_marks(ids):
@@ -120,8 +141,17 @@ with sync_playwright() as p:
 
     # 3 · a phone left open at 8 while another device raises the goal to 9:
     #     two more books meet the phone's old 8, and no stamp is kept
+    #     First the phone opens while its goal reads fail: the six books meet
+    #     the plan's six, and still no stamp; back on the tab, the read works
     phone = browser.new_page(viewport={'width': 390, 'height': 844})
+    reads_fail = [True]
+    phone.route('**/api/interests', lambda route: route.abort()
+                if reads_fail[0] and route.request.method == 'GET' else route.fallback())
     phone.goto(URL + '/', wait_until='networkidle')
+    no_season_stamp(phone, 'a stamp was kept when the goal read failed')
+    assert page_season_stamps(phone) == []
+    reads_fail[0] = False
+    tab_return(phone)
     expect(ring_goal(phone)).to_have_text('of 8')
     assert api('/api/interests/season-goal', {'season_goal': 9})['season_goal'] == 9
     read_marks(ids[7:9])
@@ -158,24 +188,76 @@ with sync_playwright() as p:
     assert fit['readnow'] <= fit['bar'] and fit['line'] <= fit['bar'], fit
     assert fit['ask'] >= fit['line'], fit
 
-    # 6 · she answers on the phone: 5 books, saved, the question gone, and
-    #     her eight books now meet her own goal, so the stamp is kept
+    # 6 · she answers on the phone: 5 books. The network is out of order on
+    #     purpose: a goal read from before the save comes back after it, a
+    #     read made during the save comes back first, and she double-clicks
     surveyed = brew()['surveyed']
+    held = {}
+
+    def hold_read(route):
+        if route.request.method == 'GET' and 'read' not in held and 'open' not in held:
+            held['read'] = (route, route.fetch())       # the server's answer now: no goal
+        else:
+            route.continue_()
+
+    def hold_save(route):
+        if 'open' in held:
+            return route.continue_()
+        held.setdefault('saves', []).append(route)
+
+    def hold_stamp(route):
+        if (route.request.method == 'POST' and 'season_goal' in (route.request.post_data or '')
+                and 'stamp' not in held and 'open' not in held):
+            held['stamp'] = route
+        else:
+            route.continue_()
+
+    phone.route('**/api/interests', hold_read)
+    tab_return(phone)                                                       # read A, held
+    wait_for(phone, lambda: 'read' in held, 'the page made no goal read on the tab return')
+    phone.route('**/api/interests/season-goal', hold_save)
+    phone.route('**/api/state', hold_stamp)
     ask.get_by_role('button', name='fewer books this season').click()       # 6 → 5
     expect(ask.locator('[data-m="goaldraft"]')).to_have_text('5')
-    ask.get_by_role('button', name='set my goal').click()
+    ask.get_by_role('button', name='set my goal').dblclick()
+    wait_for(phone, lambda: held.get('saves'), 'the page sent no goal save')
+    tab_return(phone)                                                       # read B, during the save
+    phone.wait_for_timeout(1500)
+    assert len(held['saves']) == 1, 'a double click saved %d times' % len(held['saves'])
+    held['saves'][0].continue_()
+    expect(phone.locator('[data-m="goalask"]')).to_have_count(0)
+    expect(ring_goal(phone)).to_have_text('of 5')
+    route, answer = held['read']
+    route.fulfill(response=answer)                                          # read A lands last
+    phone.wait_for_timeout(1500)
     expect(phone.locator('[data-m="goalask"]')).to_have_count(0)
     expect(ring_goal(phone)).to_have_text('of 5')
     saved = brew()
     assert saved['season_goal'] == 5 and saved['surveyed'] == surveyed, saved
-    end = time.time() + 8
-    while not season_stamps() and time.time() < end:
-        time.sleep(0.2)
-    assert len(season_stamps()) == 1, 'no season stamp at her own goal: %r' % season_stamps()
+
+    # 7 · her eight books meet 5, so the page sends the stamp; another device
+    #     raises the goal to 20 before it arrives: the server keeps no stamp,
+    #     and the page does not show one
+    wait_for(phone, lambda: 'stamp' in held, 'the page sent no season stamp at her goal')
+    assert api('/api/interests/season-goal', {'season_goal': 20})['season_goal'] == 20
+    held['stamp'].continue_()
+    phone.wait_for_timeout(2500)
+    assert season_stamps() == [], 'a stamp was kept at a goal changed on its way: %r' % season_stamps()
+    assert page_season_stamps(phone) == [], 'the page shows a stamp the server refused'
+
+    # 8 · the goal goes back to 5; back on the tab the stamp is kept, on the
+    #     server and on the page, and both survive a reload
+    assert api('/api/interests/season-goal', {'season_goal': 5})['season_goal'] == 5
+    tab_return(phone)
+    wait_for(phone, lambda: len(season_stamps()) == 1, 'no season stamp at her own goal: %r' % season_stamps())
+    wait_for(phone, lambda: len(page_season_stamps(phone)) == 1, 'the page does not show the kept stamp')
+    held['open'] = True                                                      # the network in order again
     phone.reload(wait_until='networkidle')
     expect(ring_goal(phone)).to_have_text('of 5')
     expect(phone.locator('[data-m="goalask"]')).to_have_count(0)
+    assert page_season_stamps(phone) == season_stamps()
     browser.close()
 
 print('ok: the saved goal counts at once; a skipped goal is asked and kept on Home; '
-      'no stamp at an owed, asked or raised goal; the phone keeps its first screen')
+      'no stamp at an owed, asked or raised goal, a failed read or a goal changed on the '
+      "stamp's way; a save outranks overlapping reads and saves once; the phone keeps its first screen")

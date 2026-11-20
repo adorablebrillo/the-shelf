@@ -229,11 +229,45 @@ class KeptStampApiTests(unittest.TestCase):
     def _get(self):
         return json.loads(urllib.request.urlopen(self.url, timeout=5).read().decode())
 
+    def _goal(self, n, surveyed='2026-11-01'):
+        doc = server.load_interests()
+        doc['season_goal'], doc['surveyed'] = n, surveyed
+        server.save_interests(doc)
+
     def test_a_season_stamp_earned_on_one_device_shows_on_the_other(self):
-        self._post({'stamps': {'season:christmas:2026': {'s': True, 't': 11}}})
+        self._goal(6)
+        self._post({'stamps': {'season:christmas:2026': {'s': True, 't': 11}}, 'season_goal': 6})
         j = self._post({'stamps': {'issue:2': {'s': True, 't': 12}}})
         self.assertEqual(sorted(j['stamps']), ['issue:2', 'season:christmas:2026'])
         self.assertEqual(json.load(open(server.STATE))['stamps']['season:christmas:2026']['s'], True)
+
+    def test_a_season_stamp_checked_against_an_older_goal_is_not_kept(self):
+        """The page checked 6, but another device raised the goal to 8 before
+        the stamp arrived: the server holds it back, and the issue stamp in
+        the same post is still kept."""
+        self._goal(8)
+        j = self._post({'stamps': {'season:christmas:2026': {'s': True, 't': 11},
+                                   'issue:2': {'s': True, 't': 11}}, 'season_goal': 6})
+        self.assertEqual(sorted(j['stamps']), ['issue:2'])
+
+    def test_a_season_stamp_without_her_goal_is_not_kept(self):
+        """No goal sent (an old outbox), the survey still owed, or the goal
+        skipped: no season stamp."""
+        self._goal(6)
+        self.assertEqual(self._post({'stamps': {'season:christmas:2026': {'s': True, 't': 1}}})['stamps'], {})
+        self._goal(6, surveyed=None)
+        self.assertEqual(self._post({'stamps': {'season:christmas:2026': {'s': True, 't': 2}},
+                                     'season_goal': 6})['stamps'], {})
+        self._goal(None)
+        self.assertEqual(self._post({'stamps': {'season:christmas:2026': {'s': True, 't': 3}},
+                                     'season_goal': 6})['stamps'], {})
+
+    def test_a_kept_season_stamp_stays_when_the_goal_changes(self):
+        self._goal(6)
+        self._post({'stamps': {'season:christmas:2026': {'s': True, 't': 11}}, 'season_goal': 6})
+        self._goal(9)
+        j = self._post({'stamps': {'season:christmas:2026': {'s': True, 't': 12}}})
+        self.assertTrue(j['stamps']['season:christmas:2026']['s'])
 
     def test_a_state_without_stamps_answers_an_empty_stamp_map(self):
         self.assertEqual(self._get()['stamps'], {})
