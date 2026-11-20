@@ -7,7 +7,9 @@ new run of the shelf; a survey that skipped the number leaves Home to ask it,
 and the answer from Home is saved and kept. A season stamp is kept for good,
 so none is pressed while the survey is still owed, while Home still asks, or
 against a goal another device has since raised — not when the goal read
-fails, nor when the goal changes while the stamp is on its way to the server.
+fails, nor when the goal or her reads change while the stamp is on its way to
+the server. A refused stamp is checked again on its own, and a state read
+answered late never takes a kept stamp off the page.
 A save of her goal outranks a goal read that overlaps it, and a double click
 saves once. On a phone the question sits
 under the issue line, so the reading-now card and the issue line keep the
@@ -209,6 +211,11 @@ with sync_playwright() as p:
         if (route.request.method == 'POST' and 'season_goal' in (route.request.post_data or '')
                 and 'stamp' not in held and 'open' not in held):
             held['stamp'] = route
+        elif (route.request.method == 'POST' and 'season_goal' in (route.request.post_data or '')
+                and held.pop('hold_stamp', False)):
+            held['stamp2'] = route
+        elif route.request.method == 'GET' and held.pop('hold_pull', False):
+            held['pull'] = (route, route.fetch())       # the state as it is now: no stamp
         else:
             route.continue_()
 
@@ -245,12 +252,33 @@ with sync_playwright() as p:
     assert season_stamps() == [], 'a stamp was kept at a goal changed on its way: %r' % season_stamps()
     assert page_season_stamps(phone) == [], 'the page shows a stamp the server refused'
 
-    # 8 · the goal goes back to 5; back on the tab the stamp is kept, on the
-    #     server and on the page, and both survive a reload
+    # 8 · the goal goes back to 5 and the page sends the stamp again, but
+    #     another device takes back four of her reads before it arrives: the
+    #     marks on the server no longer meet 5, so no stamp, on either side
     assert api('/api/interests/season-goal', {'season_goal': 5})['season_goal'] == 5
+    held['hold_stamp'] = True
     tab_return(phone)
-    wait_for(phone, lambda: len(season_stamps()) == 1, 'no season stamp at her own goal: %r' % season_stamps())
+    wait_for(phone, lambda: 'stamp2' in held, 'the page sent no season stamp at her goal of 5')
+    api('/api/state', {'states': {i: {'s': None, 't': NOW_MS + 1000} for i in ids[1:5]}})
+    held['stamp2'].continue_()
+    phone.wait_for_timeout(1000)
+    assert season_stamps() == [], 'a stamp was kept after her reads were taken back: %r' % season_stamps()
+    assert page_season_stamps(phone) == [], 'the page shows a stamp the server refused'
+
+    # 9 · the reads come back. With no reload and no tab return, the page
+    #     checks again by itself and the stamp is kept. A state read begun
+    #     before that, answered after it, does not take the stamp off the page
+    api('/api/state', {'states': {i: {'s': 'read', 't': NOW_MS + 2000} for i in ids[1:5]}})
+    held['hold_pull'] = True
+    phone.evaluate("() => window.dispatchEvent(new Event('shelf:imported'))")   # a state read, held
+    wait_for(phone, lambda: 'pull' in held, 'the page made no state read')
+    wait_for(phone, lambda: len(season_stamps()) == 1,
+             'the page did not check again after the refused stamp: %r' % season_stamps(), secs=15)
     wait_for(phone, lambda: len(page_season_stamps(phone)) == 1, 'the page does not show the kept stamp')
+    route, answer = held['pull']
+    route.fulfill(response=answer)                                          # the older read lands last
+    phone.wait_for_timeout(1500)
+    assert page_season_stamps(phone) == season_stamps(), 'an older state read took the kept stamp off the page'
     held['open'] = True                                                      # the network in order again
     phone.reload(wait_until='networkidle')
     expect(ring_goal(phone)).to_have_text('of 5')
@@ -259,5 +287,5 @@ with sync_playwright() as p:
     browser.close()
 
 print('ok: the saved goal counts at once; a skipped goal is asked and kept on Home; '
-      'no stamp at an owed, asked or raised goal, a failed read or a goal changed on the '
-      "stamp's way; a save outranks overlapping reads and saves once; the phone keeps its first screen")
+      'no stamp at an owed, asked or raised goal, a failed read, or a goal or a read changed on the '
+      "stamp's way; a refused stamp is checked again; an older state read keeps a kept stamp; a save outranks overlapping reads and saves once; the phone keeps its first screen")

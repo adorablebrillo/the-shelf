@@ -18,6 +18,7 @@ import tempfile
 import threading
 import unittest
 import urllib.request
+from datetime import datetime, timezone
 from http.server import ThreadingHTTPServer
 
 TMP = tempfile.mkdtemp(prefix='shelf-state-test-')
@@ -203,6 +204,35 @@ class KeptStampTests(unittest.TestCase):
         self.assertEqual(out['issue:2'], {'s': True, 't': 20})
 
 
+# noon (UTC) on 15 November 2026, inside Christmas 2026 (1 November to 6 January)
+MID_CHRISTMAS_2026 = int(datetime(2026, 11, 15, 12, tzinfo=timezone.utc).timestamp() * 1000)
+
+
+def utc_ms(*args):
+    return int(datetime(*args, tzinfo=timezone.utc).timestamp() * 1000)
+
+
+class SeasonBooksTests(unittest.TestCase):
+    """The server's season count, which a season stamp must meet: the same
+    days the page's ring counts, from her local day."""
+
+    def test_a_season_that_wraps_the_new_year_counts_both_years(self):
+        states = {'a': {'s': 'read', 't': utc_ms(2026, 11, 1, 12)},
+                  'b': {'s': 'loved', 't': utc_ms(2027, 1, 6, 12)},
+                  'c': {'s': 'read', 't': utc_ms(2026, 10, 31, 12)},   # autumn
+                  'd': {'s': 'read', 't': utc_ms(2027, 1, 7, 12)},     # winter
+                  'e': {'s': 'want', 't': utc_ms(2026, 11, 20, 12)},
+                  'f': {'s': 'read'}}                                  # no time
+        self.assertEqual(server.season_books(states, 'season:christmas:2026', 0), 2)
+        self.assertEqual(server.season_books(states, 'season:christmas:2025', 0), 0)
+
+    def test_her_local_day_decides_the_season(self):
+        """23:30 UTC on 31 October is 00:30 on 1 November in Madrid."""
+        states = {'a': {'s': 'read', 't': utc_ms(2026, 10, 31, 23, 30)}}
+        self.assertEqual(server.season_books(states, 'season:christmas:2026', 60), 1)
+        self.assertEqual(server.season_books(states, 'season:christmas:2026', 0), 0)
+
+
 class KeptStampApiTests(unittest.TestCase):
     """The stamp channel over the contract the page uses."""
 
@@ -234,9 +264,14 @@ class KeptStampApiTests(unittest.TestCase):
         doc['season_goal'], doc['surveyed'] = n, surveyed
         server.save_interests(doc)
 
+    def _reads(self, n, t=MID_CHRISTMAS_2026):
+        """n books marked read inside Christmas 2026, as the page posts them."""
+        self._post({'states': {'b%d' % i: {'s': 'read', 't': t} for i in range(n)}})
+
     def test_a_season_stamp_earned_on_one_device_shows_on_the_other(self):
         self._goal(6)
-        self._post({'stamps': {'season:christmas:2026': {'s': True, 't': 11}}, 'season_goal': 6})
+        self._reads(6)
+        self._post({'stamps': {'season:christmas:2026': {'s': True, 't': 11}}, 'season_goal': 6, 'tz': 0})
         j = self._post({'stamps': {'issue:2': {'s': True, 't': 12}}})
         self.assertEqual(sorted(j['stamps']), ['issue:2', 'season:christmas:2026'])
         self.assertEqual(json.load(open(server.STATE))['stamps']['season:christmas:2026']['s'], True)
@@ -264,10 +299,35 @@ class KeptStampApiTests(unittest.TestCase):
 
     def test_a_kept_season_stamp_stays_when_the_goal_changes(self):
         self._goal(6)
-        self._post({'stamps': {'season:christmas:2026': {'s': True, 't': 11}}, 'season_goal': 6})
+        self._reads(6)
+        self._post({'stamps': {'season:christmas:2026': {'s': True, 't': 11}}, 'season_goal': 6, 'tz': 0})
         self._goal(9)
         j = self._post({'stamps': {'season:christmas:2026': {'s': True, 't': 12}}})
         self.assertTrue(j['stamps']['season:christmas:2026']['s'])
+
+    def test_a_season_stamp_after_a_read_was_taken_back_is_not_kept(self):
+        """The page counted six reads, but another device cleared one before
+        the stamp arrived: the marks the server holds no longer meet the
+        goal, so the stamp is held back."""
+        self._goal(6)
+        self._reads(6)
+        self._post({'states': {'b0': {'s': None, 't': MID_CHRISTMAS_2026 + 1000}}})
+        j = self._post({'stamps': {'season:christmas:2026': {'s': True, 't': 11}}, 'season_goal': 6, 'tz': 0})
+        self.assertEqual(j['stamps'], {})
+
+    def test_an_issue_stamp_and_a_reading_day_do_not_wait_on_the_goal(self):
+        """An unreadable interests file holds back only a season stamp: an
+        issue stamp and a reading day in the same post are still kept."""
+        self._reads(6)
+        with open(server.INTERESTS, 'w') as f:
+            f.write('{not json')
+        self.addCleanup(os.remove, server.INTERESTS)
+        j = self._post({'stamps': {'issue:2': {'s': True, 't': 11}}, 'days': {'b1': ['2026-11-15']}})
+        self.assertEqual(sorted(j['stamps']), ['issue:2'])
+        self.assertEqual(j['days'], {'b1': ['2026-11-15']})
+        j = self._post({'stamps': {'season:christmas:2026': {'s': True, 't': 12},
+                                   'series:dawn': {'s': True, 't': 12}}, 'season_goal': 6, 'tz': 0})
+        self.assertEqual(sorted(j['stamps']), ['issue:2', 'series:dawn'])
 
     def test_a_state_without_stamps_answers_an_empty_stamp_map(self):
         self.assertEqual(self._get()['stamps'], {})

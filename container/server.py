@@ -5,7 +5,7 @@ monthly run (1st, 09:00), exposes a small JSON API used by the in-page
 Settings pane. Pure stdlib — no pip installs."""
 import json, os, re, shutil, glob, sys, subprocess, tempfile, threading, time, urllib.request
 from contextlib import contextmanager, nullcontext
-from datetime import datetime
+from datetime import datetime, timedelta
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from urllib.parse import urlparse, parse_qs, urlencode
 
@@ -391,7 +391,8 @@ class H(BaseHTTPRequestHandler):
                 # add up.
                 if 'stamps' in body:
                     incoming, held = season_checked(cur.get('stamps'), body.get('stamps'),
-                                                    body.get('season_goal'))
+                                                    body.get('season_goal'), cur['states'],
+                                                    body.get('tz'))
                     cur['stamps'], sd = merge_stamps(cur.get('stamps'), incoming)
                     dropped += sd + held
                 save_state(cur)
@@ -940,26 +941,67 @@ def interests_locked():
         yield
 
 
-def season_checked(kept, incoming, goal):
+def season_books(states, key, tz=None):
+    """The books she marked read or loved inside the season a stamp names
+    (`season:<key>:<year>`, the year the season starts in): the count the
+    page's ring fills on (app.html seasonBooks). A mark's day is her local
+    day, from the page's offset east of UTC in minutes (`tz`); a mark with no
+    time is not counted."""
+    m = re.match(r'^season:([a-z]+):(\d{4})$', key or '')
+    if not m:
+        return 0
+    season = [x for x in _pipeline_import('build').SEASONS if x['key'] == m.group(1)]
+    if not season:
+        return 0
+    start, end, year = season[0]['start'], season[0]['end'], int(m.group(2))
+    off = tz if isinstance(tz, int) and not isinstance(tz, bool) and abs(tz) <= 14 * 60 else None
+    n = 0
+    for v in (states or {}).values():
+        if not isinstance(v, dict) or v.get('s') not in ('read', 'loved'):
+            continue
+        try:
+            t = float(v.get('t') or 0) / 1000
+            day = (datetime.utcfromtimestamp(t) + timedelta(minutes=off) if off is not None
+                   else datetime.fromtimestamp(t)) if t else None
+        except (TypeError, ValueError, OverflowError, OSError):
+            day = None
+        if not day:
+            continue
+        md = '%02d-%02d' % (day.month, day.day)
+        if start <= end:
+            n += start <= md <= end and day.year == year
+        else:   # a season that wraps the new year began the year before
+            n += (md >= start and day.year == year) or (md <= end and day.year == year + 1)
+    return n
+
+
+def season_checked(kept, incoming, goal, states=None, tz=None):
     """A season stamp is kept for good, so a new one is accepted only with
-    the goal the page checked it against, and only when that goal is still
-    the one she gave (the survey answered, the goal set). The caller holds
-    interests_locked(). Returns (stamps to merge, season stamps held back)."""
+    the goal the page checked it against, only when that goal is still the
+    one she gave (the survey answered, the goal set), and only when the marks
+    the server now holds still meet it — another device can have taken back a
+    read since the page counted. The caller holds interests_locked(). Other
+    stamps never wait on the goal: a post with no new season stamp reads
+    nothing, and a goal that cannot be read holds back only the season
+    stamps. Returns (stamps to merge, season stamps held back)."""
     if not isinstance(incoming, dict):
         return incoming, 0
     kept = kept if isinstance(kept, dict) else {}
-    doc = load_interests()
-    raw = doc.get('season_goal') if doc.get('surveyed') else None
+    new = [k for k in incoming if isinstance(k, str) and k.startswith('season:')
+           and not (kept.get(k) or {}).get('s')]
+    if not new:
+        return incoming, 0
     try:
+        doc = load_interests()
+        raw = doc.get('season_goal') if doc.get('surveyed') else None
         mine = None if raw is None or isinstance(raw, bool) else int(str(raw).strip())
-    except ValueError:
+    except Exception:   # unreadable, or not a number: no season stamp now
         mine = None
     ok = (mine is not None and 1 <= mine <= 365
           and isinstance(goal, int) and not isinstance(goal, bool) and goal == mine)
     out, held = {}, 0
     for k, v in incoming.items():
-        if (isinstance(k, str) and k.startswith('season:') and not ok
-                and not (kept.get(k) or {}).get('s')):
+        if k in new and not (ok and season_books(states, k, tz) >= mine):
             held += 1
             continue
         out[k] = v

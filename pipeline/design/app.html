@@ -2734,18 +2734,27 @@ class Component extends DCLogic {
     cands.forEach(c=>{delta[c.key]={s:true,t};});
     this._seasonKeeping=true;
     fetch('/api/state',{method:'POST',headers:{'Content-Type':'application/json'},
-      body:JSON.stringify({stamps:delta, season_goal:checked.n})})
+      body:JSON.stringify({stamps:delta, season_goal:checked.n, tz:-new Date().getTimezoneOffset()})})
      .then(r=>r.ok?r.json():Promise.reject(r.status))
      .then(j=>{
        const rem=(j&&j.stamps)||{}, kept=Object.keys(delta).filter(k=>(rem[k]||{}).s);
-       if(!kept.length)return;
+       if(!kept.length)throw 0;
+       this._seasonTries=0;
+       this._seasonAcks=(this._seasonAcks||0)+1;     // a pull begun before this is older
        const next={...(this.state.stamps||{})};
        kept.forEach(k=>{next[k]={s:true,t:Number(rem[k].t)||t};});
        this.setState({stamps:next, justStamp:kept});
        this.persist(undefined,undefined,undefined,undefined,next);
        if(celebrate)this.confetti();
      })
-     .catch(()=>{})
+     .catch(()=>{
+       /* not kept: the server had not yet seen her newest marks, or her goal
+          changed. Read the marks and the goal again and check once more, a
+          few times at most; the old write is never sent again. */
+       const n=this._seasonTries=(this._seasonTries||0)+1;
+       if(n<=3){clearTimeout(this._seasonRetry);
+         this._seasonRetry=setTimeout(()=>{this.flushOutbox(); this.pull();},2000*n);}
+     })
      .then(()=>{
        this._seasonKeeping=false;
        if(this._seasonAgain!==undefined){         // a press came while this one ran
@@ -2997,6 +3006,7 @@ class Component extends DCLogic {
   queueReading(delta){this.queueChannel('reading',delta)}
   flushOutbox(){['states','reading','days','stamps'].forEach(ch=>this.flushChannel(ch));}
   pull(){
+    const acks=this._seasonAcks||0;
     fetch('/api/state').then(r=>r.json()).then(j=>{
       const remote=(j&&j.states)||{}, st={...this.state.states}, ts={...this.state.ts}, up={};
       Object.keys(remote).forEach(k=>{
@@ -3040,8 +3050,9 @@ class Component extends DCLogic {
       });
       Object.keys(ls).forEach(k=>{
         if(k in remS||upS[k])return;
-        /* a season stamp the server never kept is not hers: drop it, never send it */
-        if(k.indexOf('season:')===0){delete ls[k]; return;}
+        /* a season stamp the server never kept is not hers: drop it, never
+           send it — unless the server kept it after this read began */
+        if(k.indexOf('season:')===0){if(acks===(this._seasonAcks||0))delete ls[k]; return;}
         upS[k]=ls[k];
       });
       this.setState({states:st, ts, reading:rd, days:ld, stamps:ls, sync:'ok'});
@@ -3166,7 +3177,7 @@ class Component extends DCLogic {
     if(typeof document!=='undefined')document.addEventListener('visibilitychange',()=>{
       if(!document.hidden){this.flushOutbox(); this.pull(); this._goalStamps();}});
   }
-  componentWillUnmount(){ if(this._imp&&typeof window!=='undefined')window.removeEventListener('shelf:imported',this._imp); if(this._goal&&typeof window!=='undefined')window.removeEventListener('shelf:interests',this._goal); clearTimeout(this._goalRetry); clearInterval(this._t); clearInterval(this._s); clearTimeout(this._m); if(this._mq&&this._mqListener)this._mq.removeEventListener('change',this._mqListener); }
+  componentWillUnmount(){ if(this._imp&&typeof window!=='undefined')window.removeEventListener('shelf:imported',this._imp); if(this._goal&&typeof window!=='undefined')window.removeEventListener('shelf:interests',this._goal); clearTimeout(this._goalRetry); clearTimeout(this._seasonRetry); clearInterval(this._t); clearInterval(this._s); clearTimeout(this._m); if(this._mq&&this._mqListener)this._mq.removeEventListener('change',this._mqListener); }
 
   nav(on) {
     return { display:'flex', alignItems:'center', gap:'10px', width:'100%', padding:'13px 18px',
