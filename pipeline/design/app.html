@@ -51,17 +51,23 @@
   [data-m="shop-art"]{display:block;width:180px;height:152px;object-fit:contain;max-width:100%;min-height:0;margin:8px auto;flex:0 1 152px}
   [data-m="corner-art-row"]{display:flex;align-items:center;gap:16px}
   [data-m="corner-art-row"] [data-m="cornerquote"]{flex:1;min-width:0}
-  [data-m="woman-art"]{display:block;width:112px;height:96px;object-fit:contain;flex:none}
+  [data-m="woman-art"]{display:block;width:128px;height:110px;object-fit:contain;flex:none}
+  [data-m="populated-heading"]{display:flex;align-items:center;justify-content:space-between;gap:16px}
+  [data-m="populated-heading"] > div{min-width:0}
+  [data-m="populated-art"]{display:block;object-fit:contain;flex:none;width:120px;height:100px}
+  [data-m="populated-art"][data-illustration="cafe"]{width:126px;height:98px}
   [data-season="autumn"] [data-m="woman-art"], [data-season="christmas"] [data-m="woman-art"], [data-season="winter"] [data-m="woman-art"]{filter:brightness(0) invert(90%) sepia(12%)}
   [data-m="empty-art"]{display:block;object-fit:contain;max-width:100%;margin:16px auto 0}
-  [data-illustration="man"]{width:240px;height:200px}
-  [data-illustration="cafe"]{width:280px;height:218px}
+  [data-m="empty-art"][data-illustration="man"]{width:240px;height:200px}
+  [data-m="empty-art"][data-illustration="cafe"]{width:280px;height:218px}
   @media (min-width:881px) and (min-height:861px){[data-m="sidepanel"]{box-sizing:border-box;gap:8px !important}}
   @media (max-width:880px), (max-height:860px){[data-m="shop-art"]{display:none}}
   @media (max-width:700px){
     [data-m="cornerin"]{position:relative}
     [data-m="cornerin"] [data-m="recentline"]{min-height:1.6em !important}
     [data-m="woman-art"]{position:absolute;width:56px;height:48px}
+    [data-m="populated-art"]{width:84px;height:70px}
+    [data-m="populated-art"][data-illustration="cafe"]{width:84px;height:66px}
     /* Keep the Christmas reader clear of the lights and countdown. */
     [data-season="christmas"] [data-m="cornerin"]{padding-bottom:10px !important}
     [data-season="christmas"] [data-m="eyebrow"]{max-width:calc(100% - 63px)}
@@ -75,9 +81,11 @@
     [data-m="frame"]:not([data-season="christmas"]) [data-m="cornerin"] > div:first-child{min-height:48px !important}
     [data-m="frame"]:not([data-season="christmas"]) [data-m="recentline"]{margin-top:5px !important;padding-top:4px !important}
     [data-m="frame"]:not([data-season="christmas"]) [data-m="eyebrow"]{margin-left:72px !important;max-width:calc(100% - 90px) !important}
-    [data-illustration="man"]{width:220px;height:184px}
-    [data-illustration="cafe"]{width:240px;height:187px}
+    [data-m="empty-art"][data-illustration="man"]{width:220px;height:184px}
+    [data-m="empty-art"][data-illustration="cafe"]{width:240px;height:187px}
   }
+  /* Below 380px the heading needs the full row; the populated-page artwork steps aside. */
+  @media (max-width:380px){[data-m="populated-art"]{display:none}}
   @media (max-width:1247px){[data-m="picksgrid"]{grid-template-columns:repeat(2,minmax(0,1fr))}}
   @media (max-width:1000px){[data-m="picksgrid"]{grid-template-columns:1fr}}
   .loglink{color:#A8863F;text-decoration:underline;text-underline-offset:2px;cursor:pointer}
@@ -601,11 +609,13 @@
 
     <sc-if value="{{ isShelf }}">
     <div data-screen-label="My Shelf">
+      <div data-m="populated-heading"><div>
       <p style="margin:0;font-size:10.5px;letter-spacing:.42em;text-transform:uppercase;color:#635846">02 · My Shelf</p>
       <h2 style="font-family:'Cormorant Garamond',Garamond,serif;font-weight:300;font-size:clamp(34px,5vw,56px);letter-spacing:.1em;text-transform:uppercase;margin:12px 0 0">My TBR list</h2>
       <sc-if value="{{ hasWant }}">
         <p style="margin:10px 0 0;font-family:'Cormorant Garamond',Garamond,serif;font-style:italic;font-size:20px;color:#635846">{{ wantCount }} waiting · press read or loved and it moves to the archive.</p>
       </sc-if>
+      </div><sc-if value="{{ hasWant }}"><img data-m="populated-art" data-illustration="man" src="assets/man.png" width="120" height="100" alt="" aria-hidden="true" /></sc-if></div>
       <div data-m="addbook" style="margin-top:18px">
         <button type="button" onClick="{{ onAddToggle }}" aria-expanded="{{ addExpanded }}" style="font-size:11px;letter-spacing:.24em;text-transform:uppercase;color:#1E3A2F;border:1px solid #A8863F;padding:12px 18px;min-height:44px" style-hover="background:#1E3A2F;color:#F3EDE1;border-color:#1E3A2F">{{ addToggleLabel }}</button>
         <sc-if value="{{ addOpen }}">
@@ -692,9 +702,11 @@
 
     <sc-if value="{{ isSeries }}">
     <div data-screen-label="Series" style="{{ seriesScreenStyle }}">
+      <div data-m="populated-heading"><div>
       <p style="margin:0;font-size:10.5px;letter-spacing:.42em;text-transform:uppercase;color:#635846">03 · Series</p>
       <h2 style="font-family:'Cormorant Garamond',Garamond,serif;font-weight:300;font-size:clamp(34px,5vw,56px);letter-spacing:.1em;text-transform:uppercase;margin:12px 0 0">Your series</h2>
       <p style="margin:10px 0 0;font-family:'Cormorant Garamond',Garamond,serif;font-style:italic;font-size:20px;color:#635846">{{ seriesCount }} open · {{ seriesClosed }} finished and closed.</p>
+      </div><sc-if value="{{ hasSeries }}"><img data-m="populated-art" data-illustration="cafe" src="assets/cafe.png" width="126" height="98" alt="" aria-hidden="true" /></sc-if></div>
       <div style="height:1px;background:#A8863F;margin:20px 0 0"></div>
 
       <sc-if value="{{ noSeries }}">
@@ -3242,7 +3254,7 @@ class Component extends DCLogic {
       waitingCount:waitingVols.length, hasWaiting:waitingVols.length>0,
 
       /* series — the full run of every open series */
-      seriesList, seriesClosed, noSeries:seriesList.length===0,
+      seriesList, seriesClosed, noSeries:seriesList.length===0, hasSeries:seriesList.length>0,
 
       /* archive — read & loved · not for me */
       arcReadOn:arc!=='nfm', arcNfmOn:arc==='nfm',
