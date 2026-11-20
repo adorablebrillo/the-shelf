@@ -6,6 +6,11 @@ FROM python:3.11-slim
 # Run (or just use docker-compose.yml for Unraid).
 
 WORKDIR /app
+# The time zone database: a season stamp's marks are counted on the reader's
+# own local day, by her time zone's rules (server.py season_books). A slim
+# image does not always carry it.
+RUN apt-get update && DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends tzdata && \
+    rm -rf /var/lib/apt/lists/*
 # server.py (at /app) serves /app/dist; the pipeline must write there too.
 # Docker COPY flattens the repo's container/dist symlink, so the bake and
 # every runtime build use DIST_DIR to target the SAME dir as the server.
@@ -25,6 +30,7 @@ RUN mkdir -p /app/dist/assets /app/pipeline/data && \
     if ls /app/pipeline/baseline/month-*.json >/dev/null 2>&1; then cp /app/pipeline/baseline/month-*.json /app/pipeline/data/; fi && \
     python3 /app/pipeline/build.py && \
     python3 -m py_compile /app/server.py /app/pipeline/*.py && \
+    python3 -c "from zoneinfo import ZoneInfo; ZoneInfo('America/New_York')" && \
     echo "BUILD OK"
 
 ENV PORT=8787

@@ -960,10 +960,10 @@ def season_books(states, key, tz=None, tz_name=None):
     m = re.match(r'^season:([a-z]+):(\d{4})$', key or '')
     if not m:
         return 0
-    season = [x for x in _pipeline_import('build').SEASONS if x['key'] == m.group(1)]
-    if not season:
+    dates = _pipeline_import('season_dates').SEASON_DATES.get(m.group(1))
+    if not dates:
         return 0
-    start, end, year = season[0]['start'], season[0]['end'], int(m.group(2))
+    (start, end), year = dates, int(m.group(2))
     off = tz if isinstance(tz, int) and not isinstance(tz, bool) and abs(tz) <= 14 * 60 else None
     zone = _zone(tz_name)
     n = 0
