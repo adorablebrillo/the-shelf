@@ -362,7 +362,9 @@ class H(BaseHTTPRequestHandler):
         body = self._body()
         if u.path == '/api/state':
             # one writer at a time: the merge is read-modify-write, and a
-            # verdict now fires two posts (states + reading) at once
+            # verdict now fires two posts (states + reading) at once, and a
+            # check-in can post its reading day beside them
+            dropped = 0
             with STATE_LOCK:
                 cur = load_state()
                 cur['states'] = merge_states(cur.get('states'), body.get('states') or {})
@@ -371,12 +373,32 @@ class H(BaseHTTPRequestHandler):
                 # enter 'states': the pipeline reads that as verdicts)
                 if 'reading' in body:
                     cur['reading'] = merge_states(cur.get('reading'), body.get('reading') or {})
+                # THS-43 (Home part 2): the reading-day channel — per book, the
+                # days she tapped "I read today". Merged by UNION, so a day
+                # logged on the phone and a day logged on the desktop both
+                # survive. It never enters 'states': the pipeline reads that
+                # as verdicts, and a reading day is not one.
+                if 'days' in body:
+                    cur['days'], dropped = merge_days(cur.get('days'), body.get('days'))
+                # THS-43 (Home part 2): the stamps she keeps — a season's goal
+                # reached, an issue decided, a series finished. A stamp is
+                # pressed in once and never taken back, so it travels like a
+                # mark: per key, newest write wins, and both devices' stamps
+                # add up.
+                if 'stamps' in body:
+                    cur['stamps'], sd = merge_stamps(cur.get('stamps'), body.get('stamps'))
+                    dropped += sd
                 save_state(cur)
             live = [k for k, v in cur['states'].items() if isinstance(v, dict) and v.get('s')]
             gone = [k for k, v in cur['states'].items() if isinstance(v, dict) and v.get('s') is None]
-            log('reader state: %d marked, %d cleared' % (len(live), len(gone)))
+            days = sum(len(v) for v in (cur.get('days') or {}).values() if isinstance(v, list))
+            log('reader state: %d marked, %d cleared, %d reading days%s'
+                % (len(live), len(gone), days,
+                   (', %d not a date (dropped)' % dropped) if dropped else ''))
             self._json({'ok': True, 'v': 2, 'states': cur['states'],
-                        'reading': cur.get('reading') or {}, 'updated': cur['updated']})
+                        'reading': cur.get('reading') or {}, 'days': cur.get('days') or {},
+                        'stamps': cur.get('stamps') or {},
+                        'updated': cur['updated']})
         elif u.path == '/api/settings':
             s = load_settings()
             if body.get('api_key') is not None:
@@ -456,14 +478,23 @@ class H(BaseHTTPRequestHandler):
             self._json({'error': 'not found'}, 404)
 
 def load_state():
-    """The reader's marks. Returns {v, states:{<book id>:{s,t}}, updated}."""
+    """The reader's own shelf state.
+    {v, states:{<book id>:{s,t}}, reading:{<book id>:{s,t}},
+     days:{<book id>:[<YYYY-MM-DD>, ...]}, updated}
+
+    Every channel answers, even on a state file written before it existed: a
+    page reading its own days must never have to guess whether a missing key
+    means none or an old file."""
     try:
         d = json.load(open(STATE))
         if isinstance(d.get('states'), dict):
+            d.setdefault('reading', {})
+            d.setdefault('days', {})
+            d.setdefault('stamps', {})
             return d
     except Exception:
         pass
-    return {'v': 2, 'states': {}, 'updated': ''}
+    return {'v': 2, 'states': {}, 'reading': {}, 'days': {}, 'stamps': {}, 'updated': ''}
 
 
 def save_state(d):
@@ -492,6 +523,73 @@ def merge_states(server_states, incoming):
             continue
         out[k] = {'s': vs, 't': vt}
     return out
+
+
+DAY_RE = re.compile(r'^\d{4}-\d{2}-\d{2}$')
+
+
+def merge_days(server_days, incoming):
+    """THS-43 (Home part 2): reading days merge by UNION, not by last-write-wins.
+
+    A reading day is a fact about a calendar day, not a state that can be
+    re-written: the phone's days and the desktop's days add up and neither
+    device can lose the other's. Dates are the reader's own local days
+    (YYYY-MM-DD); a book keeps its days sorted and duplicate-free.
+    (days, dropped) — a value that is not a well-formed date is counted and
+    left out, never stored, so the file holds only real days.
+    """
+    out = {}
+    dropped = 0
+    for src in (server_days, incoming):
+        if not isinstance(src, dict):
+            continue
+        for bid, dates in src.items():
+            if not isinstance(bid, str) or not bid:
+                dropped += len(dates) if isinstance(dates, list) else 1
+                continue
+            if not isinstance(dates, list):
+                dropped += 1
+                continue
+            keep = out.setdefault(bid, [])
+            for d in dates:
+                if real_day(d):
+                    if d not in keep:
+                        keep.append(d)
+                else:
+                    dropped += 1
+    for bid in out:
+        out[bid].sort()
+    return out, dropped
+
+
+STAMP_KEY_RE = re.compile(r'^(?:season:[a-z]{4,9}:\d{4}|issue:\d{1,4}|series:[a-z0-9]{1,80})$')
+
+
+def merge_stamps(server_stamps, incoming):
+    """The kept stamps travel like marks — newest write wins per key — but only
+    on keys that name a stamp: season:<key>:<year>, issue:<n>, series:<name>.
+    Any other key is counted and left out, so the row can never be filled with
+    something the page cannot draw. Returns (stamps, dropped).
+    """
+    keep, dropped = {}, 0
+    for k, v in (incoming or {}).items() if isinstance(incoming, dict) else []:
+        if isinstance(k, str) and STAMP_KEY_RE.match(k):
+            keep[k] = v
+        else:
+            dropped += 1
+    return merge_states(server_stamps, keep), dropped
+
+
+def real_day(d):
+    """A reading day is one of the reader's own calendar days: YYYY-MM-DD and a
+    date that exists. Anything else is not a day and is never stored."""
+    if not isinstance(d, str) or not DAY_RE.match(d):
+        return False
+    try:
+        datetime.strptime(d, '%Y-%m-%d')
+        return True
+    except ValueError:
+        return False
 
 
 def norm_author(name):

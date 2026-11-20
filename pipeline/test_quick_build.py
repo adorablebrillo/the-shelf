@@ -136,6 +136,19 @@ class QuickBuildTests(unittest.TestCase):
         self.assertNotIn('grUrl', books['Hooked on You'])
         self.assertEqual(data['added'][0]['grUrl'], 'https://www.goodreads.com/book/show/61431922')
 
+    def test_the_season_goal_the_page_counts_against_ships_with_the_data(self):
+        # THS-43 (Home part 2): the ring's goal is the Book-a-meter's own
+        # season_goal when it has one, and the accepted Home plan's 6 books
+        # otherwise — never a blank, never a zero the ring cannot fill.
+        data = self._build(offline=True)
+        self.assertEqual(data['seasonGoal'], 6)
+        with open(os.path.join(self.cfg, 'interests.json'), 'w') as f:
+            json.dump({'v': 1, 'name': 'Book-a-meter', 'picks': 12, 'never': [],
+                       'season_goal': 4, 'interests': [
+                           {'id': 'romantasy', 'label': 'Romantasy', 'kind': 'story',
+                            'dial': 'into it', 'mode': 'new', 'romance': True}]}, f)
+        self.assertEqual(self._build(offline=True)['seasonGoal'], 4)
+
     def test_full_build_still_looks_up_what_is_missing(self):
         self._build(offline=False)
         self.assertTrue(_CountingProxy.seen, 'the full build must try the lookups')

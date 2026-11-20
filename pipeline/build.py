@@ -887,7 +887,7 @@ def main():
         data = {'month': {'label': 'Awaiting first run', 'short': '\u2014', 'drop': '', 'count': 0,
                           'issue': 0, 'titles': 'no titles yet', 'shapeLine': '', 'light': False},
                 'books': [], 'pending': [], 'series': [], 'resolved': [],
-                'added': added, 'seasons': SEASONS,
+                'added': added, 'seasons': SEASONS, 'seasonGoal': interests.season_goal(INTS),
                 'criteria': CRITERIA}
         write_dist('shelf-data.js', 'window.SHELF_DATA=' + json.dumps(data, ensure_ascii=False) + ';\n')
         tpl = open(os.path.join(DESIGN, 'app.html')).read()
@@ -1040,7 +1040,7 @@ def main():
     }
     data = {'month': month, 'books': book_list, 'pending': pending,
             'series': series, 'seasons': SEASONS, 'criteria': criteria_line(), 'resolved': resolved,
-            'added': added, 'meter': meter}
+            'added': added, 'meter': meter, 'seasonGoal': interests.season_goal(INTS)}
     write_dist('shelf-data.js', 'window.SHELF_DATA=' + json.dumps(data, ensure_ascii=False) + ';\n')
 
     tpl = open(os.path.join(DESIGN, 'app.html')).read()

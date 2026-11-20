@@ -237,15 +237,25 @@
   @media (max-width:700px){
     [data-m="cornerin"]{padding:14px 18px !important}
     [data-season="christmas"] [data-m="cornerin"]{padding-top:26px !important}
-    [data-m="cornerquote"]{min-height:2.4em !important;margin:9px 0 0 !important;font-size:21px !important}
+    [data-m="cornerquote"]{min-height:2.2em !important;margin:8px 0 0 !important;font-size:21px !important}
     [data-m="recentline"]{margin:11px 0 0 !important;padding-top:9px !important}
-    [data-m="readnow"]{margin-top:20px !important}
+    /* THS-43 (Home part 2): the corner's bottom line repeats the "Read &
+       loved" line two blocks below; on a phone it is the season bar's turn. */
+    [data-m="corner"] [data-m="recentline"]{display:none !important}
+    [data-m="readnow"]{margin-top:16px !important}
     [data-m="readnow"] > div{padding:14px 16px !important}
     [data-m="readnow"] [data-m="verdicts"]{margin-top:10px !important;padding-top:10px !important}
-    section[aria-label="This month's picks"]{margin-top:14px !important}
+    /* THS-43 (Home part 2): the cover column and the gap give way, and the two
+       card actions tighten their side padding, so "I read today" and
+       "finished it" share one line: the new tap costs the card no height and
+       part 1's first screen still holds the issue line above the section bar.
+       The 44px floor and the type size do not move. */
+    [data-m="readnow"] > div{grid-template-columns:minmax(0,64px) minmax(0,1fr) !important;gap:14px !important}
+    [data-m="readnow"] [data-m="verdicts"] button{padding:11px 11px !important;letter-spacing:.1em !important}
+    section[aria-label="This month's picks"]{margin-top:10px !important}
     [data-m="rnsub"]{font-size:15px !important}
     [data-m="readnow"] h2{font-size:22px !important;line-height:1.04 !important}
-    [data-m="rncov"]{width:72px !important}
+    [data-m="rncov"]{width:64px !important}
     [data-m="side"]{padding:6px !important}
     [data-m="main"]{padding-top:12px !important}
     [data-m="issuebar"]{margin-top:8px !important}
@@ -262,9 +272,57 @@
   [data-m="stamp"]{animation:stamppress .5s ease-out 1;transform-origin:center}
   @keyframes stamppress{0%{transform:scale(1.55);opacity:0}70%{transform:scale(.94);opacity:1}100%{transform:scale(1)}}
   @media (prefers-reduced-motion:reduce){[data-m="stamp"]{animation:none !important}}
+  /* THS-43 (Home part 2): the season panel's week strip and the row of stamps.
+     The strip is one cell per day of her week, lit where she tapped; the row is
+     a kept seal with its own name under it, wrapping rather than scrolling. */
+  [data-m="weekrow"]{display:flex;gap:5px;margin-top:14px}
+  [data-m="stamprow"]{display:flex;flex-wrap:wrap;gap:22px 26px;margin:0;padding:0}
+  [data-m="stampcell"]{margin:0;width:88px;text-align:center}
+  [data-m="stampcell"] svg{display:block;margin:0 auto}
+  [data-m="stampcell"] figcaption{margin:8px 0 0;font-size:10px;letter-spacing:.18em;text-transform:uppercase;color:#635846;overflow-wrap:anywhere}
+  @media (prefers-reduced-motion:reduce){[data-m="stampcell"] svg{animation:none !important}}
+  /* phone: the season panel and the stamp row keep part 1's first screen — the
+     ring and the cells shrink, the panels tighten, nothing else moves. */
+  @media (max-width:700px){
+    [data-m="season"]{margin-top:16px !important}
+    /* The season bar keeps to the ring, the count and the streak at 390: the
+       days left, the week cells and the goal's own name are the wider
+       screen's detail. The corner's bottom line is the same words the
+       "Read & loved" section prints two blocks down, so on the smallest
+       screen it steps out and the issue line part 1 won for the first screen
+       stays above the section bar. */
+    [data-m="seasonin"]{padding:10px 12px !important;gap:12px !important}
+    [data-m="ring"]{width:44px !important;height:44px !important}
+    [data-m="seasonsub"],[data-m="weekrow"],[data-m="seasonname"]{display:none !important}
+    /* the ring is 44px here: its own number is the only thing that stays
+       legible inside it, and the line beside it says the same in words */
+    [data-m="ringgoal"]{display:none !important}
+    [data-m="ringdone"]{font-size:30px !important}
+    [data-m="season"]{margin-top:10px !important}
+    [data-m="seasonin"] h2{font-size:19px !important;margin:0 !important}
+    [data-m="streakline"]{font-size:10px !important;letter-spacing:.16em !important}
+    [data-m="streakline"]{margin-top:8px !important}
+    [data-m="rndays"]{margin-top:9px !important}
+    [data-m="stamps"]{margin-top:38px !important}
+    [data-m="stamprow"]{gap:16px 10px}
+    [data-m="stampcell"]{width:66px}
+  }
 </style>
 </helmet>
 <div data-m="frame" data-season="{{ seasonKey }}" style="display:grid;grid-template-columns:276px minmax(0,1fr);min-height:100vh;background:#EDE6D8;color:#211E19;font-family:'EB Garamond',Georgia,serif;font-size:16px;line-height:1.6">
+
+  <!-- THS-43 (Home part 2): the five season stamp motifs, each drawn from that
+       season's own drawing (the seal garland unit and the corner sprig). They
+       sit in the page all year, so a stamp earned in one season still shows its
+       own drawing in the next one. The season's own garlands above stay on
+       their season; these are only the small marks inside a stamp. -->
+  <svg width="0" height="0" aria-hidden="true" style="position:absolute"><defs>
+    <g id="stamp-autumn"><path d="M0-7L1.6-3.2L4.6-4.6L3.6-1L7 0L4 1.6L4.6 4L1 3L.6 6.5L-.6 6.5L-1 3L-4.6 4L-4 1.6L-7 0L-3.6-1L-4.6-4.6L-1.6-3.2Z" fill="#B5562F" stroke="#C8B27A" stroke-width=".7" stroke-linejoin="round"/><path d="M0-3L0 9" fill="none" stroke="#C8B27A" stroke-width=".7"/></g>
+    <g id="stamp-christmas"><g transform="translate(-11 -1)"><path d="M0 0 C2 -2.5 3.5 -4.5 5.5 -3.2 C6.5 -6 9.5 -6.2 10.5 -4 C12.5 -6.2 15.5 -5.8 15.5 -3 C17.5 -3.5 19.5 -1.5 20 0 C19.5 1.5 17.5 3.5 15.5 3 C15.5 5.8 12.5 6.2 10.5 4 C9.5 6.2 6.5 6 5.5 3.2 C3.5 4.5 2 2.5 0 0 Z" fill="#1E3A2F" stroke="#A8863F" stroke-width=".9" stroke-linejoin="round" transform="rotate(-14)"/><path d="M0 0 C2 -2.5 3.5 -4.5 5.5 -3.2 C6.5 -6 9.5 -6.2 10.5 -4 C12.5 -6.2 15.5 -5.8 15.5 -3 C17.5 -3.5 19.5 -1.5 20 0 C19.5 1.5 17.5 3.5 15.5 3 C15.5 5.8 12.5 6.2 10.5 4 C9.5 6.2 6.5 6 5.5 3.2 C3.5 4.5 2 2.5 0 0 Z" fill="#2B3F38" stroke="#A8863F" stroke-width=".9" stroke-linejoin="round" transform="translate(3 8) rotate(18)"/><circle cx="17" cy="11" r="2.2" fill="#A8322B"/><circle cx="21" cy="8" r="2" fill="#A8322B"/></g></g>
+    <g id="stamp-winter"><path d="M-9 0L9 0M-8 0l2.2-3.4M-8 0l2.2 3.4M-5.5 0l2.2-3.4M-5.5 0l2.2 3.4M-3 0l2.2-3.4M-3 0l2.2 3.4M-0.5 0l2.2-3.4M-0.5 0l2.2 3.4M2 0l2.2-3.4M2 0l2.2 3.4M4.5 0l2.2-3.4M4.5 0l2.2 3.4" fill="none" stroke="#9DB9B4" stroke-width="1" stroke-linecap="round" transform="translate(0 -3.5)"/><path d="M-4.6 -0L4.6 0M-2.3 -3.98L2.3 3.98M2.3 -3.98L-2.3 3.98" fill="none" stroke="#9DB9B4" stroke-width="1" stroke-linecap="round" transform="translate(1 6)"/><circle cy="6" r=".9" fill="#DCE6EC"/></g>
+    <g id="stamp-spring"><g fill="#E8A5AE" stroke="#C8B27A" stroke-width=".6"><ellipse cx="0" cy="-3.2" rx="2.5" ry="3.3" transform="rotate(0)"/><ellipse cx="0" cy="-3.2" rx="2.5" ry="3.3" transform="rotate(72)"/><ellipse cx="0" cy="-3.2" rx="2.5" ry="3.3" transform="rotate(144)"/><ellipse cx="0" cy="-3.2" rx="2.5" ry="3.3" transform="rotate(216)"/><ellipse cx="0" cy="-3.2" rx="2.5" ry="3.3" transform="rotate(288)"/></g><circle r="1.2" fill="#A8863F"/></g>
+    <g id="stamp-summer"><path d="M-6.2 0C-6.2-5 4.6-5.4 6.4-1L8.2 0L6.4 1C4.6 5.4-6.2 5-6.2 0Z" fill="#E9C54A" stroke="#8A6C31" stroke-width=".7" stroke-linejoin="round"/><path d="M0-6C3.4-3 3.4 3 0 6C-3.4 3-3.4-3 0-6Z" fill="#5E7F4E" stroke="#C8B27A" stroke-width=".6" transform="translate(-9 5) rotate(38) scale(.85)"/></g>
+  </defs></svg>
 
   <aside data-m="side" style="position:sticky;top:0;height:100vh;background:#1E3A2F;color:#F3EDE1;padding:10px">
     <div data-m="sidepanel" style="height:100%;border:1px solid #A8863F;padding:30px 0 24px;display:flex;flex-direction:column;gap:24px;overflow:auto">
@@ -353,6 +411,10 @@
             <h2 style="font-family:'Cormorant Garamond',Garamond,serif;font-weight:500;font-size:clamp(26px,4vw,42px);line-height:1.05;margin:10px 0 0;overflow-wrap:anywhere">{{ rn.title }}</h2>
             <p data-m="rnsub" style="margin:8px 0 0;font-family:'Cormorant Garamond',Garamond,serif;font-style:italic;font-size:19px;color:#D8E0D4">{{ rn.sub }}</p>
             <div data-m="verdicts" style="display:flex;gap:9px;flex-wrap:wrap;align-items:center;margin-top:20px;padding-top:16px;border-top:1px solid #3F6153">
+              <!-- THS-43 (Home part 2): the one tap. It logs today as a reading
+                   day for this book on the server, where the other device's
+                   days are added to it. -->
+              <button type="button" onClick="{{ rnOnToday }}" aria-pressed="{{ rnTodayOn }}" aria-label="{{ rnTodayAria }}" style="{{ rnTodayStyle }}">{{ rnTodayLabel }}</button>
               <button type="button" onClick="{{ rn.onFinish }}" aria-label="{{ rn.finishAria }}" style="{{ rn.finishStyle }}">finished it</button>
               <sc-if value="{{ rn.grHref }}"><a class="grlink" href="{{ rn.grHref }}" target="_blank" rel="noopener noreferrer" aria-label="{{ rn.grAria }}" style="{{ rn.grStyle }}">{{ rn.grLabel }}</a></sc-if>
             </div>
@@ -381,6 +443,35 @@
       </section>
       </sc-if>
 
+      <!-- THS-43 (Home part 2): the season panel. The ring fills with the
+           books she marked read or loved inside this season's own days (the
+           season table in build.py); the week strip lights the days she tapped
+           "I read today", on either device; the streak counts the weeks of the
+           season that hold a reading day, and keeps one rest week. -->
+      <section aria-label="This season" data-m="season" style="margin-top:22px;background:#E5DCCA;padding:6px">
+        <div data-m="seasonin" style="border:1px solid #A8863F;padding:20px 24px;display:flex;gap:24px;align-items:center;flex-wrap:wrap">
+          <svg data-m="ring" width="84" height="84" viewBox="0 0 84 84" role="img" aria-label="{{ ringAria }}" style="flex:0 0 auto">
+            <circle cx="42" cy="42" r="34" fill="none" stroke="#C6BBA3" stroke-width="6"/>
+            <circle cx="42" cy="42" r="34" fill="none" stroke="#6E2A2A" stroke-width="6" stroke-linecap="round" stroke-dasharray="{{ ringDash }}" transform="rotate(-90 42 42)"/>
+            <text data-m="ringdone" x="42" y="41" text-anchor="middle" font-family="'Cormorant Garamond',Garamond,serif" font-size="22" fill="#211E19">{{ ringDone }}</text>
+            <text data-m="ringgoal" x="42" y="57" text-anchor="middle" font-family="'EB Garamond',Georgia,serif" font-size="9.5" letter-spacing="1.4" fill="#635846">of {{ ringGoal }}</text>
+          </svg>
+          <div style="min-width:0;flex:1 1 210px">
+            <p data-m="seasonname" style="margin:0;font-size:10px;letter-spacing:.34em;text-transform:uppercase;color:#635846">{{ seasonEyebrow }}</p>
+            <h2 style="font-family:'Cormorant Garamond',Garamond,serif;font-weight:500;font-size:clamp(23px,2.8vw,32px);line-height:1.1;margin:8px 0 0">{{ seasonHead }}</h2>
+            <p data-m="seasonsub" style="margin:7px 0 0;font-size:11px;letter-spacing:.2em;text-transform:uppercase;color:#635846">{{ seasonSub }}</p>
+            <div data-m="weekrow" aria-hidden="true">
+              <sc-for list="{{ weekCells }}" as="c" hint-placeholder-count="7">
+                <span style="{{ c.style }}">{{ c.label }}</span>
+              </sc-for>
+            </div>
+            <p data-m="streakline" style="margin:10px 0 0;font-size:11px;letter-spacing:.2em;text-transform:uppercase;color:#6E2A2A">{{ streakLine }}</p>
+            <sc-if value="{{ seasonStampLine }}">
+              <p data-m="stampnote" style="margin:10px 0 0;font-family:'Cormorant Garamond',Garamond,serif;font-style:italic;font-size:19px;color:#6E2A2A">{{ seasonStampLine }}</p>
+            </sc-if>
+          </div>
+        </div>
+      </section>
 
       <!-- THS-39 (Home part 1): the picks move above the fold, under the
            reading-now card, and carry the issue line: how many are still
@@ -605,6 +696,35 @@
           </sc-for>
         </div>
       </section>
+
+      <!-- THS-43 (Home part 2): the stamps she keeps. A season's goal reached,
+           an issue decided to its last pick, a series finished — each presses
+           one stamp in, once, and the record is kept on the server so the
+           phone and the desktop show the same row. A dashed mark is one she
+           can still earn now. -->
+      <sc-if value="{{ hasStamps }}">
+      <section aria-label="Your stamps" data-m="stamps" style="margin-top:50px">
+        <div style="display:flex;align-items:baseline;justify-content:space-between;gap:16px;flex-wrap:wrap">
+          <h2 style="font-family:'Cormorant Garamond',Garamond,serif;font-weight:500;font-size:clamp(23px,3vw,32px);letter-spacing:.14em;text-transform:uppercase;margin:0">Your stamps</h2>
+          <span style="font-size:11px;letter-spacing:.28em;text-transform:uppercase;color:#635846">{{ stampsLine }}</span>
+        </div>
+        <div style="height:1px;background:#A8863F;margin:14px 0 20px"></div>
+        <div data-m="stamprow">
+          <sc-for list="{{ stamps }}" as="m" hint-placeholder-count="4">
+            <figure data-m="stampcell">
+              <svg style="{{ m.style }}" width="54" height="54" viewBox="0 0 64 64" aria-hidden="true">
+                <circle cx="32" cy="32" r="29" fill="none" stroke="{{ m.col }}" stroke-width="1.5" stroke-dasharray="{{ m.dash }}"/>
+                <circle cx="32" cy="32" r="24" fill="none" stroke="{{ m.col }}" stroke-width=".8" stroke-dasharray="{{ m.dash }}"/>
+                <sc-if value="{{ m.isSeason }}"><use href="{{ m.sym }}" transform="translate(32 32) scale(1.45)"/></sc-if>
+                <sc-if value="{{ m.isText }}"><text x="32" y="37" text-anchor="middle" font-family="'Cormorant Garamond',Garamond,serif" font-size="14" letter-spacing=".5" fill="{{ m.col }}">{{ m.mark }}</text></sc-if>
+              </svg>
+              <figcaption>{{ m.label }}</figcaption>
+            </figure>
+          </sc-for>
+        </div>
+        <p style="margin:16px 0 0;font-size:11px;letter-spacing:.2em;text-transform:uppercase;color:#635846">seasons, complete issues and closed series</p>
+      </section>
+      </sc-if>
     </div>
     </sc-if>
 
@@ -2213,6 +2333,97 @@ function seasonNow(d,now){
   const day=Math.round((Date.UTC(now.getFullYear(),now.getMonth(),now.getDate())-Date.UTC(y,sm,sd))/86400000);
   return {season:s, day};
 }
+/* THS-43 (Home part 2): the reader's own calendar, for reading days, the
+   weekly streak and the season window. A day is her LOCAL date written
+   YYYY-MM-DD; a week starts on Monday. Every count is in whole days from an
+   epoch (the same Date.UTC trick seasonNow uses for the daily quote), so a
+   daylight-saving change can never move a day, a week or a season boundary. */
+const DAYMS=86400000;
+function isoPad(n){return (n<10?'0':'')+n}
+function isoDay(dt){return dt.getFullYear()+'-'+isoPad(dt.getMonth()+1)+'-'+isoPad(dt.getDate())}
+function dayNum(iso){return Math.round(Date.UTC(+iso.slice(0,4),+iso.slice(5,7)-1,+iso.slice(8,10))/DAYMS)}
+function isoOfNum(n){const t=new Date(n*DAYMS);return t.getUTCFullYear()+'-'+isoPad(t.getUTCMonth()+1)+'-'+isoPad(t.getUTCDate())}
+function weekNum(n){return n-((new Date(n*DAYMS).getUTCDay()+6)%7)}   // the Monday of her week
+function seasonWindow(season,nowIso){
+  /* this season's own span, counted from the year it started in: a season
+     that wraps the new year (Christmas, 1 Nov to 6 Jan) began last year */
+  const y=+nowIso.slice(0,4), md=nowIso.slice(5);
+  const sy=(md<season.start)?y-1:y;
+  const ey=(season.end<season.start)?sy+1:sy;
+  const startN=dayNum(sy+'-'+season.start), endN=dayNum(ey+'-'+season.end);
+  return {start:startN+'', startN:startN, endN:endN, year:sy,
+          daysLeft:Math.max(0,endN-dayNum(nowIso)+1)};
+}
+function seasonName(key){return key.charAt(0).toUpperCase()+key.slice(1)}
+function prettyDay(iso){
+  const M=['January','February','March','April','May','June','July','August',
+           'September','October','November','December'];
+  return +iso.slice(8,10)+' '+M[+iso.slice(5,7)-1];
+}
+function readDayList(days){
+  /* the reading-day channel -> every day she read, once each, oldest first */
+  const set={};
+  Object.keys(days||{}).forEach(id=>{
+    const list=(days||{})[id];
+    if(!Array.isArray(list))return;
+    list.forEach(d=>{if(typeof d==='string'&&/^\d{4}-\d{2}-\d{2}$/.test(d))set[d]=1});
+  });
+  return Object.keys(set).sort();
+}
+function weekStreak(days,nowIso,win){
+  /* The weekly streak: the weeks of this season, counted back from this one,
+     that hold at least one reading day. This week is still open — a week with
+     no day in it yet neither counts nor breaks. A week with no reading day is
+     a rest week, and one rest week a season keeps the run; a second one ends
+     it. Nothing is ever taken away: the count simply stops where the run
+     stops. */
+  const weeks={};
+  days.forEach(d=>{weeks[weekNum(dayNum(d))]=1});
+  const cur=weekNum(dayNum(nowIso)), first=weekNum(win.startN);
+  let n=0, rest=0;
+  for(let w=cur;w>=first;w-=7){
+    if(weeks[w])n++;
+    else if(w===cur)continue;
+    else {rest++; if(rest>1)break;}
+  }
+  return {weeks:n, keptThisWeek:!!weeks[cur], restUsed:rest};
+}
+function seasonBooks(states,ts,win){
+  /* Books she marked read or loved inside this season's own days — the count
+     the goal ring fills on. A mark with no date is not counted, and a mark
+     cleared is not a book read. */
+  let n=0;
+  Object.keys(states||{}).forEach(id=>{
+    const s=(states||{})[id];
+    if(s!=='read'&&s!=='loved')return;
+    const t=Number((ts||{})[id]||0);
+    if(!t)return;
+    const dn=dayNum(isoDay(new Date(t)));
+    if(dn>=win.startN&&dn<=win.endN)n++;
+  });
+  return n;
+}
+
+const DEFAULT_SEASON_GOAL=6;   // the accepted Home plan's number, until the book brew has one
+/* THS-43: a stamp key carries its own meaning, so the row reads it back with
+   no second table — season:<key>:<year>, issue:<n>, series:<name> */
+function stampNormName(s){return String(s||'').toLowerCase().replace(/[^a-z0-9]/g,'')}
+function stampSym(key){return key.indexOf('season:')===0?'#stamp-'+key.split(':')[1]:''}
+function stampMark(key){
+  const p=key.split(':');
+  if(p[0]==='issue')return 'No. '+p[1];
+  if(p[0]==='series')return (p.slice(1).join(':').trim().charAt(0)||'\u00b7').toUpperCase();
+  return '';
+}
+function stampLabel(key,d){
+  const p=key.split(':');
+  if(p[0]==='season')return seasonName(p[1])+' '+p[2];
+  if(p[0]==='issue')return 'No. '+p[1];
+  const nm=p.slice(1).join(':');
+  const hit=((d&&d.series)||[]).filter(s=>stampNormName(s.name)===nm)[0];
+  return hit?hit.name:nm;
+}
+
 /* "N days to Christmas" until 24 December, "Christmas Day" on the 25th, then nothing */
 function christmasCountdown(now){
   if(now.getMonth()===11&&now.getDate()===25) return 'Christmas Day';
@@ -2238,7 +2449,12 @@ function hydrateIds(d){
 
 class Component extends DCLogic {
   state={ data:(typeof window!=='undefined'&&window.SHELF_DATA)?hydrateIds(window.SHELF_DATA):null,
-    states:{}, ts:{}, open:{}, q:0, view:'home', tip:'', peek:'', peekVol:false, vol:'', volOf:'', volT:0, plate:'', plateId:'', plateT:0, lastTapId:'', lastTapT:0, reading:{}, syn:{}, arc:'read', sync:'?',
+    states:{}, ts:{}, open:{}, q:0, view:'home', tip:'', peek:'', peekVol:false, vol:'', volOf:'', volT:0, plate:'', plateId:'', plateT:0, lastTapId:'', lastTapT:0, reading:{},
+    /* THS-43 (Home part 2): the reading days per book, the stamps kept, and
+       which stamp was pressed in during this visit (the celebration only
+       fires for that one) */
+    days:{}, stamps:{}, justStamp:null,
+    syn:{}, arc:'read', sync:'?',
     rowOpen:'', volSel:'', volSelOf:'', lastMark:null, issueDone:null,
     added:[], addOpen:false, addQ:'', addMsg:'', addResults:[],
     mobile:(typeof window!=='undefined'&&window.matchMedia)?window.matchMedia('(max-width:880px)').matches:false };
@@ -2273,6 +2489,13 @@ class Component extends DCLogic {
       if((r[id]||{}).s){ r[id]={s:false,t:now}; rdelta={}; rdelta[id]=r[id]; }
       this.persist(st,ts,r); this.sync(delta);
       if(rdelta)this.syncReading(rdelta);
+      /* THS-43: finishing a book is reading today, and a verdict can close an
+         issue, a series or the season goal. Both follow the mark once it has
+         landed, and the celebration is hers. */
+      setTimeout(()=>{try{
+        if(val==='read'||val==='loved')this.logDayQuiet(id);
+        this.pressStamps(true);
+      }catch(e){}},0);
       return {states:st, ts, reading:r, lastMark:null, issueDone};
     });
   }
@@ -2313,6 +2536,71 @@ class Component extends DCLogic {
     });
   }
   readingNow(id){ this.apply(id,'want'); this.setReading(id,true); }
+
+  /* ---- THS-43 (Home part 2): the reading day, the streak, the season goal
+     and the stamps kept --------------------------------------------------
+     "I read today" is one tap on the reading-now card. The day is hers in her
+     own calendar; the server keeps it per book and unions it with the days the
+     other device logged. A day once logged stays logged: it is a fact about a
+     day, not a mark to be flipped, and a streak never takes anything back. */
+  readToday(id){
+    const iso=isoDay(new Date());
+    this.setState(s=>{
+      const mine=Array.isArray((s.days||{})[id])?s.days[id]:[];
+      if(mine.indexOf(iso)>=0)return {};              // today is already logged
+      const days={...(s.days||{})}; days[id]=mine.concat([iso]).sort();
+      const delta={}; delta[id]=[iso];
+      this.persist(undefined,undefined,undefined,days);
+      this.syncChannel('days',delta);
+      return {days:days};
+    });
+  }
+  /* a book finished today was read today: the same tap, made for her */
+  logDayQuiet(id){
+    const iso=isoDay(new Date());
+    const mine=Array.isArray((this.state.days||{})[id])?this.state.days[id]:[];
+    if(mine.indexOf(iso)>=0)return;
+    this.readToday(id);
+  }
+  /* A stamp is pressed in once and kept forever, on the server, so the phone
+     and the desktop show the same row. `celebrate` is the festive case: the
+     burst and the press fire when she earns it during this visit, not when the
+     shelf catches up on a mark made elsewhere. */
+  stampCandidates(){
+    const d=this.state.data||{}, S=this.state.states||{}, ts=this.state.ts||{};
+    const now=new Date(), iso=isoDay(now), sn=seasonNow(d,now), win=seasonWindow(sn.season,iso);
+    const out=[];
+    const goal=Number(d.seasonGoal)||DEFAULT_SEASON_GOAL;
+    if(seasonBooks(S,ts,win)>=goal){
+      out.push({key:'season:'+sn.season.key+':'+win.year,
+                label:seasonName(sn.season.key)+' '+win.year});
+    }
+    const picks=d.books||[];
+    if(picks.length&&picks.every(b=>S[b.id]!==undefined)){
+      const n=(d.month&&d.month.issue)||0;
+      if(n)out.push({key:'issue:'+n,label:'No. '+n});
+    }
+    const norm=(s)=>stampNormName(s);
+    (d.series||[]).forEach(s=>{
+      const vols=s.books||[];
+      if(!vols.length)return;
+      const done=vols.every(b=>S[b.id]==='read'||S[b.id]==='loved'||
+        (S[b.id]===undefined&&b.state==='read'));
+      if(done)out.push({key:'series:'+norm(s.name),label:s.name});
+    });
+    return out;
+  }
+  pressStamps(celebrate){
+    const cur=this.state.stamps||{};
+    const fresh=this.stampCandidates().filter(c=>!cur[c.key]);
+    if(!fresh.length)return;
+    const now=Date.now(), next={...cur}, delta={};
+    fresh.forEach(c=>{next[c.key]={s:true,t:now}; delta[c.key]=next[c.key];});
+    this.setState({stamps:next, justStamp:fresh.map(f=>f.key)});
+    this.persist(undefined,undefined,undefined,undefined,next);
+    this.syncChannel('stamps',delta);
+    if(celebrate)this.confetti();
+  }
   verdictRow(id,title,opts){
     opts=opts||{};
     const st=this.state.states[id];
@@ -2397,9 +2685,11 @@ class Component extends DCLogic {
   settingsLeave(){try{const S=(typeof window!=='undefined')&&window.SHELF_SETTINGS;if(S&&S.leave)S.leave();}catch(e){}}
   settingsEnter(){try{const S=(typeof window!=='undefined')&&window.SHELF_SETTINGS;if(S&&S.enter)setTimeout(function(){S.enter();},0);}catch(e){}}
 
-  persist(states,ts,reading){
+  persist(states,ts,reading,days,stamps){
     try{ localStorage.setItem('shelf.marks',
-      JSON.stringify({v:2,states:states||this.state.states,ts:ts||this.state.ts,reading:reading||this.state.reading||{}})); }catch(e){}
+      JSON.stringify({v:2,states:states||this.state.states,ts:ts||this.state.ts,
+        reading:reading||this.state.reading||{},days:days||this.state.days||{},
+        stamps:stamps||this.state.stamps||{}})); }catch(e){}
   }
 
   /* #57: the finish-line confetti — a short, tasteful burst in the shelf's own
@@ -2511,41 +2801,48 @@ class Component extends DCLogic {
     }catch(e){}
   }
   /* #57: the reading channel — same travel rules as the marks, its own payload
-     and outbox so a reading flag never touches the verdict states */
-  syncReading(delta){
+     and outbox so a reading flag never touches the verdict states.
+     THS-43 (Home part 2): the reading days and the kept stamps travel the same
+     way, each on its own key and its own outbox, so one rule moves every
+     channel and none of them can touch the verdict states the run reads. */
+  outboxKey(ch){return ch==='states'?'shelf.outbox':'shelf.outbox.'+ch}
+  syncChannel(ch,delta){
+    const payload={}; payload[ch]=delta;
     try{ fetch('/api/state',{method:'POST',headers:{'Content-Type':'application/json'},
-      body:JSON.stringify({reading:delta})})
-      .then(r=>{ if(!r.ok)throw 0; this.flushOutbox(); })
-      .catch(()=>this.queueReading(delta));
-    }catch(e){ this.queueReading(delta); }
+      body:JSON.stringify(payload)})
+      .then(r=>{ if(!r.ok)throw 0; if(ch!=='states')this.setState({sync:'ok'}); this.flushChannel(ch); })
+      .catch(()=>this.queueChannel(ch,delta));
+    }catch(e){ this.queueChannel(ch,delta); }
   }
-  queueReading(delta){
+  queueChannel(ch,delta){
     try{
-      const q=JSON.parse(localStorage.getItem('shelf.outbox.reading')||'{}');
+      const key=this.outboxKey(ch), q=JSON.parse(localStorage.getItem(key)||'{}');
       Object.keys(delta).forEach(k=>{
-        if(!q[k]||Number((q[k]||{}).t||0)<=Number((delta[k]||{}).t||0))q[k]=delta[k];});
-      localStorage.setItem('shelf.outbox.reading',JSON.stringify(q));
+        if(ch==='days'){
+          // a reading day is added, never re-written: union, sorted
+          const have=Array.isArray(q[k])?q[k]:[];
+          q[k]=have.concat((delta[k]||[]).filter(d=>have.indexOf(d)<0)).sort();
+        } else if(!q[k]||Number((q[k]||{}).t||0)<=Number((delta[k]||{}).t||0)){q[k]=delta[k];}
+      });
+      localStorage.setItem(key,JSON.stringify(q));
       this.setState({sync:'queued'});
     }catch(e){}
   }
-  flushOutbox(){
+  flushChannel(ch){
     try{
-      const q=JSON.parse(localStorage.getItem('shelf.outbox')||'{}');
-      if(Object.keys(q).length){
-        fetch('/api/state',{method:'POST',headers:{'Content-Type':'application/json'},
-          body:JSON.stringify({states:q})})
-          .then(r=>{ if(r.ok){localStorage.removeItem('shelf.outbox'); this.setState({sync:'ok'});} })
-          .catch(()=>{});
-      }
-      const rq=JSON.parse(localStorage.getItem('shelf.outbox.reading')||'{}');
-      if(Object.keys(rq).length){
-        fetch('/api/state',{method:'POST',headers:{'Content-Type':'application/json'},
-          body:JSON.stringify({reading:rq})})
-          .then(r=>{ if(r.ok)localStorage.removeItem('shelf.outbox.reading'); })
-          .catch(()=>{});
-      }
+      const key=this.outboxKey(ch), q=JSON.parse(localStorage.getItem(key)||'{}');
+      if(!Object.keys(q).length)return;
+      const payload={}; payload[ch]=q;
+      fetch('/api/state',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(payload)})
+        .then(r=>{ if(!r.ok)throw 0;
+          localStorage.removeItem(key);
+          if(ch==='states'||ch==='reading')this.setState({sync:'ok'}); })
+        .catch(()=>{});
     }catch(e){}
   }
+  syncReading(delta){this.syncChannel('reading',delta)}
+  queueReading(delta){this.queueChannel('reading',delta)}
+  flushOutbox(){['states','reading','days','stamps'].forEach(ch=>this.flushChannel(ch));}
   pull(){
     fetch('/api/state').then(r=>r.json()).then(j=>{
       const remote=(j&&j.states)||{}, st={...this.state.states}, ts={...this.state.ts}, up={};
@@ -2567,10 +2864,38 @@ class Component extends DCLogic {
       Object.keys(rd).forEach(k=>{                       // local-only flags
         if(!(k in remR)&&!upR[k])upR[k]=rd[k];
       });
-      this.setState({states:st, ts, reading:rd, sync:'ok'});
-      this.persist(st,ts,rd);
+      /* THS-43: the reading days merge by UNION in both directions — a day
+         logged here and not yet sent joins the server's copy, a day the other
+         device logged joins this one, and neither can lose the other's. */
+      const remD=(j&&j.days)||{}, ld={...(this.state.days||{})}, upD={};
+      Object.keys(remD).forEach(id=>{
+        const mine=Array.isArray(ld[id])?ld[id]:[];
+        const add=(remD[id]||[]).filter(d=>mine.indexOf(d)<0);
+        if(add.length)ld[id]=mine.concat(add).sort();
+      });
+      Object.keys(ld).forEach(id=>{
+        const rem=Array.isArray(remD[id])?remD[id]:[];
+        const add=(ld[id]||[]).filter(d=>rem.indexOf(d)<0);
+        if(add.length)upD[id]=add;
+      });
+      // kept stamps travel like marks: one press per key, newest write wins
+      const remS=(j&&j.stamps)||{}, ls={...(this.state.stamps||{})}, upS={};
+      Object.keys(remS).forEach(k=>{
+        const r=remS[k]||{}, rt=Number(r.t||0), lt=Number((ls[k]||{}).t||0);
+        if(rt>lt){ ls[k]={s:!!r.s,t:rt}; }
+        else if(lt>rt){ upS[k]=ls[k]; }
+      });
+      Object.keys(ls).forEach(k=>{ if(!(k in remS)&&!upS[k])upS[k]=ls[k]; });
+      this.setState({states:st, ts, reading:rd, days:ld, stamps:ls, sync:'ok'});
+      this.persist(st,ts,rd,ld,ls);
       if(Object.keys(up).length)this.sync(up); else this.flushOutbox();
       if(Object.keys(upR).length)this.syncReading(upR);
+      if(Object.keys(upD).length)this.syncChannel('days',upD);
+      if(Object.keys(upS).length)this.syncChannel('stamps',upS);
+      /* a mark made on the other device can already have finished a season,
+         an issue or a series: press those stamps in once this state has
+         landed, quietly, with no celebration */
+      setTimeout(()=>{try{this.pressStamps(false);}catch(e){}},0);
     }).catch(()=>{ this.setState({sync:'offline'}); this.flushOutbox(); });
   }
 
@@ -2612,7 +2937,7 @@ class Component extends DCLogic {
     try{
       const raw=localStorage.getItem('shelf.marks');
       if(raw){
-        const all=JSON.parse(raw), out={}, tsf={}, rd={};
+        const all=JSON.parse(raw), out={}, tsf={}, rd={}, dy={}, sp={};
         if(all&&all.v===2&&all.states){
           // KEEP the stored timestamps. Re-stamping them with 'now' made the
           // next pull treat every mark as locally-newer than the server's copy
@@ -2624,6 +2949,15 @@ class Component extends DCLogic {
             const v=all.reading[k];
             if(v&&typeof v==='object'){ rd[k]={s:!!v.s,t:Number(v.t||0)}; }
             else { const n=Number(v||0); rd[k]={s:n>0,t:n}; }
+          }); }
+          /* THS-43: the reading days and the kept stamps ride the same local
+             copy, so an offline check-in is not lost when the page reopens */
+          if(all.days&&typeof all.days==='object'){ Object.keys(all.days).forEach(k=>{
+            if(Array.isArray(all.days[k]))dy[k]=all.days[k].filter(d=>typeof d==='string');
+          }); }
+          if(all.stamps&&typeof all.stamps==='object'){ Object.keys(all.stamps).forEach(k=>{
+            const v=all.stamps[k];
+            if(v&&typeof v==='object')sp[k]={s:!!v.s,t:Number(v.t||0)};
           }); }
         }
         else{
@@ -2645,8 +2979,9 @@ class Component extends DCLogic {
         // that import is the first moment the app ever knew it)
         const now=Date.now();
         Object.keys(out).forEach(k=>{ if(!tsf[k])tsf[k]=now; });
-        if(Object.keys(out).length||Object.keys(rd).length){
-          this.setState({states:out, ts:tsf, reading:rd}); this.persist(out,tsf,rd);
+        if(Object.keys(out).length||Object.keys(rd).length||Object.keys(dy).length||Object.keys(sp).length){
+          this.setState({states:out, ts:tsf, reading:rd, days:dy, stamps:sp});
+          this.persist(out,tsf,rd,dy,sp);
         }
       }
     }catch(e){}
@@ -2907,7 +3242,22 @@ class Component extends DCLogic {
           if(!card)return;
           // A short page needs enough room below the target to align it at the top.
           const extra=Math.max(0,Math.ceil(window.scrollY+card.getBoundingClientRect().top-(document.documentElement.scrollHeight-window.innerHeight)));
-          this.setState({seriesExtra:extra},()=>{const target=findCard();if(target)target.scrollIntoView({behavior:'instant',block:'start'});});
+          this.setState({seriesExtra:extra},()=>{
+            /* THS-43: the room added below can reach the layout a beat after this
+               callback, and a scroll made then stops short of the top. Scroll,
+               and if the card is not there yet, try again while the page settles
+               — five tries, about 80 ms, and it stops the moment the card is at
+               the top. The scroll stays instant, so nothing animates (reduced
+               motion included), and a page already aligned costs no retry. */
+            const settle=(tries)=>{
+              const target=findCard();
+              if(!target)return;
+              target.scrollIntoView({behavior:'instant',block:'start'});
+              if(Math.abs(target.getBoundingClientRect().top)<=2||tries<=0)return;
+              setTimeout(()=>settle(tries-1),16);
+            };
+            settle(5);
+          });
         })};
     });
 
@@ -3183,6 +3533,63 @@ class Component extends DCLogic {
         ...this.verdictRow(r.id,r.title,{before:()=>this.addBook(r)})};});
 
     const sn=seasonNow(d,new Date()), season=sn.season, isXmas=season.key==='christmas';
+
+    /* ---- THS-43 (Home part 2): the reading days, the weekly streak, the
+       season goal and the stamps kept. All of it is worked out from what she
+       already marked and logged — nothing new is invented here, and the
+       season's own days come from the same table the corner reads. ---------- */
+    const nowD=new Date(), todayIso=isoDay(nowD);
+    const win=seasonWindow(season,todayIso);
+    const goalBooks=Number(d.seasonGoal)||DEFAULT_SEASON_GOAL;
+    const seasonDone=seasonBooks(S,TS,win);
+    const goalReached=seasonDone>=goalBooks;
+    const daysAll=readDayList(this.state.days);
+    const wk=weekStreak(daysAll,todayIso,win);
+    const bookDays=(id)=>Array.isArray((this.state.days||{})[id])?this.state.days[id]:[];
+    const readTodayOn=rnId?bookDays(rnId).indexOf(todayIso)>=0:false;
+    const seasonStampKey='season:'+season.key+':'+win.year;
+    const kept=this.state.stamps||{};
+    const streakLine=wk.weeks
+      ?(wk.weeks+' reading '+(wk.weeks===1?'week':'weeks')+' in a row'
+        +(wk.keptThisWeek?'':' \u00b7 read this week to make it '+(wk.weeks+1)))
+      :(daysAll.length?'read today to start a week of your streak'
+                     :'no reading days logged yet');
+    /* this season's own week, Monday to Sunday, with every day she read lit */
+    const weekCells=['M','T','W','T','F','S','S'].map((L,i)=>{
+      const n=weekNum(dayNum(todayIso))+i, iso=isoOfNum(n);
+      const on=daysAll.indexOf(iso)>=0, today=iso===todayIso, future=n>dayNum(todayIso);
+      return {label:L, style:{width:'26px',height:'26px',display:'flex',alignItems:'center',
+        justifyContent:'center',fontSize:'9.5px',letterSpacing:'.06em',borderRadius:'2px',
+        border:'1px solid '+(on?'#8A6C31':today?'#6E2A2A':'#C6BBA3'),
+        background:on?'#C8B27A':'transparent',
+        color:on?'#211E19':future?'#A79B84':'#635846',
+        boxShadow:today?'inset 0 0 0 1px '+(on?'#211E19':'#6E2A2A'):'none'}};});
+    /* the ring's own arc: one dash of the filled length, then the rest of the
+       circumference left empty (the runtime resolves one value per attribute) */
+    const ringLen=2*Math.PI*34;
+    const ringFrac=Math.min(1,goalBooks?seasonDone/goalBooks:0);
+    const ringDash=(ringLen*ringFrac).toFixed(1)+' '+ringLen.toFixed(1);
+    const seasonHead=goalReached?(seasonName(season.key)+' goal reached'):(seasonDone+' of '+goalBooks+' books this season');
+    const seasonSub=win.daysLeft+' '+(win.daysLeft===1?'day':'days')+' left \u00b7 ends '+prettyDay(isoOfNum(win.endN));
+    const seasonStampLine=(this.state.justStamp||[]).indexOf(seasonStampKey)>=0
+      ?'You earned the '+seasonName(season.key)+' '+win.year+' stamp.':'';
+    /* the row: every stamp she has earned, oldest first, then the two she can
+       earn now (dashed) so the row also says what is next */
+    const sealStyle=(press)=>({animation:press?'stamppress .5s ease-out 1':'none',transformOrigin:'center'});
+    const rowOf=(k,on,press)=>({key:k,label:stampLabel(k,d),on:on,
+      sym:stampSym(k),mark:stampMark(k),isSeason:k.indexOf('season:')===0,isText:!!stampMark(k),
+      col:on?'#8A6C31':'#C6BBA3',dash:on?'none':'3 3',style:sealStyle(press)});
+    const pressed=(k)=>(this.state.justStamp||[]).indexOf(k)>=0;
+    const stampRow=Object.keys(kept).filter(k=>kept[k]&&kept[k].s!==false)
+      .sort((a,b)=>(kept[a].t||0)-(kept[b].t||0)).map(k=>rowOf(k,true,pressed(k)));
+    const ghost=[];
+    if(!kept[seasonStampKey])ghost.push(rowOf(seasonStampKey,false,false));
+    const issueNo=(d.month&&d.month.issue)||0;
+    const issueKey='issue:'+issueNo;
+    if(issueNo&&(d.books||[]).length&&openPicks.length&&!kept[issueKey])ghost.push(rowOf(issueKey,false,false));
+    const stampList=stampRow.concat(ghost);
+    const stampCount=stampRow.length;
+
     /* the corner's colours come from the season table, as custom properties
        the corner CSS reads; the bottom rule is the bottom-line colour at 40% */
     const cornerStyle=(function(){const c=season.corner, st={position:'relative',background:'#E5DCCA',padding:'6px'};
@@ -3231,6 +3638,22 @@ class Component extends DCLogic {
       hasReadingNow, hasChooseNext,
       rn, rnHasWaiting:hasChooseNext&&wantList.length>0, rnNoWaiting:hasChooseNext&&wantList.length===0,
       rnStarts, rnShelfLink,
+
+      /* THS-43 (Home part 2): the one tap on the card, and the season panel */
+      rnTodayOn:readTodayOn?'true':'false',
+      rnTodayLabel:readTodayOn?'read today \u2713':'I read today',
+      rnTodayAria:(readTodayOn?'reading day logged today for ':'log a reading day today for ')+(rnB?rnB.title:''),
+      rnTodayStyle:rnGoldBtn,
+      rnOnToday:()=>{if(rnId)this.readToday(rnId);},
+      seasonEyebrow:seasonName(season.key)+' season goal',
+      seasonHead, seasonSub, seasonStampLine,
+      ringAria:seasonDone+' of '+goalBooks+' books read this season',
+      ringDash, ringDone:seasonDone, ringGoal:goalBooks,
+      streakLine, weekCells,
+
+      /* the stamps she keeps */
+      hasStamps:stampList.length>0, stamps:stampList, stampCount,
+      stampsLine:stampCount?(stampCount+' kept'):'none pressed in yet',
 
       /* anticipation — a row of countdown cards */
       hasAnticipations:anticipations.length>0,

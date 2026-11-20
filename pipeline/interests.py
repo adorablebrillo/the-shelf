@@ -40,6 +40,9 @@ DEFAULT_NAME = 'The book brew'
 # rewritten for that. A name the reader typed is shown as typed.
 LEGACY_NAME = 'Book-a-meter'
 DEFAULT_PICKS = 12
+# the season goal the Home ring shows until the reader's own number arrives
+# (the accepted Home plan's answer: 6 books a season)
+DEFAULT_SEASON_GOAL = 6
 DEFAULT_NEVER = ['cowboys']
 
 # the three romance interests every install starts with, in the order the
@@ -390,6 +393,19 @@ def split(doc):
             out[name(donor)] -= 1
             out[name(a)] += 1
     return out
+
+
+def season_goal(doc):
+    """Books a season holds: the reader's own number when the Book-a-meter has
+    one (the survey writes `season_goal`), the plan's 6 otherwise. A missing,
+    blank, non-numeric or impossible value is the default, never a zero — the
+    ring must always have a real goal to fill."""
+    raw = (doc or {}).get('season_goal')
+    try:
+        n = int(str(raw).strip())
+    except (TypeError, ValueError):
+        return DEFAULT_SEASON_GOAL
+    return n if 1 <= n <= 999 else DEFAULT_SEASON_GOAL
 
 
 def never(doc):
