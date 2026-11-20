@@ -1,12 +1,12 @@
 #!/usr/bin/env python3
-"""The Shelf — the reader's interests (the Book-a-meter), read by every run.
+"""The Shelf — the reader's interests (the book brew), read by every run.
 
 One list of interests replaces the three fixed romance lanes. It lives in
 interests.json on the config volume (CFG_DIR, /config on Unraid): the
 interests, the never list, picks per issue and the season goal. The public
 repo ships blank — when the file is missing, the run makes it from
 config.json lane_terms: the three romance interests, each "into it", mode new
-(the shelf every install starts with, per the accepted Book-a-meter plan).
+(the shelf every install starts with, per the accepted book brew plan).
 
 An interest is one kind of book the reader wants: a story genre or a
 real-life topic. It has an id, a label (its name, as the reader sees it), a
@@ -32,9 +32,13 @@ import paths
 BASE = os.path.dirname(os.path.abspath(__file__))
 CFG = json.load(open(os.path.join(BASE, 'config.json')))
 
-# the reader's answers to the Book-a-meter plan (THS-37): the name, 12 picks
+# the reader's answers to the book brew plan (THS-37): the name, 12 picks
 # and the never list are hers, not derivable from lane_terms
-DEFAULT_NAME = 'Book-a-meter'
+DEFAULT_NAME = 'The book brew'
+# the name every file carried before THS-70 renamed the feature. A file that
+# still says it (or says nothing) shows DEFAULT_NAME; the file is never
+# rewritten for that. A name the reader typed is shown as typed.
+LEGACY_NAME = 'Book-a-meter'
 DEFAULT_PICKS = 12
 DEFAULT_NEVER = ['cowboys']
 
@@ -53,7 +57,7 @@ MODES = ('new', 'best ever', 'both')
 DEFAULT_DIAL = 'into it'
 DEFAULT_MODE = 'new'
 
-# The baby's stages, from the reader's answers to the Book-a-meter plan
+# The baby's stages, from the reader's answers to the book brew plan
 # (THS-37 piece 4): five stages, in whole months, with the themes the plan
 # showed her. A topic interest older than the last stage gets no stage.
 STAGES = (
@@ -141,6 +145,13 @@ def vol_path():
 
 def path():
     return paths.personal('interests.json')
+
+
+def display_name(name):
+    """The feature's name as the reader sees it: the one she typed, else the
+    default — also for a file that still carries the old default name."""
+    n = str(name or '').strip()
+    return DEFAULT_NAME if (not n or n == LEGACY_NAME) else n
 
 
 def load():
@@ -293,7 +304,7 @@ def birth_unused(i):
     """Why this interest's birth month and year cannot do anything, or ''
     when it can. A value that does not read as a month and year is a typo,
     and a story interest never curates for an age: both would otherwise be
-    silent, and the reader sets the birth by hand until the Book-a-meter tab
+    silent, and the reader sets the birth by hand until the book brew tab
     ships. A birth still to come and a child past 36 months are not faults."""
     v = str(i.get('birth') or '').strip()
     if not v:

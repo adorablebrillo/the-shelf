@@ -38,7 +38,7 @@ import bookids
 import fetch
 import interests
 import lanes
-INTS = interests.load()  # her Book-a-meter: genre -> interest fallback
+INTS = interests.load()  # her book brew: genre -> interest fallback
 import paths
 from shelf_state import exclusion_set
 from windows import target_month

@@ -1,9 +1,9 @@
 #!/usr/bin/env python3
-"""The Book-a-meter (THS-37) — the run reads interests in place of the
+"""The book brew (THS-37) — the run reads interests in place of the
 three fixed lanes (piece 1), and a topic interest follows the baby's age
 (piece 4). These tests own the new intents:
   · interests.py builds the default file from config.json lane_terms with the
-    captain's answers (Book-a-meter, 12 picks, never ["cowboys"]);
+    captain's answers (book brew, 12 picks, never ["cowboys"]);
   · the split follows dial weights, every active interest keeps at least 1,
     rounding goes by largest remainder with ties to the first listed;
   · a pick carries the interest of the search that found it, not a genre
@@ -41,13 +41,26 @@ def mk(title, genre, days_ago, rating=None, rcount=None, trad=True, lane=''):
     return b
 
 
+class DisplayNameTests(unittest.TestCase):
+    """THS-70: the feature is "The book brew". A file with no name, or one that
+    still carries the old default, shows the new name; a typed name stays."""
+
+    def test_missing_and_old_default_names_show_the_new_name(self):
+        for saved in (None, '', '   ', 'Book-a-meter'):
+            self.assertEqual(interests.display_name(saved), 'The book brew')
+
+    def test_a_name_the_reader_typed_is_kept(self):
+        self.assertEqual(interests.display_name('My taste'), 'My taste')
+        self.assertEqual(interests.display_name('  My taste '), 'My taste')
+
+
 class DefaultsTests(unittest.TestCase):
     """A blank install: the run makes interests.json from config lane_terms,
-    with the captain's Book-a-meter answers."""
+    with the captain's book brew answers."""
 
     def test_defaults_match_her_answers(self):
         d = interests.defaults()
-        self.assertEqual(d['name'], 'Book-a-meter')
+        self.assertEqual(d['name'], 'The book brew')
         self.assertEqual(d['picks'], 12)
         self.assertEqual(d['never'], ['cowboys'])
         self.assertIsNone(d['season_goal'])
@@ -296,7 +309,7 @@ class WidenLoopProvenanceTests(unittest.TestCase):
 
 class GapFillWindowTests(unittest.TestCase):
     """gap_fill never treats a name the run does not know as any-date, and an
-    empty or all-off Book-a-meter never pads a month."""
+    empty or all-off book brew never pads a month."""
 
     def test_unknown_name_is_bounded_by_the_first_rung(self):
         # a leftover whose genre falls back to a name no interest owns, dated
@@ -495,7 +508,7 @@ class BabyAgeTests(unittest.TestCase):
 class BadBirthWarningTests(unittest.TestCase):
     """A birth month and year the run cannot use is named in the run's
     report, never swallowed: the reader sets it by hand until the
-    Book-a-meter tab ships."""
+    book brew tab ships."""
 
     def report(self, interest):
         doc = interests.defaults()

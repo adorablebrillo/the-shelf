@@ -5,7 +5,7 @@ Calls an LLM (any model available via OpenRouter) with the taste profile and
 the filtered candidates. Strict JSON in, curated month out.
 
 The shape rule now follows the reader's interests (interests.json — the
-Book-a-meter): picks split across the active interests by dial weight, every
+book brew): picks split across the active interests by dial weight, every
 active interest keeps a floor of two; an interest that cannot fill its floor
 widens ITS OWN window 30 -> 60 -> 90 days before it is dropped (a best-ever
 interest skips the window — any date, 4.0+ rated); gaps are filled from the
@@ -207,7 +207,7 @@ VERDICT_RULES = ('\n\nHer verdicts: the request carries her_verdicts — books s
 
 
 def interests_block():
-    """The Book-a-meter, built in code for every request — the interests,
+    """The book brew, built in code for every request — the interests,
     their dials, their pick targets and which of them the romance rules
     hold for. Her deployed taste-prompt.md is never edited; this block
     overrides its lane and shape wording."""
@@ -215,7 +215,7 @@ def interests_block():
     if not act:
         return '\n\nHer interests list is empty — pick nothing this month.'
     sp = interests.split(INTS)
-    lines = ['\n\nHer interests (the Book-a-meter) — this block OVERRIDES any lane '
+    lines = ['\n\nHer interests (the book brew) — this block OVERRIDES any lane '
              'and shape wording earlier in the taste brief:']
     for i in act:
         nm = interests.name(i)
@@ -430,7 +430,7 @@ def curate(key, filtered, taste, seq, mon, window_rule, call=None, log=print, he
              ' — ZERO' if pick_n == 0 else '',
              ' (off, not searched)' if interests.dial(i) == 'off' else ''))
         # a birth the run cannot use would otherwise be silent, and the
-        # reader sets it by hand until the Book-a-meter tab ships
+        # reader sets it by hand until the book brew tab ships
         unused = interests.birth_unused(i)
         if unused:
             log('[interest] %s: the birth month and year "%s" %s — no stage this run; fix interests.json'
@@ -439,7 +439,7 @@ def curate(key, filtered, taste, seq, mon, window_rule, call=None, log=print, he
 
 
 def main():
-    # the run makes the interests file on a blank install (the Book-a-meter
+    # the run makes the interests file on a blank install (the book brew
     # the reader's answers fill — pieces 2 and 3 write it; the run reads it)
     global INTS
     INTS = interests.ensure()
@@ -491,7 +491,7 @@ def main():
         return 2
     n = len(cur['books'])
     lo = CFG['target_books'][0]
-    hi = int(INTS.get('picks') or interests.DEFAULT_PICKS)  # her Book-a-meter answer: picks per issue
+    hi = int(INTS.get('picks') or interests.DEFAULT_PICKS)  # her book brew answer: picks per issue
     if n == 0:
         print('CURATE returned 0 books — refusing to overwrite the existing month file (keeping the good shelf)')
         return 3

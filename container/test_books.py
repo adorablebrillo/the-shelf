@@ -117,7 +117,7 @@ class AddedBooksTests(unittest.TestCase):
 
 
 class InterestFilingTests(unittest.TestCase):
-    """THS-37 piece 2: the Book-a-meter tab's "+ add a book" saves an added
+    """THS-37 piece 2: the book brew tab's "+ add a book" saves an added
     book with an interest field and the reading-now flag. The flag rides the
     same reading channel (#57) as a verdict-row press."""
 

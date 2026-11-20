@@ -506,16 +506,17 @@
         </sc-if>
       </section>
 
-      <!-- THS-35 (Home part 3): the Book-a-meter widget — her interests and
+      <!-- THS-35 (Home part 3): the book brew widget — her interests and
            their dials, read-only, shipped from interests.json by the build.
            The dials change in Settings, never here; the reads the footer line
            counts come from the page's own mark state. -->
       <sc-if value="{{ hasMeter }}">
-      <section aria-label="Your Book-a-meter" data-m="meter" style="margin-top:46px">
+      <section aria-label="{{ meterName }}" data-m="meter" style="margin-top:46px">
         <div style="display:flex;align-items:baseline;justify-content:space-between;gap:16px;flex-wrap:wrap">
-          <h2 style="font-family:'Cormorant Garamond',Garamond,serif;font-weight:500;font-size:clamp(23px,3vw,32px);letter-spacing:.14em;text-transform:uppercase;margin:0">Book-a-meter</h2>
+          <h2 style="font-family:'Cormorant Garamond',Garamond,serif;font-weight:500;font-size:clamp(23px,3vw,32px);letter-spacing:.14em;text-transform:uppercase;margin:0">{{ meterName }}</h2>
           <button type="button" onClick="{{ goSettings }}" style="font-size:10.5px;letter-spacing:.24em;text-transform:uppercase;color:#6E2A2A;border-bottom:1px solid #A8863F;padding:0 0 2px" style-hover="color:#1E3A2F">change in Settings</button>
         </div>
+        <p style="margin:8px 0 0;font-style:italic;font-size:14px;color:#635846">Your interests at a glance.</p>
         <div style="height:1px;background:#A8863F;margin:14px 0 0"></div>
         <div style="display:grid;grid-template-columns:1fr;margin-top:4px">
           <sc-for list="{{ meterRows }}" as="r" hint-placeholder-count="3">
@@ -950,7 +951,7 @@
 
       <div data-m="setTabs" role="tablist" aria-label="Settings panels" style="display:flex;margin-top:24px;border-bottom:1px solid #C6BBA3">
         <button type="button" id="tab-shelf" role="tab" aria-selected="true" aria-controls="panel-shelf" tabindex="0" style="font-size:10.5px;letter-spacing:.28em;text-transform:uppercase;padding:12px 18px 11px;background:transparent;border:none;border-bottom:2px solid #1E3A2F;color:#211E19;cursor:pointer;min-height:44px">Shelf</button>
-        <button type="button" id="tab-bookameter" role="tab" aria-selected="false" aria-controls="panel-bookameter" tabindex="-1" style="font-size:10.5px;letter-spacing:.28em;text-transform:uppercase;padding:12px 18px 11px;background:transparent;border:none;border-bottom:2px solid transparent;color:#635846;cursor:pointer;min-height:44px">Book-a-meter</button>
+        <button type="button" id="tab-bookameter" role="tab" aria-selected="false" aria-controls="panel-bookameter" tabindex="-1" style="font-size:10.5px;letter-spacing:.28em;text-transform:uppercase;padding:12px 18px 11px;background:transparent;border:none;border-bottom:2px solid transparent;color:#635846;cursor:pointer;min-height:44px">The book brew</button>
         <button type="button" id="tab-authors" role="tab" aria-selected="false" aria-controls="panel-authors" tabindex="-1" style="font-size:10.5px;letter-spacing:.28em;text-transform:uppercase;padding:12px 18px 11px;background:transparent;border:none;border-bottom:2px solid transparent;color:#635846;cursor:pointer;min-height:44px">Authors</button>
         <button type="button" id="tab-import" role="tab" aria-selected="false" aria-controls="panel-import" tabindex="-1" style="font-size:10.5px;letter-spacing:.28em;text-transform:uppercase;padding:12px 18px 11px;background:transparent;border:none;border-bottom:2px solid transparent;color:#635846;cursor:pointer;min-height:44px">Import</button>
       </div>
@@ -976,8 +977,8 @@
       </div>
 
       <div id="panel-bookameter" role="tabpanel" aria-labelledby="tab-bookameter" style="display:none">
-        <section aria-label="Book-a-meter" style="max-width:720px">
-          <p id="bm-intro" style="margin:22px 0 0;font-size:16px;line-height:1.6;color:#4A443A">Your Book-a-meter tells the curator what to look for. Turn a dial up for more picks, or off for none. A book you add for an interest shows on My Shelf, never on Home.</p>
+        <section id="bm-section" aria-label="The book brew" style="max-width:720px">
+          <p id="bm-intro" style="margin:22px 0 0;font-size:16px;line-height:1.6;color:#4A443A">Choose interests. Adjust how much you want. Turn an interest off for no picks. A book you add for an interest shows on My Shelf, never on Home.</p>
           <p id="bm-msg" role="status" aria-live="polite" style="margin:12px 0 0;min-height:20px;font-style:italic;font-size:14px;color:#6E2A2A"></p>
           <div id="bm-interests" style="margin-top:8px"></div>
           <div style="margin-top:18px">
@@ -1260,7 +1261,7 @@
       try{window.dispatchEvent(new Event('shelf:imported'));}catch(_){}
     }).catch(function(){grBusy=false;grMsg('The shelf server did not answer \u2014 nothing was imported.');});
   }
-  /* ---- the Book-a-meter tab (THS-37 piece 2) ----------------------------
+  /* ---- the book brew tab (THS-37 piece 2) ----------------------------
      One dial per interest, its mode, its own reading list (added books filed
      under the interest), the never list and picks per issue. Everything saves
      to interests.json at once — the file the runs read. The panel renders
@@ -1346,7 +1347,9 @@
       BM=d;
       BM_BOOKS=(res[1]&&res[1].books)||[];
       BM_READING=(res[2]&&res[2].reading)||{};
-      var tb=document.getElementById('tab-bookameter');if(tb)tb.textContent=BM.name||'Book-a-meter';
+      var nm=BM.name||'The book brew';
+      var tb=document.getElementById('tab-bookameter');if(tb)tb.textContent=nm;
+      var bs=document.getElementById('bm-section');if(bs)bs.setAttribute('aria-label',nm);
       bmSubLine(false);bmRender();
     }).catch(function(){bmMsg('The interests file could not be read — container offline?');});
   }
@@ -1690,7 +1693,7 @@
   };
 })();
 </script>
-<!-- The Book-a-meter survey (THS-37, piece 3).
+<!-- The book brew survey (THS-37, piece 3).
      Five steps before Home: the shelves, the dials, the never list, what she
      reads now, and the mix — ending with the season-goal question THS-35's
      Home block asks for. It shows while the interests file carries no
@@ -1709,7 +1712,7 @@ var TITLES=[
  ['How much of each?','Turn a dial up for more picks. Choose new releases, the best ever, or both.'],
  ['Never show me','The curator leaves these out, in every interest.'],
  ['What are you reading now?','Add a book and say what it is for.'],
- ['Your Book-a-meter','This is the mix your next issue follows. Change it any time in Settings.']
+ [null,'Your interests shape your next issue. Change them any time in Settings.']
 ];
 var S=null,host=null,styled=false,oldOverflow='';
 
@@ -2092,7 +2095,7 @@ function render(){
   dots.setAttribute('aria-hidden','true');
   for(var i=1;i<=5;i++){var d=el('i',i<=st?'on':'');dots.appendChild(d);}
   panel.appendChild(dots);
-  var h=el('h2','',TITLES[st-1][0]);
+  var h=el('h2','',TITLES[st-1][0]||S.name);
   h.setAttribute('tabindex','-1');
   panel.appendChild(h);
   panel.appendChild(el('p','sub',TITLES[st-1][1]));
@@ -2128,7 +2131,7 @@ function saveSurvey(){
    .then(function(res){
      if(!res.ok||!res.j||res.j.error){ S.msg=(res.j&&res.j.error)||'The shelf server could not save your answers.'; render(); return; }
      close();
-     toast('Your '+S.name.toLowerCase()+' is saved \u2014 the next run follows it.');
+     toast(S.name+' is saved \u2014 the next run follows it.');
    })
    .catch(function(){ S.msg='The shelf server did not answer \u2014 nothing was saved.'; render(); });
 }
@@ -2147,7 +2150,7 @@ function open(){
   host.id='shelf-survey';
   host.setAttribute('role','dialog');
   host.setAttribute('aria-modal','true');
-  host.setAttribute('aria-label','Book-a-meter survey');
+  host.setAttribute('aria-label',S.name+' survey');
   document.body.appendChild(host);
   oldOverflow=document.body.style.overflow;
   document.body.style.overflow='hidden';
@@ -2163,7 +2166,7 @@ function close(){
 function start(force){
   fetch('/api/interests').then(function(r){return r.json();}).then(function(d){
     if(!d||d.error)return;
-    S={name:d.name||'Book-a-meter',
+    S={name:d.name||'The book brew',
        picks:d.picks||12,
        never:(d.never||[]).slice(),
        season:(d.season_goal===null||d.season_goal===undefined)?null:d.season_goal,
@@ -3003,15 +3006,17 @@ class Component extends DCLogic {
         ...this.grFields(x.b.t,x.s.author,true,x.b.grUrl),
         daysLabel:dd===1?'day':'days'};});
 
-    /* ---- THS-35 (Home part 3): the Book-a-meter widget -------------------
+    /* ---- THS-35 (Home part 3): the book brew widget -------------------
        Her interests and their dials, from the meter doc the build ships
-       (interests.json — the Book-a-meter). Display only: the dials change in
+       (interests.json — the book brew). Display only: the dials change in
        Settings, never here. Four strength dots per dial: off 0, curious 2,
        into it 3, obsessed 4 — the accepted preview's scale. The footer line
        counts at render time from her marks, so deciding a book moves the
        number without a rebuild: how many of the topic-interest books the
        page knows are read or loved ("reading for a reason"). */
     const meterInterests=(d.meter&&d.meter.interests)||[];
+    const rawMeterName=(d.meter&&d.meter.name)||'';  // a page built before the rename still carries the old default
+    const meterName=(!rawMeterName||rawMeterName==='Book-a-meter')?'The book brew':rawMeterName;
     const DIALS=['off','curious','into it','obsessed'];
     const DIAL_FILL={'off':0,'curious':2,'into it':3,'obsessed':4};
     const meterRows=meterInterests.map(i=>{
@@ -3230,8 +3235,8 @@ class Component extends DCLogic {
       hasAnticipations:anticipations.length>0,
       anticipations,
 
-      /* THS-35 (Home part 3): the Book-a-meter widget */
-      hasMeter:meterRows.length>0, meterRows, meterReason,
+      /* THS-35 (Home part 3): the book brew widget */
+      hasMeter:meterRows.length>0, meterName, meterRows, meterReason,
 
       /* read & loved — past 30 days */
       recentSpines, recentList,

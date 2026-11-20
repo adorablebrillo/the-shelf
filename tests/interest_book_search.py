@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""THS-69: Search in a Book-a-meter interest shows the books it found.
+"""THS-69: Search in a book brew interest shows the books it found.
 
 A pressed Search used to fetch the books and then draw them nowhere: the
 completion handed the interest's id to a renderer that wants the interest.
@@ -20,7 +20,7 @@ from playwright.sync_api import sync_playwright
 url = sys.argv[1]
 reply = json.loads((Path(__file__).parent / 'fixtures' / 'search-whole-brain-child.json').read_text())
 first = reply['results'][0]['title']
-interests = {'name': 'Book-a-meter', 'picks': 12, 'never': [], 'season_goal': None,
+interests = {'name': 'The book brew', 'picks': 12, 'never': [], 'season_goal': None,
              'surveyed': '2026-11-01',
              'interests': [{'id': 'baby', 'label': 'Baby development', 'kind': 'topic',
                             'dial': 'into it', 'mode': 'both', 'romance': False, 'reading': []}]}
@@ -43,7 +43,7 @@ with sync_playwright() as p:
             page.evaluate("() => { const s = document.getElementById('shelf-survey');"
                           " if (s) { s.remove(); document.body.style.overflow = ''; } }")
             page.get_by_role('button', name='Settings', exact=True).first.click()
-            page.get_by_role('tab', name='Book-a-meter').click()
+            page.get_by_role('tab', name='The book brew').click()
             card = page.locator('#bm-card-baby')
             card.get_by_role('button', name='+ add a book').click()
             box = card.get_by_role('searchbox')

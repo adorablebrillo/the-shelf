@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """The Shelf pipeline — stage 2: apply the reader's hard rules to candidates.
-The rules follow her interests (interests.json — the Book-a-meter): the
+The rules follow her interests (interests.json — the book brew): the
 romance screens (M/F only) hold for romance interests' books; the never
 list holds for every book; a best-ever interest skips the window (any
 date) and its books' quality proof is an Apple or Goodreads rating of 4.0
@@ -12,7 +12,7 @@ from datetime import datetime, date, timedelta
 # SHELF_MODE=adhoc     -> "curate now": a rolling window of the last 30 days
 MODE = os.environ.get('SHELF_MODE', 'scheduled')
 
-import interests  # her Book-a-meter: the rules below follow it
+import interests  # her book brew: the rules below follow it
 
 from shelf_state import exclusion_set, exclude_by_shelf
 
@@ -62,7 +62,7 @@ def cowboy_screen(title, genre):
     return any(k in title for k in NO_COWBOY) or any(k in genre for k in NO_COWBOY)
 
 
-# a never word can name a whole family: her "cowboys" (the Book-a-meter's
+# a never word can name a whole family: her "cowboys" (the book brew's
 # never list) means every cowboy/western variant (issue #35), not just the
 # exact word. A word with no known family matches by itself.
 NEVER_FAMILIES = {'cowboys': NO_COWBOY, 'cowboy': NO_COWBOY, 'cowgirl': NO_COWBOY,
