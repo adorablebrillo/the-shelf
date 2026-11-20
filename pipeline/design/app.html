@@ -1218,14 +1218,16 @@
   @media(min-width:881px){html.christmas-active [data-m="main"]{padding-right:max(48px,calc(100% - 1108px)) !important}}
   #christmas-play .snow-ledge-wrap{position:fixed;left:276px;right:0;bottom:0;height:110px;z-index:40;pointer-events:none;background:#EDE6D8}
   @media(max-width:880px){
-    html.christmas-active [data-m="frame"]{grid-template-rows:auto minmax(0,1fr);padding-bottom:calc(166px + env(safe-area-inset-bottom,0px))}
-    html.christmas-active [data-m="main"]{height:auto;min-height:0}
+    /* On phones the page scrolls as usual, so the header scrolls away; only the ledge and bottom bar stay fixed. */
+    html.christmas-active [data-m="frame"]{height:auto;overflow:visible;padding-bottom:calc(166px + env(safe-area-inset-bottom,0px))}
+    html.christmas-active [data-m="main"]{height:auto;overflow:visible;min-height:0;scrollbar-gutter:auto}
     #christmas-play .snow-ledge-wrap{left:0;bottom:calc(56px + env(safe-area-inset-bottom,0px))}
   }
   #christmas-play .snow-brush-strip{position:absolute;bottom:0;left:0;right:0;height:16px;pointer-events:none}
   #christmas-play .snow-brush-strip.brushing{pointer-events:auto;touch-action:none;cursor:crosshair}
-  #christmas-play .snow-slots{display:flex;justify-content:space-around;gap:8px}
-  #christmas-play .snow-slots button{flex:1;max-width:180px}
+  /* The tree buttons sit on the ledge itself, above the drift (16 px) and the trees (55 px). */
+  #christmas-play .snow-slots{position:absolute;top:0;left:0;right:0;display:flex;justify-content:space-around;gap:8px;padding:0 8px;box-sizing:border-box;pointer-events:none}
+  #christmas-play .snow-slots button{flex:1;max-width:180px;height:44px;padding:0 4px;font-size:14px;white-space:nowrap;pointer-events:auto}
   #christmas-play [role=status]{min-height:1.5em;margin:8px 0}
   #christmas-fall{position:fixed;inset:0;width:100%;height:100%;pointer-events:none;z-index:60}
   html.christmas-frost [data-season="christmas"] [data-snow-cover="true"]{position:relative}
@@ -1236,8 +1238,8 @@
   <h2>Christmas snow</h2>
   <div class="snow-controls"><button type="button" data-snow="effects" aria-pressed="true">Effects on</button><button type="button" data-snow="pause" aria-pressed="false">Pause snow</button></div>
   <div id="snow-scene">
-    <div class="snow-ledge-wrap"><svg class="snow-ledge" viewBox="0 0 750 110" preserveAspectRatio="none" aria-label="Snow drift. Turn on brush mode to brush here."><g id="snow-trees"></g><path id="snow-drift" fill="#FBFCF6" stroke="#A9BCC2" stroke-width="1"></path><g id="snow-plough"></g></svg><div class="snow-brush-strip" aria-hidden="true"></div></div>
-    <div class="snow-slots" aria-label="Tree positions"><button type="button" data-slot="0">Plant left</button><button type="button" data-slot="1">Plant centre</button><button type="button" data-slot="2">Plant right</button></div>
+    <div class="snow-ledge-wrap"><svg class="snow-ledge" viewBox="0 0 750 110" preserveAspectRatio="none" aria-label="Snow drift. Turn on brush mode to brush here."><g id="snow-trees"></g><path id="snow-drift" fill="#FBFCF6" stroke="#A9BCC2" stroke-width="1"></path><g id="snow-plough"></g></svg><div class="snow-brush-strip" aria-hidden="true"></div>
+      <div class="snow-slots" aria-label="Tree positions"><button type="button" data-slot="0">Plant left</button><button type="button" data-slot="1">Plant centre</button><button type="button" data-slot="2">Plant right</button></div></div>
     <div class="snow-controls"><button type="button" data-snow="brush" aria-pressed="false">Brush mode</button><button type="button" data-snow="sweep">Sweep a path</button><button type="button" data-snow="plough">Call the plough</button><button type="button" data-snow="clear">Clear snow</button><button type="button" data-snow="undo">Undo</button></div>
   </div>
   <p role="status" aria-live="polite" id="snow-status">Choose a position to plant a tree.</p>
@@ -1267,7 +1269,7 @@
   }
   function render(){
     paintDrift();
-    trees.innerHTML=state.plants.map((on,i)=>on?'<g transform="translate('+[125,375,625][i]+' 107) scale('+objectScale()+' 1)"><path d="M0 4V-25" stroke="#635846" stroke-width="4"/><path d="M0 -69L-16 -42H-10L-24 -20H-17L-29 0H29L17 -20H24L10 -42H16Z" fill="#355643" stroke="#211E19"/><path d="M-10 -40L0 -60 10 -40M-17 -19L0 -37 17 -19M-23 0L0 -15 23 0" fill="none" stroke="#F3EDE1" stroke-width="2"/><path d="M0 -35L13 -28 -12 -11 19 -4" fill="none" stroke="#A8863F"/><g fill="#E7C766"><circle cx="2" cy="-34" r="2.5"/><circle cx="12" cy="-26" r="2.5"/><circle cx="-10" cy="-11" r="2.5"/><circle cx="17" cy="-4" r="2.5"/></g></g>':'').join('');
+    trees.innerHTML=state.plants.map((on,i)=>on?'<g transform="translate('+[125,375,625][i]+' 107) scale('+(objectScale()*.8)+' .8)"><path d="M0 4V-25" stroke="#635846" stroke-width="4"/><path d="M0 -69L-16 -42H-10L-24 -20H-17L-29 0H29L17 -20H24L10 -42H16Z" fill="#355643" stroke="#211E19"/><path d="M-10 -40L0 -60 10 -40M-17 -19L0 -37 17 -19M-23 0L0 -15 23 0" fill="none" stroke="#F3EDE1" stroke-width="2"/><path d="M0 -35L13 -28 -12 -11 19 -4" fill="none" stroke="#A8863F"/><g fill="#E7C766"><circle cx="2" cy="-34" r="2.5"/><circle cx="12" cy="-26" r="2.5"/><circle cx="-10" cy="-11" r="2.5"/><circle cx="17" cy="-4" r="2.5"/></g></g>':'').join('');
     slots.forEach((b,i)=>{b.textContent=(state.plants[i]?'Remove ':'Plant ')+['left','centre','right'][i];});
     document.documentElement.classList.toggle('christmas-active',christmas&&enabled);
     scene.style.display=enabled?'':'none';canvas.style.display=christmas&&enabled?'':'none';

@@ -29,18 +29,29 @@ async function journey(n){
   assert(d.documentElement.scrollWidth<=frame.contentWindow.innerWidth,'The page overflows horizontally');
   const main=q('[data-m="main"]'), ledge=q('.snow-ledge-wrap'), nav=q('[data-m="bottomnav"]');
   const mainBox=main.getBoundingClientRect(), ledgeBox=ledge.getBoundingClientRect(), navBox=nav.getBoundingClientRect();
-  assert(mainBox.bottom<=ledgeBox.top+1,'The lower ledge covers the reading area');
+  const scrolls=getComputedStyle(main).overflowY==='auto', win=frame.contentWindow;
+  if(scrolls)assert(mainBox.bottom<=ledgeBox.top+1,'The lower ledge covers the reading area');
+  else{
+    assert(root.scrollHeight>win.innerHeight,'On a phone the page does not scroll as a whole');
+    const header=q('[data-m="side"]');win.scrollTo(0,0);assert(header.getBoundingClientRect().top>=0,'The phone header started off screen');
+    win.scrollTo(0,root.scrollHeight);await wait(50);
+    assert(header.getBoundingClientRect().bottom<=0,'The phone header stayed pinned instead of scrolling away');
+    assert(q('[data-m="main"]').getBoundingClientRect().bottom<=ledgeBox.top+1,'The lower ledge covers the end of the reading area');
+  }
+  const trees=Array.from(d.querySelectorAll('[data-slot]'));
+  assert(trees.length===3&&trees.every(b=>{const r=b.getBoundingClientRect();return r.top>=ledgeBox.top-1&&r.bottom<=ledgeBox.bottom+1&&r.height>=44&&d.elementFromPoint(r.left+r.width/2,r.top+r.height/2)===b;}),'The tree buttons are not reachable on the ledge');
   if(width===390)assert(ledgeBox.bottom<=navBox.top+1,'The lower ledge covers phone navigation');
   else assert(Math.abs(ledgeBox.bottom-frame.contentWindow.innerHeight)<=1,'The desktop ledge is not at the lower edge');
   assert(q('#christmas-play').parentElement===main,'Scene controls are outside the reading scroll area');
-  main.scrollTop=main.scrollHeight;
-  const action=q('[data-snow="undo"]'), actionBox=action.getBoundingClientRect();
-  assert(actionBox.top>=mainBox.top&&actionBox.bottom<=mainBox.bottom,'The reading scroll area cannot reveal the scene controls');
+  if(scrolls)main.scrollTop=main.scrollHeight;else win.scrollTo(0,root.scrollHeight);
+  await wait(50);
+  const action=q('[data-snow="undo"]'), actionBox=action.getBoundingClientRect(), areaTop=scrolls?mainBox.top:0, areaBottom=scrolls?mainBox.bottom:ledge.getBoundingClientRect().top;
+  assert(actionBox.top>=areaTop&&actionBox.bottom<=areaBottom,'Ordinary scrolling cannot reveal the scene controls');
   assert(d.elementFromPoint(actionBox.left+actionBox.width/2,actionBox.top+actionBox.height/2)===action,'The ledge covers the scene controls');
   const readingButton=q('[aria-label^="want to read"]');
   readingButton.focus();
   const readingBox=readingButton.getBoundingClientRect();
-  assert(d.activeElement===readingButton&&readingBox.bottom<=mainBox.bottom+1&&readingBox.top>=mainBox.top-1,'Keyboard focus is outside the reading area');
+  assert(d.activeElement===readingButton&&readingBox.bottom<=areaBottom+1&&readingBox.top>=areaTop-1,'Keyboard focus is outside the reading area');
   const cover=q('[data-snow-cover="true"]'), frostStyle=frame.contentWindow.getComputedStyle(cover,'::after');
   assert(parseFloat(frostStyle.height)>0&&parseFloat(frostStyle.height)<=6,'Cover frost escaped its six-pixel band');
   cover.scrollIntoView();await wait(50);
