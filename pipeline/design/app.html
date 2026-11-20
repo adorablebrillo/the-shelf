@@ -2344,13 +2344,19 @@ function isoDay(dt){return dt.getFullYear()+'-'+isoPad(dt.getMonth()+1)+'-'+isoP
 function dayNum(iso){return Math.round(Date.UTC(+iso.slice(0,4),+iso.slice(5,7)-1,+iso.slice(8,10))/DAYMS)}
 function isoOfNum(n){const t=new Date(n*DAYMS);return t.getUTCFullYear()+'-'+isoPad(t.getUTCMonth()+1)+'-'+isoPad(t.getUTCDate())}
 function weekNum(n){return n-((new Date(n*DAYMS).getUTCDay()+6)%7)}   // the Monday of her week
+function clampMd(y,md){
+  /* a table day in year y, held to the month's last real day: winter ends
+     '02-29', which is 28 February in a year without 29 February */
+  const m=+md.slice(0,2), last=new Date(Date.UTC(y,m,0)).getUTCDate();
+  return y+'-'+md.slice(0,2)+'-'+isoPad(Math.min(+md.slice(3),last));
+}
 function seasonWindow(season,nowIso){
   /* this season's own span, counted from the year it started in: a season
      that wraps the new year (Christmas, 1 Nov to 6 Jan) began last year */
   const y=+nowIso.slice(0,4), md=nowIso.slice(5);
   const sy=(md<season.start)?y-1:y;
   const ey=(season.end<season.start)?sy+1:sy;
-  const startN=dayNum(sy+'-'+season.start), endN=dayNum(ey+'-'+season.end);
+  const startN=dayNum(clampMd(sy,season.start)), endN=dayNum(clampMd(ey,season.end));
   return {start:startN+'', startN:startN, endN:endN, year:sy,
           daysLeft:Math.max(0,endN-dayNum(nowIso)+1)};
 }

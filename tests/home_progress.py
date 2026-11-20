@@ -22,6 +22,7 @@ Run: python3 tests/home_progress.py http://127.0.0.1:8811
 Requires Python Playwright and a locally installed Chromium browser. Set
 CHROME_PATH when Playwright's own Chromium is not installed.
 """
+import calendar
 import json
 import os
 import sys
@@ -67,7 +68,8 @@ def season_start(today):
     A season that wraps the new year (Christmas, 1 Nov – 6 Jan) began last year."""
     for s in SEASONS:
         a = date(today.year, int(s['start'][:2]), int(s['start'][3:]))
-        b = date(today.year, int(s['end'][:2]), int(s['end'][3:]))
+        m, d = int(s['end'][:2]), int(s['end'][3:])
+        b = date(today.year, m, min(d, calendar.monthrange(today.year, m)[1]))  # '02-29' in a common year
         if a <= b:
             if a <= today <= b:
                 return s, a
