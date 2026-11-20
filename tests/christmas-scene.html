@@ -43,6 +43,7 @@ async function journey(n){
   const treesOk=state=>assert(trees.length===3&&trees.every(b=>{const r=b.getBoundingClientRect();return b.textContent.startsWith(state)&&r.top>=ledgeBox.top-1&&r.bottom<=ledgeBox.bottom+1&&r.right<=win.innerWidth&&r.left>=0&&r.height>=44&&d.elementFromPoint(r.left+r.width/2,r.top+r.height/2)===b;}),'The tree buttons are not visible and hittable on the ledge in the '+state+' state');
   treesOk('Plant');
   // A tap on the opaque ledge must stay on the ledge, never reach a control scrolled behind it.
+  assert([q('.snow-ledge-wrap'),q('.snow-ledge'),...trees].every(e=>getComputedStyle(e).touchAction==='auto'),'The ledge restricts native swipe or pinch-zoom');
   const bare=d.elementFromPoint(ledgeBox.left+ledgeBox.width/2,ledgeBox.bottom-30);
   assert(bare&&bare.closest('.snow-ledge-wrap'),'The ledge lets a tap through to the page behind it');
   if(width===390)assert(ledgeBox.bottom<=navBox.top+1,'The lower ledge covers phone navigation');

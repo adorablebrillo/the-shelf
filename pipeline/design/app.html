@@ -1210,14 +1210,14 @@
   #christmas-play button{min-height:44px;padding:8px 12px;border:1px solid #8A6C31;background:#F3EDE1;color:#211E19;font:inherit;cursor:pointer}
   #christmas-play button[aria-pressed="true"]{background:#1E3A2F;color:#F3EDE1}
   #christmas-play button:focus-visible{outline:3px solid #6E2A2A;outline-offset:2px}
-  #christmas-play .snow-ledge{display:block;width:100%;height:110px;border-bottom:1px solid #8A6C31;touch-action:pan-y}
+  #christmas-play .snow-ledge{display:block;width:100%;height:110px;border-bottom:1px solid #8A6C31}
   /* Reserve the lower page ledge rather than placing the scene after the page. */
   html.christmas-active [data-m="frame"]{height:100dvh;min-height:0 !important;overflow:hidden;box-sizing:border-box}
   /* main scrolls across the whole column, so the wheel works over the margin; the padding keeps the page's own 1060px reading width. */
   html.christmas-active [data-m="main"]{height:calc(100dvh - 110px);overflow-y:auto;box-sizing:border-box;scrollbar-gutter:stable;max-width:none !important}
   @media(min-width:881px){html.christmas-active [data-m="main"]{padding-right:max(48px,calc(100% - 1108px)) !important}}
-  /* The ledge is opaque, so it takes taps itself; a tap never reaches a control scrolled behind it. */
-  #christmas-play .snow-ledge-wrap{position:fixed;left:276px;right:0;bottom:0;height:110px;z-index:40;touch-action:pan-y;background:#EDE6D8}
+  /* The ledge is opaque, so it takes taps itself; a tap never reaches a control scrolled behind it. Swipes and pinch-zoom stay native, so only the active brush strip restricts touch. */
+  #christmas-play .snow-ledge-wrap{position:fixed;left:276px;right:0;bottom:0;height:110px;z-index:40;background:#EDE6D8}
   @media(max-width:880px){
     /* On phones the page scrolls as usual, so the header scrolls away; only the ledge and bottom bar stay fixed. */
     html.christmas-active [data-m="frame"]{height:auto;overflow:visible;padding-bottom:calc(166px + env(safe-area-inset-bottom,0px))}
