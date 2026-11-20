@@ -392,7 +392,7 @@ class H(BaseHTTPRequestHandler):
                 if 'stamps' in body:
                     incoming, held = season_checked(cur.get('stamps'), body.get('stamps'),
                                                     body.get('season_goal'), cur['states'],
-                                                    body.get('tz'))
+                                                    body.get('tz'), body.get('tz_name'))
                     cur['stamps'], sd = merge_stamps(cur.get('stamps'), incoming)
                     dropped += sd + held
                 save_state(cur)
@@ -941,12 +941,22 @@ def interests_locked():
         yield
 
 
-def season_books(states, key, tz=None):
+def _zone(name):
+    try:
+        from zoneinfo import ZoneInfo
+        return ZoneInfo(name) if isinstance(name, str) and name else None
+    except Exception:   # an unknown name, or no time zone database
+        return None
+
+
+def season_books(states, key, tz=None, tz_name=None):
     """The books she marked read or loved inside the season a stamp names
     (`season:<key>:<year>`, the year the season starts in): the count the
     page's ring fills on (app.html seasonBooks). A mark's day is her local
-    day, from the page's offset east of UTC in minutes (`tz`); a mark with no
-    time is not counted."""
+    day at the time of the mark: her time zone's own rules (`tz_name`, such
+    as Europe/Madrid) when the server knows them, so a mark made before a
+    clock change falls on the day her page shows; else the page's offset
+    east of UTC in minutes (`tz`). A mark with no time is not counted."""
     m = re.match(r'^season:([a-z]+):(\d{4})$', key or '')
     if not m:
         return 0
@@ -955,13 +965,15 @@ def season_books(states, key, tz=None):
         return 0
     start, end, year = season[0]['start'], season[0]['end'], int(m.group(2))
     off = tz if isinstance(tz, int) and not isinstance(tz, bool) and abs(tz) <= 14 * 60 else None
+    zone = _zone(tz_name)
     n = 0
     for v in (states or {}).values():
         if not isinstance(v, dict) or v.get('s') not in ('read', 'loved'):
             continue
         try:
             t = float(v.get('t') or 0) / 1000
-            day = (datetime.utcfromtimestamp(t) + timedelta(minutes=off) if off is not None
+            day = (datetime.fromtimestamp(t, zone) if zone is not None
+                   else datetime.utcfromtimestamp(t) + timedelta(minutes=off) if off is not None
                    else datetime.fromtimestamp(t)) if t else None
         except (TypeError, ValueError, OverflowError, OSError):
             day = None
@@ -975,7 +987,7 @@ def season_books(states, key, tz=None):
     return n
 
 
-def season_checked(kept, incoming, goal, states=None, tz=None):
+def season_checked(kept, incoming, goal, states=None, tz=None, tz_name=None):
     """A season stamp is kept for good, so a new one is accepted only with
     the goal the page checked it against, only when that goal is still the
     one she gave (the survey answered, the goal set), and only when the marks
@@ -1001,7 +1013,7 @@ def season_checked(kept, incoming, goal, states=None, tz=None):
           and isinstance(goal, int) and not isinstance(goal, bool) and goal == mine)
     out, held = {}, 0
     for k, v in incoming.items():
-        if k in new and not (ok and season_books(states, k, tz) >= mine):
+        if k in new and not (ok and season_books(states, k, tz, tz_name) >= mine):
             held += 1
             continue
         out[k] = v

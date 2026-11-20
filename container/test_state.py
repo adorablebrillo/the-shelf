@@ -232,6 +232,16 @@ class SeasonBooksTests(unittest.TestCase):
         self.assertEqual(server.season_books(states, 'season:christmas:2026', 60), 1)
         self.assertEqual(server.season_books(states, 'season:christmas:2026', 0), 0)
 
+    def test_a_mark_before_the_clock_change_keeps_its_own_day(self):
+        """00:30 on 1 September in Madrid is 22:30 UTC on 31 August (summer
+        time). A stamp sent in November carries the winter offset (+60); her
+        time zone's own rules still put the mark in autumn, as her ring does."""
+        states = {'a': {'s': 'read', 't': utc_ms(2026, 8, 31, 22, 30)}}
+        self.assertEqual(server.season_books(states, 'season:autumn:2026', 60, 'Europe/Madrid'), 1)
+        self.assertEqual(server.season_books(states, 'season:summer:2026', 60, 'Europe/Madrid'), 0)
+        # an unknown zone name falls back to the offset
+        self.assertEqual(server.season_books(states, 'season:summer:2026', 60, 'Nowhere/Else'), 1)
+
 
 class KeptStampApiTests(unittest.TestCase):
     """The stamp channel over the contract the page uses."""

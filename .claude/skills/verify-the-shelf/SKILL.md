@@ -90,7 +90,7 @@ rm -rf container/dist
 
 ## Helpers
 
-- `seed-demo.py` (beside this file) — writes the made-up shelf and months. Usage is in its docstring; it is idempotent and safe to re-run.
+- `seed-demo.py` (beside this file) — writes the made-up shelf and months. Usage is in its docstring; it is idempotent and safe to re-run, except with `--surveyed`, which refuses an existing `interests.json`: seed each surveyed run into a fresh scratch volume.
 
 ## Feature map
 

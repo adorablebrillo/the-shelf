@@ -2734,27 +2734,21 @@ class Component extends DCLogic {
     cands.forEach(c=>{delta[c.key]={s:true,t};});
     this._seasonKeeping=true;
     fetch('/api/state',{method:'POST',headers:{'Content-Type':'application/json'},
-      body:JSON.stringify({stamps:delta, season_goal:checked.n, tz:-new Date().getTimezoneOffset()})})
+      body:JSON.stringify({stamps:delta, season_goal:checked.n, tz:-new Date().getTimezoneOffset(),
+        tz_name:(()=>{try{return Intl.DateTimeFormat().resolvedOptions().timeZone||'';}catch(e){return '';}})()})})
      .then(r=>r.ok?r.json():Promise.reject(r.status))
      .then(j=>{
        const rem=(j&&j.stamps)||{}, kept=Object.keys(delta).filter(k=>(rem[k]||{}).s);
        if(!kept.length)throw 0;
-       this._seasonTries=0;
-       this._seasonAcks=(this._seasonAcks||0)+1;     // a pull begun before this is older
+       this._seasonTries=0; this._seasonDue=false;
+       this.seasonSeen(kept);
        const next={...(this.state.stamps||{})};
        kept.forEach(k=>{next[k]={s:true,t:Number(rem[k].t)||t};});
        this.setState({stamps:next, justStamp:kept});
        this.persist(undefined,undefined,undefined,undefined,next);
        if(celebrate)this.confetti();
      })
-     .catch(()=>{
-       /* not kept: the server had not yet seen her newest marks, or her goal
-          changed. Read the marks and the goal again and check once more, a
-          few times at most; the old write is never sent again. */
-       const n=this._seasonTries=(this._seasonTries||0)+1;
-       if(n<=3){clearTimeout(this._seasonRetry);
-         this._seasonRetry=setTimeout(()=>{this.flushOutbox(); this.pull();},2000*n);}
-     })
+     .catch(()=>{this._seasonDue=true; this.seasonRetry();})
      .then(()=>{
        this._seasonKeeping=false;
        if(this._seasonAgain!==undefined){         // a press came while this one ran
@@ -2762,6 +2756,29 @@ class Component extends DCLogic {
          this.loadGoal().then(g=>{if(g)try{this.pressStamps(c,g);}catch(e){}});
        }
      });
+  }
+  /* A season stamp the server has kept, from either of its answers (this
+     page's own write or a state read), is kept for good: a state read
+     answered late never takes it off the page. */
+  seasonSeen(keys){
+    const seen=this._seasonSeen=this._seasonSeen||{};
+    (keys||[]).forEach(k=>{seen[k]=1;});
+  }
+  /* A season stamp not kept: the server had not yet seen her newest marks,
+     or her goal changed. Read the marks and the goal again and check once
+     more, a few times at most, also when that read fails; the old write is
+     never sent again. A mark that reaches the server later checks again too
+     (afterStatesSync). */
+  seasonRetry(){
+    const n=this._seasonTries=(this._seasonTries||0)+1;
+    if(n>3)return;
+    clearTimeout(this._seasonRetry);
+    this._seasonRetry=setTimeout(()=>{this.pull().then(ok=>{if(!ok)this.seasonRetry();});},2000*n);
+  }
+  afterStatesSync(){
+    if(!this._seasonDue)return;
+    this._seasonTries=0;                           // a fresh check, with its own few retries
+    setTimeout(()=>{try{this.pressStamps(false);}catch(e){}},0);
   }
   verdictRow(id,title,opts){
     opts=opts||{};
@@ -2950,7 +2967,7 @@ class Component extends DCLogic {
     const send=(payload)=>fetch('/api/state',{method:'POST',
       headers:{'Content-Type':'application/json'},body:JSON.stringify({states:payload})})
       .then(r=>{ if(!r.ok)throw 0; this.setState({sync:'ok'}); return r.json(); });
-    try{ send(delta).then(()=>this.flushOutbox()).catch(()=>this.queue(delta)); }
+    try{ send(delta).then(()=>{this.flushOutbox(); this.afterStatesSync();}).catch(()=>this.queue(delta)); }
     catch(e){ this.queue(delta); }
   }
   queue(delta){
@@ -2998,6 +3015,7 @@ class Component extends DCLogic {
       fetch('/api/state',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(payload)})
         .then(r=>{ if(!r.ok)throw 0;
           localStorage.removeItem(key);
+          if(ch==='states')this.afterStatesSync();
           if(ch==='states'||ch==='reading')this.setState({sync:'ok'}); })
         .catch(()=>{});
     }catch(e){}
@@ -3006,8 +3024,7 @@ class Component extends DCLogic {
   queueReading(delta){this.queueChannel('reading',delta)}
   flushOutbox(){['states','reading','days','stamps'].forEach(ch=>this.flushChannel(ch));}
   pull(){
-    const acks=this._seasonAcks||0;
-    fetch('/api/state').then(r=>r.json()).then(j=>{
+    return fetch('/api/state').then(r=>{if(!r.ok)throw 0; return r.json();}).then(j=>{
       const remote=(j&&j.states)||{}, st={...this.state.states}, ts={...this.state.ts}, up={};
       Object.keys(remote).forEach(k=>{
         const r=remote[k]||{}, rt=Number(r.t||0), s=(r.s===undefined?null:r.s), lt=Number(ts[k]||0);
@@ -3043,6 +3060,7 @@ class Component extends DCLogic {
       });
       // kept stamps travel like marks: one press per key, newest write wins
       const remS=(j&&j.stamps)||{}, ls={...(this.state.stamps||{})}, upS={};
+      this.seasonSeen(Object.keys(remS).filter(k=>k.indexOf('season:')===0&&(remS[k]||{}).s));
       Object.keys(remS).forEach(k=>{
         const r=remS[k]||{}, rt=Number(r.t||0), lt=Number((ls[k]||{}).t||0);
         if(rt>lt){ ls[k]={s:!!r.s,t:rt}; }
@@ -3051,8 +3069,8 @@ class Component extends DCLogic {
       Object.keys(ls).forEach(k=>{
         if(k in remS||upS[k])return;
         /* a season stamp the server never kept is not hers: drop it, never
-           send it — unless the server kept it after this read began */
-        if(k.indexOf('season:')===0){if(acks===(this._seasonAcks||0))delete ls[k]; return;}
+           send it — unless a server answer since showed it kept */
+        if(k.indexOf('season:')===0){if(!(this._seasonSeen||{})[k])delete ls[k]; return;}
         upS[k]=ls[k];
       });
       this.setState({states:st, ts, reading:rd, days:ld, stamps:ls, sync:'ok'});
@@ -3065,7 +3083,8 @@ class Component extends DCLogic {
          an issue or a series: press those stamps in once this state has
          landed, quietly, with no celebration */
       setTimeout(()=>{try{this.pressStamps(false);}catch(e){}},0);
-    }).catch(()=>{ this.setState({sync:'offline'}); this.flushOutbox(); });
+      return true;
+    }).catch(()=>{ this.setState({sync:'offline'}); this.flushOutbox(); return false; });
   }
 
   legacySlug(title,author){
@@ -3169,7 +3188,8 @@ class Component extends DCLogic {
     this._imp=()=>{ this.loadAdded(); this.pull(); };
     if(typeof window!=='undefined')window.addEventListener('shelf:imported',this._imp);
     /* the survey and the book brew tab save her goal: read it again */
-    this._goalStamps=()=>this.loadGoal().then(g=>{if(g)try{this.pressStamps(false,g);}catch(e){}});
+    this._goalStamps=()=>{this._seasonTries=0;     // on load and on a tab return: a fresh check
+      return this.loadGoal().then(g=>{if(g)try{this.pressStamps(false,g);}catch(e){}});};
     this._goalStamps();
     this._goal=()=>this.loadGoal().then(g=>{if(g)try{this.pressStamps(true,g);}catch(e){}});
     if(typeof window!=='undefined')window.addEventListener('shelf:interests',this._goal);
