@@ -1263,7 +1263,7 @@
   function save(){previous={bins:state.bins.slice(),frost:state.frost,plants:state.plants.slice()};}
   function say(text){status.textContent=text;}
   function reduced(){return motion.matches;}
-  function resize(){const d=Math.min(window.devicePixelRatio||1,2); canvas.width=Math.round(innerWidth*d);canvas.height=Math.round(innerHeight*d);ctx.setTransform(d,0,0,d,0,0);}
+  function resize(){const d=Math.min(window.devicePixelRatio||1,2,Math.sqrt(8388608/(4*innerWidth*innerHeight))); /* sharp on dense screens, but the backing store stays within 8 MiB */ canvas.width=Math.round(innerWidth*d);canvas.height=Math.round(innerHeight*d);ctx.setTransform(d,0,0,d,0,0);}
   function objectScale(){const r=ledge.getBoundingClientRect();return r.width?750*r.height/(110*r.width):1;}
   function paintDrift(){
     let d='M0 110';state.bins.forEach((v,i)=>{d+='L'+(i*10)+' '+(110-v*16);});path.setAttribute('d',d+'L750 110H0Z');
