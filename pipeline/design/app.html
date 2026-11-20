@@ -1469,7 +1469,8 @@
       .then(function(j){
         BM_RES[id]=(j&&j.results)||[];
         bmMsg(!j||j.error?((j&&j.error)||'The search failed — try again.'):'');
-        bmRenderRes(id);
+        /* the renderer wants the interest, not its id; it may be gone by now */
+        var i=bmFind(id);if(i)bmRenderRes(i);
       })
       .catch(function(){bmMsg('The shelf server did not answer — try again.');});
   }
