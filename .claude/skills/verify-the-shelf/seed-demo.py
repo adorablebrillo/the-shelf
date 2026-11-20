@@ -5,9 +5,9 @@ month files into pipeline/data/. Made-up titles only — never the reader's own
 shelf (the public repo ships blank; captures must show no real reader data).
 Usage: python3 .claude/skills/verify-the-shelf/seed-demo.py <scratch-cfg-dir> [repo-root] [--surveyed]
 --surveyed also writes the scratch volume's interests.json as a blank install's
-defaults with the survey answered (a surveyed day, no season goal), so the page
-opens straight on Home instead of the first-open survey. Leave it off to
-verify the survey itself.
+defaults with the survey answered (a surveyed day, the plan's season goal of 6),
+so the page opens straight on Home instead of the first-open survey and Home
+asks no goal question. Leave it off to verify the survey itself.
 """
 import json, os, sys
 from datetime import date
@@ -94,8 +94,9 @@ if '--surveyed' in flags:
     import interests  # the one definition of a blank install's file
     doc = interests.defaults()
     doc['surveyed'] = date.today().isoformat()
+    doc['season_goal'] = interests.DEFAULT_SEASON_GOAL  # answered, so Home asks nothing
     json.dump(doc, open(os.path.join(cfg, 'interests.json'), 'w'), indent=1)
-    print('seeded a surveyed interests.json (defaults, no season goal) into', cfg)
+    print('seeded a surveyed interests.json (defaults, season goal %d) into' % doc['season_goal'], cfg)
 
 print('seeded made-up shelf into', cfg)
 print('seeded made-up months 2026-10 and 2026-11 (current-month files need "mode": "adhoc")')
