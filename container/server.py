@@ -920,16 +920,34 @@ def interests_payload(doc):
             'split': interests_split(doc)}
 
 
+# The survey, the book brew tab and Home's goal question all write
+# interests.json; one lock makes each read-change-write whole, so no writer
+# saves over a field another one just changed.
+INTERESTS_LOCK = threading.Lock()
+
+
 def interests_save(body):
-    """The reader's answers, written to the volume. The survey stamps the day
-    it was answered; another writer (the Settings tab) leaves the old date
-    alone. Returns the saved doc."""
-    cur = load_interests()
-    ans = interests_from_body(body)
-    doc = {'v': 1, 'name': ans['name'], 'picks': ans['picks'], 'never': ans['never'],
-           'season_goal': ans['season_goal'], 'interests': ans['interests']}
-    doc['surveyed'] = _clean(body.get('surveyed') or cur.get('surveyed') or '', 32) or None
-    save_interests(doc)
+    """The reader's answers, written to the volume over the latest file: only
+    the fields the page sends change. An interest keeps what the page does not
+    send for it (a topic's birth, the run's search words); the season goal
+    changes only when the body names it (the survey does, the book brew tab
+    does not); the survey stamps the day it was answered and another writer
+    leaves the old date alone. Returns the saved doc."""
+    body = body if isinstance(body, dict) else {}
+    with INTERESTS_LOCK:
+        cur = load_interests()
+        ans = interests_from_body(body)
+        old = {i.get('id'): i for i in (cur.get('interests') or []) if isinstance(i, dict)}
+        for i in ans['interests']:
+            for k, v in (old.get(i['id']) or {}).items():
+                i.setdefault(k, v)
+        doc = dict(cur)
+        doc.update({'v': 1, 'name': ans['name'], 'picks': ans['picks'], 'never': ans['never'],
+                    'interests': ans['interests']})
+        if 'season_goal' in body:
+            doc['season_goal'] = ans['season_goal']
+        doc['surveyed'] = _clean(body.get('surveyed') or cur.get('surveyed') or '', 32) or None
+        save_interests(doc)
     return doc
 
 
@@ -947,9 +965,10 @@ def interests_set_season_goal(body):
         return None, 'Choose how many books this season.'
     if n < 1 or n > 365:
         return None, 'A season goal is from 1 to 365 books.'
-    doc = load_interests()
-    doc['season_goal'] = n
-    save_interests(doc)
+    with INTERESTS_LOCK:
+        doc = load_interests()
+        doc['season_goal'] = n
+        save_interests(doc)
     return doc, None
 
 

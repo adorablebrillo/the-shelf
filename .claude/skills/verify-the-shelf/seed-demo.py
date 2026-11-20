@@ -7,7 +7,8 @@ Usage: python3 .claude/skills/verify-the-shelf/seed-demo.py <scratch-cfg-dir> [r
 --surveyed also writes the scratch volume's interests.json as a blank install's
 defaults with the survey answered (a surveyed day, the plan's season goal of 6),
 so the page opens straight on Home instead of the first-open survey and Home
-asks no goal question. Leave it off to verify the survey itself.
+asks no goal question. Leave it off to verify the survey itself. --surveyed
+refuses a volume that already holds an interests.json.
 """
 import json, os, sys
 from datetime import date
@@ -16,6 +17,11 @@ flags = [a for a in sys.argv[1:] if a.startswith('--')]
 args = [a for a in sys.argv[1:] if not a.startswith('--')]
 cfg = args[0]
 root = args[1] if len(args) > 1 else os.path.dirname(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))))
+if '--surveyed' in flags and os.path.exists(os.path.join(cfg, 'interests.json')):
+    # a surveyed fixture is made only in a fresh scratch volume: never write
+    # over an interests file that is already there (it may be a reader's)
+    sys.exit('seed-demo: %s already holds interests.json; use a fresh scratch volume for --surveyed'
+             % cfg)
 os.makedirs(cfg, exist_ok=True)
 os.makedirs(os.path.join(root, 'pipeline', 'data'), exist_ok=True)
 

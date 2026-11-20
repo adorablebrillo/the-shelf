@@ -252,7 +252,7 @@
        The 44px floor and the type size do not move. */
     [data-m="readnow"] > div{grid-template-columns:minmax(0,64px) minmax(0,1fr) !important;gap:14px !important}
     [data-m="readnow"] [data-m="verdicts"] button{padding:11px 11px !important;letter-spacing:.1em !important}
-    section[aria-label="This month's picks"]{margin-top:10px !important}
+    section[aria-label="This month's picks"]{margin-top:6px !important}
     [data-m="rnsub"]{font-size:15px !important}
     [data-m="readnow"] h2{font-size:22px !important;line-height:1.04 !important}
     [data-m="rncov"]{width:64px !important}
@@ -276,6 +276,7 @@
      The strip is one cell per day of her week, lit where she tapped; the row is
      a kept seal with its own name under it, wrapping rather than scrolling. */
   [data-m="weekrow"]{display:flex;gap:5px;margin-top:14px}
+  [data-m="goalask"][data-at="picks"]{display:none}
   [data-m="stamprow"]{display:flex;flex-wrap:wrap;gap:22px 26px;margin:0;padding:0}
   [data-m="stampcell"]{margin:0;width:88px;text-align:center}
   [data-m="stampcell"] [data-m="seal"]{position:relative;width:54px;height:54px;margin:0 auto}
@@ -293,14 +294,18 @@
        "Read & loved" section prints two blocks down, so on the smallest
        screen it steps out and the issue line part 1 won for the first screen
        stays above the section bar. */
-    [data-m="seasonin"]{padding:10px 12px !important;gap:12px !important}
+    [data-m="season"]{padding:4px !important}
+    [data-m="seasonin"]{padding:6px 12px !important;gap:12px !important}
     [data-m="ring"]{width:44px !important;height:44px !important}
     [data-m="seasonsub"],[data-m="weekrow"],[data-m="seasonname"]{display:none !important}
+    /* the season goal question moves under the issue line (see the picks) */
+    [data-m="goalask"][data-at="panel"]{display:none !important}
+    [data-m="goalask"][data-at="picks"]{display:block}
     /* the ring is 44px here: its own number is the only thing that stays
        legible inside it, and the line beside it says the same in words */
     [data-m="ringgoal"]{display:none !important}
     [data-m="ringdone"]{font-size:16px !important}
-    [data-m="season"]{margin-top:10px !important}
+    [data-m="season"]{margin-top:8px !important}
     [data-m="seasonin"] h2{font-size:19px !important;margin:0 !important}
     [data-m="streakline"]{font-size:10px !important;letter-spacing:.16em !important}
     [data-m="streakline"]{margin-top:8px !important}
@@ -479,8 +484,8 @@
             </sc-if>
           </div>
           <sc-if value="{{ goalAsk }}">
-            <div data-m="goalask" role="group" aria-labelledby="goalask-q" style="flex:1 1 100%;min-width:0;padding:14px 0 0;border-top:1px solid #D9CCB0">
-              <p id="goalask-q" style="margin:0;font-family:'Cormorant Garamond',Garamond,serif;font-size:19px;color:#2B2118">How many books this season?</p>
+            <div data-m="goalask" data-at="panel" role="group" aria-labelledby="goalask-q-panel" style="flex:1 1 100%;min-width:0;padding:14px 0 0;border-top:1px solid #D9CCB0">
+              <p id="goalask-q-panel" style="margin:0;font-family:'Cormorant Garamond',Garamond,serif;font-size:19px;color:#2B2118">How many books this season?</p>
               <p style="margin:4px 0 0;font-size:12px;color:#635846">The book brew skipped this one. Choose a number and the ring keeps count.</p>
               <div style="display:flex;align-items:center;gap:8px;margin-top:10px;flex-wrap:wrap">
                 <button type="button" onClick="{{ goalLess }}" disabled="{{ goalLessOff }}" aria-label="fewer books this season" style="{{ goalBtn }}">&minus;</button>
@@ -505,6 +510,21 @@
         <div style="height:1px;background:#A8863F;margin:12px 0 0"></div>
         <div data-m="issuebar" style="position:relative;height:4px;background:#D6CCB6;margin:12px 0 0"><span style="position:absolute;left:0;top:0;bottom:0;width:{{ issuePct }}%;background:#6E2A2A"></span></div>
         <p style="margin:8px 0 0;font-size:11.5px;letter-spacing:.2em;text-transform:uppercase;color:#635846">{{ pickCount }}</p>
+  <!-- on a phone the season goal question sits under the issue line, so the
+             reading-now card and the issue line keep the first screen -->
+        <sc-if value="{{ goalAsk }}">
+    <div data-m="goalask" data-at="picks" role="group" aria-labelledby="goalask-q-picks" style="margin:16px 0 0;padding:14px 16px;background:#E5DCCA;border:1px solid #A8863F">
+      <p id="goalask-q-picks" style="margin:0;font-family:'Cormorant Garamond',Garamond,serif;font-size:19px;color:#2B2118">How many books this season?</p>
+      <p style="margin:4px 0 0;font-size:12px;color:#635846">The book brew skipped this one. Choose a number and the ring keeps count.</p>
+      <div style="display:flex;align-items:center;gap:8px;margin-top:10px;flex-wrap:wrap">
+        <button type="button" onClick="{{ goalLess }}" disabled="{{ goalLessOff }}" aria-label="fewer books this season" style="{{ goalBtn }}">&minus;</button>
+        <output data-m="goaldraft" aria-live="polite" style="min-width:2.2em;text-align:center;font-family:'Cormorant Garamond',Garamond,serif;font-size:24px;color:#2B2118">{{ goalDraft }}</output>
+        <button type="button" onClick="{{ goalMore }}" disabled="{{ goalMoreOff }}" aria-label="more books this season" style="{{ goalBtn }}">+</button>
+        <button type="button" data-m="goalset" onClick="{{ goalSave }}" style="{{ goalSetBtn }}">set my goal</button>
+      </div>
+      <sc-if value="{{ goalMsg }}"><p role="status" style="margin:8px 0 0;font-size:12px;color:#6E2A2A">{{ goalMsg }}</p></sc-if>
+    </div>
+  </sc-if>
         <sc-if value="{{ issueStampShow }}">
         <div style="margin-top:18px;background:#E5DCCA;padding:5px">
           <div style="border:1px solid #A8863F;padding:16px 20px;display:flex;align-items:center;gap:20px">
@@ -1461,7 +1481,10 @@
     return seg;
   }
   function bmSave(){
-    return fetch('/api/interests',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(BM)})
+    /* the season goal is the survey's and Home's to set: the tab never sends
+       its own copy, so a dial change cannot put an older goal back */
+    var send={};Object.keys(BM||{}).forEach(function(k){if(k!=='season_goal')send[k]=BM[k];});
+    return fetch('/api/interests',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(send)})
       .then(function(r){return r.json().then(function(j){return {ok:r.ok,j:j};});})
       .then(function(r){
         if(r.ok){
@@ -2492,9 +2515,10 @@ class Component extends DCLogic {
        fires for that one) */
     days:{}, stamps:{}, justStamp:null,
     /* her season goal, read live from the book brew so a saved answer counts
-       at once: n is her number (null when the survey skipped it), ask opens
-       Home's own question, ready holds the season stamp until it is known */
-    goal:{n:null, ask:false, ready:false}, goalDraft:DEFAULT_SEASON_GOAL, goalMsg:'',
+       at once: n is her number (null when the survey skipped it), live says
+       the server has answered, confirmed that the answer is a goal she gave,
+       and ask opens Home's own question */
+    goal:{n:null, live:false, confirmed:false, ask:false}, goalDraft:DEFAULT_SEASON_GOAL, goalMsg:'',
     syn:{}, arc:'read', sync:'?',
     rowOpen:'', volSel:'', volSelOf:'', lastMark:null, issueDone:null,
     added:[], addOpen:false, addQ:'', addMsg:'', addResults:[],
@@ -2607,14 +2631,12 @@ class Component extends DCLogic {
      and the desktop show the same row. `celebrate` is the festive case: the
      burst and the press fire when she earns it during this visit, not when the
      shelf catches up on a mark made elsewhere. */
-  stampCandidates(){
+  stampCandidates(goal){
     const d=this.state.data||{}, S=this.state.states||{}, ts=this.state.ts||{};
     const now=new Date(), iso=isoDay(now), sn=seasonNow(d,now), win=seasonWindow(sn.season,iso);
     const out=[];
-    const g=this.state.goal||{};
-    /* no season stamp before her goal is known, or while Home still asks it */
-    if(g.ready&&!g.ask&&seasonBooks(S,ts,win)>=this.goalBooks()){
-      out.push({key:'season:'+sn.season.key+':'+win.year,
+    if(seasonBooks(S,ts,win)>=this.goalBooks(goal)){
+      out.push({key:'season:'+sn.season.key+':'+win.year, season:true,
                 label:seasonName(sn.season.key)+' '+win.year});
     }
     const picks=d.books||[];
@@ -2632,40 +2654,61 @@ class Component extends DCLogic {
     });
     return out;
   }
-  /* the goal the ring fills: hers when the book brew has one, else the
-     build's copy, else the plan's 6 */
-  goalBooks(){
-    const d=this.state.data||{};
-    return (this.state.goal||{}).n||goalOfBrew(d.seasonGoal)||DEFAULT_SEASON_GOAL;
+  /* the goal the ring fills: once the server has answered, hers (the plan's
+     6 when she skipped it); before that, the build's copy */
+  goalBooks(goal){
+    const g=goal||this.state.goal||{}, d=this.state.data||{};
+    return g.live?(g.n||DEFAULT_SEASON_GOAL):(goalOfBrew(d.seasonGoal)||DEFAULT_SEASON_GOAL);
   }
+  /* Reads her goal from the server. Resolves to the goal it read, or null
+     when the read failed (it tries again later) or a newer read or save
+     started meanwhile — an older answer never replaces a newer one. */
   loadGoal(){
-    if(typeof fetch==='undefined')return;
-    fetch('/api/interests').then(r=>r.ok?r.json():Promise.reject(r.status)).then(j=>{
-      const n=goalOfBrew(j&&j.season_goal);
-      this.setState({goal:{n, ask:!!j&&j.need_survey===false&&n===null, ready:true}});
-      setTimeout(()=>{try{this.pressStamps(false);}catch(e){}},0);
+    if(typeof fetch==='undefined')return Promise.resolve(null);
+    const seq=this._goalSeq=(this._goalSeq||0)+1;
+    return fetch('/api/interests').then(r=>r.ok?r.json():Promise.reject(r.status)).then(j=>{
+      if(seq!==this._goalSeq)return null;
+      const n=goalOfBrew(j&&j.season_goal), owed=!j||j.need_survey!==false;
+      const g={n, live:true, confirmed:!owed&&n!==null, ask:!owed&&n===null};
+      this.setState({goal:g});
+      return g;
     }).catch(()=>{
-      /* no answer: fall back to the build's goal and ask nothing */
-      this.setState(s=>({goal:{...s.goal, ready:true}}));
+      if(seq===this._goalSeq){
+        clearTimeout(this._goalRetry);
+        this._goalRetry=setTimeout(()=>{this.loadGoal().then(g=>{if(g)this.pressStamps(false,g);});},20000);
+      }
+      return null;
     });
   }
   saveGoal(){
     const n=goalOfBrew(this.state.goalDraft);
     if(!n)return;
+    const seq=this._goalSeq=(this._goalSeq||0)+1;
     this.setState({goalMsg:'Saving\u2026'});
     fetch('/api/interests/season-goal',{method:'POST',headers:{'Content-Type':'application/json'},
       body:JSON.stringify({season_goal:n})})
      .then(r=>r.json().then(j=>({ok:r.ok,j})))
      .then(({ok,j})=>{
        if(!ok||!j||j.error){this.setState({goalMsg:(j&&j.error)||'The shelf server could not save your goal.'});return;}
-       this.setState({goal:{n:goalOfBrew(j.season_goal)||n, ask:false, ready:true}, goalMsg:''});
-       setTimeout(()=>{try{this.pressStamps(true);}catch(e){}},0);
+       const sn=goalOfBrew(j.season_goal);
+       const g={n:sn, live:true, confirmed:sn!==null, ask:sn===null};
+       this.setState({goalMsg:''});
+       if(seq!==this._goalSeq)return;
+       this.setState({goal:g});
+       setTimeout(()=>{try{this.pressStamps(true,g);}catch(e){}},0);
      })
      .catch(()=>this.setState({goalMsg:'The shelf server did not answer \u2014 nothing was saved.'}));
   }
-  pressStamps(celebrate){
+  /* `checked` is a goal the server has just answered. A season stamp is kept
+     for good, so it is pressed only against such a goal, and only one she
+     gave: otherwise the goal is read first and the press tried once more. */
+  pressStamps(celebrate,checked){
     const cur=this.state.stamps||{};
-    const fresh=this.stampCandidates().filter(c=>!cur[c.key]);
+    let fresh=this.stampCandidates(checked).filter(c=>!cur[c.key]);
+    if(fresh.some(c=>c.season)&&!(checked&&checked.confirmed)){
+      if(!checked)this.loadGoal().then(g=>{if(g)try{this.pressStamps(celebrate,g);}catch(e){}});
+      fresh=fresh.filter(c=>!c.season);
+    }
     if(!fresh.length)return;
     const now=Date.now(), next={...cur}, delta={};
     fresh.forEach(c=>{next[c.key]={s:true,t:now}; delta[c.key]=next[c.key];});
@@ -3074,13 +3117,13 @@ class Component extends DCLogic {
     if(typeof window!=='undefined')window.addEventListener('shelf:imported',this._imp);
     /* the survey and the book brew tab save her goal: read it again */
     this.loadGoal();
-    this._goal=()=>this.loadGoal();
+    this._goal=()=>this.loadGoal().then(g=>{if(g)try{this.pressStamps(true,g);}catch(e){}});
     if(typeof window!=='undefined')window.addEventListener('shelf:interests',this._goal);
     this._s=setInterval(()=>this.flushOutbox(),20000);
     if(typeof document!=='undefined')document.addEventListener('visibilitychange',()=>{
-      if(!document.hidden){this.flushOutbox(); this.pull();}});
+      if(!document.hidden){this.flushOutbox(); this.pull(); this.loadGoal();}});
   }
-  componentWillUnmount(){ if(this._imp&&typeof window!=='undefined')window.removeEventListener('shelf:imported',this._imp); if(this._goal&&typeof window!=='undefined')window.removeEventListener('shelf:interests',this._goal); clearInterval(this._t); clearInterval(this._s); clearTimeout(this._m); if(this._mq&&this._mqListener)this._mq.removeEventListener('change',this._mqListener); }
+  componentWillUnmount(){ if(this._imp&&typeof window!=='undefined')window.removeEventListener('shelf:imported',this._imp); if(this._goal&&typeof window!=='undefined')window.removeEventListener('shelf:interests',this._goal); clearTimeout(this._goalRetry); clearInterval(this._t); clearInterval(this._s); clearTimeout(this._m); if(this._mq&&this._mqListener)this._mq.removeEventListener('change',this._mqListener); }
 
   nav(on) {
     return { display:'flex', alignItems:'center', gap:'10px', width:'100%', padding:'13px 18px',
@@ -3653,7 +3696,9 @@ class Component extends DCLogic {
     const ringLen=2*Math.PI*34;
     const ringFrac=Math.min(1,goalBooks?seasonDone/goalBooks:0);
     const ringDash=(ringLen*ringFrac).toFixed(1)+' '+ringLen.toFixed(1);
-    const seasonHead=goalReached?(seasonName(season.key)+' goal reached'):(seasonDone+' of '+goalBooks+' books this season');
+    /* while Home still asks her goal, the head claims no goal reached */
+    const seasonHead=goalAsk?(seasonDone+' '+(seasonDone===1?'book':'books')+' this season')
+      :goalReached?(seasonName(season.key)+' goal reached'):(seasonDone+' of '+goalBooks+' books this season');
     const seasonSub=win.daysLeft+' '+(win.daysLeft===1?'day':'days')+' left \u00b7 ends '+prettyDay(isoOfNum(win.endN));
     const seasonStampLine=(this.state.justStamp||[]).indexOf(seasonStampKey)>=0
       ?'You earned the '+seasonName(season.key)+' '+win.year+' stamp.':'';

@@ -188,6 +188,27 @@ class HomeSeasonGoalTests(unittest.TestCase):
         self.assertEqual(raw, before)
         self.assertEqual(server.interests_payload(doc)['season_goal'], 4)
 
+    def test_a_book_brew_tab_save_keeps_homes_goal_and_the_birth(self):
+        """The book brew tab sends no season goal: a dial change saved after
+        Home set the goal must not put an older goal back, nor drop a topic's
+        birth month."""
+        server.interests_set_season_goal({'season_goal': 8})
+        body = survey_body()
+        body.pop('season_goal')
+        body.pop('surveyed')
+        body['interests'].append({'id': 'baby', 'label': 'Baby development',
+                                  'kind': 'topic', 'dial': 'obsessed', 'mode': 'both'})
+        server.interests_save(body)
+        raw = json.loads(open(server.INTERESTS).read())
+        self.assertEqual(raw['season_goal'], 8)
+        baby = [i for i in raw['interests'] if i['id'] == 'baby'][0]
+        self.assertEqual((baby['dial'], baby.get('birth')), ('obsessed', '2026-05'))
+
+    def test_a_survey_that_skips_the_goal_clears_it(self):
+        server.interests_set_season_goal({'season_goal': 8})
+        server.interests_save(survey_body(season_goal=None))
+        self.assertIsNone(json.loads(open(server.INTERESTS).read())['season_goal'])
+
     def test_an_impossible_goal_is_refused_and_nothing_is_written(self):
         before = open(server.INTERESTS).read()
         for bad in (0, -3, 366, 'many', None, True, [6]):
