@@ -426,6 +426,16 @@ class H(BaseHTTPRequestHandler):
             # run uses — the page never keeps its own copy of it
             draft = interests_from_body(body)
             self._json({'ok': True, 'split': interests_split(draft)})
+        elif u.path == '/api/interests/season-goal':
+            try:
+                doc, err = interests_set_season_goal(body)
+            except Exception as e:
+                log('interests: could not save the season goal (%s)' % str(e)[:80])
+                return self._json({'error': 'the shelf server could not save your season goal'}, 500)
+            if err:
+                return self._json({'error': err}, 400)
+            log('season goal saved: %d book(s)' % doc['season_goal'])
+            self._json({'ok': True, **interests_payload(doc)})
         elif u.path == '/api/interests':
             try:
                 doc = interests_save(body)
@@ -921,6 +931,26 @@ def interests_save(body):
     doc['surveyed'] = _clean(body.get('surveyed') or cur.get('surveyed') or '', 32) or None
     save_interests(doc)
     return doc
+
+
+def interests_set_season_goal(body):
+    """Home's own goal question: set only the season goal and keep every other
+    field of the file as it is (a topic's birth, the run's search words, the
+    surveyed day). Returns (doc, error); the goal is a whole number from 1 to
+    365, the same bound the survey keeps."""
+    raw = (body or {}).get('season_goal') if isinstance(body, dict) else None
+    if isinstance(raw, bool) or not isinstance(raw, (int, str)):
+        return None, 'Choose how many books this season.'
+    try:
+        n = int(str(raw).strip())
+    except Exception:
+        return None, 'Choose how many books this season.'
+    if n < 1 or n > 365:
+        return None, 'A season goal is from 1 to 365 books.'
+    doc = load_interests()
+    doc['season_goal'] = n
+    save_interests(doc)
+    return doc, None
 
 
 def interests_from_body(body):

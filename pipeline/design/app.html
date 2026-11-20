@@ -478,6 +478,19 @@
               <p data-m="stampnote" style="margin:10px 0 0;font-family:'Cormorant Garamond',Garamond,serif;font-style:italic;font-size:19px;color:#6E2A2A">{{ seasonStampLine }}</p>
             </sc-if>
           </div>
+          <sc-if value="{{ goalAsk }}">
+            <div data-m="goalask" role="group" aria-labelledby="goalask-q" style="flex:1 1 100%;min-width:0;padding:14px 0 0;border-top:1px solid #D9CCB0">
+              <p id="goalask-q" style="margin:0;font-family:'Cormorant Garamond',Garamond,serif;font-size:19px;color:#2B2118">How many books this season?</p>
+              <p style="margin:4px 0 0;font-size:12px;color:#635846">The book brew skipped this one. Choose a number and the ring keeps count.</p>
+              <div style="display:flex;align-items:center;gap:8px;margin-top:10px;flex-wrap:wrap">
+                <button type="button" onClick="{{ goalLess }}" disabled="{{ goalLessOff }}" aria-label="fewer books this season" style="{{ goalBtn }}">&minus;</button>
+                <output data-m="goaldraft" aria-live="polite" style="min-width:2.2em;text-align:center;font-family:'Cormorant Garamond',Garamond,serif;font-size:24px;color:#2B2118">{{ goalDraft }}</output>
+                <button type="button" onClick="{{ goalMore }}" disabled="{{ goalMoreOff }}" aria-label="more books this season" style="{{ goalBtn }}">+</button>
+                <button type="button" data-m="goalset" onClick="{{ goalSave }}" style="{{ goalSetBtn }}">set my goal</button>
+              </div>
+              <sc-if value="{{ goalMsg }}"><p role="status" style="margin:8px 0 0;font-size:12px;color:#6E2A2A">{{ goalMsg }}</p></sc-if>
+            </div>
+          </sc-if>
         </div>
       </section>
 
@@ -1454,6 +1467,7 @@
         if(r.ok){
           BM=r.j;bmRender();bmSubLine(false);
           bmMsg('saved — the next run follows it.');
+          try{window.dispatchEvent(new Event('shelf:interests'));}catch(_){}
         }
         else bmMsg((r.j&&r.j.error)||'The shelf server could not save that.');
       })
@@ -2261,6 +2275,7 @@ function saveSurvey(){
    .then(function(res){
      if(!res.ok||!res.j||res.j.error){ S.msg=(res.j&&res.j.error)||'The shelf server could not save your answers.'; render(); return; }
      close();
+     try{window.dispatchEvent(new Event('shelf:interests'));}catch(_){}
      toast(S.name+' is saved \u2014 the next run follows it.');
    })
    .catch(function(){ S.msg='The shelf server did not answer \u2014 nothing was saved.'; render(); });
@@ -2421,6 +2436,12 @@ function seasonBooks(states,ts,win){
 }
 
 const DEFAULT_SEASON_GOAL=6;   // the accepted Home plan's number, until the book brew has one
+/* the book brew's own season goal, as the server answers it: a whole number
+   from 1 to 365, or null when the survey skipped it */
+function goalOfBrew(raw){
+  const n=Number(raw);
+  return (Number.isInteger(n)&&n>=1&&n<=365)?n:null;
+}
 /* THS-43: a stamp key carries its own meaning, so the row reads it back with
    no second table — season:<key>:<year>, issue:<n>, series:<name> */
 function stampNormName(s){return String(s||'').toLowerCase().replace(/[^a-z0-9]/g,'')}
@@ -2470,6 +2491,10 @@ class Component extends DCLogic {
        which stamp was pressed in during this visit (the celebration only
        fires for that one) */
     days:{}, stamps:{}, justStamp:null,
+    /* her season goal, read live from the book brew so a saved answer counts
+       at once: n is her number (null when the survey skipped it), ask opens
+       Home's own question, ready holds the season stamp until it is known */
+    goal:{n:null, ask:false, ready:false}, goalDraft:DEFAULT_SEASON_GOAL, goalMsg:'',
     syn:{}, arc:'read', sync:'?',
     rowOpen:'', volSel:'', volSelOf:'', lastMark:null, issueDone:null,
     added:[], addOpen:false, addQ:'', addMsg:'', addResults:[],
@@ -2586,8 +2611,9 @@ class Component extends DCLogic {
     const d=this.state.data||{}, S=this.state.states||{}, ts=this.state.ts||{};
     const now=new Date(), iso=isoDay(now), sn=seasonNow(d,now), win=seasonWindow(sn.season,iso);
     const out=[];
-    const goal=Number(d.seasonGoal)||DEFAULT_SEASON_GOAL;
-    if(seasonBooks(S,ts,win)>=goal){
+    const g=this.state.goal||{};
+    /* no season stamp before her goal is known, or while Home still asks it */
+    if(g.ready&&!g.ask&&seasonBooks(S,ts,win)>=this.goalBooks()){
       out.push({key:'season:'+sn.season.key+':'+win.year,
                 label:seasonName(sn.season.key)+' '+win.year});
     }
@@ -2605,6 +2631,37 @@ class Component extends DCLogic {
       if(done)out.push({key:'series:'+norm(s.name),label:s.name});
     });
     return out;
+  }
+  /* the goal the ring fills: hers when the book brew has one, else the
+     build's copy, else the plan's 6 */
+  goalBooks(){
+    const d=this.state.data||{};
+    return (this.state.goal||{}).n||goalOfBrew(d.seasonGoal)||DEFAULT_SEASON_GOAL;
+  }
+  loadGoal(){
+    if(typeof fetch==='undefined')return;
+    fetch('/api/interests').then(r=>r.ok?r.json():Promise.reject(r.status)).then(j=>{
+      const n=goalOfBrew(j&&j.season_goal);
+      this.setState({goal:{n, ask:!!j&&j.need_survey===false&&n===null, ready:true}});
+      setTimeout(()=>{try{this.pressStamps(false);}catch(e){}},0);
+    }).catch(()=>{
+      /* no answer: fall back to the build's goal and ask nothing */
+      this.setState(s=>({goal:{...s.goal, ready:true}}));
+    });
+  }
+  saveGoal(){
+    const n=goalOfBrew(this.state.goalDraft);
+    if(!n)return;
+    this.setState({goalMsg:'Saving\u2026'});
+    fetch('/api/interests/season-goal',{method:'POST',headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({season_goal:n})})
+     .then(r=>r.json().then(j=>({ok:r.ok,j})))
+     .then(({ok,j})=>{
+       if(!ok||!j||j.error){this.setState({goalMsg:(j&&j.error)||'The shelf server could not save your goal.'});return;}
+       this.setState({goal:{n:goalOfBrew(j.season_goal)||n, ask:false, ready:true}, goalMsg:''});
+       setTimeout(()=>{try{this.pressStamps(true);}catch(e){}},0);
+     })
+     .catch(()=>this.setState({goalMsg:'The shelf server did not answer \u2014 nothing was saved.'}));
   }
   pressStamps(celebrate){
     const cur=this.state.stamps||{};
@@ -3015,11 +3072,15 @@ class Component extends DCLogic {
     // #93: a Goodreads import adds books and marks on the server: fetch both
     this._imp=()=>{ this.loadAdded(); this.pull(); };
     if(typeof window!=='undefined')window.addEventListener('shelf:imported',this._imp);
+    /* the survey and the book brew tab save her goal: read it again */
+    this.loadGoal();
+    this._goal=()=>this.loadGoal();
+    if(typeof window!=='undefined')window.addEventListener('shelf:interests',this._goal);
     this._s=setInterval(()=>this.flushOutbox(),20000);
     if(typeof document!=='undefined')document.addEventListener('visibilitychange',()=>{
       if(!document.hidden){this.flushOutbox(); this.pull();}});
   }
-  componentWillUnmount(){ if(this._imp&&typeof window!=='undefined')window.removeEventListener('shelf:imported',this._imp); clearInterval(this._t); clearInterval(this._s); clearTimeout(this._m); if(this._mq&&this._mqListener)this._mq.removeEventListener('change',this._mqListener); }
+  componentWillUnmount(){ if(this._imp&&typeof window!=='undefined')window.removeEventListener('shelf:imported',this._imp); if(this._goal&&typeof window!=='undefined')window.removeEventListener('shelf:interests',this._goal); clearInterval(this._t); clearInterval(this._s); clearTimeout(this._m); if(this._mq&&this._mqListener)this._mq.removeEventListener('change',this._mqListener); }
 
   nav(on) {
     return { display:'flex', alignItems:'center', gap:'10px', width:'100%', padding:'13px 18px',
@@ -3556,7 +3617,14 @@ class Component extends DCLogic {
        season's own days come from the same table the corner reads. ---------- */
     const nowD=new Date(), todayIso=isoDay(nowD);
     const win=seasonWindow(season,todayIso);
-    const goalBooks=Number(d.seasonGoal)||DEFAULT_SEASON_GOAL;
+    const goalBooks=this.goalBooks();
+    const goalAsk=!!(this.state.goal||{}).ask;
+    const goalDraft=goalOfBrew(this.state.goalDraft)||DEFAULT_SEASON_GOAL;
+    const goalStep=(by)=>()=>this.setState(s=>({goalMsg:'',
+      goalDraft:Math.max(1,Math.min(60,(goalOfBrew(s.goalDraft)||DEFAULT_SEASON_GOAL)+by))}));
+    const goalBtn={fontFamily:"'EB Garamond',Georgia,serif",fontSize:'10.5px',letterSpacing:'.22em',
+      textTransform:'uppercase',minHeight:'44px',minWidth:'44px',padding:'0 14px',border:'1px solid #C8B27A',
+      background:'transparent',color:'#2B2118',cursor:'pointer'};
     const seasonDone=seasonBooks(S,TS,win);
     const goalReached=seasonDone>=goalBooks;
     const daysAll=readDayList(this.state.days);
@@ -3667,6 +3735,10 @@ class Component extends DCLogic {
       ringAria:seasonDone+' of '+goalBooks+' books read this season',
       ringDash, ringDone:seasonDone, ringGoal:goalBooks,
       streakLine, weekCells,
+      goalAsk, goalDraft, goalMsg:this.state.goalMsg||'', goalBtn,
+      goalSetBtn:{...goalBtn,background:'#2B2118',color:'#F3EDE1',borderColor:'#2B2118'},
+      goalLess:goalStep(-1), goalMore:goalStep(1), goalSave:()=>this.saveGoal(),
+      goalLessOff:goalDraft<=1, goalMoreOff:goalDraft>=60,
 
       /* the stamps she keeps */
       hasStamps:stampList.length>0, stamps:stampList, stampCount,

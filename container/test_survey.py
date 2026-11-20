@@ -163,6 +163,40 @@ class SurveySaveTests(unittest.TestCase):
         self.assertEqual(baby.get('terms'), ['baby development', 'infant sleep'])
 
 
+class HomeSeasonGoalTests(unittest.TestCase):
+    """Her ruling on the season goal: a survey that skipped it gets the
+    question on Home, and the answer sets only the goal — a topic's birth
+    month, the run's search words and the survey's day stay as they were."""
+
+    def setUp(self):
+        if os.path.exists(server.INTERESTS):
+            os.remove(server.INTERESTS)
+        server.interests_save(survey_body())
+        doc = server.load_interests()
+        doc['interests'].append({'id': 'baby', 'label': 'Baby development',
+                                 'kind': 'topic', 'dial': 'into it', 'mode': 'both',
+                                 'birth': '2026-05', 'terms': ['infant sleep']})
+        server.save_interests(doc)
+
+    def test_homes_answer_sets_only_the_goal(self):
+        before = json.loads(open(server.INTERESTS).read())
+        doc, err = server.interests_set_season_goal({'season_goal': 4})
+        self.assertIsNone(err)
+        raw = json.loads(open(server.INTERESTS).read())
+        self.assertEqual(raw['season_goal'], 4)
+        before['season_goal'] = 4
+        self.assertEqual(raw, before)
+        self.assertEqual(server.interests_payload(doc)['season_goal'], 4)
+
+    def test_an_impossible_goal_is_refused_and_nothing_is_written(self):
+        before = open(server.INTERESTS).read()
+        for bad in (0, -3, 366, 'many', None, True, [6]):
+            doc, err = server.interests_set_season_goal({'season_goal': bad})
+            self.assertIsNone(doc, bad)
+            self.assertTrue(err, bad)
+        self.assertEqual(open(server.INTERESTS).read(), before)
+
+
 class SplitTests(unittest.TestCase):
     """The mix the survey shows is the run's own rule — one definition."""
 

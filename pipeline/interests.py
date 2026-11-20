@@ -396,7 +396,7 @@ def split(doc):
 
 
 def season_goal(doc):
-    """Books a season holds: the reader's own number when the Book-a-meter has
+    """Books a season holds: the reader's own number when the book brew has
     one (the survey writes `season_goal`), the plan's 6 otherwise. A missing,
     blank, non-numeric or impossible value is the default, never a zero — the
     ring must always have a real goal to fill."""

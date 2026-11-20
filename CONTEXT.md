@@ -61,7 +61,7 @@ _Avoid_: check-in, streak (for a single day)
 How many weeks of the current season, counted back from this one, hold at least one *reading day*. This week counts as soon as it holds a day. A week with none is a rest week: one rest week a season keeps the run, a second ends it there. The streak takes nothing back and does not reach before the season began.
 
 **Season goal**:
-How many books she means to finish in a season. The number is the book brew's `season_goal` when it has one, and 6 otherwise. Home counts it from her marks — the books marked *read* or *loved* inside the season's own days — and fills a ring with it; reaching it presses that season's *kept stamp* in.
+How many books she means to finish in a season. The number is the book brew's `season_goal` when it has one, and 6 otherwise; Home reads it live, so a saved answer counts at once. Home counts it from her marks — the books marked *read* or *loved* inside the season's own days — and fills a ring with it; reaching it presses that season's *kept stamp* in.
 
 **Season panel**:
 The Home block under the reading-now card: the season-goal ring, this season's week with every day she read lit, and the streak line.
@@ -107,7 +107,7 @@ The name of the interests list, shown as **The book brew** unless the reader typ
 _Avoid_: Book-a-meter (the old name), meter, counter
 
 **Survey**:
-The five-step setup that fills the book brew: the shelves, the dials, the never list, what she reads now, and the mix with the season goal. It shows while the interests file carries no surveyed day — on a new install, and once on a shelf that already has interests, which come in ticked. Its answers are the interests file the run reads; the book brew tab changes the same file later. The last step asks the season goal, and skipping it is allowed.
+The five-step setup that fills the book brew: the shelves, the dials, the never list, what she reads now, and the mix with the season goal. It shows while the interests file carries no surveyed day — on a new install, and once on a shelf that already has interests, which come in ticked. Its answers are the interests file the run reads; the book brew tab changes the same file later. The last step asks the season goal, and skipping it is allowed; Home then asks it in the season panel.
 _Avoid_: onboarding quiz, interest wizard
 
 **Reading corner**:
