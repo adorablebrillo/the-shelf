@@ -9,7 +9,8 @@ so none is pressed while the survey is still owed, while Home still asks, or
 against a goal another device has since raised — not when the goal read
 fails, nor when the goal or her reads change while the stamp is on its way to
 the server. A refused stamp is checked again on its own, past a failed state
-read and once a slow save of her mark lands, and a state read answered late
+read and once a slow save of her mark lands; a new mark of hers gets checks of
+its own after an earlier refused stamp spent its checks; and a state read answered late
 never takes a stamp the page has learned off the page.
 A save of her goal outranks a goal read that overlaps it, and a double click
 saves once. On a phone the question sits
@@ -217,6 +218,8 @@ with sync_playwright() as p:
             held['stamp2'] = route
         elif route.request.method == 'GET' and held.pop('hold_pull', False):
             held['pull'] = (route, route.fetch())       # the state as it is now: no stamp
+        elif route.request.method == 'GET' and held.get('fail_all'):
+            route.abort()                               # the server out of reach for a while
         elif route.request.method == 'GET' and held.pop('fail_pull', False):
             held['failed'] = True
             route.abort()
@@ -275,12 +278,18 @@ with sync_playwright() as p:
     phone.wait_for_timeout(1000)
     assert season_stamps() == [], 'a stamp was kept after her reads were taken back: %r' % season_stamps()
     assert page_season_stamps(phone) == [], 'the page shows a stamp the server refused'
+    #     Her state reads then fail until the page has spent every check of
+    #     that refused stamp, so step 9 starts with none left over
+    held['fail_all'] = True
+    phone.wait_for_timeout(13000)
+    held['fail_all'] = False
 
     # 9 · she finishes the book she is reading on the phone: five books, her
     #     goal. Its save is slow, so the server still counts four and refuses
     #     the stamp; the page's next state read fails as well. The page keeps
-    #     checking, and once the slow save lands it checks again and the stamp
-    #     is kept, with no reload and no tab return.
+    #     checking, with checks of its own even though the refused stamp of
+    #     step 8 spent its checks, and once the slow save lands it checks
+    #     again and the stamp is kept, with no reload and no tab return.
     #     Meanwhile the desk began a state read before the stamp existed; it
     #     learns of the stamp from a newer read, and the older one, answered
     #     last, does not take it off the desk page.

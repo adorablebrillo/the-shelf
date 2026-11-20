@@ -2556,9 +2556,11 @@ class Component extends DCLogic {
       if(rdelta)this.syncReading(rdelta);
       /* THS-43: finishing a book is reading today, and a verdict can close an
          issue, a series or the season goal. Both follow the mark once it has
-         landed, and the celebration is hers. */
+         landed, and the celebration is hers. Her new mark is a fresh check,
+         with its own few retries. */
       setTimeout(()=>{try{
         if(val==='read'||val==='loved')this.logDayQuiet(id);
+        this._seasonTries=0;
         this.pressStamps(true);
       }catch(e){}},0);
       return {states:st, ts, reading:r, lastMark:null, issueDone};
