@@ -86,6 +86,10 @@ The baby's age band a topic interest curates for, one of five: 0–3, 4–6, 7�
 **Book-a-meter**:
 The name of the interests list. It holds the interests, the never list, picks per issue and the season goal; the run makes the file on a first open. A topic interest in it may keep the baby's birth month and year, which the run reads as the stage.
 
+**Survey**:
+The five-step setup that fills the Book-a-meter: the shelves, the dials, the never list, what she reads now, and the mix with the season goal. It shows while the interests file carries no surveyed day — on a new install, and once on a shelf that already has interests, which come in ticked. Its answers are the interests file the run reads; the Book-a-meter tab changes the same file later. The last step asks the season goal, and skipping it is allowed.
+_Avoid_: onboarding quiz, interest wizard
+
 **Reading corner**:
 The panel at the top of Home that shows the season's quote of the day.
 

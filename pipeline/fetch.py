@@ -376,7 +376,9 @@ def main():
             suggested = curate.suggest_terms(key, label) if key else []
             if suggested:
                 i['terms'] = suggested
-                interests.save(INTS)
+                # only the words are written back: the reader's own answers
+                # (the survey) must survive a run that started before them
+                interests.save_terms(INTS)
                 print('[interest] %s: curator suggested %d search word(s) — kept in interests.json'
                       % (label, len(suggested)))
                 terms = suggested
