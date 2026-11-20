@@ -181,7 +181,7 @@ with sync_playwright() as p:
           const cell = [...document.querySelectorAll('[data-m="stampcell"]')]
             .find(e => (e.textContent || '').toLowerCase().includes(label));
           if (!cell) return 'no such stamp cell';
-          const cs = getComputedStyle(cell.querySelector('svg'));
+          const cs = getComputedStyle(cell.querySelector('[data-m="seal"]'));
           return cs.animationName + ' ' + cs.animationDuration;
         }""", SEASON_LABEL)
         assert seal == 'none 0s', 'the pressed seal still animates under reduced motion: %r' % (seal,)

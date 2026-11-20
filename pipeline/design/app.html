@@ -278,9 +278,11 @@
   [data-m="weekrow"]{display:flex;gap:5px;margin-top:14px}
   [data-m="stamprow"]{display:flex;flex-wrap:wrap;gap:22px 26px;margin:0;padding:0}
   [data-m="stampcell"]{margin:0;width:88px;text-align:center}
-  [data-m="stampcell"] svg{display:block;margin:0 auto}
+  [data-m="stampcell"] [data-m="seal"]{position:relative;width:54px;height:54px;margin:0 auto}
+  [data-m="stampcell"] svg{display:block}
+  [data-m="sealmark"]{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-family:'Cormorant Garamond',Garamond,serif;font-size:12px;letter-spacing:.5px;white-space:nowrap}
   [data-m="stampcell"] figcaption{margin:8px 0 0;font-size:10px;letter-spacing:.18em;text-transform:uppercase;color:#635846;overflow-wrap:anywhere}
-  @media (prefers-reduced-motion:reduce){[data-m="stampcell"] svg{animation:none !important}}
+  @media (prefers-reduced-motion:reduce){[data-m="stampcell"] [data-m="seal"]{animation:none !important}}
   /* phone: the season panel and the stamp row keep part 1's first screen — the
      ring and the cells shrink, the panels tighten, nothing else moves. */
   @media (max-width:700px){
@@ -297,7 +299,7 @@
     /* the ring is 44px here: its own number is the only thing that stays
        legible inside it, and the line beside it says the same in words */
     [data-m="ringgoal"]{display:none !important}
-    [data-m="ringdone"]{font-size:30px !important}
+    [data-m="ringdone"]{font-size:16px !important}
     [data-m="season"]{margin-top:10px !important}
     [data-m="seasonin"] h2{font-size:19px !important;margin:0 !important}
     [data-m="streakline"]{font-size:10px !important;letter-spacing:.16em !important}
@@ -450,12 +452,18 @@
            season that hold a reading day, and keeps one rest week. -->
       <section aria-label="This season" data-m="season" style="margin-top:22px;background:#E5DCCA;padding:6px">
         <div data-m="seasonin" style="border:1px solid #A8863F;padding:20px 24px;display:flex;gap:24px;align-items:center;flex-wrap:wrap">
-          <svg data-m="ring" width="84" height="84" viewBox="0 0 84 84" role="img" aria-label="{{ ringAria }}" style="flex:0 0 auto">
-            <circle cx="42" cy="42" r="34" fill="none" stroke="#C6BBA3" stroke-width="6"/>
-            <circle cx="42" cy="42" r="34" fill="none" stroke="#6E2A2A" stroke-width="6" stroke-linecap="round" stroke-dasharray="{{ ringDash }}" transform="rotate(-90 42 42)"/>
-            <text data-m="ringdone" x="42" y="41" text-anchor="middle" font-family="'Cormorant Garamond',Garamond,serif" font-size="22" fill="#211E19">{{ ringDone }}</text>
-            <text data-m="ringgoal" x="42" y="57" text-anchor="middle" font-family="'EB Garamond',Georgia,serif" font-size="9.5" letter-spacing="1.4" fill="#635846">of {{ ringGoal }}</text>
-          </svg>
+          <!-- the page's text slots render as HTML spans, which SVG text does not
+               draw, so the ring's numbers sit over the ring as HTML -->
+          <div data-m="ring" style="position:relative;flex:0 0 auto;width:84px;height:84px">
+            <svg width="100%" height="100%" viewBox="0 0 84 84" role="img" aria-label="{{ ringAria }}" style="display:block">
+              <circle cx="42" cy="42" r="34" fill="none" stroke="#C6BBA3" stroke-width="6"/>
+              <circle cx="42" cy="42" r="34" fill="none" stroke="#6E2A2A" stroke-width="6" stroke-linecap="round" stroke-dasharray="{{ ringDash }}" transform="rotate(-90 42 42)"/>
+            </svg>
+            <div aria-hidden="true" style="position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;line-height:1">
+              <span data-m="ringdone" style="font-family:'Cormorant Garamond',Garamond,serif;font-size:22px;color:#211E19">{{ ringDone }}</span>
+              <span data-m="ringgoal" style="margin-top:3px;font-family:'EB Garamond',Georgia,serif;font-size:9.5px;letter-spacing:1.4px;color:#635846">of {{ ringGoal }}</span>
+            </div>
+          </div>
           <div style="min-width:0;flex:1 1 210px">
             <p data-m="seasonname" style="margin:0;font-size:10px;letter-spacing:.34em;text-transform:uppercase;color:#635846">{{ seasonEyebrow }}</p>
             <h2 style="font-family:'Cormorant Garamond',Garamond,serif;font-weight:500;font-size:clamp(23px,2.8vw,32px);line-height:1.1;margin:8px 0 0">{{ seasonHead }}</h2>
@@ -712,12 +720,14 @@
         <div data-m="stamprow">
           <sc-for list="{{ stamps }}" as="m" hint-placeholder-count="4">
             <figure data-m="stampcell">
-              <svg style="{{ m.style }}" width="54" height="54" viewBox="0 0 64 64" aria-hidden="true">
-                <circle cx="32" cy="32" r="29" fill="none" stroke="{{ m.col }}" stroke-width="1.5" stroke-dasharray="{{ m.dash }}"/>
-                <circle cx="32" cy="32" r="24" fill="none" stroke="{{ m.col }}" stroke-width=".8" stroke-dasharray="{{ m.dash }}"/>
-                <sc-if value="{{ m.isSeason }}"><use href="{{ m.sym }}" transform="translate(32 32) scale(1.45)"/></sc-if>
-                <sc-if value="{{ m.isText }}"><text x="32" y="37" text-anchor="middle" font-family="'Cormorant Garamond',Garamond,serif" font-size="14" letter-spacing=".5" fill="{{ m.col }}">{{ m.mark }}</text></sc-if>
-              </svg>
+              <div data-m="seal" style="{{ m.style }}" aria-hidden="true">
+                <svg width="54" height="54" viewBox="0 0 64 64">
+                  <circle cx="32" cy="32" r="29" fill="none" stroke="{{ m.col }}" stroke-width="1.5" stroke-dasharray="{{ m.dash }}"/>
+                  <circle cx="32" cy="32" r="24" fill="none" stroke="{{ m.col }}" stroke-width=".8" stroke-dasharray="{{ m.dash }}"/>
+                  <sc-if value="{{ m.isSeason }}"><use href="{{ m.sym }}" transform="translate(32 32) scale(1.45)"/></sc-if>
+                </svg>
+                <sc-if value="{{ m.isText }}"><span data-m="sealmark" style="{{ m.markStyle }}">{{ m.mark }}</span></sc-if>
+              </div>
               <figcaption>{{ m.label }}</figcaption>
             </figure>
           </sc-for>
@@ -3584,7 +3594,8 @@ class Component extends DCLogic {
     const sealStyle=(press)=>({animation:press?'stamppress .5s ease-out 1':'none',transformOrigin:'center'});
     const rowOf=(k,on,press)=>({key:k,label:stampLabel(k,d),on:on,
       sym:stampSym(k),mark:stampMark(k),isSeason:k.indexOf('season:')===0,isText:!!stampMark(k),
-      col:on?'#8A6C31':'#C6BBA3',dash:on?'none':'3 3',style:sealStyle(press)});
+      col:on?'#8A6C31':'#C6BBA3',dash:on?'none':'3 3',style:sealStyle(press),
+      markStyle:{color:on?'#8A6C31':'#C6BBA3'}});
     const pressed=(k)=>(this.state.justStamp||[]).indexOf(k)>=0;
     const stampRow=Object.keys(kept).filter(k=>kept[k]&&kept[k].s!==false)
       .sort((a,b)=>(kept[a].t||0)-(kept[b].t||0)).map(k=>rowOf(k,true,pressed(k)));
