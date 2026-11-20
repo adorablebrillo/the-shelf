@@ -2176,7 +2176,8 @@ function start(force){
                  reading:(i.reading||[]).map(function(r){return {title:r.title,author:r.author};})};
        }),
        catalog:d.catalog||[],split:d.split||[],step:1,forId:null,results:[],msg:''};
-    if(d.need_survey||force)open();
+    /* force is true only from SHELF_SURVEY.open(); DOMContentLoaded passes an Event */
+    if(d.need_survey||force===true)open();
   }).catch(function(){});
 }
 
