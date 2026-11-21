@@ -60,8 +60,11 @@
   [data-m="empty-art"]{display:block;object-fit:contain;max-width:100%;height:auto;margin:16px auto 0}
   [data-m="empty-art"][data-illustration="man"]{width:382px;translate:4px 50px}
   [data-m="empty-art"][data-illustration="cafe"]{width:415px;translate:12px 67px}
-  @media (min-width:881px) and (min-height:861px){[data-m="sidepanel"]{box-sizing:border-box;gap:8px !important}}
-  @media (max-width:880px), (max-height:860px){[data-m="shop-art"]{display:none}}
+  /* The side panel's frame fits inside the window on every desktop height, so its footer and the bookshop never fall below the fold. */
+  @media (min-width:881px){[data-m="sidepanel"]{box-sizing:border-box}}
+  @media (min-width:881px) and (min-height:861px){[data-m="sidepanel"]{gap:8px !important}}
+  /* The bookshop keeps the free space under the nav and shrinks to fit it; it steps aside on the phone layout, where the side panel is a header, and in windows 700 px tall or less, where nothing is left to draw it in. */
+  @media (max-width:880px), (max-height:700px){[data-m="shop-art"]{display:none}}
   @media (max-width:700px){
     [data-m="cornerin"]{position:relative}
     [data-m="cornerin"] [data-m="recentline"]{min-height:1.6em !important}
