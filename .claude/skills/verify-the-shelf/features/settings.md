@@ -3,6 +3,7 @@
 ## Sub-features
 
 - The Shelf tab: OpenRouter key, model picker, save, curate now with its status line.
+- The Book brew tab: the meter (a half-circle gauge, one arc per interest that is on, sized by its dial, the needle on the widest; it redraws with every dial change and is the same drawing as the survey's last step) above one card per interest — dial, mode, books — then never-show chips and picks per issue. Every change saves at once.
 - The Authors tab: watched authors with lanes, add and remove, the empty state.
 - The Import tab: choose a Goodreads export, preview with series ticks, import (adds books + marks, no web lookups).
 
