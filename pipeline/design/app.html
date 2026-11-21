@@ -74,6 +74,8 @@
     [data-season="christmas"] [data-m="countdown"]{padding-right:0 !important}
     [data-season="christmas"] [data-m="corner-art-row"] [data-m="cornerquote"]{margin-right:72px !important}
     [data-season="christmas"] [data-m="woman-art"]{right:9px;top:48px}
+    /* Empty My Shelf: lift the note and picture so the picture clears the fixed Plant left button by 16px or more. */
+    [data-season="christmas"] [data-m="empty-note"]{margin-top:12px !important}
     /* Other seasons keep the reader in the header and the quote full-width. */
     [data-m="frame"]:not([data-season="christmas"]) [data-m="cornerin"]{padding:8px 18px !important}
     [data-m="frame"]:not([data-season="christmas"]) [data-m="woman-art"]{top:8px !important;left:18px !important;right:auto !important}
@@ -802,7 +804,7 @@
       <div style="height:1px;background:#A8863F;margin:20px 0 0"></div>
 
       <sc-if value="{{ noWant }}">
-        <p style="margin:22px 0 0;font-family:'Cormorant Garamond',Garamond,serif;font-style:italic;font-size:20px;color:#635846">Nothing here yet. Press <em>want</em> on a pick and it lands on this shelf.</p>
+        <p data-m="empty-note" style="margin:22px 0 0;font-family:'Cormorant Garamond',Garamond,serif;font-style:italic;font-size:20px;color:#635846">Nothing here yet. Press <em>want</em> on a pick and it lands on this shelf.</p>
         <img data-m="empty-art" data-illustration="man" src="assets/man.png" width="240" height="200" alt="" aria-hidden="true" />
       </sc-if>
 
