@@ -67,7 +67,7 @@ def no_season_stamp(page, why):
 
 def page_season_stamps(page):
     """The season stamps the page itself holds as kept (its stored state,
-    which the stamp row draws)."""
+    which the page keeps whether or not Home shows them)."""
     return page.evaluate("""() => { const m = JSON.parse(localStorage.getItem('shelf.marks') || '{}');
       return Object.keys(m.stamps || {}).filter(k => k.startsWith('season:') && m.stamps[k].s); }""")
 

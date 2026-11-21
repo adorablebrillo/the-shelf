@@ -9,10 +9,6 @@ hold a reading day and keeps one rest week; the season ring counts the books
 marked *read* or *loved* inside the season's own days, and reaching the goal
 presses that season's stamp in for good.
 
-Intent (the plan's part-1 rule, kept by part 2's stamps): under prefers-reduced-
-motion a pressed stamp shows no press. The page is therefore opened with reduced
-motion emulated for real, and the seal's own computed style is read back.
-
 Drives the made-up shelf served by verify-the-shelf. It writes reading days and
 marks into the served shelf's `reader-state.json` — and a reading day cannot be
 taken back over the API — so run it against a scratch volume only, never a
@@ -182,7 +178,7 @@ with sync_playwright() as p:
         print('ring: %r with one mark dated %s (before the season)'
               % (head, out_of_season), flush=True)
 
-        # 4 · reaching the goal presses that season's stamp in, and the row keeps it
+        # 4 · reaching the goal presses that season's stamp in, and the server keeps it
         page.set_viewport_size({'width': 1280, 'height': 900})
         post({'states': {i: {'s': 'loved', 't': now_ms} for i in ids[1 + goal - 2:1 + goal]}})
         page.reload(wait_until='networkidle')
@@ -192,27 +188,17 @@ with sync_playwright() as p:
         head = page.locator('[data-m="season"] h2').inner_text().lower()
         assert head == '%s goal reached' % SEASON['key'], \
             'at %d marks the panel reads %r' % (goal, head)
-        row = page.locator('[aria-label="Your stamps"]').inner_text().lower()
-        assert SEASON_LABEL in row, 'the stamp row does not show it: %r' % (row[:200],)
-        # the press shows no motion here: reduced motion is emulated for real
-        seal = page.evaluate("""(label) => {
-          const cell = [...document.querySelectorAll('[data-m="stampcell"]')]
-            .find(e => (e.textContent || '').toLowerCase().includes(label));
-          if (!cell) return 'no such stamp cell';
-          const cs = getComputedStyle(cell.querySelector('[data-m="seal"]'));
-          return cs.animationName + ' ' + cs.animationDuration;
-        }""", SEASON_LABEL)
-        assert seal == 'none 0s', 'the pressed seal still animates under reduced motion: %r' % (seal,)
-        print('stamp: %r, and %s is kept on the server and in the row (seal: %s under reduced motion)'
-              % (head, STAMP_KEY, seal), flush=True)
+        print('stamp: %r, and %s is kept on the server' % (head, STAMP_KEY), flush=True)
 
-        # 5 · the row comes back from the server on a clean local copy
+        # 5 · the kept stamp survives a clean local copy: the server still holds it
         page.evaluate('() => localStorage.clear()')
         page.reload(wait_until='networkidle')
-        wait_for('the stamp row never returned',
-                 lambda: page.locator('[aria-label="Your stamps"]').count()
-                 and SEASON_LABEL in page.locator('[aria-label="Your stamps"]').inner_text().lower())
-        print('return: the stamp row survived a cleared local copy', flush=True)
+        head = page.locator('[data-m="season"] h2').inner_text().lower()
+        assert head == '%s goal reached' % SEASON['key'], \
+            'after a cleared local copy the panel reads %r' % (head,)
+        assert (get().get('stamps', {}).get(STAMP_KEY) or {}).get('s') is True, \
+            'the server dropped the kept stamp %s' % STAMP_KEY
+        print('return: the kept stamp survived a cleared local copy', flush=True)
         print('OK', flush=True)
     finally:
         browser.close()

@@ -7,7 +7,7 @@ A personal book-curation app: a monthly curated page of new releases across the 
 ### Sections
 
 **Home**:
-The landing section and the action surface — the reading corner at the top, then one row holding the reading-now card (every book she is reading now, newest first, each with its own one tap *I read today*; or choose your next book) beside the season panel (the goal as a receipt, her week and the streak), then the month's picks with their issue line in a two-column grid (then anything still open from earlier issues), then one row of three small blocks: the book brew widget (display only: each interest's dial and the reads its topic books count; it reads interests.json, never edits it), anticipation and series at a glance, and last her kept stamps. The columns apply when Home is 720 px wide or more; below that, every block stacks in one column, and a pick card keeps a small cover at the left with its four choices in one row. On a phone the sections sit in a bar at the bottom of the screen.
+The landing section and the action surface — the reading corner at the top, then one row holding the reading-now card (every book she is reading now, newest first, each with its own one tap *I read today*; or choose your next book) beside the season panel (the goal as a receipt, her week and the streak), then the month's picks with their issue line in a two-column grid (then anything still open from earlier issues), then one row of three small blocks: the book brew widget (display only: each interest's dial and the reads its topic books count; it reads interests.json, never edits it), anticipation and series at a glance. The columns apply when Home is 720 px wide or more; below that, every block stacks in one column, and a pick card keeps a small cover at the left with its four choices in one row. On a phone the sections sit in a bar at the bottom of the screen.
 _Avoid_: dashboard, landing page
 
 **My Shelf**:
@@ -70,7 +70,7 @@ The Home block beside the reading-now card: the season-goal ring, this season's 
 The list inside the season panel of every book she finished this season, one line each, oldest first, with the date and the verdict row, and a total (`N of G`). It lists the same read and loved marks the ring counts, so the lines always add up to the ring. On a phone it folds behind a button.
 
 **Kept stamp**:
-A round mark she has earned and keeps: a season whose *season goal* she reached, an issue she decided to its last pick, a series whose every volume she read. Stamps live in `reader-state.json` under `stamps`, travel between devices like a verdict, and are pressed in once — clearing the mark or the pick behind one never removes it. Home shows them in the **Your stamps** row.
+A round mark she has earned and keeps: a season whose *season goal* she reached, an issue she decided to its last pick, a series whose every volume she read. Stamps live in `reader-state.json` under `stamps`, travel between devices like a verdict, and are pressed in once — clearing the mark or the pick behind one never removes it. Home no longer shows them as a row; the season panel's line names a season stamp in the moment it is pressed in.
 _Avoid_: badge, achievement
 
 ### Series
