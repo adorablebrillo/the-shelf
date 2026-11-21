@@ -74,8 +74,6 @@
     [data-season="christmas"] [data-m="countdown"]{padding-right:0 !important}
     [data-season="christmas"] [data-m="corner-art-row"] [data-m="cornerquote"]{margin-right:72px !important}
     [data-season="christmas"] [data-m="woman-art"]{right:9px;top:48px}
-    /* Empty My Shelf: lift the note and picture so the picture clears the fixed Plant left button by 16px or more. */
-    [data-season="christmas"] [data-m="empty-note"]{margin-top:12px !important}
     /* Other seasons keep the reader in the header and the quote full-width. */
     [data-m="frame"]:not([data-season="christmas"]) [data-m="cornerin"]{padding:8px 18px !important}
     [data-m="frame"]:not([data-season="christmas"]) [data-m="woman-art"]{top:8px !important;left:18px !important;right:auto !important}
@@ -1231,9 +1229,6 @@
   }
   #christmas-play .snow-brush-strip{position:absolute;bottom:0;left:0;right:0;height:16px;pointer-events:none}
   #christmas-play .snow-brush-strip.brushing{pointer-events:auto;touch-action:none;cursor:crosshair}
-  /* The tree buttons sit on the ledge itself, above the drift (16 px) and the trees (55 px). */
-  #christmas-play .snow-slots{position:absolute;top:0;left:0;right:0;display:flex;justify-content:space-around;gap:8px;padding:0 8px;box-sizing:border-box;pointer-events:none}
-  #christmas-play .snow-slots button{flex:1;max-width:180px;height:44px;padding:0 4px;font-size:14px;white-space:nowrap;pointer-events:auto}
   #christmas-play [role=status]{min-height:1.5em;margin:8px 0}
   #christmas-fall{position:fixed;inset:0;width:100%;height:100%;pointer-events:none;z-index:60}
   html.christmas-frost [data-season="christmas"] [data-snow-cover="true"]{position:relative}
@@ -1244,11 +1239,10 @@
   <h2>Christmas snow</h2>
   <div class="snow-controls"><button type="button" data-snow="effects" aria-pressed="true">Effects on</button><button type="button" data-snow="pause" aria-pressed="false">Pause snow</button></div>
   <div id="snow-scene">
-    <div class="snow-ledge-wrap"><svg class="snow-ledge" viewBox="0 0 750 110" preserveAspectRatio="none" aria-label="Snow drift. Turn on brush mode to brush here."><g id="snow-trees"></g><path id="snow-drift" fill="#FBFCF6" stroke="#A9BCC2" stroke-width="1"></path><g id="snow-plough"></g></svg><div class="snow-brush-strip" aria-hidden="true"></div>
-      <div class="snow-slots" aria-label="Tree positions"><button type="button" data-slot="0">Plant left</button><button type="button" data-slot="1">Plant centre</button><button type="button" data-slot="2">Plant right</button></div></div>
+    <div class="snow-ledge-wrap"><svg class="snow-ledge" viewBox="0 0 750 110" preserveAspectRatio="none" aria-label="Snow drift. Turn on brush mode to brush here."><path id="snow-drift" fill="#FBFCF6" stroke="#A9BCC2" stroke-width="1"></path><g id="snow-plough"></g></svg><div class="snow-brush-strip" aria-hidden="true"></div></div>
     <div class="snow-controls"><button type="button" data-snow="brush" aria-pressed="false">Brush mode</button><button type="button" data-snow="sweep">Sweep a path</button><button type="button" data-snow="plough">Call the plough</button><button type="button" data-snow="clear">Clear snow</button><button type="button" data-snow="undo">Undo</button></div>
   </div>
-  <p role="status" aria-live="polite" id="snow-status">Choose a position to plant a tree.</p>
+  <p role="status" aria-live="polite" id="snow-status">Brush, sweep or call the plough to clear the snow.</p>
 </section>
 <script>
 (function(){
@@ -1256,14 +1250,13 @@
   const panel=document.getElementById('christmas-play'), scene=document.getElementById('snow-scene');
   const canvas=document.getElementById('christmas-fall'), ctx=canvas.getContext('2d');
   const ledge=panel.querySelector('.snow-ledge'), strip=panel.querySelector('.snow-brush-strip'), path=document.getElementById('snow-drift');
-  const trees=document.getElementById('snow-trees'), vehicle=document.getElementById('snow-plough');
+  const vehicle=document.getElementById('snow-plough');
   const status=document.getElementById('snow-status'), motion=matchMedia('(prefers-reduced-motion: reduce)');
   const buttons=Object.fromEntries(Array.from(panel.querySelectorAll('[data-snow]'),b=>[b.dataset.snow,b]));
   let enabled=true; try{enabled=localStorage.getItem('shelf.christmas.effects')!=='off';}catch(_){}
-  const state={bins:Array(76).fill(0),frost:0,plants:[false,false,false],paused:false,brush:false};
+  const state={bins:Array(76).fill(0),frost:0,paused:false,brush:false};
   let previous=null, raf=0, last=0, shownPath='', lastRender=0, phase=0, plough=-1, christmas=false, brushing=false; let shownFrost=-1;
-  const slots=Array.from(panel.querySelectorAll('[data-slot]'));
-  function save(){previous={bins:state.bins.slice(),frost:state.frost,plants:state.plants.slice()};}
+  function save(){previous={bins:state.bins.slice(),frost:state.frost};}
   function say(text){status.textContent=text;}
   function reduced(){return motion.matches;}
   function resize(){const d=Math.min(window.devicePixelRatio||1,2,Math.sqrt(8388608/(4*innerWidth*innerHeight))); /* sharp on dense screens, but the backing store stays within 8 MiB */ canvas.width=Math.round(innerWidth*d);canvas.height=Math.round(innerHeight*d);ctx.setTransform(d,0,0,d,0,0);}
@@ -1276,8 +1269,6 @@
   }
   function render(){
     paintDrift();
-    trees.innerHTML=state.plants.map((on,i)=>on?'<g transform="translate('+[125,375,625][i]+' 107) scale('+(objectScale()*.8)+' .8)"><path d="M0 4V-25" stroke="#635846" stroke-width="4"/><path d="M0 -69L-16 -42H-10L-24 -20H-17L-29 0H29L17 -20H24L10 -42H16Z" fill="#355643" stroke="#211E19"/><path d="M-10 -40L0 -60 10 -40M-17 -19L0 -37 17 -19M-23 0L0 -15 23 0" fill="none" stroke="#F3EDE1" stroke-width="2"/><path d="M0 -35L13 -28 -12 -11 19 -4" fill="none" stroke="#A8863F"/><g fill="#E7C766"><circle cx="2" cy="-34" r="2.5"/><circle cx="12" cy="-26" r="2.5"/><circle cx="-10" cy="-11" r="2.5"/><circle cx="17" cy="-4" r="2.5"/></g></g>':'').join('');
-    slots.forEach((b,i)=>{b.textContent=(state.plants[i]?'Remove ':'Plant ')+['left','centre','right'][i];});
     document.documentElement.classList.toggle('christmas-active',christmas&&enabled);
     scene.style.display=enabled?'':'none';canvas.style.display=christmas&&enabled?'':'none';
     buttons.effects.textContent=enabled?'Effects on':'Effects off';buttons.effects.setAttribute('aria-pressed',String(enabled));
@@ -1291,21 +1282,20 @@
   function step(){raf=0;const t=performance.now();if(!christmas||!enabled||document.hidden){last=0;draw();return;}
     if(!last)last=t-100; const dt=Math.min(t-last,250);last=t;if(reduced()){last=0;draw();return;}
     if(!state.paused){phase+=dt;state.bins=state.bins.map(v=>Math.min(1,v+dt/120000));state.frost=Math.min(1,state.frost+dt/120000);}
-    if(plough>=0){plough=Math.min(1.1,plough+dt/3000);state.bins=state.bins.map((v,i)=>i/75<plough?0:v);vehicle.innerHTML='<g transform="translate('+(plough*800-25)+' 103) scale('+objectScale()+' 1)"><path d="M-27 -21H-4V-37H15L24 -21H36V-3H-27Z" fill="#A54F39" stroke="#211E19"/><path d="M1 -33H12L19 -22H1Z" fill="#B8CDD0" stroke="#211E19"/><path d="M36 -17L48 -23V0L36 -2Z" fill="#A8863F" stroke="#211E19"/><circle cx="-13" cy="-1" r="7"/><circle cx="24" cy="-1" r="7"/></g>';if(plough>=1.1){plough=-1;vehicle.innerHTML='';say('The ground is clear. Trees and book frost stay.');}}
+    if(plough>=0){plough=Math.min(1.1,plough+dt/3000);state.bins=state.bins.map((v,i)=>i/75<plough?0:v);vehicle.innerHTML='<g transform="translate('+(plough*800-25)+' 103) scale('+objectScale()+' 1)"><path d="M-27 -21H-4V-37H15L24 -21H36V-3H-27Z" fill="#A54F39" stroke="#211E19"/><path d="M1 -33H12L19 -22H1Z" fill="#B8CDD0" stroke="#211E19"/><path d="M36 -17L48 -23V0L36 -2Z" fill="#A8863F" stroke="#211E19"/><circle cx="-13" cy="-1" r="7"/><circle cx="24" cy="-1" r="7"/></g>';if(plough>=1.1){plough=-1;vehicle.innerHTML='';say('The ground is clear. Book frost stays.');}}
     if(t-lastRender>=500||plough>=0){paintDrift();lastRender=t;}draw();if(!state.paused||plough>=0)tick();else last=0;
   }
   function run(){if(!raf&&christmas&&enabled&&!document.hidden&&!reduced()&&(!state.paused||plough>=0)){last=0;tick();}else if(reduced()){ctx.clearRect(0,0,innerWidth,innerHeight);}}
   function sync(){const frame=document.querySelector('[data-m="frame"][data-season]');const main=frame&&frame.querySelector('[data-m="main"]');if(main&&panel.parentNode!==main){const copy=main.querySelector('#christmas-play');if(copy)copy.replaceWith(panel);else main.appendChild(panel);}const next=!!frame&&frame.dataset.season==='christmas';if(next===christmas)return;christmas=next;panel.style.display=next?'block':'none';if(!next&&raf){clearTimeout(raf);raf=0;last=0;}render();draw();run();}
-  function finishPlough(){state.bins.fill(0);plough=-1;vehicle.innerHTML='';render();say('The ground is clear. Trees and book frost stay.');}
+  function finishPlough(){state.bins.fill(0);plough=-1;vehicle.innerHTML='';render();say('The ground is clear. Book frost stays.');}
   panel.addEventListener('click',e=>{const b=e.target.closest('button');if(!b)return;const action=b.dataset.snow;
-    if(b.hasAttribute('data-slot')){save();const i=Number(b.dataset.slot);state.plants[i]=!state.plants[i];render();say((state.plants[i]?'Planted ':'Removed ')+['left','centre','right'][i]+'.');return;}
     if(action==='effects'){enabled=!enabled;try{localStorage.setItem('shelf.christmas.effects',enabled?'on':'off');}catch(_){}if(!enabled&&raf){clearTimeout(raf);raf=0;last=0;}if(!enabled){plough=-1;vehicle.innerHTML='';}render();draw();run();say(enabled?'Effects are on.':'Effects are off. Your reading is unchanged.');}
     else if(action==='pause'){state.paused=!state.paused;render();draw();run();say(state.paused?'Snow is paused. Scene actions still work.':'Snow is falling again.');}
     else if(action==='brush'){state.brush=!state.brush;render();say(state.brush?'Brush mode is on over the drift.':'Brush mode is off.');}
     else if(action==='sweep'){save();state.bins=state.bins.map((v,i)=>i>25&&i<50?0:v);render();say('A path is clear through the centre.');}
-    else if(action==='clear'){save();state.bins.fill(0);state.frost=0;render();say('Snow and book frost are clear. Trees stay.');}
+    else if(action==='clear'){save();state.bins.fill(0);state.frost=0;render();say('Snow and book frost are clear.');}
     else if(action==='plough'){save();if(reduced())finishPlough();else{plough=0;run();say('The plough is clearing the ground.');}}
-    else if(action==='undo'){if(!previous){say('There is no scene action to undo.');return;}const now={bins:state.bins.slice(),frost:state.frost,plants:state.plants.slice()};Object.assign(state,previous);previous=now;plough=-1;vehicle.innerHTML='';render();say('The previous scene action is restored.');}
+    else if(action==='undo'){if(!previous){say('There is no scene action to undo.');return;}const now={bins:state.bins.slice(),frost:state.frost};Object.assign(state,previous);previous=now;plough=-1;vehicle.innerHTML='';render();say('The previous scene action is restored.');}
   });
   function brush(e){const r=ledge.getBoundingClientRect(),i=Math.round((e.clientX-r.left)/r.width*75);state.bins=state.bins.map((v,j)=>Math.abs(i-j)<5?0:v);render();}
   strip.addEventListener('pointerdown',e=>{if(!state.brush)return;save();brushing=true;strip.setPointerCapture(e.pointerId);brush(e);});

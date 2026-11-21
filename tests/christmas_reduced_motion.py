@@ -19,12 +19,10 @@ with sync_playwright() as p:
         page = browser.new_page(viewport={'width': 1280, 'height': 900}, reduced_motion='reduce')
         page.goto(url, wait_until='networkidle')
         page.locator('#christmas-play').wait_for()
-        page.locator('[data-slot="0"]').click()
         page.locator('[data-snow="plough"]').click()
         status = page.locator('#snow-status').text_content()
         assert 'ground is clear' in status, f'plough was not immediate: {status}'
-        assert page.locator('[data-slot="0"]').text_content().startswith('Remove'), 'plough removed the tree'
         assert page.evaluate("document.getElementById('snow-plough').childElementCount") == 0, 'a vehicle was drawn'
-        print('reduced motion: plough immediate, tree kept, no vehicle', flush=True)
+        print('reduced motion: plough immediate, no vehicle', flush=True)
     finally:
         browser.close()
