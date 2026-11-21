@@ -18,7 +18,9 @@ paths at import time), so the suite runs against a throwaway volume.
 import json
 import os
 import tempfile
+import threading
 import unittest
+from unittest import mock
 
 TMP = tempfile.mkdtemp(prefix='shelf-interests-test-')
 os.environ['CFG_DIR'] = TMP
@@ -161,6 +163,88 @@ class SurveySaveTests(unittest.TestCase):
         raw = json.loads(open(server.INTERESTS).read())
         baby = [i for i in raw['interests'] if i['id'] == 'baby'][0]
         self.assertEqual(baby.get('terms'), ['baby development', 'infant sleep'])
+
+
+class HomeSeasonGoalTests(unittest.TestCase):
+    """Her ruling on the season goal: a survey that skipped it gets the
+    question on Home, and the answer sets only the goal — a topic's birth
+    month, the run's search words and the survey's day stay as they were."""
+
+    def setUp(self):
+        if os.path.exists(server.INTERESTS):
+            os.remove(server.INTERESTS)
+        server.interests_save(survey_body())
+        doc = server.load_interests()
+        doc['interests'].append({'id': 'baby', 'label': 'Baby development',
+                                 'kind': 'topic', 'dial': 'into it', 'mode': 'both',
+                                 'birth': '2026-05', 'terms': ['infant sleep']})
+        server.save_interests(doc)
+
+    def test_homes_answer_sets_only_the_goal(self):
+        before = json.loads(open(server.INTERESTS).read())
+        doc, err = server.interests_set_season_goal({'season_goal': 4})
+        self.assertIsNone(err)
+        raw = json.loads(open(server.INTERESTS).read())
+        self.assertEqual(raw['season_goal'], 4)
+        before['season_goal'] = 4
+        self.assertEqual(raw, before)
+        self.assertEqual(server.interests_payload(doc)['season_goal'], 4)
+
+    def test_a_book_brew_tab_save_keeps_homes_goal_and_the_birth(self):
+        """The book brew tab sends no season goal: a dial change saved after
+        Home set the goal must not put an older goal back, nor drop a topic's
+        birth month."""
+        server.interests_set_season_goal({'season_goal': 8})
+        body = survey_body()
+        body.pop('season_goal')
+        body.pop('surveyed')
+        body['interests'].append({'id': 'baby', 'label': 'Baby development',
+                                  'kind': 'topic', 'dial': 'obsessed', 'mode': 'both'})
+        server.interests_save(body)
+        raw = json.loads(open(server.INTERESTS).read())
+        self.assertEqual(raw['season_goal'], 8)
+        baby = [i for i in raw['interests'] if i['id'] == 'baby'][0]
+        self.assertEqual((baby['dial'], baby.get('birth')), ('obsessed', '2026-05'))
+
+    def test_a_survey_that_skips_the_goal_clears_it(self):
+        server.interests_set_season_goal({'season_goal': 8})
+        server.interests_save(survey_body(season_goal=None))
+        self.assertIsNone(json.loads(open(server.INTERESTS).read())['season_goal'])
+
+    def test_the_runs_save_waits_for_the_servers_writers(self):
+        """The run's search-word save is another process in production: it
+        waits for the same lock as the server's writers and then reads the
+        file again, so a goal Home saved meanwhile is not rolled back."""
+        m = server._interests()
+        # the run finds the file from CFG_DIR, as the server does; other test
+        # modules point CFG_DIR elsewhere when the whole suite runs
+        env = mock.patch.dict(os.environ, {'CFG_DIR': server.CONFIG_DIR})
+        env.start()
+        self.addCleanup(env.stop)
+        run_doc = m.load()   # what the run read when it started
+        for i in run_doc['interests']:
+            if i['id'] == 'sport':
+                i['terms'] = ['sports romance']
+        done = threading.Event()
+        with server.interests_locked():
+            t = threading.Thread(target=lambda: (m.save_terms(run_doc, log=lambda *a: None), done.set()))
+            t.start()
+            self.assertFalse(done.wait(0.4), 'the run wrote while the server held the lock')
+            doc = server.load_interests()
+            doc['season_goal'] = 8
+            server.save_interests(doc)
+        self.assertTrue(done.wait(5))
+        raw = json.loads(open(server.INTERESTS).read())
+        self.assertEqual(raw['season_goal'], 8)
+        self.assertEqual([i.get('terms') for i in raw['interests'] if i['id'] == 'sport'], [['sports romance']])
+
+    def test_an_impossible_goal_is_refused_and_nothing_is_written(self):
+        before = open(server.INTERESTS).read()
+        for bad in (0, -3, 366, 'many', None, True, [6]):
+            doc, err = server.interests_set_season_goal({'season_goal': bad})
+            self.assertIsNone(doc, bad)
+            self.assertTrue(err, bad)
+        self.assertEqual(open(server.INTERESTS).read(), before)
 
 
 class SplitTests(unittest.TestCase):

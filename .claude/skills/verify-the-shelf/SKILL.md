@@ -15,7 +15,7 @@ The Shelf is a self-hosted web app: a Python pipeline (`pipeline/build.py`) buil
    python3 .claude/skills/verify-the-shelf/seed-demo.py <scratch-cfg-dir> "$(pwd)"
    ```
 
-   Writes made-up `library.json`, `sequels.json`, `added-books.json` into the scratch cfg dir and made-up `month-2026-10.json` / `month-2026-11.json` into `pipeline/data/` (git-ignored). A current-month file must carry `"mode": "adhoc"` or the build purges it.
+   Writes made-up `library.json`, `sequels.json`, `added-books.json` into the scratch cfg dir and made-up `month-2026-10.json` / `month-2026-11.json` into `pipeline/data/` (git-ignored). A current-month file must carry `"mode": "adhoc"` or the build purges it. A fresh volume opens on the first-open survey; add `--surveyed` to also write a surveyed `interests.json` (a blank install's defaults, season goal 6) when the check starts on Home.
 
 2. Build the page offline (no network lookups at all):
 
@@ -63,7 +63,7 @@ Stable handles: aria-labels, not coordinates — the verdict buttons read `want 
 
 **Gotchas:** the app re-renders every 6.5 s, which bumps snapshot generations and stales refs — snapshot and click in the same shell command, and re-snapshot after any click. `eval` takes a single expression: pass an IIFE `(function(){...})()`, and prefer a quoted heredoc file over shell-escaped quoting. There is no reduced-motion emulation in this CLI; verify reduced-motion paths against the live stylesheet (`document.styleSheets`, the `prefers-reduced-motion: reduce` blocks) instead of faking the setting.
 
-Marks travel client → `POST /api/state` → `reader-state.json` in the CFG dir, and back via `GET /api/state`; read that file (or `curl http://127.0.0.1:8811/api/state`) to confirm a verdict round trip. Seeding a mark server-side (the same channel a phone would use) is `curl -X POST .../api/state -d '{"states":{"<book-id>":{"s":"want","t":<ms>}},"reading":{"<book-id>":{"s":true,"t":<ms>}}}'`.
+Marks travel client → `POST /api/state` → `reader-state.json` in the CFG dir, and back via `GET /api/state`; read that file (or `curl http://127.0.0.1:8811/api/state`) to confirm a verdict round trip. The same endpoint carries the reading flags (`reading`), the reading days (`days`: per book id, a list of `YYYY-MM-DD`, merged by union) and the kept stamps (`stamps`: `season:<key>:<year>`, `issue:<n>`, `series:<name>`). Seeding a mark server-side (the same channel a phone would use) is `curl -X POST .../api/state -d '{"states":{"<book-id>":{"s":"want","t":<ms>}},"reading":{"<book-id>":{"s":true,"t":<ms>}}}'`, and a day from the other device is `curl -X POST .../api/state -d '{"days":{"<book-id>":["2026-11-17"]}}'`.
 
 Book ids are the pipeline's canonical `book_key(title, author)`: lowercased alphanumerics of the title, `--`, then of the author (read them from `container/dist/shelf-data.js`).
 
@@ -90,7 +90,7 @@ rm -rf container/dist
 
 ## Helpers
 
-- `seed-demo.py` (beside this file) — writes the made-up shelf and months. Usage is in its docstring; it is idempotent and safe to re-run.
+- `seed-demo.py` (beside this file) — writes the made-up shelf and months. Usage is in its docstring; it is idempotent and safe to re-run, except with `--surveyed`, which refuses an existing `interests.json`: seed each surveyed run into a fresh scratch volume.
 
 ## Feature map
 

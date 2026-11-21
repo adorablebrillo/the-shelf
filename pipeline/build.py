@@ -27,6 +27,7 @@ from bookids import book_key
 from shelf_state import exclusion_set
 from verdicts import because_line
 import sequels  # the series her read and loved marks track
+from season_dates import SEASON_DATES  # each season's days, shared with the server
 
 BASE = os.path.dirname(os.path.abspath(__file__))
 ROOT = os.path.dirname(BASE)
@@ -219,19 +220,19 @@ def _corner(outer, inner, border, eyebrow, quote, recent):
 
 
 SEASONS = [
-    {'key': 'autumn', 'start': '09-01', 'end': '10-31',
+    {'key': 'autumn', 'start': SEASON_DATES['autumn'][0], 'end': SEASON_DATES['autumn'][1],
      'drink': {'img': 'assets/coffee-2.png', 'alt': 'Ink drawing of a pumpkin spice latte', 'label': 'pumpkin spice season'},
      'corner': _corner('#6F3519', '#8A4524', '#D9B77A', '#F0D3A8', '#FBF1E4', '#F0D3A8')},  # rust
-    {'key': 'christmas', 'start': '11-01', 'end': '01-06',
+    {'key': 'christmas', 'start': SEASON_DATES['christmas'][0], 'end': SEASON_DATES['christmas'][1],
      'drink': {'img': 'assets/coffee-winter-b.png', 'alt': 'Ink drawing of a candy cane cocoa', 'label': 'christmas cocoa season'},
      'corner': _corner('#5A2121', '#6E2A2A', '#C8B27A', '#E3D1A0', '#F6EFE2', '#E3D1A0')},  # oxblood
-    {'key': 'winter', 'start': '01-07', 'end': '02-29',
+    {'key': 'winter', 'start': SEASON_DATES['winter'][0], 'end': SEASON_DATES['winter'][1],
      'drink': {'img': 'assets/coffee-3.png', 'alt': 'Ink drawing of a cinnamon latte', 'label': 'cinnamon latte season'},
      'corner': _corner('#1E2A3B', '#26364C', '#C8B27A', '#E3D1A0', '#F3EDE1', '#E3D1A0')},  # midnight
-    {'key': 'spring', 'start': '03-01', 'end': '05-31',
+    {'key': 'spring', 'start': SEASON_DATES['spring'][0], 'end': SEASON_DATES['spring'][1],
      'drink': {'img': 'assets/coffee-spring-b.png', 'alt': 'Ink drawing of a flower latte', 'label': 'blossom season'},
      'corner': _corner('#D9A9AE', '#E8C4C6', '#8A6C31', '#5A3E40', '#211E19', '#7A2F3E')},  # rose
-    {'key': 'summer', 'start': '06-01', 'end': '08-31',
+    {'key': 'summer', 'start': SEASON_DATES['summer'][0], 'end': SEASON_DATES['summer'][1],
      'drink': {'img': 'assets/coffee-summer-b.png', 'alt': 'Ink drawing of an iced coffee with lemon', 'label': 'iced coffee season'},
      'corner': _corner('#B8CDD0', '#D6E4E5', '#8A6C31', '#3F5458', '#211E19', '#2B5559')},  # sea glass
 ]
@@ -887,7 +888,7 @@ def main():
         data = {'month': {'label': 'Awaiting first run', 'short': '\u2014', 'drop': '', 'count': 0,
                           'issue': 0, 'titles': 'no titles yet', 'shapeLine': '', 'light': False},
                 'books': [], 'pending': [], 'series': [], 'resolved': [],
-                'added': added, 'seasons': SEASONS,
+                'added': added, 'seasons': SEASONS, 'seasonGoal': interests.season_goal(INTS),
                 'criteria': CRITERIA}
         write_dist('shelf-data.js', 'window.SHELF_DATA=' + json.dumps(data, ensure_ascii=False) + ';\n')
         tpl = open(os.path.join(DESIGN, 'app.html')).read()
@@ -1040,7 +1041,7 @@ def main():
     }
     data = {'month': month, 'books': book_list, 'pending': pending,
             'series': series, 'seasons': SEASONS, 'criteria': criteria_line(), 'resolved': resolved,
-            'added': added, 'meter': meter}
+            'added': added, 'meter': meter, 'seasonGoal': interests.season_goal(INTS)}
     write_dist('shelf-data.js', 'window.SHELF_DATA=' + json.dumps(data, ensure_ascii=False) + ';\n')
 
     tpl = open(os.path.join(DESIGN, 'app.html')).read()

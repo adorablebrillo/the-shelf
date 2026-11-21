@@ -14,7 +14,9 @@ three fixed lanes (piece 1), and a topic interest follows the baby's age
   · a topic interest keeps the baby's birth month and year only, the age is
     counted in whole months, and the curator request names the stage
     (0–3, 4–6, 7–12, 13–24, 25–36 months);
-  · a birth the run cannot use is named in the run's report, never swallowed.
+  · a birth the run cannot use is named in the run's report, never swallowed;
+  · the season goal the Home ring counts against is hers when the file has
+    one, and the accepted Home plan's 6 books otherwise (THS-43 part 2).
 Run from pipeline/:  python3 -m unittest test_interests -v
 """
 import json
@@ -76,6 +78,27 @@ class DefaultsTests(unittest.TestCase):
         for i in d['interests']:
             self.assertEqual(interests.terms(i),
                              curate.CFG['lane_terms'][interests.name(i)])
+
+
+class SeasonGoalTests(unittest.TestCase):
+    """THS-43 (Home part 2): the season the Home ring counts against. The
+    number is hers when the Book-a-meter has one (the survey writes
+    season_goal); until then the accepted Home plan's 6 books holds."""
+
+    def test_the_plan_number_holds_when_the_file_has_no_goal(self):
+        self.assertEqual(interests.season_goal(interests.defaults()), 6)
+        self.assertEqual(interests.season_goal({'season_goal': ''}), 6)
+        self.assertEqual(interests.season_goal({}), 6)
+        self.assertEqual(interests.season_goal(None), 6)
+
+    def test_her_own_number_wins(self):
+        for raw, want in ((4, 4), ('9', 9), (12, 12)):
+            self.assertEqual(interests.season_goal({'season_goal': raw}), want)
+
+    def test_an_impossible_number_falls_back_to_the_plan(self):
+        for raw in (0, -3, 1000, 'six', 2.5, []):
+            with self.subTest(goal=raw):
+                self.assertEqual(interests.season_goal({'season_goal': raw}), 6)
 
 
 class SplitTests(unittest.TestCase):

@@ -4,8 +4,8 @@ Serves the built page, holds settings (OpenRouter key, model), schedules the
 monthly run (1st, 09:00), exposes a small JSON API used by the in-page
 Settings pane. Pure stdlib — no pip installs."""
 import json, os, re, shutil, glob, sys, subprocess, tempfile, threading, time, urllib.request
-from contextlib import nullcontext
-from datetime import datetime
+from contextlib import contextmanager, nullcontext
+from datetime import datetime, timedelta
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from urllib.parse import urlparse, parse_qs, urlencode
 
@@ -362,8 +362,14 @@ class H(BaseHTTPRequestHandler):
         body = self._body()
         if u.path == '/api/state':
             # one writer at a time: the merge is read-modify-write, and a
-            # verdict now fires two posts (states + reading) at once
-            with STATE_LOCK:
+            # verdict now fires two posts (states + reading) at once, and a
+            # check-in can post its reading day beside them
+            dropped = 0
+            stamps_in = body.get('stamps') if isinstance(body.get('stamps'), dict) else {}
+            season_in = any(isinstance(k, str) and k.startswith('season:') for k in stamps_in)
+            # a season stamp is checked against her goal under the goal's own
+            # lock, so no goal save lands between the check and the write
+            with (interests_locked() if season_in else nullcontext()), STATE_LOCK:
                 cur = load_state()
                 cur['states'] = merge_states(cur.get('states'), body.get('states') or {})
                 # #57: the reading channel — its own map beside the marks, merged
@@ -371,12 +377,35 @@ class H(BaseHTTPRequestHandler):
                 # enter 'states': the pipeline reads that as verdicts)
                 if 'reading' in body:
                     cur['reading'] = merge_states(cur.get('reading'), body.get('reading') or {})
+                # THS-43 (Home part 2): the reading-day channel — per book, the
+                # days she tapped "I read today". Merged by UNION, so a day
+                # logged on the phone and a day logged on the desktop both
+                # survive. It never enters 'states': the pipeline reads that
+                # as verdicts, and a reading day is not one.
+                if 'days' in body:
+                    cur['days'], dropped = merge_days(cur.get('days'), body.get('days'))
+                # THS-43 (Home part 2): the stamps she keeps — a season's goal
+                # reached, an issue decided, a series finished. A stamp is
+                # pressed in once and never taken back, so it travels like a
+                # mark: per key, newest write wins, and both devices' stamps
+                # add up.
+                if 'stamps' in body:
+                    incoming, held = season_checked(cur.get('stamps'), body.get('stamps'),
+                                                    body.get('season_goal'), cur['states'],
+                                                    body.get('tz'), body.get('tz_name'))
+                    cur['stamps'], sd = merge_stamps(cur.get('stamps'), incoming)
+                    dropped += sd + held
                 save_state(cur)
             live = [k for k, v in cur['states'].items() if isinstance(v, dict) and v.get('s')]
             gone = [k for k, v in cur['states'].items() if isinstance(v, dict) and v.get('s') is None]
-            log('reader state: %d marked, %d cleared' % (len(live), len(gone)))
+            days = sum(len(v) for v in (cur.get('days') or {}).values() if isinstance(v, list))
+            log('reader state: %d marked, %d cleared, %d reading days%s'
+                % (len(live), len(gone), days,
+                   (', %d not a date (dropped)' % dropped) if dropped else ''))
             self._json({'ok': True, 'v': 2, 'states': cur['states'],
-                        'reading': cur.get('reading') or {}, 'updated': cur['updated']})
+                        'reading': cur.get('reading') or {}, 'days': cur.get('days') or {},
+                        'stamps': cur.get('stamps') or {},
+                        'updated': cur['updated']})
         elif u.path == '/api/settings':
             s = load_settings()
             if body.get('api_key') is not None:
@@ -404,6 +433,16 @@ class H(BaseHTTPRequestHandler):
             # run uses — the page never keeps its own copy of it
             draft = interests_from_body(body)
             self._json({'ok': True, 'split': interests_split(draft)})
+        elif u.path == '/api/interests/season-goal':
+            try:
+                doc, err = interests_set_season_goal(body)
+            except Exception as e:
+                log('interests: could not save the season goal (%s)' % str(e)[:80])
+                return self._json({'error': 'the shelf server could not save your season goal'}, 500)
+            if err:
+                return self._json({'error': err}, 400)
+            log('season goal saved: %d book(s)' % doc['season_goal'])
+            self._json({'ok': True, **interests_payload(doc)})
         elif u.path == '/api/interests':
             try:
                 doc = interests_save(body)
@@ -456,14 +495,23 @@ class H(BaseHTTPRequestHandler):
             self._json({'error': 'not found'}, 404)
 
 def load_state():
-    """The reader's marks. Returns {v, states:{<book id>:{s,t}}, updated}."""
+    """The reader's own shelf state.
+    {v, states:{<book id>:{s,t}}, reading:{<book id>:{s,t}},
+     days:{<book id>:[<YYYY-MM-DD>, ...]}, updated}
+
+    Every channel answers, even on a state file written before it existed: a
+    page reading its own days must never have to guess whether a missing key
+    means none or an old file."""
     try:
         d = json.load(open(STATE))
         if isinstance(d.get('states'), dict):
+            d.setdefault('reading', {})
+            d.setdefault('days', {})
+            d.setdefault('stamps', {})
             return d
     except Exception:
         pass
-    return {'v': 2, 'states': {}, 'updated': ''}
+    return {'v': 2, 'states': {}, 'reading': {}, 'days': {}, 'stamps': {}, 'updated': ''}
 
 
 def save_state(d):
@@ -492,6 +540,73 @@ def merge_states(server_states, incoming):
             continue
         out[k] = {'s': vs, 't': vt}
     return out
+
+
+DAY_RE = re.compile(r'^\d{4}-\d{2}-\d{2}$')
+
+
+def merge_days(server_days, incoming):
+    """THS-43 (Home part 2): reading days merge by UNION, not by last-write-wins.
+
+    A reading day is a fact about a calendar day, not a state that can be
+    re-written: the phone's days and the desktop's days add up and neither
+    device can lose the other's. Dates are the reader's own local days
+    (YYYY-MM-DD); a book keeps its days sorted and duplicate-free.
+    (days, dropped) — a value that is not a well-formed date is counted and
+    left out, never stored, so the file holds only real days.
+    """
+    out = {}
+    dropped = 0
+    for src in (server_days, incoming):
+        if not isinstance(src, dict):
+            continue
+        for bid, dates in src.items():
+            if not isinstance(bid, str) or not bid:
+                dropped += len(dates) if isinstance(dates, list) else 1
+                continue
+            if not isinstance(dates, list):
+                dropped += 1
+                continue
+            keep = out.setdefault(bid, [])
+            for d in dates:
+                if real_day(d):
+                    if d not in keep:
+                        keep.append(d)
+                else:
+                    dropped += 1
+    for bid in out:
+        out[bid].sort()
+    return out, dropped
+
+
+STAMP_KEY_RE = re.compile(r'^(?:season:[a-z]{4,9}:\d{4}|issue:\d{1,4}|series:[a-z0-9]{1,80})$')
+
+
+def merge_stamps(server_stamps, incoming):
+    """The kept stamps travel like marks — newest write wins per key — but only
+    on keys that name a stamp: season:<key>:<year>, issue:<n>, series:<name>.
+    Any other key is counted and left out, so the row can never be filled with
+    something the page cannot draw. Returns (stamps, dropped).
+    """
+    keep, dropped = {}, 0
+    for k, v in (incoming or {}).items() if isinstance(incoming, dict) else []:
+        if isinstance(k, str) and STAMP_KEY_RE.match(k):
+            keep[k] = v
+        else:
+            dropped += 1
+    return merge_states(server_stamps, keep), dropped
+
+
+def real_day(d):
+    """A reading day is one of the reader's own calendar days: YYYY-MM-DD and a
+    date that exists. Anything else is not a day and is never stored."""
+    if not isinstance(d, str) or not DAY_RE.match(d):
+        return False
+    try:
+        datetime.strptime(d, '%Y-%m-%d')
+        return True
+    except ValueError:
+        return False
 
 
 def norm_author(name):
@@ -812,17 +927,143 @@ def interests_payload(doc):
             'split': interests_split(doc)}
 
 
+# The survey, the book brew tab and Home's goal question all write
+# interests.json, and so does the run (its search words); one lock makes each
+# read-change-write whole, so no writer saves over a field another one just
+# changed. The thread lock orders this server's writers; the file lock
+# (pipeline interests.locked) orders them against the run's process.
+INTERESTS_LOCK = threading.Lock()
+
+
+@contextmanager
+def interests_locked():
+    with INTERESTS_LOCK, _interests().locked(INTERESTS):
+        yield
+
+
+def _zone(name):
+    try:
+        from zoneinfo import ZoneInfo
+        return ZoneInfo(name) if isinstance(name, str) and name else None
+    except Exception:   # an unknown name, or no time zone database
+        return None
+
+
+def season_books(states, key, tz=None, tz_name=None):
+    """The books she marked read or loved inside the season a stamp names
+    (`season:<key>:<year>`, the year the season starts in): the count the
+    page's ring fills on (app.html seasonBooks). A mark's day is her local
+    day at the time of the mark: her time zone's own rules (`tz_name`, such
+    as Europe/Madrid) when the server knows them, so a mark made before a
+    clock change falls on the day her page shows; else the page's offset
+    east of UTC in minutes (`tz`). A mark with no time is not counted."""
+    m = re.match(r'^season:([a-z]+):(\d{4})$', key or '')
+    if not m:
+        return 0
+    dates = _pipeline_import('season_dates').SEASON_DATES.get(m.group(1))
+    if not dates:
+        return 0
+    (start, end), year = dates, int(m.group(2))
+    off = tz if isinstance(tz, int) and not isinstance(tz, bool) and abs(tz) <= 14 * 60 else None
+    zone = _zone(tz_name)
+    n = 0
+    for v in (states or {}).values():
+        if not isinstance(v, dict) or v.get('s') not in ('read', 'loved'):
+            continue
+        try:
+            t = float(v.get('t') or 0) / 1000
+            day = (datetime.fromtimestamp(t, zone) if zone is not None
+                   else datetime.utcfromtimestamp(t) + timedelta(minutes=off) if off is not None
+                   else datetime.fromtimestamp(t)) if t else None
+        except (TypeError, ValueError, OverflowError, OSError):
+            day = None
+        if not day:
+            continue
+        md = '%02d-%02d' % (day.month, day.day)
+        if start <= end:
+            n += start <= md <= end and day.year == year
+        else:   # a season that wraps the new year began the year before
+            n += (md >= start and day.year == year) or (md <= end and day.year == year + 1)
+    return n
+
+
+def season_checked(kept, incoming, goal, states=None, tz=None, tz_name=None):
+    """A season stamp is kept for good, so a new one is accepted only with
+    the goal the page checked it against, only when that goal is still the
+    one she gave (the survey answered, the goal set), and only when the marks
+    the server now holds still meet it — another device can have taken back a
+    read since the page counted. The caller holds interests_locked(). Other
+    stamps never wait on the goal: a post with no new season stamp reads
+    nothing, and a goal that cannot be read holds back only the season
+    stamps. Returns (stamps to merge, season stamps held back)."""
+    if not isinstance(incoming, dict):
+        return incoming, 0
+    kept = kept if isinstance(kept, dict) else {}
+    new = [k for k in incoming if isinstance(k, str) and k.startswith('season:')
+           and not (kept.get(k) or {}).get('s')]
+    if not new:
+        return incoming, 0
+    try:
+        doc = load_interests()
+        raw = doc.get('season_goal') if doc.get('surveyed') else None
+        mine = None if raw is None or isinstance(raw, bool) else int(str(raw).strip())
+    except Exception:   # unreadable, or not a number: no season stamp now
+        mine = None
+    ok = (mine is not None and 1 <= mine <= 365
+          and isinstance(goal, int) and not isinstance(goal, bool) and goal == mine)
+    out, held = {}, 0
+    for k, v in incoming.items():
+        if k in new and not (ok and season_books(states, k, tz, tz_name) >= mine):
+            held += 1
+            continue
+        out[k] = v
+    return out, held
+
+
 def interests_save(body):
-    """The reader's answers, written to the volume. The survey stamps the day
-    it was answered; another writer (the Settings tab) leaves the old date
-    alone. Returns the saved doc."""
-    cur = load_interests()
-    ans = interests_from_body(body)
-    doc = {'v': 1, 'name': ans['name'], 'picks': ans['picks'], 'never': ans['never'],
-           'season_goal': ans['season_goal'], 'interests': ans['interests']}
-    doc['surveyed'] = _clean(body.get('surveyed') or cur.get('surveyed') or '', 32) or None
-    save_interests(doc)
+    """The reader's answers, written to the volume over the latest file: only
+    the fields the page sends change. An interest keeps what the page does not
+    send for it (a topic's birth, the run's search words); the season goal
+    changes only when the body names it (the survey does, the book brew tab
+    does not); the survey stamps the day it was answered and another writer
+    leaves the old date alone. Returns the saved doc."""
+    body = body if isinstance(body, dict) else {}
+    with interests_locked():
+        cur = load_interests()
+        ans = interests_from_body(body)
+        old = {i.get('id'): i for i in (cur.get('interests') or []) if isinstance(i, dict)}
+        for i in ans['interests']:
+            for k, v in (old.get(i['id']) or {}).items():
+                i.setdefault(k, v)
+        doc = dict(cur)
+        doc.update({'v': 1, 'name': ans['name'], 'picks': ans['picks'], 'never': ans['never'],
+                    'interests': ans['interests']})
+        if 'season_goal' in body:
+            doc['season_goal'] = ans['season_goal']
+        doc['surveyed'] = _clean(body.get('surveyed') or cur.get('surveyed') or '', 32) or None
+        save_interests(doc)
     return doc
+
+
+def interests_set_season_goal(body):
+    """Home's own goal question: set only the season goal and keep every other
+    field of the file as it is (a topic's birth, the run's search words, the
+    surveyed day). Returns (doc, error); the goal is a whole number from 1 to
+    365, the same bound the survey keeps."""
+    raw = (body or {}).get('season_goal') if isinstance(body, dict) else None
+    if isinstance(raw, bool) or not isinstance(raw, (int, str)):
+        return None, 'Choose how many books this season.'
+    try:
+        n = int(str(raw).strip())
+    except Exception:
+        return None, 'Choose how many books this season.'
+    if n < 1 or n > 365:
+        return None, 'A season goal is from 1 to 365 books.'
+    with interests_locked():
+        doc = load_interests()
+        doc['season_goal'] = n
+        save_interests(doc)
+    return doc, None
 
 
 def interests_from_body(body):

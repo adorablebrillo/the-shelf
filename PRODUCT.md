@@ -37,6 +37,13 @@ re-recommends a resolved one, and the engine's filters bend to one person's
 marks." There is nothing to sell, no engagement metric, and no reason to
 retain attention — the page is done when she has decided.
 
+**Her own reading is the one reason to come back between issues.** Home counts
+the days she read, the weeks of her streak and her season goal (the accepted
+Home plan, direction A). Each of those is a fact about her reading, kept on her
+own server and shown to no one: no leaderboard, no comparison, no notification,
+no growth loop. The curator never reads them — a reading day is not a verdict —
+and deciding the issue stays the page's main job.
+
 ## Operating Context
 
 - Self-hosted on her Unraid server; the container serves the page and runs the

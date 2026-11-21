@@ -7,7 +7,7 @@ A personal book-curation app: a monthly curated page of new releases across the 
 ### Sections
 
 **Home**:
-The landing section and the action surface — the reading-now card at the top (the book she is reading now, or choose your next book), then the month's picks with their issue line, then anything still open from earlier issues, together with the book brew widget (display only: each interest's dial and the reads its topic books count; it reads interests.json, never edits it), the reading corner, anticipation, read & loved, and series at a glance. On a phone the sections sit in a bar at the bottom of the screen.
+The landing section and the action surface — the reading-now card at the top (the book she is reading now, or choose your next book, with the one tap *I read today*), then the season panel (the goal ring, her week and the streak), then the month's picks with their issue line, then anything still open from earlier issues, together with the book brew widget (display only: each interest's dial and the reads its topic books count; it reads interests.json, never edits it), the reading corner, anticipation, read & loved, series at a glance, and her kept stamps. On a phone the sections sit in a bar at the bottom of the screen.
 _Avoid_: dashboard, landing page
 
 **My Shelf**:
@@ -51,6 +51,25 @@ The book she is reading at the moment: *want* plus a reading flag that travels b
 **Verdict row**:
 The one control for a book's mark, on every book card and row: reading now · want · read · loved · not for me. The lit choice is the mark now; pressing it again takes the mark off (a pick goes back to Home as open, an added book leaves the shelf, a series volume goes back to out). In a list, the row shows only the current mark until she taps it. Home's picks keep their own four verdicts (they are open books only), and coming or announced volumes take no mark.
 
+### Reading progress
+
+**Reading day**:
+One of her own calendar days on which she read. The one tap *I read today* on the reading-now card logs it, and marking a book *read* or *loved* logs that day too. Days are kept per book in `reader-state.json` under `days` and merge between devices by union: the phone's days and the desktop's days both count, and a day logged twice is one day. A logged day is a fact about a day, never a mark to be flipped — nothing takes it back.
+_Avoid_: check-in, streak (for a single day)
+
+**The streak**:
+How many weeks of the current season, counted back from this one, hold at least one *reading day*. This week counts as soon as it holds a day. A week with none is a rest week: one rest week a season keeps the run, a second ends it there. The streak takes nothing back and does not reach before the season began.
+
+**Season goal**:
+How many books she means to finish in a season. The number is the book brew's `season_goal` when it has one, and 6 otherwise; Home reads it live, so a saved answer counts at once. Home counts it from her marks — the books marked *read* or *loved* inside the season's own days — and fills a ring with it; reaching it presses that season's *kept stamp* in.
+
+**Season panel**:
+The Home block under the reading-now card: the season-goal ring, this season's week with every day she read lit, and the streak line.
+
+**Kept stamp**:
+A round mark she has earned and keeps: a season whose *season goal* she reached, an issue she decided to its last pick, a series whose every volume she read. Stamps live in `reader-state.json` under `stamps`, travel between devices like a verdict, and are pressed in once — clearing the mark or the pick behind one never removes it. Home shows them in the **Your stamps** row.
+_Avoid_: badge, achievement
+
 ### Series
 
 **Tracked series**:
@@ -71,7 +90,7 @@ A released volume in a tracked series that hasn't been marked. Actionable from M
 ### Surfaces
 
 **The month's picks**:
-The curated set for the current issue ("No. N · MONTH · x titles"). Home carries its issue line — how many picks are still open, with the days to the next issue — and a thin progress bar; deciding the last pick presses an issue-complete stamp in, once. A decided pick clears from Home and lives in its section.
+The curated set for the current issue ("No. N · MONTH · x titles"). Home carries its issue line — how many picks are still open, with the days to the next issue — and a thin progress bar; deciding the last pick presses an issue-complete stamp in, once, and keeps it among her *kept stamps*. A decided pick clears from Home and lives in its section.
 
 **Issue**:
 One month's curated drop, numbered.
@@ -88,7 +107,7 @@ The name of the interests list, shown as **The book brew** unless the reader typ
 _Avoid_: Book-a-meter (the old name), meter, counter
 
 **Survey**:
-The five-step setup that fills the book brew: the shelves, the dials, the never list, what she reads now, and the mix with the season goal. It shows while the interests file carries no surveyed day — on a new install, and once on a shelf that already has interests, which come in ticked. Its answers are the interests file the run reads; the book brew tab changes the same file later. The last step asks the season goal, and skipping it is allowed.
+The five-step setup that fills the book brew: the shelves, the dials, the never list, what she reads now, and the mix with the season goal. It shows while the interests file carries no surveyed day — on a new install, and once on a shelf that already has interests, which come in ticked. Its answers are the interests file the run reads; the book brew tab changes the same file later. The last step asks the season goal, and skipping it is allowed; Home then asks it in the season panel.
 _Avoid_: onboarding quiz, interest wizard
 
 **Reading corner**:

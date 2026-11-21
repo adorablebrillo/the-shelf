@@ -25,7 +25,12 @@ A topic interest may keep the baby's birth month and year (`birth`,
 the stage it curates for (STAGES), so the picks follow the baby's age.
 """
 import json, os, re
+from contextlib import contextmanager
 from datetime import date
+try:
+    import fcntl
+except ImportError:  # no flock where the shelf does not run (Windows)
+    fcntl = None
 import lanes  # the genre fallback for books with no search provenance
 import paths
 
@@ -40,6 +45,9 @@ DEFAULT_NAME = 'The book brew'
 # rewritten for that. A name the reader typed is shown as typed.
 LEGACY_NAME = 'Book-a-meter'
 DEFAULT_PICKS = 12
+# the season goal the Home ring shows until the reader's own number arrives
+# (the accepted Home plan's answer: 6 books a season)
+DEFAULT_SEASON_GOAL = 6
 DEFAULT_NEVER = ['cowboys']
 
 # the three romance interests every install starts with, in the order the
@@ -177,9 +185,12 @@ def ensure(log=print):
     p, src = path()
     if src == 'missing':
         try:
-            os.makedirs(os.path.dirname(vol_path()), exist_ok=True)
-            with open(vol_path(), 'w') as f:
-                json.dump(doc, f, indent=1)
+            with locked():
+                # the survey may have saved while the run started: never
+                # write the defaults over a file that is there now
+                if os.path.exists(vol_path()):
+                    return load()
+                write_atomic(vol_path(), doc)
             log('interests: no interests.json — made the default one (%s) from config lane_terms' % vol_path())
         except Exception as e:
             log('interests: could not write the default file (%s): %s' % (vol_path(), str(e)[:80]))
@@ -204,16 +215,42 @@ def merge_terms(base, other):
     return base
 
 
+@contextmanager
+def locked(p=None):
+    """One writer of interests.json at a time, across processes: the run's
+    own save and the server's (survey, book brew tab, Home's goal question,
+    a season stamp's goal check) all hold an exclusive lock on the file's
+    `.lock` neighbour while they read, change and write it."""
+    p = p or vol_path()
+    os.makedirs(os.path.dirname(p) or '.', exist_ok=True)
+    with open(p + '.lock', 'a') as f:
+        if fcntl:
+            fcntl.flock(f, fcntl.LOCK_EX)
+        try:
+            yield
+        finally:
+            if fcntl:
+                fcntl.flock(f, fcntl.LOCK_UN)
+
+
+def write_atomic(p, doc):
+    """Write the file whole or not at all: a reader never sees half a file."""
+    tmp = p + '.tmp'
+    with open(tmp, 'w') as f:
+        json.dump(doc, f, indent=1)
+    os.replace(tmp, p)
+
+
 def save_terms(doc, log=print):
     """The run's save: only the search words it suggested for an interest.
     Everything else on the volume wins, so a run can never roll back what the
-    reader changed while it ran."""
+    reader changed while it ran: the file is read again and written under the
+    same lock the server's writers hold."""
     p = vol_path()
     try:
-        cur = merge_terms(load(), doc)
-        os.makedirs(os.path.dirname(p), exist_ok=True)
-        with open(p, 'w') as f:
-            json.dump(cur, f, indent=1)
+        with locked(p):
+            cur = merge_terms(load(), doc)
+            write_atomic(p, cur)
         return True
     except Exception as e:
         log('interests: could not save the search words (%s): %s' % (p, str(e)[:80]))
@@ -390,6 +427,19 @@ def split(doc):
             out[name(donor)] -= 1
             out[name(a)] += 1
     return out
+
+
+def season_goal(doc):
+    """Books a season holds: the reader's own number when the book brew has
+    one (the survey writes `season_goal`), the plan's 6 otherwise. A missing,
+    blank, non-numeric or impossible value is the default, never a zero — the
+    ring must always have a real goal to fill."""
+    raw = (doc or {}).get('season_goal')
+    try:
+        n = int(str(raw).strip())
+    except (TypeError, ValueError):
+        return DEFAULT_SEASON_GOAL
+    return n if 1 <= n <= 999 else DEFAULT_SEASON_GOAL
 
 
 def never(doc):
