@@ -48,26 +48,26 @@
      grid only 908px, so 3 tracks need a floor of <=290. */
   [data-m="picksgrid"]{grid-template-columns:repeat(3,minmax(0,1fr))}
   /* Decorative illustrations retain their own space and never obscure copy. */
-  [data-m="shop-art"]{display:block;width:180px;height:152px;object-fit:contain;max-width:100%;min-height:0;margin:8px auto;flex:0 1 152px}
+  [data-m="shop-art"]{display:block;width:222px;height:auto;object-fit:contain;max-width:100%;min-height:0;margin:8px auto;flex:0 1 auto;translate:3px 2px}
   [data-m="corner-art-row"]{display:flex;align-items:center;gap:16px}
   [data-m="corner-art-row"] [data-m="cornerquote"]{flex:1;min-width:0}
-  [data-m="woman-art"]{display:block;width:128px;height:110px;object-fit:contain;flex:none}
+  [data-m="woman-art"]{display:block;width:181px;height:auto;object-fit:contain;flex:none;translate:2px 16px}
   [data-m="populated-heading"]{display:flex;align-items:center;justify-content:space-between;gap:16px}
   [data-m="populated-heading"] > div{min-width:0}
-  [data-m="populated-art"]{display:block;object-fit:contain;flex:none;width:120px;height:100px}
-  [data-m="populated-art"][data-illustration="cafe"]{width:126px;height:98px}
+  [data-m="populated-art"]{display:block;object-fit:contain;flex:none;width:191px;height:auto;translate:-10px 31px}
+  [data-m="populated-art"][data-illustration="cafe"]{width:163px;translate:-11px 4px}
   [data-season="autumn"] [data-m="woman-art"], [data-season="christmas"] [data-m="woman-art"], [data-season="winter"] [data-m="woman-art"]{filter:brightness(0) invert(90%) sepia(12%)}
-  [data-m="empty-art"]{display:block;object-fit:contain;max-width:100%;margin:16px auto 0}
-  [data-m="empty-art"][data-illustration="man"]{width:240px;height:200px}
-  [data-m="empty-art"][data-illustration="cafe"]{width:280px;height:218px}
+  [data-m="empty-art"]{display:block;object-fit:contain;max-width:100%;height:auto;margin:16px auto 0}
+  [data-m="empty-art"][data-illustration="man"]{width:382px;translate:4px 50px}
+  [data-m="empty-art"][data-illustration="cafe"]{width:415px;translate:12px 67px}
   @media (min-width:881px) and (min-height:861px){[data-m="sidepanel"]{box-sizing:border-box;gap:8px !important}}
   @media (max-width:880px), (max-height:860px){[data-m="shop-art"]{display:none}}
   @media (max-width:700px){
     [data-m="cornerin"]{position:relative}
     [data-m="cornerin"] [data-m="recentline"]{min-height:1.6em !important}
-    [data-m="woman-art"]{position:absolute;width:56px;height:48px}
-    [data-m="populated-art"]{width:84px;height:70px}
-    [data-m="populated-art"][data-illustration="cafe"]{width:84px;height:66px}
+    [data-m="woman-art"]{position:absolute;width:56px;height:48px;translate:none}
+    [data-m="populated-art"]{width:84px;height:70px;translate:none}
+    [data-m="populated-art"][data-illustration="cafe"]{width:84px;height:66px;translate:none}
     /* Keep the Christmas reader clear of the lights and countdown. */
     [data-season="christmas"] [data-m="cornerin"]{padding-bottom:10px !important}
     [data-season="christmas"] [data-m="eyebrow"]{max-width:calc(100% - 63px)}
@@ -81,8 +81,8 @@
     [data-m="frame"]:not([data-season="christmas"]) [data-m="cornerin"] > div:first-child{min-height:48px !important}
     [data-m="frame"]:not([data-season="christmas"]) [data-m="recentline"]{margin-top:5px !important;padding-top:4px !important}
     [data-m="frame"]:not([data-season="christmas"]) [data-m="eyebrow"]{margin-left:72px !important;max-width:calc(100% - 90px) !important}
-    [data-m="empty-art"][data-illustration="man"]{width:220px;height:184px}
-    [data-m="empty-art"][data-illustration="cafe"]{width:240px;height:187px}
+    [data-m="empty-art"][data-illustration="man"]{width:220px;height:184px;translate:none}
+    [data-m="empty-art"][data-illustration="cafe"]{width:240px;height:187px;translate:none}
   }
   /* Below 380px the heading needs the full row; the populated-page artwork steps aside. */
   @media (max-width:380px){[data-m="populated-art"]{display:none}}
