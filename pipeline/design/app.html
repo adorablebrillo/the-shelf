@@ -1136,6 +1136,7 @@
       <div id="panel-bookameter" role="tabpanel" aria-labelledby="tab-bookameter" style="display:none">
         <section id="bm-section" aria-label="The book brew" style="max-width:720px">
           <p id="bm-intro" style="margin:22px 0 0;font-size:16px;line-height:1.6;color:#4A443A">Choose interests. Adjust how much you want. Turn an interest off for no picks. A book you add for an interest shows on My Shelf, never on Home.</p>
+          <div id="bm-meter"></div>
           <p id="bm-msg" role="status" aria-live="polite" style="margin:12px 0 0;min-height:20px;font-style:italic;font-size:14px;color:#6E2A2A"></p>
           <div id="bm-interests" style="margin-top:8px"></div>
           <div style="margin-top:18px">
@@ -1314,6 +1315,53 @@
   motion.addEventListener('change',()=>{if(raf){clearTimeout(raf);raf=0;}last=0;if(reduced()&&plough>=0)finishPlough();draw();run();});
   window.addEventListener('resize',()=>{resize();render();draw();});new MutationObserver(sync).observe(document.body,{childList:true,subtree:true});
   resize();sync();
+})();
+</script>
+
+<script>
+/* The meter — one half-circle gauge, drawn the same on the book brew tab in
+   Settings and in the survey's last step. Each interest that is on gets an arc
+   as wide as its dial (curious 2, into it 3, obsessed 4); the needle points at
+   the widest one. The colours are the interest cards' colours, by position in
+   the list, so an interest keeps its colour everywhere. */
+(function(){
+'use strict';
+var DIALS=['off','curious','into it','obsessed'];
+var COLORS=['#1E3A2F','#6E2A2A','#A8863F','#C8704A','#5E7A8C','#9BA98A','#6B4E71','#C98F93','#4A443A','#7C8B4E'];
+function weight(dial){return (DIALS.indexOf(dial)||0)+1;}
+function esc(t){return String(t==null?'':t).replace(/[&<>"]/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c];});}
+/* interests: [{id,label,dial}] in card order. width: the drawing's width in px. */
+function draw(interests,width){
+  var act=[],tot=0;
+  (interests||[]).forEach(function(x,k){
+    var dial=x.dial||'into it';
+    if(dial==='off')return;
+    act.push({x:x,dial:dial,color:COLORS[k%COLORS.length]});tot+=weight(dial);
+  });
+  var w=width||320,h=Math.round(w*190/320),cx=w/2,cy=h-16,r=w/2-26,a=Math.PI,svg='',big=null,bigA=Math.PI/2;
+  if(!act.length){
+    svg+='<path d="M'+(cx-r)+','+cy+' A'+r+','+r+' 0 0 1 '+(cx+r)+','+cy+'" fill="none" stroke="#C6BBA3" stroke-width="18"/>';
+  } else {
+    act.forEach(function(e){
+      var wt=weight(e.dial),d=Math.PI*wt/tot,a1=a-d;
+      var x0=cx+r*Math.cos(a),y0=cy-r*Math.sin(a),x1=cx+r*Math.cos(a1+0.012),y1=cy-r*Math.sin(a1+0.012);
+      svg+='<path d="M'+x0.toFixed(1)+','+y0.toFixed(1)+' A'+r+','+r+' 0 0 1 '+x1.toFixed(1)+','+y1.toFixed(1)+'" fill="none" stroke="'+e.color+'" stroke-width="18"/>';
+      if(!big||wt>weight(big.dial)){big=e;bigA=a-d/2;}
+      a=a1;
+    });
+  }
+  var nx=cx+(r-34)*Math.cos(bigA),ny=cy-(r-34)*Math.sin(bigA);
+  svg+='<line x1="'+cx+'" y1="'+cy+'" x2="'+nx.toFixed(1)+'" y2="'+ny.toFixed(1)+'" stroke="#211E19" stroke-width="2.5" stroke-linecap="round"/>';
+  svg+='<circle cx="'+cx+'" cy="'+cy+'" r="7" fill="#A8863F"/>';
+  var label=big?big.x.label:'';
+  var box=document.createElement('div');
+  box.className='meter';
+  box.style.cssText='text-align:center;margin:6px 0 0';
+  box.innerHTML='<svg viewBox="0 0 '+w+' '+h+'" width="100%" style="max-width:'+w+'px" role="img" aria-label="The meter: '+(big?esc(label):'no interest is on')+'">'+svg+'</svg>'+
+    '<p style="margin:4px 0 0;font-size:15px;color:#635846">'+(big?'mostly <strong style="color:#211E19">'+esc(label)+'</strong>':'turn a dial up to start')+'</p>';
+  return box;
+}
+window.SHELF_METER={draw:draw,colors:COLORS,dials:DIALS};
 })();
 </script>
 
@@ -1537,7 +1585,7 @@
      re-render replaces the nodes an inline binding would sit on. */
   var BM=null, BM_BOOKS=[], BM_READING={}, BM_Q={}, BM_RES={}, BM_QOPEN={},
       BM_ADD_OPEN=false, BM_CUSTOM='';
-  var BM_COLORS=['#1E3A2F','#6E2A2A','#A8863F','#C8704A','#5E7A8C','#9BA98A','#6B4E71','#C98F93','#4A443A','#7C8B4E'];
+  var BM_COLORS=window.SHELF_METER.colors;
   /* the catalog the tab offers. A story interest not yet in the file keeps
      the romance rules only when it is one of the three the install starts
      with; a typed interest is a real-life topic, and the run asks the
@@ -1633,7 +1681,13 @@
     var ap=document.getElementById('bm-add-panel');if(ap)ap.style.display=BM_ADD_OPEN?'block':'none';
     var ab=document.getElementById('bm-add-interest');if(ab)ab.style.display=BM_ADD_OPEN?'none':'inline-block';
     if(BM_ADD_OPEN)bmRenderAdd();
-    bmRenderNever();bmRenderPicks();
+    bmRenderMeter();bmRenderNever();bmRenderPicks();
+  }
+  /* the same gauge the survey ends on; it redraws with every dial change */
+  function bmRenderMeter(){
+    var host=document.getElementById('bm-meter');if(!host||!BM)return;
+    host.innerHTML='';
+    host.appendChild(window.SHELF_METER.draw(BM.interests||[],280));
   }
   function bmCard(i,k){
     var col=BM_COLORS[k%BM_COLORS.length];
@@ -1975,10 +2029,10 @@
 <script>
 (function(){
 'use strict';
-var DIALS=['off','curious','into it','obsessed'];
+var DIALS=window.SHELF_METER.dials;
 var MODES=[['new','new releases'],['best ever','best ever'],['both','both']];
 var NEVER=[['cowboys','cowboys & westerns'],['cliffhanger','cliffhanger endings'],['violence','graphic violence']];
-var COLORS=['#1E3A2F','#6E2A2A','#A8863F','#C8704A','#5E7A8C','#9BA98A','#6B4E71','#C98F93','#4A443A','#7C8B4E'];
+var COLORS=window.SHELF_METER.colors;
 var TITLES=[
  ['Which shelves are yours?','Pick every kind of book you read. Stories, real life, or both.'],
  ['How much of each?','Turn a dial up for more picks. Choose new releases, the best ever, or both.'],
@@ -2046,9 +2100,6 @@ var CSS=[
 '#shelf-survey li{display:flex;gap:10px;align-items:baseline;padding:5px 0;border-top:1px solid #E1D8C4;font-size:16px}',
 '#shelf-survey li .star{color:#A8863F}',
 '#shelf-survey li .au{color:#635846;font-style:italic;font-size:14px}',
-'#shelf-survey .meter{text-align:center;margin:6px 0 0}',
-'#shelf-survey .meter p{margin:4px 0 0;font-size:15px;color:#635846}',
-'#shelf-survey .meter strong{color:#211E19}',
 '#shelf-survey .note{margin:26px 0 0;padding:14px 16px;border:1px dashed #C6BBA3;background:#FBF6EC;font-size:15px;line-height:1.6;color:#4A443A}',
 '#shelf-toast{position:fixed;left:50%;transform:translateX(-50%);bottom:24px;z-index:10000;',
 'background:#1E3A2F;color:#F3EDE1;padding:14px 22px;font-family:"EB Garamond",Garamond,Georgia,serif;font-size:17px;max-width:90vw}'
@@ -2281,32 +2332,7 @@ function search(q){
    .catch(function(){ S.msg='The shelf server did not answer \u2014 try again.'; render(); });
 }
 
-function meter(){
-  var act=[],tot=0;
-  S.interests.forEach(function(x){
-    if(x.dial==='off')return;
-    act.push(x); tot+=(DIALS.indexOf(x.dial)||0)+1;
-  });
-  var w=320,h=190,cx=w/2,cy=h-16,r=w/2-26,a=Math.PI,svg='',big=null,bigA=Math.PI/2;
-  if(!act.length){
-    svg+='<path d="M'+(cx-r)+','+cy+' A'+r+','+r+' 0 0 1 '+(cx+r)+','+cy+'" fill="none" stroke="#C6BBA3" stroke-width="18"/>';
-  } else {
-    act.forEach(function(x){
-      var wt=(DIALS.indexOf(x.dial)||0)+1,d=Math.PI*wt/tot,a1=a-d;
-      var x0=cx+r*Math.cos(a),y0=cy-r*Math.sin(a),x1=cx+r*Math.cos(a1+0.012),y1=cy-r*Math.sin(a1+0.012);
-      svg+='<path d="M'+x0.toFixed(1)+','+y0.toFixed(1)+' A'+r+','+r+' 0 0 1 '+x1.toFixed(1)+','+y1.toFixed(1)+'" fill="none" stroke="'+colorOf(x.id)+'" stroke-width="18"/>';
-      if(!big||wt>((DIALS.indexOf(big.dial)||0)+1)){big=x;bigA=a-d/2;}
-      a=a1;
-    });
-  }
-  var nx=cx+(r-34)*Math.cos(bigA),ny=cy-(r-34)*Math.sin(bigA);
-  svg+='<line x1="'+cx+'" y1="'+cy+'" x2="'+nx.toFixed(1)+'" y2="'+ny.toFixed(1)+'" stroke="#211E19" stroke-width="2.5" stroke-linecap="round"/>';
-  svg+='<circle cx="'+cx+'" cy="'+cy+'" r="7" fill="#A8863F"/>';
-  var box=el('div','meter');
-  box.innerHTML='<svg viewBox="0 0 '+w+' '+h+'" width="100%" style="max-width:'+w+'px" role="img" aria-label="The meter: '+(big?big.label:'no interest is on')+'">'+svg+'</svg>'+
-    '<p>'+(big?'mostly <strong>'+big.label+'</strong>':'turn a dial up to start')+'</p>';
-  return box;
-}
+function meter(){return window.SHELF_METER.draw(S.interests,320);}
 
 function stepMix(){
   var f=document.createDocumentFragment();
