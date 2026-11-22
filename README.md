@@ -34,6 +34,12 @@ builds it from saved data only (cached covers and synopses), opens port 8787,
 and then runs the full build — new cover and synopsis lookups — in the
 background. The page updates when that full build ends.
 
+A restart in the middle of a run never leaves the shelf stuck: settings then
+says **stopped by a restart**, and **curate now** works again at once. A stage
+that runs past its 25-minute limit is stopped, and the run ends as failed. If
+the 1st-of-month run comes due before a key is saved, it starts within a
+minute of saving the key that day.
+
 Full steps: [`UNRAID-INSTALL.md`](UNRAID-INSTALL.md)
 
 ## Install it on your phone

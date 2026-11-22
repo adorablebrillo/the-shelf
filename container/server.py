@@ -188,6 +188,47 @@ def fetch_models():
         raise RuntimeError('no models')
     return out
 
+# one stage's time limit: a stage past it is stopped and the run ends as failed
+STAGE_TIMEOUT = 1500
+
+# one pipeline run at a time in this process. The lock, not the 'running' flag
+# in settings.json, decides whether a run may start: the flag is only what the
+# Settings pane shows, and a restart can leave it behind.
+RUN_LOCK = threading.Lock()
+
+
+def start_run(mode, settings=None):
+    """Start a pipeline run in the background. False when one is already going."""
+    if not RUN_LOCK.acquire(blocking=False):
+        return False
+    s = settings if settings is not None else load_settings()
+
+    def go():
+        try:
+            run_pipeline(s, mode)
+        finally:
+            RUN_LOCK.release()
+    try:
+        threading.Thread(target=go, daemon=True).start()
+    except Exception:
+        RUN_LOCK.release()
+        raise
+    return True
+
+
+def clear_stale_run():
+    """At boot no run is going yet, so a 'running' flag on disk is left over
+    from a run a restart cut off. Clear it, and say so in the last result."""
+    s = load_settings()
+    if not s.get('running'):
+        return False
+    s['running'] = False
+    s['last_result'] = 'stopped by a restart (see logs)'
+    save_settings(s)
+    log('boot: the last run was cut off by a restart — cleared its running flag')
+    return True
+
+
 def run_pipeline(settings, mode='adhoc'):
     """fetch → reference → filter → curate → build. Uses the in-container pipeline dir.
     mode='adhoc'     — "curate now": rolling last-30-days window (manual button)
@@ -208,17 +249,29 @@ def run_pipeline(settings, mode='adhoc'):
         log('baseline seed: %s' % e)
     steps = ['fetch.py', 'reference.py', 'filter.py', 'curate.py', 'build.py']
     code = 0
-    for s in steps:
-        log('stage: %s (%s)' % (s, mode))
-        # one page build at a time: a run started during the boot full build
-        # waits for it here instead of writing the page beside it
-        with (BUILD_LOCK if s == 'build.py' else nullcontext()):
-            r = subprocess.run(['python3', os.path.join(PIPELINE, s)], capture_output=True,
-                               text=True, env=env, timeout=1500, cwd=PIPELINE)
-        log((r.stdout or '')[-800:] + (r.stderr or '')[-400:])
-        if r.returncode != 0:
-            code = r.returncode
-            break
+    # Whatever a stage does — fails, runs past its time limit, or raises — the
+    # run still ends below and clears 'running'. A flag left on would block
+    # curate now and the monthly run until someone edited settings.json.
+    try:
+        for s in steps:
+            log('stage: %s (%s)' % (s, mode))
+            # one page build at a time: a run started during the boot full build
+            # waits for it here instead of writing the page beside it
+            try:
+                with (BUILD_LOCK if s == 'build.py' else nullcontext()):
+                    r = subprocess.run(['python3', os.path.join(PIPELINE, s)], capture_output=True,
+                                       text=True, env=env, timeout=STAGE_TIMEOUT, cwd=PIPELINE)
+            except subprocess.TimeoutExpired:
+                log('stage %s took longer than %d minutes — stopped it' % (s, STAGE_TIMEOUT // 60))
+                code = 1
+                break
+            log((r.stdout or '')[-800:] + (r.stderr or '')[-400:])
+            if r.returncode != 0:
+                code = r.returncode
+                break
+    except Exception as e:
+        log('run stopped: %s' % str(e)[:200])
+        code = 1
     mon = datetime.now().strftime('%Y-%m')
     n = 0
     try:
@@ -248,19 +301,29 @@ def run_pipeline(settings, mode='adhoc'):
     log('pipeline done: %s (%d books)' % (s['last_result'], n))
 
 # ---------- scheduler thread ----------
+def scheduler_tick(now, warned=None):
+    """One look at the clock: start the monthly run when it is due. Returns
+    the month it already logged a missing key for, so the log says it once."""
+    s = load_settings()
+    if now.day == 1 and now.hour >= 9 and not RUN_LOCK.locked():
+        month = now.strftime('%Y-%m')
+        last = s.get('last_run') or ''
+        if not last.startswith(month):
+            if not s.get('api_key'):
+                # keep looking: the run starts once the key is saved
+                if warned != month:
+                    log('monthly run due — no API key saved yet, add it in shelf settings')
+                return month
+            if start_run('scheduled', s):
+                log('monthly run triggered')
+    return warned
+
+
 def scheduler():
+    warned = None
     while True:
         try:
-            s = load_settings()
-            now = datetime.now()
-            if not s['running'] and now.day == 1 and now.hour >= 9 and now.minute >= 0:
-                last = s.get('last_run') or ''
-                if not last.startswith(now.strftime('%Y-%m')):
-                    if not s.get('api_key'):
-                        log('monthly run due — no API key saved yet, add it in shelf settings')
-                        break
-                    log('monthly run triggered')
-                    threading.Thread(target=run_pipeline, args=(s, 'scheduled'), daemon=True).start()
+            warned = scheduler_tick(datetime.now(), warned)
         except Exception as e:
             log('scheduler err: %s' % str(e)[:100])
         time.sleep(60)
@@ -473,9 +536,8 @@ class H(BaseHTTPRequestHandler):
             s = load_settings()
             if not s.get('api_key'):
                 return self._json({'error': 'add your OpenRouter key in Settings first'}, 400)
-            if s.get('running'):
+            if not start_run('adhoc', s):
                 return self._json({'error': 'a run is already in progress'}, 409)
-            threading.Thread(target=run_pipeline, args=(s, 'adhoc'), daemon=True).start()
             self._json({'ok': True, 'started': True, 'mode': 'adhoc'})
         else:
             self._json({'error': 'not found'}, 404)
@@ -1359,6 +1421,7 @@ def boot(port=None, host='0.0.0.0'):
     os.makedirs(LOGSD, exist_ok=True)
     if not os.path.isdir(DIST):
         os.makedirs(DIST, exist_ok=True)
+    clear_stale_run()
     ensure_personal_data()
     seed_baselines()
     ensure_default(offline=True)
