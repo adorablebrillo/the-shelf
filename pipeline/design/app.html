@@ -267,19 +267,11 @@
   [data-m="stamp"]{animation:stamppress .5s ease-out 1;transform-origin:center}
   @keyframes stamppress{0%{transform:scale(1.55);opacity:0}70%{transform:scale(.94);opacity:1}100%{transform:scale(1)}}
   @media (prefers-reduced-motion:reduce){[data-m="stamp"]{animation:none !important}}
-  /* THS-43 (Home part 2): the season panel's week strip and the row of stamps.
-     The strip is one cell per day of her week, lit where she tapped; the row is
-     a kept seal with its own name under it, wrapping rather than scrolling. */
+  /* THS-43 (Home part 2): the season panel's week strip, one cell per day of
+     her week, lit where she tapped. */
   [data-m="weekrow"]{display:flex;gap:5px;margin-top:14px}
   [data-m="goalask"][data-at="picks"]{display:none}
-  [data-m="stamprow"]{display:flex;flex-wrap:wrap;gap:22px 26px;margin:0;padding:0}
-  [data-m="stampcell"]{margin:0;width:88px;text-align:center}
-  [data-m="stampcell"] [data-m="seal"]{position:relative;width:54px;height:54px;margin:0 auto}
-  [data-m="stampcell"] svg{display:block}
-  [data-m="sealmark"]{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-family:'Cormorant Garamond',Garamond,serif;font-size:12px;letter-spacing:.5px;white-space:nowrap}
-  [data-m="stampcell"] figcaption{margin:8px 0 0;font-size:10px;letter-spacing:.18em;text-transform:uppercase;color:#635846;overflow-wrap:break-word}
-  @media (prefers-reduced-motion:reduce){[data-m="stampcell"] [data-m="seal"]{animation:none !important}}
-  /* phone: the season panel and the stamp row keep part 1's first screen — the
+  /* phone: the season panel keeps part 1's first screen — the
      ring and the cells shrink, the panels tighten, nothing else moves. */
   @media (max-width:700px){
     [data-m="season"]{margin-top:16px !important}
@@ -305,9 +297,6 @@
     [data-m="streakline"]{font-size:10px !important;letter-spacing:.16em !important}
     [data-m="streakline"]{margin-top:8px !important}
     [data-m="rndays"]{margin-top:9px !important}
-    [data-m="stamps"]{margin-top:38px !important}
-    [data-m="stamprow"]{gap:16px 10px}
-    [data-m="stampcell"]{width:80px}
   }
   /* THS-98 (Home layout, "the counter"): Home is measured by its own width,
      not the window's, because the sidebar and the page padding take a fixed
@@ -397,19 +386,6 @@
 </style>
 </helmet>
 <div data-m="frame" data-season="{{ seasonKey }}" style="display:grid;grid-template-columns:276px minmax(0,1fr);min-height:100vh;background:#EDE6D8;color:#211E19;font-family:'EB Garamond',Georgia,serif;font-size:16px;line-height:1.6">
-
-  <!-- THS-43 (Home part 2): the five season stamp motifs, each drawn from that
-       season's own drawing (the seal garland unit and the corner sprig). They
-       sit in the page all year, so a stamp earned in one season still shows its
-       own drawing in the next one. The season's own garlands above stay on
-       their season; these are only the small marks inside a stamp. -->
-  <svg width="0" height="0" aria-hidden="true" style="position:absolute"><defs>
-    <g id="stamp-autumn"><path d="M0-7L1.6-3.2L4.6-4.6L3.6-1L7 0L4 1.6L4.6 4L1 3L.6 6.5L-.6 6.5L-1 3L-4.6 4L-4 1.6L-7 0L-3.6-1L-4.6-4.6L-1.6-3.2Z" fill="#B5562F" stroke="#C8B27A" stroke-width=".7" stroke-linejoin="round"/><path d="M0-3L0 9" fill="none" stroke="#C8B27A" stroke-width=".7"/></g>
-    <g id="stamp-christmas"><g transform="translate(-11 -1)"><path d="M0 0 C2 -2.5 3.5 -4.5 5.5 -3.2 C6.5 -6 9.5 -6.2 10.5 -4 C12.5 -6.2 15.5 -5.8 15.5 -3 C17.5 -3.5 19.5 -1.5 20 0 C19.5 1.5 17.5 3.5 15.5 3 C15.5 5.8 12.5 6.2 10.5 4 C9.5 6.2 6.5 6 5.5 3.2 C3.5 4.5 2 2.5 0 0 Z" fill="#1E3A2F" stroke="#A8863F" stroke-width=".9" stroke-linejoin="round" transform="rotate(-14)"/><path d="M0 0 C2 -2.5 3.5 -4.5 5.5 -3.2 C6.5 -6 9.5 -6.2 10.5 -4 C12.5 -6.2 15.5 -5.8 15.5 -3 C17.5 -3.5 19.5 -1.5 20 0 C19.5 1.5 17.5 3.5 15.5 3 C15.5 5.8 12.5 6.2 10.5 4 C9.5 6.2 6.5 6 5.5 3.2 C3.5 4.5 2 2.5 0 0 Z" fill="#2B3F38" stroke="#A8863F" stroke-width=".9" stroke-linejoin="round" transform="translate(3 8) rotate(18)"/><circle cx="17" cy="11" r="2.2" fill="#A8322B"/><circle cx="21" cy="8" r="2" fill="#A8322B"/></g></g>
-    <g id="stamp-winter"><path d="M-9 0L9 0M-8 0l2.2-3.4M-8 0l2.2 3.4M-5.5 0l2.2-3.4M-5.5 0l2.2 3.4M-3 0l2.2-3.4M-3 0l2.2 3.4M-0.5 0l2.2-3.4M-0.5 0l2.2 3.4M2 0l2.2-3.4M2 0l2.2 3.4M4.5 0l2.2-3.4M4.5 0l2.2 3.4" fill="none" stroke="#9DB9B4" stroke-width="1" stroke-linecap="round" transform="translate(0 -3.5)"/><path d="M-4.6 -0L4.6 0M-2.3 -3.98L2.3 3.98M2.3 -3.98L-2.3 3.98" fill="none" stroke="#9DB9B4" stroke-width="1" stroke-linecap="round" transform="translate(1 6)"/><circle cy="6" r=".9" fill="#DCE6EC"/></g>
-    <g id="stamp-spring"><g fill="#E8A5AE" stroke="#C8B27A" stroke-width=".6"><ellipse cx="0" cy="-3.2" rx="2.5" ry="3.3" transform="rotate(0)"/><ellipse cx="0" cy="-3.2" rx="2.5" ry="3.3" transform="rotate(72)"/><ellipse cx="0" cy="-3.2" rx="2.5" ry="3.3" transform="rotate(144)"/><ellipse cx="0" cy="-3.2" rx="2.5" ry="3.3" transform="rotate(216)"/><ellipse cx="0" cy="-3.2" rx="2.5" ry="3.3" transform="rotate(288)"/></g><circle r="1.2" fill="#A8863F"/></g>
-    <g id="stamp-summer"><path d="M-6.2 0C-6.2-5 4.6-5.4 6.4-1L8.2 0L6.4 1C4.6 5.4-6.2 5-6.2 0Z" fill="#E9C54A" stroke="#8A6C31" stroke-width=".7" stroke-linejoin="round"/><path d="M0-6C3.4-3 3.4 3 0 6C-3.4 3-3.4-3 0-6Z" fill="#5E7F4E" stroke="#C8B27A" stroke-width=".6" transform="translate(-9 5) rotate(38) scale(.85)"/></g>
-  </defs></svg>
 
   <aside data-m="side" style="position:sticky;top:0;height:100vh;background:#1E3A2F;color:#F3EDE1;padding:10px">
     <div data-m="sidepanel" style="height:100%;border:1px solid #A8863F;padding:30px 0 24px;display:flex;flex-direction:column;gap:24px;overflow:auto">
@@ -835,36 +811,6 @@
       </section>
       </div>
 
-      <!-- THS-43 (Home part 2): the stamps she keeps. A season's goal reached,
-           an issue decided to its last pick, a series finished — each presses
-           one stamp in, once, and the record is kept on the server so the
-           phone and the desktop show the same row. A dashed mark is one she
-           can still earn now. -->
-      <sc-if value="{{ hasStamps }}">
-      <section aria-label="Your stamps" data-m="stamps" style="margin-top:50px">
-        <div style="display:flex;align-items:baseline;justify-content:space-between;gap:16px;flex-wrap:wrap">
-          <h2 style="font-family:'Cormorant Garamond',Garamond,serif;font-weight:500;font-size:clamp(23px,3vw,32px);letter-spacing:.14em;text-transform:uppercase;margin:0">Your stamps</h2>
-          <span style="font-size:11px;letter-spacing:.28em;text-transform:uppercase;color:#635846">{{ stampsLine }}</span>
-        </div>
-        <div style="height:1px;background:#A8863F;margin:14px 0 20px"></div>
-        <div data-m="stamprow">
-          <sc-for list="{{ stamps }}" as="m" hint-placeholder-count="4">
-            <figure data-m="stampcell">
-              <div data-m="seal" style="{{ m.style }}" aria-hidden="true">
-                <svg width="54" height="54" viewBox="0 0 64 64">
-                  <circle cx="32" cy="32" r="29" fill="none" stroke="{{ m.col }}" stroke-width="1.5" stroke-dasharray="{{ m.dash }}"/>
-                  <circle cx="32" cy="32" r="24" fill="none" stroke="{{ m.col }}" stroke-width=".8" stroke-dasharray="{{ m.dash }}"/>
-                  <sc-if value="{{ m.isSeason }}"><use href="{{ m.sym }}" transform="translate(32 32) scale(1.45)"/></sc-if>
-                </svg>
-                <sc-if value="{{ m.isText }}"><span data-m="sealmark" style="{{ m.markStyle }}">{{ m.mark }}</span></sc-if>
-              </div>
-              <figcaption>{{ m.label }}</figcaption>
-            </figure>
-          </sc-for>
-        </div>
-        <p style="margin:16px 0 0;font-size:11px;letter-spacing:.2em;text-transform:uppercase;color:#635846">seasons, complete issues and closed series</p>
-      </section>
-      </sc-if>
     </div>
     </sc-if>
 
@@ -2620,24 +2566,9 @@ function goalOfBrew(raw){
   const n=Number(raw);
   return (Number.isInteger(n)&&n>=1&&n<=365)?n:null;
 }
-/* THS-43: a stamp key carries its own meaning, so the row reads it back with
-   no second table — season:<key>:<year>, issue:<n>, series:<name> */
+/* THS-43: a stamp key carries its own meaning — season:<key>:<year>, issue:<n>,
+   series:<name> */
 function stampNormName(s){return String(s||'').toLowerCase().replace(/[^a-z0-9]/g,'')}
-function stampSym(key){return key.indexOf('season:')===0?'#stamp-'+key.split(':')[1]:''}
-function stampMark(key){
-  const p=key.split(':');
-  if(p[0]==='issue')return 'No. '+p[1];
-  if(p[0]==='series')return (p.slice(1).join(':').trim().charAt(0)||'\u00b7').toUpperCase();
-  return '';
-}
-function stampLabel(key,d){
-  const p=key.split(':');
-  if(p[0]==='season')return seasonName(p[1])+' '+p[2];
-  if(p[0]==='issue')return 'No. '+p[1];
-  const nm=p.slice(1).join(':');
-  const hit=((d&&d.series)||[]).filter(s=>stampNormName(s.name)===nm)[0];
-  return hit?hit.name:nm;
-}
 
 /* "N days to Christmas" until 24 December, "Christmas Day" on the 25th, then nothing */
 function christmasCountdown(now){
@@ -3895,7 +3826,7 @@ class Component extends DCLogic {
     const sn=seasonNow(d,new Date()), season=sn.season, isXmas=season.key==='christmas';
 
     /* ---- THS-43 (Home part 2): the reading days, the weekly streak, the
-       season goal and the stamps kept. All of it is worked out from what she
+       season goal and the season stamp's line. All of it is worked out from what she
        already marked and logged — nothing new is invented here, and the
        season's own days come from the same table the corner reads. ---------- */
     const nowD=new Date(), todayIso=isoDay(nowD);
@@ -3931,7 +3862,6 @@ class Component extends DCLogic {
     const daysAll=readDayList(this.state.days);
     const wk=weekStreak(daysAll,todayIso,win);
     const seasonStampKey='season:'+season.key+':'+win.year;
-    const kept=this.state.stamps||{};
     const streakLine=wk.weeks
       ?(wk.weeks+' reading '+(wk.weeks===1?'week':'weeks')+' in a row'
         +(wk.keptThisWeek?'':' \u00b7 read this week to make it '+(wk.weeks+1)))
@@ -3958,24 +3888,6 @@ class Component extends DCLogic {
     const seasonSub=win.daysLeft+' '+(win.daysLeft===1?'day':'days')+' left \u00b7 ends '+prettyDay(isoOfNum(win.endN));
     const seasonStampLine=(this.state.justStamp||[]).indexOf(seasonStampKey)>=0
       ?'You earned the '+seasonName(season.key)+' '+win.year+' stamp.':'';
-    /* the row: every stamp she has earned, oldest first, then the two she can
-       earn now (dashed) so the row also says what is next */
-    const sealStyle=(press)=>({animation:press?'stamppress .5s ease-out 1':'none',transformOrigin:'center'});
-    const rowOf=(k,on,press)=>({key:k,label:stampLabel(k,d),on:on,
-      sym:stampSym(k),mark:stampMark(k),isSeason:k.indexOf('season:')===0,isText:!!stampMark(k),
-      col:on?'#8A6C31':'#C6BBA3',dash:on?'none':'3 3',style:sealStyle(press),
-      markStyle:{color:on?'#8A6C31':'#C6BBA3'}});
-    const pressed=(k)=>(this.state.justStamp||[]).indexOf(k)>=0;
-    const stampRow=Object.keys(kept).filter(k=>kept[k]&&kept[k].s!==false)
-      .sort((a,b)=>(kept[a].t||0)-(kept[b].t||0)).map(k=>rowOf(k,true,pressed(k)));
-    const ghost=[];
-    if(!kept[seasonStampKey])ghost.push(rowOf(seasonStampKey,false,false));
-    const issueNo=(d.month&&d.month.issue)||0;
-    const issueKey='issue:'+issueNo;
-    if(issueNo&&(d.books||[]).length&&openPicks.length&&!kept[issueKey])ghost.push(rowOf(issueKey,false,false));
-    const stampList=stampRow.concat(ghost);
-    const stampCount=stampRow.length;
-
     /* the corner's colours come from the season table, as custom properties
        the corner CSS reads; the bottom rule is the bottom-line colour at 40% */
     const cornerStyle=(function(){const c=season.corner, st={position:'relative',background:'#E5DCCA',padding:'6px'};
@@ -4043,10 +3955,6 @@ class Component extends DCLogic {
       goalSetBtn:{...goalBtn,background:'#2B2118',color:'#F3EDE1',borderColor:'#2B2118'},
       goalLess:goalStep(-1), goalMore:goalStep(1), goalSave:()=>this.saveGoal(),
       goalLessOff:goalDraft<=1, goalMoreOff:goalDraft>=60, goalSaving:!!this.state.goalSaving,
-
-      /* the stamps she keeps */
-      hasStamps:stampList.length>0, stamps:stampList, stampCount,
-      stampsLine:stampCount?(stampCount+' kept'):'none pressed in yet',
 
       /* anticipation — a row of countdown cards */
       hasAnticipations:anticipations.length>0,
