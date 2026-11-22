@@ -7,7 +7,7 @@ A personal book-curation app: a monthly curated page of new releases across the 
 ### Sections
 
 **Home**:
-The landing section and the action surface — the reading corner at the top, then one row holding the reading-now card (the book she is reading now, or choose your next book, with the one tap *I read today*) beside the season panel (the goal as a receipt, her week and the streak), then the month's picks with their issue line in a two-column grid (then anything still open from earlier issues), then one row of three small blocks: the book brew widget (display only: each interest's dial and the reads its topic books count; it reads interests.json, never edits it), anticipation and series at a glance, and last her kept stamps. The columns apply when Home is 720 px wide or more; below that, every block stacks in one column, and a pick card keeps a small cover at the left with its four choices in one row. On a phone the sections sit in a bar at the bottom of the screen.
+The landing section and the action surface — the reading corner at the top, then one row holding the reading-now card (every book she is reading now, newest first, each with its own one tap *I read today*; or choose your next book) beside the season panel (the goal as a receipt, her week and the streak), then the month's picks with their issue line in a two-column grid (then anything still open from earlier issues), then one row of three small blocks: the book brew widget (display only: each interest's dial and the reads its topic books count; it reads interests.json, never edits it), anticipation and series at a glance, and last her kept stamps. The columns apply when Home is 720 px wide or more; below that, every block stacks in one column, and a pick card keeps a small cover at the left with its four choices in one row. On a phone the sections sit in a bar at the bottom of the screen.
 _Avoid_: dashboard, landing page
 
 **My Shelf**:
@@ -46,7 +46,7 @@ A verdict, not a browsing gesture. Sets the book aside in the Archive; nothing i
 _Avoid_: skip, dismiss
 
 **reading now**:
-The book she is reading at the moment: *want* plus a reading flag that travels beside the verdicts, never as one. The book takes the first spot on My Shelf with a star, a series volume shows a star on the Series page, and its card sits at the top of Home with a one-tap *finished it*. Pressing it again leaves *want*; any other verdict clears the flag.
+A book she is reading at the moment: *want* plus a reading flag that travels beside the verdicts, never as one. She can be reading more than one book. The book takes the first spot on My Shelf with a star, a series volume shows a star on the Series page, and it has its own row in the reading-now card at the top of Home, newest first, with a one-tap *finished it*. Pressing it again leaves *want*; any other verdict clears the flag.
 
 **Verdict row**:
 The one control for a book's mark, on every book card and row: reading now · want · read · loved · not for me. The lit choice is the mark now; pressing it again takes the mark off (a pick goes back to Home as open, an added book leaves the shelf, a series volume goes back to out). In a list, the row shows only the current mark until she taps it. Home's picks keep their own four verdicts (they are open books only), and coming or announced volumes take no mark.
