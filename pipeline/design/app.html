@@ -42,11 +42,6 @@
   h1,h2,h3{text-wrap:balance}
   p,li,figcaption,blockquote{text-wrap:pretty}
   :focus-visible{outline:2px solid #A8863F;outline-offset:2px;box-shadow:0 0 0 1px #211E19}
-  /* #73: the carried-over set is explicit, not auto-fit — 3 across on wide
-     desktops (>=1248 incl. the 1280 laptop), 2 in the middle band, 1 below.
-     A 300px auto-fit floor could never fit 3 at 1280: the sidebar leaves the
-     grid only 908px, so 3 tracks need a floor of <=290. */
-  [data-m="picksgrid"]{grid-template-columns:repeat(3,minmax(0,1fr))}
   /* Decorative illustrations retain their own space and never obscure copy. */
   [data-m="shop-art"]{display:block;width:222px;height:auto;object-fit:contain;max-width:100%;min-height:0;margin:8px auto;flex:0 1 auto;translate:3px 2px}
   [data-m="corner-art-row"]{display:flex;align-items:center;gap:16px}
@@ -89,8 +84,6 @@
   }
   /* Below 380px the heading needs the full row; the populated-page artwork steps aside. */
   @media (max-width:380px){[data-m="populated-art"]{display:none}}
-  @media (max-width:1247px){[data-m="picksgrid"]{grid-template-columns:repeat(2,minmax(0,1fr))}}
-  @media (max-width:1000px){[data-m="picksgrid"]{grid-template-columns:1fr}}
   .loglink{color:#A8863F;text-decoration:underline;text-underline-offset:2px;cursor:pointer}
   .loglink:hover{color:#211E19}
   /* dense-desktop hit areas (the phone block below raises these to 44) */
@@ -234,8 +227,8 @@
     [data-season="christmas"] [data-m="cornerin"]{padding-top:26px !important}
     [data-m="cornerquote"]{min-height:2.2em !important;margin:8px 0 0 !important;font-size:21px !important}
     [data-m="recentline"]{margin:11px 0 0 !important;padding-top:9px !important}
-    /* THS-43 (Home part 2): the corner's bottom line repeats the "Read &
-       loved" line two blocks below; on a phone it is the season bar's turn. */
+    /* THS-43 (Home part 2): on a phone the corner's bottom line steps out
+       and the season bar's turn comes first. */
     [data-m="corner"] [data-m="recentline"]{display:none !important}
     [data-m="readnow"]{margin-top:16px !important}
     [data-m="readnow"] > div{padding:14px 16px !important}
@@ -286,7 +279,7 @@
     /* The season bar keeps to the ring, the count and the streak at 390: the
        days left, the week cells and the goal's own name are the wider
        screen's detail. The corner's bottom line is the same words the
-       "Read & loved" section prints two blocks down, so on the smallest
+       "Read & loved" section printed two blocks down, so on the smallest
        screen it steps out and the issue line part 1 won for the first screen
        stays above the section bar. */
     [data-m="season"]{padding:4px !important}
@@ -308,6 +301,79 @@
     [data-m="stamps"]{margin-top:38px !important}
     [data-m="stamprow"]{gap:16px 10px}
     [data-m="stampcell"]{width:80px}
+  }
+  /* THS-98 (Home layout, "the counter"): Home is measured by its own width,
+     not the window's, because the sidebar and the page padding take a fixed
+     share of it. At 760 px and up, reading now sits beside the season goal,
+     the picks run in two wide columns, and the small blocks share a row of
+     three. Below that, everything stacks in one column, and the pick cards
+     stay compact (small cover at the left, the four choices in one row). */
+  [data-m="home"]{container:home / inline-size}
+  [data-m="toprow"]{display:grid;grid-template-columns:minmax(0,1fr);gap:22px;margin-top:28px}
+  [data-m="toprow"] > section{margin-top:0 !important}
+  [data-m="toprow"] [data-m="readnow"]{display:flex}
+  [data-m="toprow"] [data-m="readnow"] > div{flex:1;min-width:0}
+  /* the picks: the card is a cover and a text column, and the four choices
+     take the foot of the card */
+  [data-m="picksgrid"]{grid-template-columns:minmax(0,1fr)}
+  [data-m="pickcard"]{padding:14px;display:grid;grid-template-columns:minmax(0,72px) minmax(0,1fr);grid-template-rows:1fr auto;gap:12px 14px;align-items:start}
+  [data-m="pickcard"] > [data-m="verdicts"]{grid-column:1 / -1;display:flex;gap:6px;flex-wrap:wrap;padding-top:12px;border-top:1px solid #C6BBA3}
+  [data-m="pickcard"] > [data-m="verdicts"] button{flex:1 1 auto;padding:10px 8px !important;letter-spacing:.1em !important}
+  [data-m="pickcard"] h3{font-size:22px !important;line-height:1.12 !important}
+  [data-m="pickcard"][data-lead] h3{font-size:clamp(24px,6vw,30px) !important}
+  [data-m="pickcard"] [data-m="pickhook"]{font-size:18px !important;margin-top:8px !important}
+  [data-m="smallrow"]{display:grid;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));gap:34px 28px;margin-top:46px;align-items:start}
+  [data-m="smallrow"] > section{margin-top:0 !important;min-width:0}
+  [data-m="purpose"]{margin:8px 0 0;font-style:italic;font-size:14px;color:#635846}
+  /* the season goal as a café receipt: one line per finished book, dotted
+     leaders to the date, a dashed rule, then the total */
+  [data-m="receipt"]{flex:1 1 100%;min-width:0;margin-top:2px;padding:14px 18px 6px;background:#F8F3E6;border:1px solid #D6CCB6;border-bottom:0;font-variant-numeric:tabular-nums}
+  [data-m="receipt"]::after{content:"";display:block;height:7px;margin:8px -18px 0;background:radial-gradient(circle at 6px 0,#F8F3E6 4.5px,transparent 5px) 0 0 / 12px 7px repeat-x}
+  [data-m="rcpthead"]{margin:0;font-size:10px;letter-spacing:.3em;text-transform:uppercase;color:#635846}
+  [data-m="rcpttoggle"]{display:none}
+  [data-m="rcptlines"]{list-style:none;margin:8px 0 0;padding:0}
+  [data-m="rcptlines"] > li{display:flex;align-items:baseline;flex-wrap:wrap;gap:0 8px;padding:5px 0}
+  [data-m="rcptlines"] .n{flex:0 0 auto;min-width:1.4em;font-size:11px;letter-spacing:.1em;color:#635846}
+  [data-m="rcptlines"] .t{flex:1 1 110px;min-width:0;font-family:'Cormorant Garamond',Garamond,serif;font-size:18px;line-height:1.25;overflow-wrap:anywhere}
+  [data-m="rcptlines"] .lv{color:#6E2A2A}
+  [data-m="rcptlines"] .dots{flex:0 1 28px;align-self:flex-end;min-width:8px;margin-bottom:5px;border-bottom:1px dotted #A79B84}
+  [data-m="rcptlines"] .d{flex:0 0 auto;font-size:10px;letter-spacing:.14em;text-transform:uppercase;color:#635846;white-space:nowrap}
+  [data-m="rcptlines"] [data-m="verdicts"]{flex:0 1 auto;display:flex;gap:6px;flex-wrap:wrap;align-items:center;margin-left:4px}
+  [data-m="rcpttotal"]{display:flex;align-items:baseline;gap:8px;margin:6px 0 0;padding-top:8px;border-top:1px dashed #A79B84}
+  [data-m="rcpttotal"] .l{font-size:11px;letter-spacing:.3em;text-transform:uppercase;color:#211E19}
+  [data-m="rcpttotal"] .dots{flex:1 1 12px;align-self:flex-end;margin-bottom:5px;border-bottom:1px dotted #A79B84}
+  [data-m="rcpttotal"] .v{font-family:'Cormorant Garamond',Garamond,serif;font-size:22px;line-height:1;color:#6E2A2A}
+  [data-m="rcptnote"]{margin:4px 0 0;font-size:10px;letter-spacing:.22em;text-transform:uppercase;color:#635846}
+  [data-m="rcptempty"]{margin:10px 0 0;font-style:italic;font-size:15px;color:#635846}
+  @container home (min-width:720px){
+    [data-m="toprow"]{grid-template-columns:minmax(0,1.1fr) minmax(0,1fr);gap:18px}
+    [data-m="toprow"] [data-m="readnow"] > div{padding:20px 22px !important}
+    [data-m="toprow"] [data-m="readnow"] h2{font-size:clamp(24px,2.3vw,32px) !important}
+    [data-m="picksgrid"]{grid-template-columns:repeat(2,minmax(0,1fr))}
+    [data-m="pickcard"]{padding:20px;grid-template-columns:minmax(0,96px) minmax(0,1fr);gap:14px 20px}
+    [data-m="pickcard"] h3{font-size:25px !important}
+    [data-m="pickcard"] [data-m="pickhook"]{font-size:19px !important}
+    [data-m="pickcard"][data-lead]{padding:26px;grid-template-columns:minmax(0,190px) minmax(0,1fr);gap:16px 30px}
+    [data-m="pickcard"][data-lead] h3{font-size:clamp(28px,3.4vw,40px) !important}
+    [data-m="pickcard"][data-lead] [data-m="pickhook"]{font-size:23px !important}
+  }
+  /* the receipt on a phone folds behind one button, so the picks stay near */
+  @media (max-width:700px){
+    [data-m="toprow"]{margin-top:16px;gap:8px}
+    [data-m="rcpttoggle"]{display:flex;align-items:center;justify-content:space-between;width:100%;min-height:44px;padding:0;font-size:10.5px;letter-spacing:.24em;text-transform:uppercase;color:#6E2A2A}
+    [data-m="receipt"][data-open="false"] [data-m="rcptbody"]{display:none}
+    [data-m="receipt"]{padding:0 14px}
+    [data-m="receipt"]::after{margin:4px -14px 0}
+    /* folded, the button sits at the right of the season bar and costs it no
+       height, so the first screen still holds the issue line */
+    [data-m="seasonin"]{position:relative}
+    [data-m="receipt"][data-open="false"]{position:absolute;right:2px;top:50%;translate:0 -50%;flex:none;width:auto;margin:0;padding:0;background:none;border:0}
+    [data-m="receipt"][data-open="false"]::after{display:none}
+    [data-m="receipt"][data-open="false"] [data-m="rcpttoggle"]{width:auto;gap:4px;min-width:44px;padding:0 4px;letter-spacing:.12em}
+    [data-m="seasonin"] > div:nth-child(2){flex:1 1 120px !important;padding-right:58px}
+    section[aria-label="This month's picks"] [data-m="purpose"]{display:none}
+    [data-m="pickcard"] > [data-m="verdicts"] button{padding:11px 4px !important;letter-spacing:.06em !important}
+    [data-m="smallrow"]{margin-top:38px}
   }
 </style>
 </helmet>
@@ -380,7 +446,7 @@
   <main data-m="main" style="min-width:0;padding:44px 48px 84px;max-width:1060px">
 
     <sc-if value="{{ isHome }}" hint-placeholder-val="{{ true }}">
-    <div data-screen-label="Home">
+    <div data-screen-label="Home" data-m="home">
       <section aria-label="My reading corner" data-m="corner" style="{{ cornerStyle }}">
         <sc-if value="{{ isChristmas }}"><svg data-m="csprig" viewBox="-32 -24 64 48" aria-hidden="true"><defs><g id="xm-cleaf"><path d="M0 0 C2 -2.5 3.5 -4.5 5.5 -3.2 C6.5 -6 9.5 -6.2 10.5 -4 C12.5 -6.2 15.5 -5.8 15.5 -3 C17.5 -3.5 19.5 -1.5 20 0 C19.5 1.5 17.5 3.5 15.5 3 C15.5 5.8 12.5 6.2 10.5 4 C9.5 6.2 6.5 6 5.5 3.2 C3.5 4.5 2 2.5 0 0 Z" fill="#1E3A2F" stroke="#A8863F" stroke-width="0.9" stroke-linejoin="round"/><path d="M2 0 L18 0" fill="none" stroke="#A8863F" stroke-width="0.9"/></g><g id="xm-cber"><circle cx="0" cy="-2.2" r="2.5" fill="#A8322B"/><circle cx="-0.8" cy="-3.0" r=".7" fill="#F0D9B5" opacity=".8"/><circle cx="-2.6" cy="1.6" r="2.5" fill="#A8322B"/><circle cx="-3.4" cy="0.8" r=".7" fill="#F0D9B5" opacity=".8"/><circle cx="2.6" cy="1.6" r="2.5" fill="#A8322B"/><circle cx="1.8" cy="0.8" r=".7" fill="#F0D9B5" opacity=".8"/></g></defs><g transform="translate(0 4) rotate(-12) scale(1.45)"><use href="#xm-cleaf" transform="rotate(-158) translate(1 0)"/><use href="#xm-cleaf" transform="rotate(-22) translate(1 0)"/><use href="#xm-cber" transform="translate(0 -1)"/></g></svg><svg width="0" height="0" aria-hidden="true" style="position:absolute"><defs><g id="xm-lw"><path d="M0 4 Q20 12 40 4" fill="none" stroke="#C8B27A" stroke-width="1.3"/><rect x="18" y="6.6" width="4" height="4.4" rx=".6" fill="#3A372E"/></g><path id="xm-lb" d="M20 10.6 C23.6 11.8 24.6 17 20 22.4 C15.4 17 16.4 11.8 20 10.6 Z" stroke="#8A6C31" stroke-width=".7"/><ellipse id="xm-lh" cx="18.6" cy="15.2" rx=".9" ry="1.8" fill="#FFFDF6" opacity=".6"/></defs></svg><div data-m="lights" aria-hidden="true"><svg viewBox="0 0 40 30"><use href="#xm-lw"/><g data-m="bulb"><use href="#xm-lb"/><use href="#xm-lh"/></g></svg><svg viewBox="0 0 40 30"><use href="#xm-lw"/><g data-m="bulb"><use href="#xm-lb"/><use href="#xm-lh"/></g></svg><svg viewBox="0 0 40 30"><use href="#xm-lw"/><g data-m="bulb"><use href="#xm-lb"/><use href="#xm-lh"/></g></svg><svg viewBox="0 0 40 30"><use href="#xm-lw"/><g data-m="bulb"><use href="#xm-lb"/><use href="#xm-lh"/></g></svg><svg viewBox="0 0 40 30"><use href="#xm-lw"/><g data-m="bulb"><use href="#xm-lb"/><use href="#xm-lh"/></g></svg><svg viewBox="0 0 40 30"><use href="#xm-lw"/><g data-m="bulb"><use href="#xm-lb"/><use href="#xm-lh"/></g></svg><svg viewBox="0 0 40 30"><use href="#xm-lw"/><g data-m="bulb"><use href="#xm-lb"/><use href="#xm-lh"/></g></svg><svg viewBox="0 0 40 30"><use href="#xm-lw"/><g data-m="bulb"><use href="#xm-lb"/><use href="#xm-lh"/></g></svg><svg viewBox="0 0 40 30"><use href="#xm-lw"/><g data-m="bulb"><use href="#xm-lb"/><use href="#xm-lh"/></g></svg><svg viewBox="0 0 40 30"><use href="#xm-lw"/><g data-m="bulb"><use href="#xm-lb"/><use href="#xm-lh"/></g></svg><svg viewBox="0 0 40 30"><use href="#xm-lw"/><g data-m="bulb"><use href="#xm-lb"/><use href="#xm-lh"/></g></svg><svg viewBox="0 0 40 30"><use href="#xm-lw"/><g data-m="bulb"><use href="#xm-lb"/><use href="#xm-lh"/></g></svg><svg viewBox="0 0 40 30"><use href="#xm-lw"/><g data-m="bulb"><use href="#xm-lb"/><use href="#xm-lh"/></g></svg><svg viewBox="0 0 40 30"><use href="#xm-lw"/><g data-m="bulb"><use href="#xm-lb"/><use href="#xm-lh"/></g></svg><svg viewBox="0 0 40 30"><use href="#xm-lw"/><g data-m="bulb"><use href="#xm-lb"/><use href="#xm-lh"/></g></svg><svg viewBox="0 0 40 30"><use href="#xm-lw"/><g data-m="bulb"><use href="#xm-lb"/><use href="#xm-lh"/></g></svg><svg viewBox="0 0 40 30"><use href="#xm-lw"/><g data-m="bulb"><use href="#xm-lb"/><use href="#xm-lh"/></g></svg><svg viewBox="0 0 40 30"><use href="#xm-lw"/><g data-m="bulb"><use href="#xm-lb"/><use href="#xm-lh"/></g></svg><svg viewBox="0 0 40 30"><use href="#xm-lw"/><g data-m="bulb"><use href="#xm-lb"/><use href="#xm-lh"/></g></svg><svg viewBox="0 0 40 30"><use href="#xm-lw"/><g data-m="bulb"><use href="#xm-lb"/><use href="#xm-lh"/></g></svg></div></sc-if>
         <sc-if value="{{ isAutumn }}"><svg data-m="csprig" viewBox="-32 -24 64 48" aria-hidden="true" style="overflow:visible"><g transform="scale(1.35)"><path d="M-24 12Q-4 2 20-8" fill="none" stroke="#C8B27A" stroke-width="1.2"/><use href="#au-mpr" transform="translate(-12 -2) rotate(-24) scale(1.45)"/><use href="#au-mpg" transform="translate(4 -10) rotate(16) scale(1.25)"/><use href="#au-ac" transform="translate(18 -2) rotate(-14) scale(1.5)"/></g></svg></sc-if>
@@ -404,6 +470,7 @@
            now — a pick, a series volume or one she added herself: the one
            place an added book shows on Home, never as a pick. No reading-day
            data yet (that is part 2); this card is layout. -->
+      <div data-m="toprow">
       <sc-if value="{{ hasReadingNow }}">
       <section aria-label="Reading now" data-m="readnow" style="margin-top:28px;background:#1E3A2F;color:#F3EDE1;padding:6px">
         <div style="border:1px solid #A8863F;padding:22px 26px;display:grid;grid-template-columns:minmax(0,96px) minmax(0,1fr);gap:26px;align-items:center">
@@ -450,7 +517,7 @@
            season table in build.py); the week strip lights the days she tapped
            "I read today", on either device; the streak counts the weeks of the
            season that hold a reading day, and keeps one rest week. -->
-      <section aria-label="This season" data-m="season" style="margin-top:22px;background:#E5DCCA;padding:6px">
+      <section aria-label="This season" data-m="season" style="background:#E5DCCA;padding:6px">
         <div data-m="seasonin" style="border:1px solid #A8863F;padding:20px 24px;display:flex;gap:24px;align-items:center;flex-wrap:wrap">
           <!-- the page's text slots render as HTML spans, which SVG text does not
                draw, so the ring's numbers sit over the ring as HTML -->
@@ -491,8 +558,34 @@
               <sc-if value="{{ goalMsg }}"><p role="status" style="margin:8px 0 0;font-size:12px;color:#6E2A2A">{{ goalMsg }}</p></sc-if>
             </div>
           </sc-if>
+          <!-- THS-98: the goal as a café receipt. One line per book she finished
+               this season (the same read and loved marks the ring counts),
+               oldest first, each line carrying the verdict row so a finished
+               book can still be loved; the total closes it. On a phone the
+               lines fold behind one button. -->
+          <div data-m="receipt" data-open="{{ rcptOpen }}" role="group" aria-label="Books finished this season">
+            <button type="button" data-m="rcpttoggle" onClick="{{ rcptToggle }}" aria-expanded="{{ rcptOpen }}"><span>{{ rcptToggleLabel }}</span><span aria-hidden="true">{{ rcptToggleMark }}</span></button>
+            <div data-m="rcptbody">
+              <p data-m="rcpthead">Books finished this season</p>
+              <sc-if value="{{ rcptEmpty }}"><p data-m="rcptempty">Nothing finished yet this season.</p></sc-if>
+              <ul data-m="rcptlines">
+                <sc-for list="{{ receiptLines }}" as="r" hint-placeholder-count="3">
+                  <li>
+                    <span class="n" aria-hidden="true">{{ r.n }}</span>
+                    <span class="t">{{ r.t }}<sc-if value="{{ r.loved }}"><span class="lv" aria-label="loved"> &hearts;</span></sc-if></span>
+                    <span class="dots" aria-hidden="true"></span>
+                    <span class="d">{{ r.d }}</span>
+                    <span data-m="verdicts"><sc-if value="{{ r.vrCompact }}"><button type="button" onClick="{{ r.vrOnOpen }}" aria-expanded="false" aria-label="{{ r.vrSumAria }}" style="{{ r.vrSumStyle }}">{{ r.vrSumLabel }}</button></sc-if><sc-if value="{{ r.vrOpen }}"><sc-for list="{{ r.vrPills }}" as="p" hint-placeholder-count="5"><button type="button" onClick="{{ p.onClick }}" aria-pressed="{{ p.on }}" aria-label="{{ p.aria }}" style="{{ p.style }}">{{ p.label }}</button></sc-for></sc-if></span>
+                  </li>
+                </sc-for>
+              </ul>
+              <div data-m="rcpttotal"><span class="l">Total</span><span class="dots" aria-hidden="true"></span><span class="v">{{ rcptTotal }}</span></div>
+              <p data-m="rcptnote">{{ rcptNote }}</p>
+            </div>
+          </div>
         </div>
       </section>
+      </div>
 
       <!-- THS-39 (Home part 1): the picks move above the fold, under the
            reading-now card, and carry the issue line: how many are still
@@ -502,6 +595,7 @@
         <div style="display:flex;align-items:baseline;justify-content:space-between;gap:16px;flex-wrap:wrap">
           <h2 style="font-family:'Cormorant Garamond',Garamond,serif;font-weight:500;font-size:clamp(24px,3.2vw,36px);letter-spacing:.14em;text-transform:uppercase;margin:0">The Month's Picks</h2>
         </div>
+        <p data-m="purpose">New books chosen for you. Decide each one.</p>
         <div style="height:1px;background:#A8863F;margin:12px 0 0"></div>
         <div data-m="issuebar" style="position:relative;height:4px;background:#D6CCB6;margin:12px 0 0"><span style="position:absolute;left:0;top:0;bottom:0;width:{{ issuePct }}%;background:#6E2A2A"></span></div>
         <p style="margin:8px 0 0;font-size:11.5px;letter-spacing:.2em;text-transform:uppercase;color:#635846">{{ pickCount }}</p>
@@ -539,7 +633,7 @@
 
         <sc-if value="{{ hasLead }}">
         <article style="margin-top:26px;background:#E5DCCA;padding:6px">
-          <div style="border:1px solid #A8863F;box-sizing:border-box;padding:26px;display:grid;grid-template-columns:minmax(0,190px) minmax(0,1fr);gap:30px;align-items:start" data-m="two">
+          <div data-m="pickcard" data-lead="true" style="border:1px solid #A8863F;box-sizing:border-box">
             <div style="min-width:0">
               <div role="img" aria-label="{{ lead.alt }}" style="{{ lead.coverStyle }}"></div>
               <sc-if value="{{ leadIsTop }}">
@@ -550,7 +644,7 @@
               <p style="margin:0;font-size:11px;letter-spacing:.3em;text-transform:uppercase;color:#635846">{{ lead.genre }} · {{ lead.date }}</p>
               <h3 style="font-family:'Cormorant Garamond',Garamond,serif;font-weight:500;font-size:clamp(28px,4vw,46px);line-height:1.06;margin:10px 0 0">{{ lead.title }} <span aria-hidden="true" style="color:#A8863F">{{ lead.star }}</span></h3>
               <p style="margin:8px 0 0;font-size:14px;letter-spacing:.14em;text-transform:uppercase;color:#635846">{{ lead.author }} · {{ lead.publisher }} · {{ lead.gr }}</p>
-              <p style="margin:16px 0 0;font-family:'Cormorant Garamond',Garamond,serif;font-size:24px;line-height:1.42;max-width:52ch">{{ lead.hook }}</p>
+              <p data-m="pickhook" style="margin:16px 0 0;font-family:'Cormorant Garamond',Garamond,serif;font-size:24px;line-height:1.42;max-width:52ch">{{ lead.hook }}</p>
               <sc-if value="{{ lead.synShow }}">
                 <div data-m="syn" style="{{ lead.synWrapStyle }}">
                   <sc-if value="{{ lead.synHas }}">
@@ -569,11 +663,11 @@
               <sc-if value="{{ lead.because }}">
               <p style="margin:6px 0 0;font-family:'Cormorant Garamond',Garamond,serif;font-style:italic;font-size:18px;color:#6E2A2A;max-width:56ch">{{ lead.because }}</p>
               </sc-if>
-              <div data-m="verdicts" style="display:flex;gap:9px;flex-wrap:wrap;margin-top:20px">
-                <sc-for list="{{ lead.pills }}" as="p" hint-placeholder-count="4">
-                  <button type="button" onClick="{{ p.onClick }}" aria-pressed="{{ p.on }}" aria-label="{{ p.aria }}" style="{{ p.style }}">{{ p.label }}</button>
-                </sc-for>
-              </div>
+            </div>
+            <div data-m="verdicts">
+              <sc-for list="{{ lead.pills }}" as="p" hint-placeholder-count="4">
+                <button type="button" onClick="{{ p.onClick }}" aria-pressed="{{ p.on }}" aria-label="{{ p.aria }}" style="{{ p.style }}">{{ p.label }}</button>
+              </sc-for>
             </div>
           </div>
         </article>
@@ -582,7 +676,7 @@
         <div data-m="picksgrid" style="display:grid;gap:18px;margin-top:20px">
           <sc-for list="{{ rest }}" as="b" hint-placeholder-count="7">
             <article style="background:#E5DCCA;padding:5px">
-              <div style="height:100%;box-sizing:border-box;border:1px solid #A8863F;padding:20px;display:grid;grid-template-columns:minmax(0,96px) minmax(0,1fr);gap:20px;align-items:start" data-m="two">
+              <div data-m="pickcard" style="height:100%;box-sizing:border-box;border:1px solid #A8863F">
                 <div role="img" aria-label="{{ b.alt }}" style="{{ b.coverStyle }}"></div>
                 <div style="min-width:0">
                   <p style="margin:0;font-size:10px;letter-spacing:.28em;text-transform:uppercase;color:#635846">{{ b.rank }} · {{ b.genre }}</p>
@@ -591,7 +685,7 @@
                     <p style="margin:2px 0 0;font-family:'Cormorant Garamond',Garamond,serif;font-style:italic;font-size:17px;color:#6E2A2A">{{ b.series }}</p>
                   </sc-if>
                   <p style="margin:6px 0 0;font-size:12px;letter-spacing:.13em;text-transform:uppercase;color:#635846">{{ b.author }}</p>
-                  <p style="margin:12px 0 0;font-family:'Cormorant Garamond',Garamond,serif;font-size:19px;line-height:1.42">{{ b.hook }}</p>
+                  <p data-m="pickhook" style="margin:12px 0 0;font-family:'Cormorant Garamond',Garamond,serif;font-size:19px;line-height:1.42">{{ b.hook }}</p>
                   <sc-if value="{{ b.because }}">
                     <p style="margin:6px 0 0;font-family:'Cormorant Garamond',Garamond,serif;font-style:italic;font-size:17px;color:#6E2A2A">{{ b.because }}</p>
                   </sc-if>
@@ -615,11 +709,11 @@
                   <sc-if value="{{ b.scoreRows }}">
                     <p style="margin:10px 0 0;font-size:11.5px;letter-spacing:.1em;text-transform:uppercase;color:#635846">Spice {{ b.spiceLabel }} · MMC {{ b.mmcLabel }}</p>
                   </sc-if>
-                  <div data-m="verdicts" style="display:flex;gap:6px;flex-wrap:wrap;margin-top:14px;padding-top:14px;border-top:1px solid #C6BBA3">
-                    <sc-for list="{{ b.pills }}" as="p" hint-placeholder-count="4">
-                      <button type="button" onClick="{{ p.onClick }}" aria-pressed="{{ p.on }}" aria-label="{{ p.aria }}" style="{{ p.style }}">{{ p.label }}</button>
-                    </sc-for>
-                  </div>
+                </div>
+                <div data-m="verdicts">
+                  <sc-for list="{{ b.pills }}" as="p" hint-placeholder-count="4">
+                    <button type="button" onClick="{{ p.onClick }}" aria-pressed="{{ p.on }}" aria-label="{{ p.aria }}" style="{{ p.style }}">{{ p.label }}</button>
+                  </sc-for>
                 </div>
               </div>
             </article>
@@ -633,17 +727,19 @@
         </sc-if>
       </section>
 
+      <!-- THS-98: the three small blocks share one row on a wide screen -->
+      <div data-m="smallrow">
       <!-- THS-35 (Home part 3): the book brew widget — her interests and
            their dials, read-only, shipped from interests.json by the build.
            The dials change in Settings, never here; the reads the footer line
            counts come from the page's own mark state. -->
       <sc-if value="{{ hasMeter }}">
-      <section aria-label="{{ meterName }}" data-m="meter" style="margin-top:46px">
+      <section aria-label="{{ meterName }}" data-m="meter">
         <div style="display:flex;align-items:baseline;justify-content:space-between;gap:16px;flex-wrap:wrap">
           <h2 style="font-family:'Cormorant Garamond',Garamond,serif;font-weight:500;font-size:clamp(23px,3vw,32px);letter-spacing:.14em;text-transform:uppercase;margin:0">{{ meterName }}</h2>
           <button type="button" onClick="{{ goSettings }}" style="font-size:10.5px;letter-spacing:.24em;text-transform:uppercase;color:#6E2A2A;border-bottom:1px solid #A8863F;padding:0 0 2px" style-hover="color:#1E3A2F">change in Settings</button>
         </div>
-        <p style="margin:8px 0 0;font-style:italic;font-size:14px;color:#635846">Your interests at a glance.</p>
+        <p data-m="purpose">Your interests at a glance.</p>
         <div style="height:1px;background:#A8863F;margin:14px 0 0"></div>
         <div style="display:grid;grid-template-columns:1fr;margin-top:4px">
           <sc-for list="{{ meterRows }}" as="r" hint-placeholder-count="3">
@@ -668,11 +764,11 @@
            cards, soonest first. The old hero panel retires; every tracked
            release counts the same. -->
       <sc-if value="{{ hasAnticipations }}">
-      <section aria-label="Arriving in your series" data-m="antic" style="margin-top:46px">
+      <section aria-label="Arriving in your series" data-m="antic">
         <div style="display:flex;align-items:baseline;justify-content:space-between;gap:16px;flex-wrap:wrap">
           <h2 style="font-family:'Cormorant Garamond',Garamond,serif;font-weight:500;font-size:clamp(23px,3vw,32px);letter-spacing:.14em;text-transform:uppercase;margin:0">Arriving in your series</h2>
-          <span style="font-size:11px;letter-spacing:.28em;text-transform:uppercase;color:#635846">anticipation</span>
-        </div>
+          </div>
+        <p data-m="purpose">New books on the way in the series you read.</p>
         <div style="height:1px;background:#A8863F;margin:14px 0 0"></div>
         <div data-m="rail">
           <sc-for list="{{ anticipations }}" as="a" hint-placeholder-count="3">
@@ -690,34 +786,12 @@
       </section>
       </sc-if>
 
-      <section aria-label="Read and loved" style="margin-top:46px">
-        <div style="display:flex;align-items:baseline;justify-content:space-between;gap:16px;flex-wrap:wrap">
-          <h2 style="font-family:'Cormorant Garamond',Garamond,serif;font-weight:500;font-size:clamp(23px,3vw,32px);letter-spacing:.14em;text-transform:uppercase;margin:0">Read &amp; loved</h2>
-          <span style="font-size:11px;letter-spacing:.28em;text-transform:uppercase;color:#635846">past 30 days</span>
-        </div>
-        <div style="height:1px;background:#A8863F;margin:14px 0 0"></div>
-        <div style="display:flex;align-items:flex-end;gap:5px;flex-wrap:wrap;min-height:78px;padding:22px 0 14px;border-bottom:1px solid #D6CCB6">
-          <sc-for list="{{ recentSpines }}" as="s" hint-placeholder-count="10">
-            <span aria-hidden="true" style="{{ s.style }}"></span>
-          </sc-for>
-        </div>
-        <p style="margin:14px 0 0;font-size:11.5px;letter-spacing:.2em;text-transform:uppercase;color:#635846">{{ recentLine }}</p>
-        <ul style="list-style:none;margin:16px 0 0;padding:0;display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:4px 26px" data-m="recent">
-          <sc-for list="{{ recentList }}" as="r" hint-placeholder-count="6">
-            <li style="display:flex;align-items:baseline;flex-wrap:wrap;gap:6px 10px;padding:5px 0 9px;border-top:1px solid #E1D8C4">
-              <span style="flex:1;min-width:0;font-family:'Cormorant Garamond',Garamond,serif;font-size:18px;line-height:1.3">{{ r.t }}<sc-if value="{{ r.grHref }}"><span style="display:block;margin-top:3px;line-height:1.2"><a class="grlink" href="{{ r.grHref }}" target="_blank" rel="noopener noreferrer" aria-label="{{ r.grAria }}" style="{{ r.grStyle }}">{{ r.grLabel }}</a></span></sc-if></span>
-              <span style="font-size:10px;letter-spacing:.14em;text-transform:uppercase;color:#635846;white-space:nowrap">{{ r.d }}</span>
-              <span data-m="verdicts" style="display:flex;gap:6px;flex-wrap:wrap;align-items:center;flex:1 1 100%"><sc-if value="{{ r.vrCompact }}"><button type="button" onClick="{{ r.vrOnOpen }}" aria-expanded="false" aria-label="{{ r.vrSumAria }}" style="{{ r.vrSumStyle }}">{{ r.vrSumLabel }}</button></sc-if><sc-if value="{{ r.vrOpen }}"><sc-for list="{{ r.vrPills }}" as="p" hint-placeholder-count="5"><button type="button" onClick="{{ p.onClick }}" aria-pressed="{{ p.on }}" aria-label="{{ p.aria }}" style="{{ p.style }}">{{ p.label }}</button></sc-for></sc-if></span>
-            </li>
-          </sc-for>
-        </ul>
-      </section>
-
-      <section aria-label="Series at a glance" style="margin-top:50px">
+      <section aria-label="Series at a glance">
         <div style="display:flex;align-items:baseline;justify-content:space-between;gap:16px;flex-wrap:wrap">
           <h2 style="font-family:'Cormorant Garamond',Garamond,serif;font-weight:500;font-size:clamp(23px,3vw,32px);letter-spacing:.14em;text-transform:uppercase;margin:0">Series at a glance</h2>
           <button type="button" onClick="{{ goSeries }}" style="font-size:10.5px;letter-spacing:.24em;text-transform:uppercase;color:#6E2A2A;border-bottom:1px solid #A8863F;padding:0 0 2px" style-hover="color:#1E3A2F">all {{ seriesCount }} series</button>
         </div>
+        <p data-m="purpose">Every series you are in, and how far along you are.</p>
         <div style="height:1px;background:#A8863F;margin:14px 0 18px"></div>
         <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:12px">
           <sc-for list="{{ seriesGlance }}" as="s" hint-placeholder-count="8">
@@ -732,6 +806,7 @@
           </sc-for>
         </div>
       </section>
+      </div>
 
       <!-- THS-43 (Home part 2): the stamps she keeps. A season's goal reached,
            an issue decided to its last pick, a series finished — each presses
@@ -3671,36 +3746,28 @@ class Component extends DCLogic {
         const wk=weeksSince((b.issue||{}).ym);
         return {...card,waitNote:'You never decided · waiting '+wk+(wk===1?' week':' weeks')};}));
 
-    /* ---- read & loved, past 30 days ------------------------------------- */
+    const CLOTH=['#6E2A2A','#2B3F38','#7A5A2A','#3E3630','#5A2F2A','#33443E','#6B4A25','#42382C'];
+
+    /* ---- every book the page knows by id, for the season receipt ------- */
     const byId={};
-    (d.books||[]).forEach(b=>{ byId[b.id]={t:b.title,s:'standalone',bt:b.title,a:b.author,gu:b.grUrl}; });
-    (d.pending||[]).forEach(b=>{ if(!byId[b.id])byId[b.id]={t:b.title,s:'standalone',bt:b.title,a:b.author,gu:b.grUrl}; });
-    (d.resolved||[]).forEach(b=>{ if(!byId[b.id])byId[b.id]={t:b.title,s:'standalone',bt:b.title,a:b.author,gu:b.grUrl}; });
-    d.series.forEach(s=>s.books.forEach(b=>{ if(b.id)byId[b.id]={t:b.t+(b.n?' '+b.n:''),s:s.name,a:s.author,bt:b.t,gu:b.grUrl}; }));
+    (d.books||[]).forEach(b=>{ byId[b.id]={t:b.title}; });
+    (d.pending||[]).forEach(b=>{ if(!byId[b.id])byId[b.id]={t:b.title}; });
+    (d.resolved||[]).forEach(b=>{ if(!byId[b.id])byId[b.id]={t:b.title}; });
+    added.forEach(b=>{ if(b.id&&!byId[b.id])byId[b.id]={t:b.title}; });
+    d.series.forEach(s=>s.books.forEach(b=>{ if(b.id)byId[b.id]={t:b.t+(b.n?' '+b.n:'')}; }));
+
+    /* ---- the corner's line: what she finished in the past 30 days -------- */
+    let recentN=0, lovedN=0;
     const cutoff=Date.now()-30*86400000;
-    const recent=[];
     Object.keys(S).forEach(id=>{
       const v=S[id];
       if(v!=='read'&&v!=='loved')return;
       const t=Number(TS[id]||0);
-      if(!t||t<cutoff)return;
-      const info=byId[id];
-      if(!info||!info.t)return;
-      recent.push({id,t:info.t,bt:info.bt,a:info.a,gu:info.gu,series:info.s||'standalone',loved:v==='loved',ts:t,date:new Date(t).toLocaleDateString('en-GB',{day:'numeric',month:'short'})});
+      if(!t||t<cutoff||!byId[id]||!byId[id].t)return;
+      recentN++; if(v==='loved')lovedN++;
     });
-    recent.sort((a,b)=>b.ts-a.ts);
-    const lovedN=recent.filter(x=>x.loved).length;
-    const CLOTH=['#6E2A2A','#2B3F38','#7A5A2A','#3E3630','#5A2F2A','#33443E','#6B4A25','#42382C'];
-    const recentSpines=recent.map((x,i)=>({
-      loved:x.loved,
-      style:{flex:'0 0 auto',width:(15+(i%3)*3)+'px',height:(52+((i*17)%26))+'px',
-        background:x.loved?BLOOD:CLOTH[(i+2)%CLOTH.length],border:'1px solid rgba(33,30,25,.45)',
-        boxShadow:'inset 0 -7px 0 rgba(232,220,192,.45), inset 0 3px 0 rgba(232,220,192,.3)'}}));
-    const recentList=recent.slice(0,6).map(x=>({t:x.t,d:x.date,
-      ...this.grFields(x.bt||x.t,x.a,false,x.gu),
-      ...this.verdictRow(x.id,x.t,{key:'rec|'+x.id})}));
-    const recentLine=recent.length
-      ?recent.length+' finished in the past 30 days · '+lovedN+' you loved'
+    const recentLine=recentN
+      ?recentN+' finished in the past 30 days \u00b7 '+lovedN+' you loved'
       :'Nothing finished in the past 30 days.';
 
     /* ---- Out now in your series: every out volume not already on the TBR --- */
@@ -3803,6 +3870,24 @@ class Component extends DCLogic {
       background:'transparent',color:'#2B2118',cursor:'pointer'};
     const seasonDone=seasonBooks(S,TS,win);
     const goalReached=seasonDone>=goalBooks;
+    /* THS-98: the season receipt — the same marks the ring counts, one line
+       per book, oldest first, so the lines always add up to the ring. A mark
+       whose book the page no longer carries still prints, as "A finished book". */
+    const receiptBooks=[];
+    Object.keys(S).forEach(id=>{
+      const v=S[id];
+      if(v!=='read'&&v!=='loved')return;
+      const t=Number(TS[id]||0);
+      if(!t)return;
+      const dn=dayNum(isoDay(new Date(t)));
+      if(dn<win.startN||dn>win.endN)return;
+      receiptBooks.push({id,t:(byId[id]&&byId[id].t)||'A finished book',loved:v==='loved',ts:t});
+    });
+    receiptBooks.sort((a,b)=>a.ts-b.ts);
+    const receiptLines=receiptBooks.map((x,i)=>({n:i+1,t:x.t,loved:x.loved,
+      d:new Date(x.ts).toLocaleDateString('en-GB',{day:'numeric',month:'short'}),
+      ...this.verdictRow(x.id,x.t,{key:'rcpt|'+x.id})}));
+    const rcptOpen=!!this.state.rcptOpen;
     const daysAll=readDayList(this.state.days);
     const wk=weekStreak(daysAll,todayIso,win);
     const bookDays=(id)=>Array.isArray((this.state.days||{})[id])?this.state.days[id]:[];
@@ -3913,6 +3998,13 @@ class Component extends DCLogic {
       ringAria:seasonDone+' of '+goalBooks+' books read this season',
       ringDash, ringDone:seasonDone, ringGoal:goalBooks,
       streakLine, weekCells,
+      receiptLines, rcptEmpty:receiptLines.length===0,
+      rcptOpen:rcptOpen?'true':'false',
+      rcptToggle:()=>this.setState(st=>({rcptOpen:!st.rcptOpen})),
+      rcptToggleLabel:rcptOpen?'hide the receipt':'receipt',
+      rcptToggleMark:rcptOpen?'\u25B4':'\u25BE',
+      rcptTotal:goalAsk?(seasonDone+(seasonDone===1?' book':' books')):(seasonDone+' of '+goalBooks),
+      rcptNote:goalAsk?'':(goalReached?'goal reached':(goalBooks-seasonDone)+' to go'),
       goalAsk, goalDraft, goalMsg:this.state.goalMsg||'', goalBtn,
       goalSetBtn:{...goalBtn,background:'#2B2118',color:'#F3EDE1',borderColor:'#2B2118'},
       goalLess:goalStep(-1), goalMore:goalStep(1), goalSave:()=>this.saveGoal(),
@@ -3928,9 +4020,6 @@ class Component extends DCLogic {
 
       /* THS-35 (Home part 3): the book brew widget */
       hasMeter:meterRows.length>0, meterName, meterRows, meterReason,
-
-      /* read & loved — past 30 days */
-      recentSpines, recentList,
 
       /* the month's picks (open books only) — the issue line carries the
          days to the next issue; the bar shows how much of it is decided */

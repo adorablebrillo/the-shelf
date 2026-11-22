@@ -7,7 +7,7 @@ A personal book-curation app: a monthly curated page of new releases across the 
 ### Sections
 
 **Home**:
-The landing section and the action surface — the reading-now card at the top (the book she is reading now, or choose your next book, with the one tap *I read today*), then the season panel (the goal ring, her week and the streak), then the month's picks with their issue line, then anything still open from earlier issues, together with the book brew widget (display only: each interest's dial and the reads its topic books count; it reads interests.json, never edits it), the reading corner, anticipation, read & loved, series at a glance, and her kept stamps. On a phone the sections sit in a bar at the bottom of the screen.
+The landing section and the action surface — the reading corner at the top, then one row holding the reading-now card (the book she is reading now, or choose your next book, with the one tap *I read today*) beside the season panel (the goal as a receipt, her week and the streak), then the month's picks with their issue line in a two-column grid (then anything still open from earlier issues), then one row of three small blocks: the book brew widget (display only: each interest's dial and the reads its topic books count; it reads interests.json, never edits it), anticipation and series at a glance, and last her kept stamps. The columns apply when Home is 720 px wide or more; below that, every block stacks in one column, and a pick card keeps a small cover at the left with its four choices in one row. On a phone the sections sit in a bar at the bottom of the screen.
 _Avoid_: dashboard, landing page
 
 **My Shelf**:
@@ -64,7 +64,10 @@ How many weeks of the current season, counted back from this one, hold at least 
 How many books she means to finish in a season. The number is the book brew's `season_goal` when it has one, and 6 otherwise; Home reads it live, so a saved answer counts at once. Home counts it from her marks — the books marked *read* or *loved* inside the season's own days — and fills a ring with it; reaching it presses that season's *kept stamp* in.
 
 **Season panel**:
-The Home block under the reading-now card: the season-goal ring, this season's week with every day she read lit, and the streak line.
+The Home block beside the reading-now card: the season-goal ring, this season's week with every day she read lit, the streak line, and the **receipt**.
+
+**Receipt**:
+The list inside the season panel of every book she finished this season, one line each, oldest first, with the date and the verdict row, and a total (`N of G`). It lists the same read and loved marks the ring counts, so the lines always add up to the ring. On a phone it folds behind a button.
 
 **Kept stamp**:
 A round mark she has earned and keeps: a season whose *season goal* she reached, an issue she decided to its last pick, a series whose every volume she read. Stamps live in `reader-state.json` under `stamps`, travel between devices like a verdict, and are pressed in once — clearing the mark or the pick behind one never removes it. Home shows them in the **Your stamps** row.
@@ -118,7 +121,7 @@ One of five date ranges that every day of the year falls into exactly once — a
 _Avoid_: brew season, month season
 
 **Read & loved**:
-The Home block of everything marked read or loved in the past 30 days, dated by the day it was marked.
+The Archive tab of everything marked read or loved. Home lists this season's finished books in the receipt, and its corner keeps a one-line count of the past 30 days.
 
 **The stacks**:
 The bookcase rendering of read books in the Archive. Spines are clickable (mark unread); the plate follows the pointer.
