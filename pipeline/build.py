@@ -11,7 +11,7 @@ script feeds it live data via dist/shelf-data.js:
   seasons — the season table: dates, drink and quote pool for each season
   criteria — the filtering rules, shown in the footer
   added   — books she added herself by search (/config/added-books.json, #84);
-            the app files them on My Shelf or in the Archive, never on Home
+            the app files them on My Shelf or in Finished Brews (the Archive), never on Home
 
 Pure stdlib; assets + vendored runtime are copied into dist/ here too, so the
 same code path runs at image-bake time and after every pipeline run.

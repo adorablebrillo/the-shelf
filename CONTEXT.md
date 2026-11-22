@@ -18,8 +18,8 @@ _Avoid_: reading list, want list
 The section showing every open series with its full run, its next book, and per-volume markers. Ordered by urgency — out-now first, then soonest coming, then announced. The header counts honestly ("N open · M finished and closed"); fully-read series leave this page.
 _Avoid_: the lane
 
-**Archive**:
-The resolved side of the app — **Read & loved** (the stacks, everything read by series, standalones) and **Not for me** (set-aside books; pressing *not for me* again puts one back).
+**Finished Brews**:
+The page that was called the Archive: the reader's library of finished books, and the resolved side of the app. A count line ("N books read · N loved · N not for me") and three filter buttons — **Read & loved** (one bookcase per season, newest first), **Loved only** (one *House favourites* bookcase) and **Not for me** (one bookcase under the heading *The returns cart*). The filters are not tabs. A book opens its **Book card** on a tap, and marks change only there. In the code and in older notes the page is still called the Archive (`goArchive`, `arc-*`).
 _Avoid_: library
 
 **Settings**:
@@ -35,14 +35,14 @@ I want to read this. Files the book on My Shelf.
 _Avoid_: save, tbr (as a verdict)
 
 **read**:
-I have read this. Files the book in the Archive.
+I have read this. Files the book in Finished Brews.
 
 **loved**:
-I have read this and loved it. Counts as read everywhere; carries a loved marker in the Archive.
+I have read this and loved it. Counts as read everywhere; carries a *♥ loved it* tag in Finished Brews.
 _Avoid_: favorite
 
 **not for me**:
-A verdict, not a browsing gesture. Sets the book aside in the Archive; nothing is deleted, and it can be put back.
+A verdict, not a browsing gesture. Sets the book aside on the returns cart in Finished Brews; nothing is deleted, and it can be put back.
 _Avoid_: skip, dismiss
 
 **reading now**:
@@ -80,7 +80,7 @@ A series she is in. It comes from `library.json`, from `sequels.json`, or from h
 _Avoid_: followed series, the lane
 
 **Open series** / **Closed series**:
-A series with at least one unread volume is open (it shows on the Series page); one whose every volume is read is closed (it leaves the page; its volumes stay in the Archive).
+A series with at least one unread volume is open (it shows on the Series page); one whose every volume is read is closed (it leaves the page; its volumes stay in Finished Brews).
 
 **Series volume states**: **read** · **out** (released, unread) · **coming** (dated, upcoming) · **announced** (no date).
 
@@ -121,19 +121,25 @@ One of five date ranges that every day of the year falls into exactly once — a
 _Avoid_: brew season, month season
 
 **Read & loved**:
-The Archive tab of everything marked read or loved. Home lists this season's finished books in the receipt, and its corner keeps a one-line count of the past 30 days.
+The Finished Brews filter of everything marked read or loved, shown as one **bookcase** per season, newest first. A book stands in the season of the date of its read or loved mark, by the season table in `pipeline/build.py`; a book with no dated mark (the library's baked reads) stands in a last case, *Earlier reads*. Under each case: "N books this season". Home lists this season's finished books in the receipt, and its corner keeps a one-line count of the past 30 days.
 
-**The stacks**:
-The bookcase rendering of read books in the Archive. Spines are clickable (mark unread); the plate follows the pointer.
+**Bookcase**:
+One season's books in Finished Brews: an arched dark-wood top with a gilt line and the plate, a dark back wall, a wooden shelf with a gold edge under each row, 3 books a shelf on a phone and 6 on a laptop. Real books stand face-out; the old leather spines and the one candle on each shelf are decoration only (hidden from screen readers and not pressable). The book that finishes a series carries a gold *✦ Series complete* plate.
 
 **Plate**:
-The instant title · author · series line shown inside the case. Never a native browser tooltip.
+The brass name plate on a bookcase's arched top: the season's drink label and the year it started in, such as "Christmas cocoa season 2026" (a January date belongs to the Christmas that began the year before). *House favourites* and *Not for me* name the other two cases.
+
+**House edition**:
+The cover Finished Brews draws for a book that has no art: a cloth colour (the same book always the same colour), a thin gold frame, a cup mark, and the title and author in gold.
+
+**Book card**:
+What opens when a book in Finished Brews is tapped: the cover, title, author, series and volume ("book 3 of 3 · series complete"), interest, the read date and its season, the Goodreads link and the verdict row. A bottom sheet on a phone, centred on a laptop; Escape and Close shut it and focus goes back to the book. The only place a mark changes in Finished Brews.
 
 **Standalone**:
 A read book that isn't part of a series.
 
 **Added book**:
-A book the reader added herself with **+ add a book** (an Apple Books search at the top of My Shelf and the Archive) or brought in with the **Goodreads import**, not one a run picked. It lives in `added-books.json` on the config volume, keyed by the same book identity as every pick, and takes a verdict like any book. It files on My Shelf or in the Archive only — never on Home as a pick, with one exception: the book she is reading now shows in Home's reading-now card as a progress book. Taking its verdict back takes it off the shelf.
+A book the reader added herself with **+ add a book** (an Apple Books search at the top of My Shelf and Finished Brews) or brought in with the **Goodreads import**, not one a run picked. It lives in `added-books.json` on the config volume, keyed by the same book identity as every pick, and takes a verdict like any book. It files on My Shelf or in Finished Brews only — never on Home as a pick, with one exception: the book she is reading now shows in Home's reading-now card as a progress book. Taking its verdict back takes it off the shelf.
 _Avoid_: manual book, custom book
 
 **Goodreads link**:

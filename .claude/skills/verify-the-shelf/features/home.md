@@ -24,7 +24,7 @@ Open the served page — Home is the landing section. On a phone (≤880 px) the
 ## Driving it with chrome-devtools-axi
 
 - Set a reading-now book the honest way: click `want to read <pick>` on Home, open **My Shelf** from the bar, click `reading now — <title>`, return Home. An added book can instead be seeded server-side: `POST /api/state` with `states {id:{s:'want'}}` and `reading {id:{s:true}}` (ids from `container/dist/shelf-data.js`).
-- Press `mark <title> read — finished it` on the card and confirm: that row leaves the card (the other reading books stay; with none left, the card falls back to choose your next book), the book files into the Archive, `reader-state.json` records `read` and a cleared reading flag.
+- Press `mark <title> read — finished it` on the card and confirm: that row leaves the card (the other reading books stay; with none left, the card falls back to choose your next book), the book files into Finished Brews, `reader-state.json` records `read` and a cleared reading flag.
 - Press `I read today` on the reading-now card and confirm: the button reads `read today ✓` with `aria-pressed="true"`, `days` in `reader-state.json` holds her local date (`YYYY-MM-DD`) under that book id, and the week strip lights today. Pressing it again the same day changes nothing.
 - Log a day the way a phone does: `POST /api/state` with `{"days":{"<book id>":["2026-11-17"]}}`, reload, and confirm the page counts both devices' days in the streak line and the same one day twice stays one day.
 - Decide every open pick (`want`/`mark read`/`loved`/`not for me`) and watch the last one: the issue line reads `every pick decided · next issue in D days`, the stamp panel appears, confetti only for `read`/`loved`. Leave Home and return: the stamp is gone, the line stays.
@@ -40,7 +40,7 @@ Open the served page — Home is the landing section. On a phone (≤880 px) the
 
 - A fresh volume opens on the first-open survey, which covers Home. Answer it first, or seed the volume with `seed-demo.py <cfg> <root> --surveyed` before launch to start on Home.
 
-- `finished it` marks read, which files the book read — to undo, use the Archive's read row, not Home.
+- `finished it` marks read, which files the book read — to undo, use the verdict row in Finished Brews' book card, not Home.
 - The issue-complete panel above the picks is session state (it shows once per completion, per visit); the kept stamp for the same issue lives in `reader-state.json` under `stamps` and never comes off.
 - A reading day is never a verdict: it travels on its own `days` channel, which the run does not read, and it merges by union — no device can clear another's day.
 - The line's `M` counts only the current month's picks; carry-overs are counted by the carried-over line below the grid.
