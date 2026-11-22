@@ -31,6 +31,16 @@ with sync_playwright() as p:
             top = target.evaluate('(e, area) => e.getBoundingClientRect().top - (eval(area) ? eval(area).getBoundingClientRect().top : 0)', AREA)
             print(f'{width}: {name} top={top:.1f}', flush=True)
             assert abs(top) < 2, f'{name} did not reach the top: {top}'
+            # The card click's own scroll (a few retries, about 16 ms apart) can
+            # still be settling when the card first lines up. Wait until the scroll
+            # holds still for eight frames, so that settling is not counted as a
+            # refresh that repeats the scroll.
+            page.evaluate("""area => new Promise(resolve => {
+                const read = () => { const a = eval(area); return a ? a.scrollTop : window.scrollY; };
+                let last = read(), same = 0;
+                const step = () => { const s = read(); same = s === last ? same + 1 : 0; last = s;
+                    if (same >= 8) resolve(); else requestAnimationFrame(step); };
+                requestAnimationFrame(step); })""", AREA)
             page.evaluate('area => { const a = eval(area); if (a) a.scrollTop = 0; else window.scrollTo(0, 0); }', AREA)
             page.wait_for_timeout(7000)
             assert page.evaluate('area => { const a = eval(area); return a ? a.scrollTop : window.scrollY; }', AREA) == 0, 'periodic refresh repeated the scroll'
