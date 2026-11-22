@@ -238,7 +238,8 @@
        "finished it" share one line: the new tap costs the card no height and
        part 1's first screen still holds the issue line above the section bar.
        The 44px floor and the type size do not move. */
-    [data-m="readnow"] > div{grid-template-columns:minmax(0,64px) minmax(0,1fr) !important;gap:14px !important}
+    [data-m="rnbook"]{grid-template-columns:minmax(0,64px) minmax(0,1fr) !important;gap:14px !important}
+    [data-m="rnbook"] + [data-m="rnbook"]{margin-top:14px !important;padding-top:14px !important}
     [data-m="readnow"] [data-m="verdicts"] button{padding:11px 11px !important;letter-spacing:.1em !important}
     section[aria-label="This month's picks"]{margin-top:6px !important}
     [data-m="rnsub"]{font-size:15px !important}
@@ -313,6 +314,18 @@
   [data-m="toprow"] > section{margin-top:0 !important}
   [data-m="toprow"] [data-m="readnow"]{display:flex}
   [data-m="toprow"] [data-m="readnow"] > div{flex:1;min-width:0}
+  /* More than one book reading now: one row per book, a rule between
+     rows, and on a wider screen a smaller cover so the rows fit beside the
+     season goal. One book keeps its full size. */
+  [data-m="rnbook"] + [data-m="rnbook"]{margin-top:20px;padding-top:20px;border-top:1px solid #3F6153}
+  @media (min-width:701px){
+    [data-m="readnow"][data-many="true"] [data-m="rnbook"]{grid-template-columns:minmax(0,72px) minmax(0,1fr) !important;gap:20px !important}
+    [data-m="readnow"][data-many="true"] [data-m="verdicts"]{margin-top:14px !important;padding-top:12px !important}
+  }
+  /* a tall reading-now card does not stretch the season panel into an empty
+     block: the panel keeps its own height (one book is shorter than the
+     panel, so it still matches the panel's height as before) */
+  [data-m="toprow"] > [data-m="season"]{align-self:start}
   /* the picks: the card is a cover and a text column, and the four choices
      take the foot of the card */
   [data-m="picksgrid"]{grid-template-columns:minmax(0,1fr)}
@@ -472,22 +485,30 @@
            data yet (that is part 2); this card is layout. -->
       <div data-m="toprow">
       <sc-if value="{{ hasReadingNow }}">
-      <section aria-label="Reading now" data-m="readnow" style="margin-top:28px;background:#1E3A2F;color:#F3EDE1;padding:6px">
-        <div style="border:1px solid #A8863F;padding:22px 26px;display:grid;grid-template-columns:minmax(0,96px) minmax(0,1fr);gap:26px;align-items:center">
+      <!-- Every book she is reading now gets its own row in the
+           card, newest first, and each row keeps its own I read today,
+           finished it and Goodreads link. The eyebrow sits in the first row,
+           so one book looks the same as before. -->
+      <section aria-label="Reading now" data-m="readnow" data-many="{{ rnMany }}" style="margin-top:28px;background:#1E3A2F;color:#F3EDE1;padding:6px">
+        <div data-m="rnlist" style="border:1px solid #A8863F;padding:22px 26px;display:flex;flex-direction:column;justify-content:center">
+          <sc-for list="{{ rnBooks }}" as="rn" hint-placeholder-count="1">
+          <article data-m="rnbook" aria-label="{{ rn.title }}" style="display:grid;grid-template-columns:minmax(0,96px) minmax(0,1fr);gap:26px;align-items:center">
           <div data-m="rncov" role="img" aria-label="{{ rn.alt }}" style="{{ rn.coverStyle }}"></div>
           <div style="min-width:0">
-            <p style="margin:0;font-size:10px;letter-spacing:.34em;text-transform:uppercase;color:#C8B27A">Reading now</p>
+            <sc-if value="{{ rn.first }}"><p data-m="rneyebrow" style="margin:0;font-size:10px;letter-spacing:.34em;text-transform:uppercase;color:#C8B27A">{{ rnEyebrow }}</p></sc-if>
             <h2 style="font-family:'Cormorant Garamond',Garamond,serif;font-weight:500;font-size:clamp(26px,4vw,42px);line-height:1.05;margin:10px 0 0;overflow-wrap:anywhere">{{ rn.title }}</h2>
             <p data-m="rnsub" style="margin:8px 0 0;font-family:'Cormorant Garamond',Garamond,serif;font-style:italic;font-size:19px;color:#D8E0D4">{{ rn.sub }}</p>
             <div data-m="verdicts" style="display:flex;gap:9px;flex-wrap:wrap;align-items:center;margin-top:20px;padding-top:16px;border-top:1px solid #3F6153">
               <!-- THS-43 (Home part 2): the one tap. It logs today as a reading
                    day for this book on the server, where the other device's
                    days are added to it. -->
-              <button type="button" onClick="{{ rnOnToday }}" aria-pressed="{{ rnTodayOn }}" aria-label="{{ rnTodayAria }}" style="{{ rnTodayStyle }}">{{ rnTodayLabel }}</button>
+              <button type="button" onClick="{{ rn.onToday }}" aria-pressed="{{ rn.todayOn }}" aria-label="{{ rn.todayAria }}" style="{{ rn.finishStyle }}">{{ rn.todayLabel }}</button>
               <button type="button" onClick="{{ rn.onFinish }}" aria-label="{{ rn.finishAria }}" style="{{ rn.finishStyle }}">finished it</button>
               <sc-if value="{{ rn.grHref }}"><a class="grlink" href="{{ rn.grHref }}" target="_blank" rel="noopener noreferrer" aria-label="{{ rn.grAria }}" style="{{ rn.grStyle }}">{{ rn.grLabel }}</a></sc-if>
             </div>
           </div>
+          </article>
+          </sc-for>
         </div>
       </section>
       </sc-if>
@@ -3486,13 +3507,21 @@ class Component extends DCLogic {
     const rnIds=Object.keys(this.state.reading)
       .filter(id=>(this.state.reading[id]||{}).s&&S[id]==='want')
       .sort((a,b)=>((this.state.reading[b]||{}).t||0)-((this.state.reading[a]||{}).t||0));
-    const rnId=rnIds[0]||'';
-    const rnB=rnId?rnPool.find(b=>b.id===rnId):null;
-    const hasReadingNow=!!rnB;
+    /* Every book she is reading now, newest first — not only the
+       newest one. A flag whose book is not on the page is skipped, so it
+       never hides the others. */
+    const rnFound=rnIds.map(id=>rnPool.find(b=>b.id===id)).filter(Boolean);
+    const rnId=rnFound.length?rnFound[0].id:'';
+    const hasReadingNow=rnFound.length>0;
     const hasChooseNext=!hasReadingNow;
     const rnGoldBtn={fontFamily:"'EB Garamond',Georgia,serif",fontSize:'10.5px',letterSpacing:'.22em',
       textTransform:'uppercase',padding:'11px 16px',border:'1px solid #C8B27A',color:'#F3EDE1'};
-    const rn=rnB?{...this.grFields(rnB.title,rnB.author,true,rnB.grUrl),
+    const rnBookDays=(id)=>Array.isArray((this.state.days||{})[id])?this.state.days[id]:[];
+    const rnToday=isoDay(new Date());
+    const rnBooks=rnFound.map((rnB,i)=>{
+      const todayOn=rnBookDays(rnB.id).indexOf(rnToday)>=0;
+      return {...this.grFields(rnB.title,rnB.author,true,rnB.grUrl),
+      first:i===0,
       title:rnB.title,
       sub:[rnB.series,rnB.genre,rnB.author].filter(Boolean).join(' \u00b7 '),
       alt:'Cover of '+rnB.title+' by '+rnB.author,
@@ -3501,8 +3530,13 @@ class Component extends DCLogic {
           :{background:'repeating-linear-gradient(90deg,#EFE7D6 0 6px,#E4DAC4 6px 12px)'})},
       finishStyle:rnGoldBtn,
       finishAria:'mark '+rnB.title+' read \u2014 finished it',
-      onFinish:()=>this.apply(rnId,'read')}
-      :{};
+      onFinish:()=>this.apply(rnB.id,'read'),
+      todayOn:todayOn?'true':'false',
+      todayLabel:todayOn?'read today \u2713':'I read today',
+      todayAria:(todayOn?'reading day logged today for ':'log a reading day today for ')+rnB.title,
+      onToday:()=>this.readToday(rnB.id)};
+    });
+    const rnEyebrow=rnBooks.length>1?'Reading now \u00b7 '+rnBooks.length+' books':'Reading now';
     const rnStarts=hasChooseNext?wantRows.filter(b=>b.id!==rnId).slice(0,2).map(b=>({
       label:'start \u00b7 '+b.title,
       aria:'start reading '+b.title,
@@ -3890,8 +3924,6 @@ class Component extends DCLogic {
     const rcptOpen=!!this.state.rcptOpen;
     const daysAll=readDayList(this.state.days);
     const wk=weekStreak(daysAll,todayIso,win);
-    const bookDays=(id)=>Array.isArray((this.state.days||{})[id])?this.state.days[id]:[];
-    const readTodayOn=rnId?bookDays(rnId).indexOf(todayIso)>=0:false;
     const seasonStampKey='season:'+season.key+':'+win.year;
     const kept=this.state.stamps||{};
     const streakLine=wk.weeks
@@ -3984,15 +4016,11 @@ class Component extends DCLogic {
 
       /* THS-39 (Home part 1): the reading-now card, or choose your next book */
       hasReadingNow, hasChooseNext,
-      rn, rnHasWaiting:hasChooseNext&&wantList.length>0, rnNoWaiting:hasChooseNext&&wantList.length===0,
+      rnBooks, rnEyebrow, rnMany:rnBooks.length>1?'true':'false',
+      rnHasWaiting:hasChooseNext&&wantList.length>0, rnNoWaiting:hasChooseNext&&wantList.length===0,
       rnStarts, rnShelfLink,
 
-      /* THS-43 (Home part 2): the one tap on the card, and the season panel */
-      rnTodayOn:readTodayOn?'true':'false',
-      rnTodayLabel:readTodayOn?'read today \u2713':'I read today',
-      rnTodayAria:(readTodayOn?'reading day logged today for ':'log a reading day today for ')+(rnB?rnB.title:''),
-      rnTodayStyle:rnGoldBtn,
-      rnOnToday:()=>{if(rnId)this.readToday(rnId);},
+      /* THS-43 (Home part 2): the season panel */
       seasonEyebrow:seasonName(season.key)+' season goal',
       seasonHead, seasonSub, seasonStampLine,
       ringAria:seasonDone+' of '+goalBooks+' books read this season',
