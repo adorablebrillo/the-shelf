@@ -46,7 +46,13 @@
   [data-m="shop-art"]{display:block;width:222px;height:auto;object-fit:contain;max-width:100%;min-height:0;margin:8px auto;flex:0 1 auto;translate:3px 2px}
   [data-m="corner-art-row"]{display:flex;align-items:center;gap:16px}
   [data-m="corner-art-row"] [data-m="cornerquote"]{flex:1;min-width:0}
-  [data-m="woman-art"]{display:block;width:181px;height:auto;object-fit:contain;flex:none;translate:2px 16px}
+  /* The reader on Home sits where the man sits on My Shelf: the same right edge and the same top. */
+  [data-m="woman-art"]{display:block;width:181px;height:auto;object-fit:contain;flex:none;position:absolute;top:41px;right:10px}
+  @media (min-width:701px){
+    [data-m="corner-art-row"]{min-height:155px;padding-right:170px}
+    [data-season="christmas"] [data-m="countdown"]{padding-right:162px !important}
+  }
+  @media (max-width:880px){[data-m="woman-art"]{top:31px}}
   [data-m="populated-heading"]{display:flex;align-items:center;justify-content:space-between;gap:16px}
   [data-m="populated-heading"] > div{min-width:0}
   [data-m="populated-art"]{display:block;object-fit:contain;flex:none;width:191px;height:auto;translate:-10px 31px}
@@ -71,14 +77,14 @@
     [data-season="christmas"] [data-m="eyebrow"]{max-width:calc(100% - 63px)}
     [data-season="christmas"] [data-m="countdown"]{padding-right:0 !important}
     [data-season="christmas"] [data-m="corner-art-row"] [data-m="cornerquote"]{margin-right:72px !important}
-    [data-season="christmas"] [data-m="woman-art"]{right:9px;top:48px}
-    /* Other seasons keep the reader in the header and the quote full-width. */
+    [data-season="christmas"] [data-m="woman-art"]{right:1px;top:36px}
+    /* Other seasons keep the reader in the same top-right place as Christmas. */
     [data-m="frame"]:not([data-season="christmas"]) [data-m="cornerin"]{padding:8px 18px !important}
-    [data-m="frame"]:not([data-season="christmas"]) [data-m="woman-art"]{top:8px !important;left:18px !important;right:auto !important}
-    [data-m="frame"]:not([data-season="christmas"]) [data-m="corner-art-row"] [data-m="cornerquote"]{margin:16px 0 0 !important}
+    [data-m="frame"]:not([data-season="christmas"]) [data-m="woman-art"]{top:36px !important;right:1px !important;left:auto !important}
+    [data-m="frame"]:not([data-season="christmas"]) [data-m="corner-art-row"] [data-m="cornerquote"]{margin:16px 72px 0 0 !important}
     [data-m="frame"]:not([data-season="christmas"]) [data-m="cornerin"] > div:first-child{min-height:48px !important}
     [data-m="frame"]:not([data-season="christmas"]) [data-m="recentline"]{margin-top:5px !important;padding-top:4px !important}
-    [data-m="frame"]:not([data-season="christmas"]) [data-m="eyebrow"]{margin-left:72px !important;max-width:calc(100% - 90px) !important}
+    [data-m="frame"]:not([data-season="christmas"]) [data-m="eyebrow"]{max-width:calc(100% - 63px) !important}
     [data-m="empty-art"][data-illustration="man"]{width:220px;height:184px;translate:none}
     [data-m="empty-art"][data-illustration="cafe"]{width:240px;height:187px;translate:none}
   }
