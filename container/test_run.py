@@ -41,7 +41,8 @@ open(os.path.join(dist, 'index.html'), 'w').write('page')
 '''
 
 
-class RunTests(unittest.TestCase):
+class RunBase(unittest.TestCase):
+    """The stand-in pipeline and the helpers every run test uses."""
 
     def setUp(self):
         root = tempfile.mkdtemp(dir=TMP)
@@ -78,14 +79,18 @@ class RunTests(unittest.TestCase):
             time.sleep(0.05)
         self.assertFalse(server.RUN_LOCK.locked(), 'the run never ended')
 
-    def _call(self, srv, path, method='GET'):
+    def _call(self, srv, path, method='GET', body=None):
         url = 'http://127.0.0.1:%d%s' % (srv.server_address[1], path)
-        req = urllib.request.Request(url, method=method, data=b'{}' if method == 'POST' else None)
+        data = json.dumps(body if body is not None else {}).encode() if method == 'POST' else None
+        req = urllib.request.Request(url, method=method, data=data)
         try:
             r = urllib.request.urlopen(req, timeout=5)
             return r.status, json.loads(r.read())
         except urllib.error.HTTPError as e:
             return e.code, json.loads(e.read())
+
+
+class RunTests(RunBase):
 
     def test_a_restart_mid_run_leaves_curate_now_working(self):
         # settings.json as a restart leaves it: the run that set the flag is gone
@@ -142,6 +147,78 @@ class RunTests(unittest.TestCase):
         s = server.load_settings()
         self.assertEqual(s['last_result'], 'success')
         self.assertTrue(s['last_run'].startswith(datetime.now().strftime('%Y-%m')))
+
+
+class SurveyStartsNewPicksTests(RunBase):
+    """The reader's choice: saving the survey starts new picks right away.
+    Before this, the save only wrote interests.json, so Home kept the issue
+    curated from her old interests until the 1st or a press of curate now."""
+
+    def _survey(self, **over):
+        body = {'name': 'The book brew', 'picks': 12, 'never': [], 'season_goal': 6,
+                'surveyed': '2026-11-23', 'start_run': True,
+                'interests': [{'id': 'thriller', 'label': 'Thriller', 'kind': 'story',
+                               'dial': 'into it', 'mode': 'new'}]}
+        body.update(over)
+        return body
+
+    def _serve(self):
+        srv, full = server.boot(port=0, host='127.0.0.1')
+        threading.Thread(target=srv.serve_forever, daemon=True).start()
+        full.join(20)
+        return srv
+
+    def test_saving_the_survey_starts_a_run(self):
+        self._settings(api_key='sk-test')
+        srv = self._serve()
+        try:
+            code, res = self._call(srv, '/api/interests', 'POST', self._survey())
+            self.assertEqual((code, res.get('run')), (200, 'started'))
+            self._wait_idle()
+            self.assertEqual(server.load_settings()['last_result'], 'success')
+        finally:
+            srv.shutdown()
+            srv.server_close()
+
+    def test_no_key_saves_the_answers_and_starts_nothing(self):
+        self._settings(api_key='')
+        srv = self._serve()
+        try:
+            code, res = self._call(srv, '/api/interests', 'POST', self._survey())
+            self.assertEqual((code, res.get('run')), (200, 'no-key'))
+            self.assertEqual([i['id'] for i in res['interests']], ['thriller'])
+            self.assertFalse(server.RUN_LOCK.locked())
+        finally:
+            srv.shutdown()
+            srv.server_close()
+
+    def test_a_run_already_going_is_left_alone(self):
+        self._settings(api_key='sk-test')
+        self._stage('fetch.py', 'import time; time.sleep(1)\n')
+        srv = self._serve()
+        try:
+            self.assertTrue(server.start_run('adhoc'))
+            code, res = self._call(srv, '/api/interests', 'POST', self._survey())
+            self.assertEqual((code, res.get('run')), (200, 'busy'))
+            self._wait_idle()
+        finally:
+            srv.shutdown()
+            srv.server_close()
+
+    def test_a_save_that_does_not_ask_for_a_run_starts_none(self):
+        # the book brew tab saves the same file and never asks
+        self._settings(api_key='sk-test')
+        srv = self._serve()
+        try:
+            body = self._survey()
+            del body['start_run']
+            code, res = self._call(srv, '/api/interests', 'POST', body)
+            self.assertEqual(code, 200)
+            self.assertNotIn('run', res)
+            self.assertFalse(server.RUN_LOCK.locked())
+        finally:
+            srv.shutdown()
+            srv.server_close()
 
 
 if __name__ == '__main__':
