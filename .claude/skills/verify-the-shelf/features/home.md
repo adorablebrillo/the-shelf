@@ -12,7 +12,7 @@
 - The issue line under the month's picks: `N of M still open · next issue in D days` with a thin progress bar; deciding the last pick presses an issue-complete stamp in, once.
 - The month's picks (lead card + grid), each with its four verdicts; decided picks clear from Home; carry-overs from earlier issues follow.
 - The book brew widget: one row per interest in the file's order (label · dial name · four strength dots — off 0, curious 2, into it 3, obsessed 4), a `Reading for a reason: X of Y … books read` line when any topic-interest picks exist, and a `change in Settings` link. Read-only: the dials come from the build's `meter` doc in `container/dist/shelf-data.js`; the count is computed at render time from the marks, so deciding a topic pick moves the number without a rebuild.
-- Anticipation: a row of countdown cards for tracked series, soonest first, horizontally scrollable on a phone.
+- Anticipation: a vertical list of countdown cards for tracked series, soonest first, at every width; nothing scrolls sideways.
 - Through Christmas and winter (1 Nov to the end of February), snow falls over the page while it is visible. It never falls under reduced motion, and it stops by itself when spring starts. Home has no snow controls, no ledge and no frost.
 - Series at a glance, in the row of three. A series card opens Series at that series; the all-series link opens the section without a target.
 - Kept stamps are not shown on Home. The server still keeps one per season goal reached, issue decided to its last pick and series finished, in the `stamps` channel of `reader-state.json`, and a kept stamp is never removed from it.

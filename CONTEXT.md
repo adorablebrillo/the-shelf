@@ -85,7 +85,7 @@ A series with at least one unread volume is open (it shows on the Series page); 
 **Series volume states**: **read** · **out** (released, unread) · **coming** (dated, upcoming) · **announced** (no date).
 
 **Anticipation**:
-The Home row of countdown cards for upcoming releases from tracked series, soonest first. Not markable — on release, a book leaves anticipation and becomes *out* (actionable) or a pick.
+The Home list of countdown cards for upcoming releases from tracked series, soonest first. Not markable — on release, a book leaves anticipation and becomes *out* (actionable) or a pick.
 
 **Out now (unread)**:
 A released volume in a tracked series that hasn't been marked. Actionable from My Shelf's "Out now in your series" block and the Series page (its cover strip and the full run). The Series "mark next read" and "loved it" buttons offer an undo for the book just marked, until the next mark or a change of view.
