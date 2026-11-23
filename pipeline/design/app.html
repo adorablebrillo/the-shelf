@@ -253,11 +253,11 @@
     [data-m="issuebar"]{margin-top:8px !important}
     section[aria-label="This month's picks"] > div:nth-of-type(2){margin-top:8px !important}
   }
-  /* THS-39 (Home part 1): anticipation is a row of countdown cards, soonest
-     first. The row scrolls sideways when it is wider than the page, so a
-     scrollbar never pushes the layout. */
-  [data-m="rail"]{display:flex;gap:12px;overflow-x:auto;margin-top:20px;padding-bottom:6px}
-  [data-m="rail"] > div{flex:0 0 auto;box-sizing:border-box;width:196px;background:#1E3A2F;border:1px solid #A8863F;padding:16px 16px 14px;color:#F3EDE1}
+  /* Anticipation is a list of countdown cards, soonest first, stacked down
+     the column like series at a glance beside it. A sideways-scrolling row
+     hid every card after the first behind a scroll a reader had to find. */
+  [data-m="rail"]{display:flex;flex-direction:column;gap:12px;margin-top:20px}
+  [data-m="rail"] > div{box-sizing:border-box;background:#1E3A2F;border:1px solid #A8863F;padding:16px 16px 14px;color:#F3EDE1}
   /* THS-39 (Home part 1): the issue-complete stamp presses in once, when the
      last pick of the issue is decided. Reduced motion already collapses every
      animation page-wide; this keeps the press from showing even at that. */
@@ -826,9 +826,9 @@
       </section>
       </sc-if>
 
-      <!-- THS-39 (Home part 1): anticipation becomes a row of countdown
-           cards, soonest first. The old hero panel retires; every tracked
-           release counts the same. -->
+      <!-- THS-39 (Home part 1): anticipation is a list of countdown cards,
+           soonest first. The old hero panel retires; every tracked release
+           counts the same. -->
       <sc-if value="{{ hasAnticipations }}">
       <section aria-label="Arriving in your series" data-m="antic">
         <div style="display:flex;align-items:baseline;justify-content:space-between;gap:16px;flex-wrap:wrap">
@@ -3726,7 +3726,7 @@ class Component extends DCLogic {
       };
     });
 
-    /* ---- THS-39 (Home part 1): anticipation is a row of countdown cards,
+    /* ---- THS-39 (Home part 1): anticipation is a list of countdown cards,
            soonest first — every tracked release counts the same; the hero
            panel and its special-casing retire ------------------------------- */
     const soonAll=[];
@@ -4112,7 +4112,7 @@ class Component extends DCLogic {
       goalLess:goalStep(-1), goalMore:goalStep(1), goalSave:()=>this.saveGoal(),
       goalLessOff:goalDraft<=1, goalMoreOff:goalDraft>=60, goalSaving:!!this.state.goalSaving,
 
-      /* anticipation — a row of countdown cards */
+      /* anticipation — a list of countdown cards */
       hasAnticipations:anticipations.length>0,
       anticipations,
 
