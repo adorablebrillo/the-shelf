@@ -2437,7 +2437,7 @@ function askSplit(){
 }
 
 function saveSurvey(){
-  var body={name:S.name,picks:S.picks,never:S.never,season_goal:S.season,surveyed:today(),
+  var body={name:S.name,picks:S.picks,never:S.never,season_goal:S.season,surveyed:today(),start_run:true,
     interests:S.interests.map(function(x){return {id:x.id,label:x.label,kind:x.kind,dial:x.dial,mode:x.mode,reading:x.reading};})};
   S.msg='Saving\u2026'; render();
   fetch('/api/interests',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)})
@@ -2446,7 +2446,11 @@ function saveSurvey(){
      if(!res.ok||!res.j||res.j.error){ S.msg=(res.j&&res.j.error)||'The shelf server could not save your answers.'; render(); return; }
      close();
      try{window.dispatchEvent(new Event('shelf:interests'));window.dispatchEvent(new Event('shelf:survey-saved'));}catch(_){}
-     toast(S.name+' is saved \u2014 the next run follows it.');
+     var run=res.j.run;
+     toast(S.name+(run==='started'?' is saved \u2014 new picks are brewing now.':
+       run==='busy'?' is saved \u2014 a brew is already under way, so press curate now in Settings when it ends.':
+       run==='no-key'?' is saved \u2014 add your OpenRouter key in Settings, then press curate now to brew new picks.':
+       ' is saved \u2014 the next run follows it.'));
    })
    .catch(function(){ S.msg='The shelf server did not answer \u2014 nothing was saved.'; render(); });
 }

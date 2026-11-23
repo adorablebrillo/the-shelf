@@ -110,7 +110,7 @@ The name of the interests list, shown as **The book brew** unless the reader typ
 _Avoid_: Book-a-meter (the old name), meter, counter
 
 **Survey**:
-The five-step setup that fills the book brew: the shelves, the dials, the never list, what she reads now, and the mix with the season goal. It shows while the interests file carries no surveyed day — on a new install, and once on a shelf that already has interests, which come in ticked. Its answers are the interests file the run reads; the book brew tab changes the same file later. The last step asks the season goal, and skipping it is allowed; Home then asks it in the season panel.
+The five-step setup that fills the book brew: the shelves, the dials, the never list, what she reads now, and the mix with the season goal. It shows while the interests file carries no surveyed day — on a new install, and once on a shelf that already has interests, which come in ticked. Its answers are the interests file the run reads; saving it starts a curate-now run at once (new picks right away), or says what is missing — no OpenRouter key yet, or a run already going; the book brew tab changes the same file later and starts none. The last step asks the season goal, and skipping it is allowed; Home then asks it in the season panel.
 _Avoid_: onboarding quiz, interest wizard
 
 **Reading corner**:

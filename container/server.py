@@ -516,7 +516,20 @@ class H(BaseHTTPRequestHandler):
                 return self._json({'error': 'the shelf server could not save your interests'}, 500)
             log('interests saved: %d interest(s), %d pick(s) an issue, surveyed %s'
                 % (len(doc['interests']), doc['picks'], doc['surveyed'] or 'no'))
-            self._json({'ok': True, **interests_payload(doc)})
+            out = {'ok': True, **interests_payload(doc)}
+            if body.get('start_run') is True:
+                # the survey asks for new picks right away: the saved answers
+                # are on disk, so the run reads them. The answers stay saved
+                # whether or not a run can start.
+                s = load_settings()
+                if not s.get('api_key'):
+                    out['run'] = 'no-key'
+                elif start_run('adhoc', s):
+                    out['run'] = 'started'
+                    log('survey saved: new picks started right away')
+                else:
+                    out['run'] = 'busy'
+            self._json(out)
         elif u.path == '/api/import/goodreads':
             text = body.get('text')
             if not isinstance(text, str) or not text.strip():

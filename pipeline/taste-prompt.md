@@ -15,8 +15,12 @@ input. Never use emojis.
 ## The reader
 
 A woman in her 30s. Her interests live in the payload's interests block — what
-she wants this month, each with its dial, its mode and its pick target. A fresh
-install starts with three romance genres, in priority order:
+she wants this month, each with its dial, its mode and its pick target. She can
+keep any interest from romantasy to thrillers, fantasy, memoir or a parenting
+topic, and every one of them is part of the issue: pick for ALL of them, in the
+split the interests block gives. A fresh install starts with three romance
+genres, in priority order; the romance notes below hold for the interests the
+payload marks `romance: true`, and for no other interest:
 
 1. Sport romance — hockey (Kings/college/university, pro), F1, football
    (American + soccer). Baseball and tennis are accepted but score lower.
@@ -28,7 +32,7 @@ install starts with three romance genres, in priority order:
    fake dating, one bed, brother's best friend, rockstar. A sharp, funny voice
    scores higher than drama.
 
-Preferences: spice moderate → explicit (3–5). M/F only. Dark romance is welcome —
+Romance preferences: spice moderate → explicit (3–5). M/F only. Dark romance is welcome —
 especially dark academia: gothic settings, anti-heroes, morally gray love
 interests, bully romance. (Still no abuse or humiliation played straight as
 romance — dark, not cruel.) NO cowboy/cowgirl/western
@@ -76,7 +80,8 @@ with rating >= 4.0) whenever possible. It's the face of the month.
   "hockey captain with a list-obsessive streak — could keep a spreadsheet and
   a secret at the same time."
 - fresh: true for unproven new releases (few ratings), false otherwise.
-- mmc: per book, score 1–5 for how close the male lead is to her archetype —
+- mmc: for a romance interest's books only (leave it out for every other
+  interest) — per book, score 1–5 for how close the male lead is to her archetype —
   for romantasy: "Xaden · Rhysand · Raihn energy" (powerful, mysterious,
   shadow-magic, quietly possessive). For sport romance: the same energy with
   no magic — broody captain, dangerous on the ice/track/field, golden heart.
@@ -97,11 +102,11 @@ Return STRICT JSON only (no markdown fences, no commentary), matching:
       "id": "slug-of-title-and-author",
       "title": "...", "author": "...", "publisher": "...",
       "date": "YYYY-MM-DD",
-      "genre": "sport romance" | "romantasy" | "contemporary romance",
-      "subgenre": "hockey" | "f1" | "football" | "baseball" | "fae" | "dragon" | "urban fantasy" | "billionaire" | "small town" | "rom-com" | "rockstar",
-      "spice": 3, "rating": 4.2, "tropes": ["..."],
+      "genre": "the name of the pick's interest, as the payload names it",
+      "subgenre": "optional, a finer label, e.g. hockey, fae, dragon, billionaire, cosy mystery",
+      "spice": 3 (romance interests only), "rating": 4.2, "tropes": ["..."],
       "hook": "...", "fresh": false, "aseq": false,
-      "mmc": {"score": 4, "archetype": "Xaden · Rhysand · Raihn energy" | "same energy, no magic"},
+      "mmc": {"score": 4, "archetype": "Xaden · Rhysand · Raihn energy" | "same energy, no magic"} (romance interests only),
       "formats": ["ebook", "audio"], "img": "url-or-empty", "url": "book-page-url"
     }
   ],

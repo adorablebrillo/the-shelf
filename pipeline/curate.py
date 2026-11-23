@@ -10,7 +10,9 @@ active interest keeps a floor of two; an interest that cannot fill its floor
 widens ITS OWN window 30 -> 60 -> 90 days before it is dropped (a best-ever
 interest skips the window — any date, 4.0+ rated); gaps are filled from the
 strongest leftovers across ALL interests; the month file records the shape
-it shipped. Nothing is ever padded. With the default three romance interests
+it shipped. The shape is held in code after the model answers (enforce_split):
+the model's answer is a proposal, and an interest short of its target is filled
+from its own candidates. Nothing is ever padded. With the default three romance interests
 the rule is today's 3/3/3 shape rule, at her picked count.
 """
 import json, os, sys, re, base64, urllib.request
@@ -83,6 +85,24 @@ def _key(b):
     return ((b.get('title') or '').lower().strip(), (b.get('author') or '').lower().strip())
 
 
+def window_days(nm, lane_days):
+    """How many days back an interest may look: its rung of the widening
+    ladder, None for a best-ever interest (any date). A name the run does not
+    know (a renamed default, a genre fallback outside the file) is bounded by
+    the first rung — never any-date."""
+    if nm in lane_days:
+        return lane_days[nm]
+    return CFG.get('lane_widen_days', [30, 60, 90])[0]
+
+
+def in_its_window(c, lane_days, end):
+    days = window_days(interests.of(c, INTS), lane_days)
+    if days is None:
+        return True
+    age = age_days(c.get('date'), end)
+    return age is None or age <= days
+
+
 def gap_fill(picks, cands, hi, lane_days, end):
     """Fill remaining slots from the strongest leftovers across ALL interests
     — only books that earn it: inside their interest's window (the widening
@@ -93,24 +113,13 @@ def gap_fill(picks, cands, hi, lane_days, end):
     have = {_key(p) for p in picks}
     earn = CFG.get('trad_pub_score_rating', 4.0)
     leftovers = [c for c in cands if _key(c) not in have]
-    leftovers.sort(key=lambda c: (c.get('rating') if isinstance(c.get('rating'), (int, float)) else 0,
-                                  c.get('rating_count') or 0), reverse=True)
+    leftovers.sort(key=_strength, reverse=True)
     out = []
     for c in leftovers:
         if len(picks) + len(out) >= hi:
             break
-        nm = interests.of(c, INTS)
-        if nm in lane_days:
-            days = lane_days[nm]   # None here means one thing: a best-ever interest
-        else:
-            # a name the run does not know (a renamed default, a genre
-            # fallback outside the file) is bounded by the first widening
-            # rung — never any-date
-            days = CFG.get('lane_widen_days', [30, 60, 90])[0]
-        if days is not None:
-            age = age_days(c.get('date'), end)
-            if age is not None and age > days:
-                continue  # outside its interest's window
+        if not in_its_window(c, lane_days, end):
+            continue  # outside its interest's window
         r = c.get('rating')
         if not (isinstance(r, (int, float)) and r >= earn):
             continue  # the earn-it bar
@@ -118,6 +127,75 @@ def gap_fill(picks, cands, hi, lane_days, end):
             continue  # indie/unknown need proven ratings (the filter's rule)
         out.append(c)
     return out
+
+
+def _strength(c):
+    return (c.get('rating') if isinstance(c.get('rating'), (int, float)) else 0,
+            c.get('rating_count') or 0)
+
+
+def enforce_split(picks, cands, targets, hi, lane_days, end, protected=(), log=print):
+    """Hold the dial split after the model answers. The model follows its
+    brief loosely (a romance-heavy brief gave twelve romantasy books and no
+    other interest), so code does not trust the answer's shape:
+      1. an interest under its target is filled from ITS OWN candidates —
+         inside its window, trad or proven, and not rated below the bar (a
+         new release with no rating yet qualifies: the model picks those too);
+      2. the slots those fills need come first from free slots, then from
+         interests over their target (their weakest picks go; a guaranteed
+         sequel, the top pick and any `protected` key never do).
+    An interest with too few books keeps only what exists — nothing is padded,
+    and the slots it leaves open go to gap_fill's strongest leftovers.
+    Returns the new picks list."""
+    earn = CFG.get('trad_pub_score_rating', 4.0)
+    picks = list(picks)
+    have = {_key(p) for p in picks}
+    inames = list(targets)
+    by_int = {nm: [] for nm in inames}
+    for p in picks:
+        by_int.setdefault(interests.of(p, INTS), []).append(p)
+    adds = []
+    for nm in inames:
+        short = targets[nm] - len(by_int.get(nm, []))
+        if short <= 0:
+            continue
+        pool = [c for c in cands
+                if interests.of(c, INTS) == nm and _key(c) not in have
+                and in_its_window(c, lane_days, end)
+                and (c.get('trad') or c.get('indie_proven') or c.get('best_ever_proven'))
+                and (not isinstance(c.get('rating'), (int, float)) or c['rating'] >= earn)]
+        pool.sort(key=_strength, reverse=True)
+        adds.extend(pool[:short])
+    if not adds:
+        return picks
+    over = len(picks) + len(adds) - hi
+    cut = []
+
+    def surplus(nm):
+        return len(by_int[nm]) - targets.get(nm, 0)
+
+    def droppable(nm):
+        return [p for p in by_int[nm] if not (p.get('aseq') or _key(p) in protected)]
+
+    while over > 0:
+        room = [nm for nm in by_int if surplus(nm) > 0 and droppable(nm)]
+        if not room:
+            break
+        nm = max(room, key=surplus)
+        weakest = min(droppable(nm), key=_strength)
+        by_int[nm].remove(weakest)
+        cut.append(weakest)
+        over -= 1
+    # with nothing left to trim, the fills that do not fit wait (later
+    # interests first) — an answer is never grown past her picks number
+    adds = adds[:max(0, hi - (len(picks) - len(cut)))]
+    gone = {id(p) for p in cut}
+    kept = [p for p in picks if id(p) not in gone]
+    if adds or cut:
+        log('split held: +%d from their own interests (%s), -%d past-target pick(s) (%s)'
+            % (len(adds), ', '.join(interests.of(a, INTS) for a in adds) or 'none',
+               len(cut), ', '.join(interests.of(p, INTS) for p in cut) or 'none'))
+    return kept + adds
 
 
 def ensure_sequels(picks, cands, log=print):
@@ -148,6 +226,24 @@ def ensure_sequels(picks, cands, log=print):
     return picks
 
 
+def _retitled(p, cands, ntitle):
+    """The model sometimes changes a title ('The Wrath Gods Reap: A Novel'),
+    and a pick no candidate matches loses the interest that found it — then
+    its genre decides, and a romance-forced genre makes it romantasy. A
+    candidate by the same author whose title begins the pick's title (or the
+    other way round) is that book."""
+    a = (p.get('author') or '').lower().strip()
+    t = ntitle(p)
+    if not a or len(t) < 4:
+        return None
+    for c in cands:
+        ct = ntitle(c)
+        if (c.get('author') or '').lower().strip() == a and len(ct) >= 4 \
+                and (t.startswith(ct) or ct.startswith(t)):
+            return c
+    return None
+
+
 def copy_series(picks, cands):
     """The model's output schema has no series field, so a pick can come back
     without one. Copy series and series_num from the candidate record onto
@@ -167,6 +263,8 @@ def copy_series(picks, cands):
         by_title.setdefault(_ntitle(c), c)
     for p in picks:
         c = by_id.get(book_key(p.get('title'), p.get('author'))) or by_title.get(_ntitle(p))
+        if c is None:
+            c = _retitled(p, cands, _ntitle)
         if c is None:
             continue
         if (c.get('series') or '').strip():
@@ -250,6 +348,14 @@ def interests_block():
     nv = interests.never(INTS)
     if nv:
         lines.append('She NEVER wants %s — in any interest; leave those out.' % ', '.join(nv))
+    lines.append('The output fields follow her interests, and this OVERRIDES the output schema '
+                 "in the taste brief above: a pick's genre is the name of its interest, written "
+                 'as it is named in this block (\'subgenre\' is optional); spice and mmc are '
+                 'given ONLY for a romance interest\'s picks and left out for every other '
+                 'interest. Every pick comes from the candidates of one of these interests. '
+                 'The shape above is a rule, not a hint: the engine fills any interest that '
+                 'falls short from its own candidates and trims an interest that goes past '
+                 'its target.')
     lines.append('Pick only books her interests ask for; when an interest '
                  'cannot reach its target honestly, pick fewer — never filler.')
     return '\n'.join(lines)
@@ -397,6 +503,15 @@ def curate(key, filtered, taste, seq, mon, window_rule, call=None, log=print, he
     # the candidate's series and interest ride onto every model pick (gap
     # fills and guaranteed sequels are candidate records already)
     picks = copy_series(picks, cands)
+    if inames:
+        # the model's answer is not trusted to hold the dial split: every
+        # interest is brought to its target from its own candidates, room made
+        # by the interests past theirs; the run's report says what moved
+        targets = interests.split(INTS)
+        top = cur.get('top_pick')
+        protected = {_key(p) for p in picks if top and p.get('id') == top}
+        protected |= {_key(c) for c in cands if c.get('aseq')}
+        picks = enforce_split(picks, cands, targets, hi, lane_days, end, protected, log)
     # no active interests: the request told the model to pick nothing — a
     # fill would be padding, and the never-pad rule holds over the cap
     fills = gap_fill(picks, cands, hi, lane_days, end) if inames else []
