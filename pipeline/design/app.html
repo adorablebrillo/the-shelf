@@ -1214,6 +1214,10 @@
         <section id="bm-section" aria-label="The book brew" style="max-width:720px">
           <p id="bm-intro" style="margin:22px 0 0;font-size:16px;line-height:1.6;color:#4A443A">Choose interests. Adjust how much you want. Turn an interest off for no picks. A book you add for an interest shows on My Shelf, never on Home.</p>
           <div id="bm-meter"></div>
+          <div style="margin:14px 0 0">
+            <button type="button" id="bm-retake" style="min-height:48px;font-size:10.5px;letter-spacing:.28em;text-transform:uppercase;padding:14px 24px;border:1px solid #6E2A2A;color:#6E2A2A;background:transparent;cursor:pointer">Retake the survey</button>
+            <p style="margin:8px 0 0;font-size:14px;line-height:1.5;color:#635846">Walk through the five questions again, with your answers filled in. Nothing changes until you save.</p>
+          </div>
           <p id="bm-msg" role="status" aria-live="polite" style="margin:12px 0 0;min-height:20px;font-style:italic;font-size:14px;color:#6E2A2A"></p>
           <div id="bm-interests" style="margin-top:8px"></div>
           <div style="margin-top:18px">
@@ -1997,6 +2001,7 @@ window.SHELF_METER={draw:draw,colors:COLORS,dials:DIALS};
       var sv=document.getElementById('set-save');if(sv)sv.onclick=save;
       var rf=document.getElementById('set-refresh');if(rf)rf.onclick=function(){var m=document.getElementById('set-model');loadModels(m&&m.value);};
       var rn=document.getElementById('set-run');if(rn)rn.onclick=curate;
+      var rt=document.getElementById('bm-retake');if(rt)rt.onclick=function(){if(window.SHELF_SURVEY)window.SHELF_SURVEY.open();};
       loadStatus().then(function(s){
         var m=document.getElementById('set-model');
         if(m&&!m.options.length){loadModels(s&&s.model);}
@@ -2008,6 +2013,12 @@ window.SHELF_METER={draw:draw,colors:COLORS,dials:DIALS};
         bmp.addEventListener('click',bmClick);
         bmp.addEventListener('input',bmInput);
         bmp.addEventListener('keydown',bmKey);
+      }
+      /* a survey saved from here changes the file behind the tab: read it again,
+         or the next dial change would send the older copy back */
+      if(!window.__bmSurveyBound){
+        window.__bmSurveyBound=true;
+        window.addEventListener('shelf:survey-saved',function(){bmLoad();});
       }
       bmLoad();
       startPolling();
@@ -2405,6 +2416,13 @@ function render(){
   if(st<5){var next=btn('next',function(){S.step++;S.msg='';render();});next.className='btn';nav.appendChild(next);}
   else {var save=btn('save to my shelf',saveSurvey);save.className='btn';nav.appendChild(save);}
   panel.appendChild(nav);
+  /* a first-run survey must be answered; one she opened herself can be left */
+  if(S.retake){
+    var leave=btn('leave without saving',close);
+    leave.className='lnk';
+    var lp=el('p','');lp.style.cssText='margin:10px 0 0;text-align:center';
+    lp.appendChild(leave);panel.appendChild(lp);
+  }
   host.innerHTML='';
   host.appendChild(panel);
   if(st===1||st===5){var f=panel.querySelector('h2');if(f)f.focus();}
@@ -2427,7 +2445,7 @@ function saveSurvey(){
    .then(function(res){
      if(!res.ok||!res.j||res.j.error){ S.msg=(res.j&&res.j.error)||'The shelf server could not save your answers.'; render(); return; }
      close();
-     try{window.dispatchEvent(new Event('shelf:interests'));}catch(_){}
+     try{window.dispatchEvent(new Event('shelf:interests'));window.dispatchEvent(new Event('shelf:survey-saved'));}catch(_){}
      toast(S.name+' is saved \u2014 the next run follows it.');
    })
    .catch(function(){ S.msg='The shelf server did not answer \u2014 nothing was saved.'; render(); });
@@ -2474,12 +2492,14 @@ function start(force){
        }),
        catalog:d.catalog||[],split:d.split||[],step:1,forId:null,results:[],msg:''};
     /* force is true only from SHELF_SURVEY.open(); DOMContentLoaded passes an Event */
+    S.retake=force===true;
     if(d.need_survey||force===true)open();
   }).catch(function(){});
 }
 
-/* the Settings tab (the next piece) opens the same survey, filled in */
-window.SHELF_SURVEY={open:function(){ if(S){S.step=1;S.msg='';open();} else start(true); },reload:start};
+/* the Settings tab's "Retake the survey" opens the same survey, filled in. It
+   reads the file again each time, so answers changed on the tab show up. */
+window.SHELF_SURVEY={open:function(){ if(!host)start(true); },reload:start};
 
 try{
   if(document.readyState!=='loading')start();
