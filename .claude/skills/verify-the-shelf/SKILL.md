@@ -59,7 +59,7 @@ npx -y chrome-devtools-axi eval '<js expression>'             # geometry, state
 npx -y chrome-devtools-axi console                             # errors since open
 ```
 
-Stable handles: aria-labels, not coordinates — the verdict buttons read `want to read X`, `mark X read`, `loved X`, `not for me — X`, `reading now — X`; the sections read `Home`, `My Shelf N`, `Series N`, `Archive`, `Settings`; sections are regions (`My reading corner`, `Reading now`, `This month's picks`, `Arriving in your series`, `Read and loved`, `Series at a glance`).
+Stable handles: aria-labels, not coordinates — the verdict buttons read `want to read X`, `mark X read`, `loved X`, `not for me — X`, `reading now — X`; the sections read `Home`, `My Shelf N`, `Series N`, `Finished Brews`, `Settings`; sections are regions (`My reading corner`, `Reading now`, `This month's picks`, `Arriving in your series`, `Series at a glance`).
 
 **Gotchas:** the app re-renders every 6.5 s, which bumps snapshot generations and stales refs — snapshot and click in the same shell command, and re-snapshot after any click. `eval` takes a single expression: pass an IIFE `(function(){...})()`, and prefer a quoted heredoc file over shell-escaped quoting. There is no reduced-motion emulation in this CLI; verify reduced-motion paths against the live stylesheet (`document.styleSheets`, the `prefers-reduced-motion: reduce` blocks) instead of faking the setting.
 

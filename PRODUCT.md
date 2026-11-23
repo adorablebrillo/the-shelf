@@ -66,7 +66,7 @@ and deciding the issue stays the page's main job.
   count), floor of two per interest, gaps filled from the strongest leftovers;
   thin months say so honestly.
 - The reader flow: want · read · loved · not for me. Nothing expires; read and
-  loved move to the archive; "not for me" sets a book aside and it never
+  loved move to Finished Brews; "not for me" sets a book aside and it never
   returns. No confirm dialogs; "not for me" everywhere (never "skip").
 - No buy links — discovery, not commerce.
 - Terminology that must survive: "My Shelf" (nav) with the page header

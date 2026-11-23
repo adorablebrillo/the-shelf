@@ -142,9 +142,6 @@
     .grlink::after{content:"";position:absolute;inset:-14px -6px}
     [data-m="recentline"]{min-height:3.2em !important}
     [data-m="verdicts"] button{min-height:44px !important;padding:11px 16px !important;font-size:11.5px !important;letter-spacing:.14em !important}
-    [data-m="tabs"] button{min-height:44px !important}
-    [data-m="plate"]{min-height:44px !important}
-    [data-m="stacks"] button{width:44px !important}
     [aria-label="Series at a glance"] > div:first-child button{min-height:44px !important;padding:12px 0 !important}
   }
   @media (max-width:340px){
@@ -383,6 +380,72 @@
     [data-m="pickcard"] > [data-m="verdicts"] button{padding:11px 4px !important;letter-spacing:.06em !important}
     [data-m="smallrow"]{margin-top:38px}
   }
+  /* THS-105: the Archive, Finished Brews — a library of bookcases. An arched
+     dark-wood top with a brass plate, a dark back wall with candle glow, a
+     wooden shelf under each row, gold edges. Decoration (old leather spines,
+     candles) is aria-hidden and never pressable; the real books stand face-out.
+     Sizes come from the case's own width, so 3 books fit a phone and 6 a laptop. */
+  [data-m="arcwrap"]{container:arc / inline-size}
+  .arc-case{--cw:clamp(60px,calc((100cqw - 104px) / 3),112px);--sw:9px;padding:0 12px 14px;border-radius:0 0 3px 3px;box-shadow:0 14px 22px -10px rgba(20,12,6,.8);
+    background:linear-gradient(90deg,#2a1810,#4a2c1a 12%,#56351f 50%,#4a2c1a 88%,#2a1810)}
+  @media (min-width:1100px){[data-m="arcwrap"] .arc-case{--cw:clamp(70px,calc((100cqw - 300px) / 6),112px);--sw:13px;padding:0 18px 18px}}
+  .arc-crown{position:relative;margin:0 -12px;padding:32px 14px 14px;text-align:center;border-bottom:6px solid #241309;
+    border-radius:50% 50% 0 0 / 46px 46px 0 0;
+    background:radial-gradient(60% 120% at 50% 100%,#6b4428,#3e2414 70%);
+    box-shadow:inset 0 3px 0 #d9b25e,inset 0 6px 0 #3e2414,inset 0 7px 0 #a77f33}
+  .arc-crown::after{content:"";position:absolute;left:12px;right:12px;bottom:-6px;height:2px;background:linear-gradient(90deg,#8a6420,#f6e3a1 50%,#8a6420)}
+  @media (min-width:1100px){.arc-crown{margin:0 -18px;padding-top:48px;border-radius:50% 50% 0 0 / 70px 70px 0 0}}
+  .arc-plate{display:inline-block;max-width:100%;box-sizing:border-box;padding:5px 14px;border-radius:2px;font-size:11px;font-weight:600;letter-spacing:.2em;text-transform:uppercase;color:#3a2414;
+    background:linear-gradient(#f0dc9e,#c49b48 60%,#a77f33);box-shadow:0 1px 0 rgba(255,255,255,.5) inset,0 2px 6px rgba(0,0,0,.6)}
+  .arc-shelf{position:relative;border-left:2px solid #b8892f;border-right:2px solid #b8892f;
+    background:radial-gradient(70% 90% at 50% 70%,rgba(255,170,80,.16),transparent 70%),linear-gradient(#170d07,#2b1a0f 70%,#1d1109);
+    box-shadow:inset 0 16px 20px rgba(0,0,0,.65),inset 12px 0 14px rgba(0,0,0,.45),inset -12px 0 14px rgba(0,0,0,.45)}
+  .arc-row{position:relative;z-index:2;display:flex;align-items:flex-end;gap:0;padding:22px 6px 0;overflow-x:clip}
+  .arc-deco{display:flex;align-items:flex-end;pointer-events:none;user-select:none}
+  .arc-left{flex:0 0 auto}
+  .arc-right{flex:1 1 0;min-width:0;overflow:hidden}
+  .arc-bk{flex:0 0 var(--cw);position:relative;margin:0 4px}
+  @media (min-width:1100px){.arc-bk{margin:0 5px}}
+  .arc-sp{flex:0 0 auto;margin-right:1px;position:relative;border-radius:1px 1px 0 0;
+    box-shadow:inset 2px 0 0 rgba(255,255,255,.12),inset -2px 0 0 rgba(0,0,0,.3);
+    --g1:#f6e3a1;--g2:#c9993a;--g3:#8a6420;
+    background-image:linear-gradient(90deg,rgba(0,0,0,.35),rgba(255,255,255,.10) 35%,rgba(255,255,255,.04) 55%,rgba(0,0,0,.4)),
+      linear-gradient(to bottom,transparent 3%,var(--g2) 3% 4.5%,transparent 4.5% 7%,var(--g1) 7% 8.2%,transparent 8.2% 9.4%,var(--g2) 9.4% 10.6%,transparent 10.6% 62%,var(--g2) 62% 63.2%,transparent 63.2% 64.4%,var(--g1) 64.4% 65.6%,transparent 65.6% 86%,var(--g2) 86% 87.2%,transparent 87.2% 88.4%,var(--g1) 88.4% 89.6%,transparent 89.6% 95%,var(--g3) 95% 96.5%,transparent 96.5%)}
+  .arc-sp::after{content:"";position:absolute;left:50%;top:73%;width:4px;height:4px;margin-left:-2px;rotate:45deg;background:linear-gradient(135deg,#f6e3a1,#8a6420)}
+  .arc-candle{flex:0 0 auto;display:flex;flex-direction:column;align-items:center;margin:0 6px}
+  .arc-flame{display:block;width:7px;height:12px;border-radius:50% 50% 45% 45%;
+    background:radial-gradient(circle at 50% 70%,#fff6c8,#ffcc55 45%,#ff8a2a 75%,transparent 80%);box-shadow:0 0 16px 8px rgba(255,180,80,.35)}
+  .arc-wax{display:block;width:11px;border-radius:2px 2px 0 0;background:linear-gradient(90deg,#efe4c8,#fffaf0 50%,#d8caa6)}
+  .arc-rail{position:relative;height:16px;margin:0 -12px;border-top:2px solid #e8c878;
+    background:linear-gradient(#8a5c36,#5e3c22 45%,#3e2414);box-shadow:0 8px 10px -2px rgba(0,0,0,.7),inset 0 -3px 0 #2a170c,inset 0 -4px 0 #b8892f}
+  @media (min-width:1100px){.arc-rail{margin:0 -18px}}
+  /* a real book: real cover art, or a house edition (cloth, a thin gold frame, a cup, title and author in gold) */
+  .arc-cover{position:relative;display:block;width:100%;aspect-ratio:2/3;padding:0;overflow:visible;text-align:left;
+    border:1px solid rgba(0,0,0,.55);box-shadow:4px 0 6px rgba(0,0,0,.45),inset 3px 0 0 rgba(255,255,255,.14),inset 5px 0 0 rgba(0,0,0,.18);
+    background:#D8CFBA;transition-property:translate,box-shadow;transition-duration:150ms}
+  .arc-cover:hover{translate:0 -4px}
+  /* the art loader flips the house edition's own display, so its layout lives one span in */
+  .arc-house{position:absolute;inset:0;overflow:hidden}
+  .arc-face{position:absolute;inset:0;box-sizing:border-box;display:flex;flex-direction:column;align-items:center;justify-content:space-between;padding:12px 8px 11px;text-align:center;color:#E3D1A0}
+  .arc-frame{position:absolute;inset:5px;border:1px solid rgba(200,178,122,.85);pointer-events:none}
+  .arc-cup{position:relative;width:34%;max-width:34px;height:auto;margin-top:2px}
+  .arc-ht{position:relative;font-family:'Cormorant Garamond',Garamond,serif;font-weight:500;font-size:clamp(11px,calc(var(--cw) * .15),16px);line-height:1.08;color:#E3D1A0;overflow-wrap:anywhere}
+  .arc-ha{position:relative;font-size:clamp(7px,calc(var(--cw) * .085),9px);letter-spacing:.14em;text-transform:uppercase;color:#C8B27A;overflow-wrap:anywhere}
+  .arc-done{position:absolute;top:-8px;left:50%;translate:-50% 0;z-index:3;white-space:nowrap;padding:3px 8px;border-radius:2px;font-size:9.5px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:#3a2414;
+    background:linear-gradient(#f6e3a1,#c9993a 60%,#a77f33);box-shadow:0 2px 4px rgba(0,0,0,.5)}
+  .arc-tag{position:absolute;left:50%;bottom:-22px;translate:-50% 0;rotate:-3deg;z-index:3;white-space:nowrap;padding:3px 7px;font-size:10px;letter-spacing:.14em;text-transform:uppercase;color:#6E2A2A;
+    background:#FBF6EC;border:1px solid #A8863F;box-shadow:1px 2px 0 rgba(33,30,25,.15)}
+  /* the book card: a sheet from the bottom on a phone, in the centre on a laptop */
+  .arc-veil{position:fixed;inset:0;z-index:90;display:flex;align-items:flex-end;justify-content:center;background:rgba(33,30,25,.45)}
+  @media (min-width:881px){.arc-veil{align-items:center}}
+  .arc-sheet{box-sizing:border-box;width:100%;max-width:480px;max-height:90vh;overflow-y:auto;padding:16px 18px 22px;background:#FBF6EC;border-top:3px solid #A8863F}
+  @media (min-width:881px){.arc-sheet{border:1px solid #A8863F;border-top-width:3px}}
+  .arc-close{float:right;min-height:44px;padding:0 10px;font-size:11px;letter-spacing:.2em;text-transform:uppercase;color:#635846}
+  .arc-sheet-top{display:grid;grid-template-columns:84px minmax(0,1fr);gap:14px;align-items:start;clear:both}
+  .arc-cover-card{width:84px;--cw:84px}
+  .arc-card-h{margin:0;font-family:'Cormorant Garamond',Garamond,serif;font-weight:500;font-size:25px;line-height:1.1}
+  .arc-card-p{margin:5px 0 0;font-size:12px;letter-spacing:.12em;text-transform:uppercase;color:#635846}
+  .arc-card-when{margin:8px 0 0;font-style:italic;font-size:16px;color:#4A443A}
 </style>
 </helmet>
 <div data-m="frame" data-season="{{ seasonKey }}" style="display:grid;grid-template-columns:276px minmax(0,1fr);min-height:100vh;background:#EDE6D8;color:#211E19;font-family:'EB Garamond',Georgia,serif;font-size:16px;line-height:1.6">
@@ -414,7 +477,7 @@
         <button type="button" onClick="{{ goHome }}" aria-current="{{ isHome }}" style="{{ navHome }}"><span style="flex:1;min-width:0;text-align:left">Home</span></button>
         <button type="button" onClick="{{ goShelf }}" aria-current="{{ isShelf }}" style="{{ navShelf }}"><span style="flex:1;min-width:0;text-align:left">My Shelf</span><span style="font-family:'Cormorant Garamond',Garamond,serif;font-size:18px;color:#C8B27A">{{ wantCount }}</span></button>
         <button type="button" onClick="{{ goSeries }}" aria-current="{{ isSeries }}" style="{{ navSeries }}"><span style="flex:1;min-width:0;text-align:left">Series</span><span style="font-family:'Cormorant Garamond',Garamond,serif;font-size:18px;color:#C8B27A">{{ seriesCount }}</span></button>
-        <button type="button" onClick="{{ goArchive }}" aria-current="{{ isArchive }}" style="{{ navArchive }}"><span style="flex:1;min-width:0;text-align:left">Archive</span><span style="font-family:'Cormorant Garamond',Garamond,serif;font-size:18px;color:#C8B27A">{{ archiveCount }}</span></button>
+        <button type="button" onClick="{{ goArchive }}" aria-current="{{ isArchive }}" style="{{ navArchive }}"><span style="flex:1;min-width:0;text-align:left">Finished Brews</span><span style="font-family:'Cormorant Garamond',Garamond,serif;font-size:18px;color:#C8B27A">{{ archiveCount }}</span></button>
         <button type="button" onClick="{{ goSettings }}" aria-current="{{ isSettings }}" style="{{ navSettings }}"><span style="flex:1;min-width:0;text-align:left">Settings</span></button>
       </nav>
 
@@ -434,7 +497,7 @@
     <button type="button" onClick="{{ goHome }}" aria-current="{{ isHome }}">Home</button>
     <button type="button" onClick="{{ goShelf }}" aria-current="{{ isShelf }}">My Shelf <span class="n">{{ wantCount }}</span></button>
     <button type="button" onClick="{{ goSeries }}" aria-current="{{ isSeries }}">Series <span class="n">{{ seriesCount }}</span></button>
-    <button type="button" onClick="{{ goArchive }}" aria-current="{{ isArchive }}">Archive</button>
+    <button type="button" onClick="{{ goArchive }}" aria-current="{{ isArchive }}">Finished Brews</button>
     <button type="button" onClick="{{ goSettings }}" aria-current="{{ isSettings }}">Settings</button>
   </nav>
 
@@ -820,7 +883,7 @@
       <p style="margin:0;font-size:10.5px;letter-spacing:.42em;text-transform:uppercase;color:#635846">02 · My Shelf</p>
       <h2 style="font-family:'Cormorant Garamond',Garamond,serif;font-weight:300;font-size:clamp(34px,5vw,56px);letter-spacing:.1em;text-transform:uppercase;margin:12px 0 0">My TBR list</h2>
       <sc-if value="{{ hasWant }}">
-        <p style="margin:10px 0 0;font-family:'Cormorant Garamond',Garamond,serif;font-style:italic;font-size:20px;color:#635846">{{ wantCount }} waiting · press read or loved and it moves to the archive.</p>
+        <p style="margin:10px 0 0;font-family:'Cormorant Garamond',Garamond,serif;font-style:italic;font-size:20px;color:#635846">{{ wantCount }} waiting · press read or loved and it moves to Finished Brews.</p>
       </sc-if>
       </div><sc-if value="{{ hasWant }}"><img data-m="populated-art" data-illustration="man" src="assets/man.png" width="120" height="100" alt="" aria-hidden="true" /></sc-if></div>
       <div data-m="addbook" style="margin-top:18px">
@@ -1000,8 +1063,8 @@
 
     <sc-if value="{{ isArchive }}">
     <div data-screen-label="Archive">
-      <p style="margin:0;font-size:10.5px;letter-spacing:.42em;text-transform:uppercase;color:#635846">04 · Archive</p>
-      <h2 style="font-family:'Cormorant Garamond',Garamond,serif;font-weight:300;font-size:clamp(34px,5vw,56px);letter-spacing:.1em;text-transform:uppercase;margin:12px 0 0">The archive</h2>
+      <p style="margin:0;font-size:10.5px;letter-spacing:.42em;text-transform:uppercase;color:#635846">04 · Finished Brews</p>
+      <h2 style="font-family:'Cormorant Garamond',Garamond,serif;font-weight:300;font-size:clamp(34px,5vw,56px);letter-spacing:.1em;text-transform:uppercase;margin:12px 0 0">Finished Brews</h2>
       <div data-m="addbook" style="margin-top:18px">
         <button type="button" onClick="{{ onAddToggle }}" aria-expanded="{{ addExpanded }}" style="font-size:11px;letter-spacing:.24em;text-transform:uppercase;color:#1E3A2F;border:1px solid #A8863F;padding:12px 18px;min-height:44px" style-hover="background:#1E3A2F;color:#F3EDE1;border-color:#1E3A2F">{{ addToggleLabel }}</button>
         <sc-if value="{{ addOpen }}">
@@ -1029,123 +1092,88 @@
           </section>
         </sc-if>
       </div>
-      <div data-m="tabs" role="tablist" aria-label="Archive views" onkeydown="{{ arcKey }}" style="display:flex;gap:0;margin-top:20px;border:1px solid #A8863F;width:max-content;max-width:100%;flex-wrap:wrap">
-        <button id="arc-tab-read" type="button" role="tab" aria-selected="{{ arcReadOn }}" aria-controls="arc-read" tabindex="{{ arcReadIdx }}" onClick="{{ showRead }}" style="{{ tabReadStyle }}">Read &amp; loved — {{ readLovedCount }}</button>
-        <button id="arc-tab-nfm" type="button" role="tab" aria-selected="{{ arcNfmOn }}" aria-controls="arc-nfm" tabindex="{{ arcNfmIdx }}" onClick="{{ showNfm }}" style="{{ tabNfmStyle }}">Not for me — {{ notForMeCount }}</button>
+      <!-- THS-105: the Archive is a library of bookcases. One count line, three
+           filters, then a bookcase per season (or one for loved, or the returns
+           cart). A book opens its card on a tap; marks change only there. -->
+      <div data-m="arcwrap">
+        <p data-m="arccount" style="margin:20px 0 0;font-family:'Cormorant Garamond',Garamond,serif;font-style:italic;font-size:21px;color:#4A443A">{{ arcSummary }}</p>
+        <div data-m="arcfilters" role="group" aria-label="Show in the Archive" style="display:flex;flex-wrap:wrap;gap:6px;margin-top:14px">
+          <sc-for list="{{ arcFilters }}" as="f">
+            <button type="button" aria-pressed="{{ f.on }}" onClick="{{ f.onClick }}" style="{{ f.style }}">{{ f.label }}</button>
+          </sc-for>
+        </div>
+        <p id="arc-gone" role="status" aria-live="polite" tabindex="-1" style="margin:12px 0 0;min-height:1.4em;outline:none;font-family:'Cormorant Garamond',Garamond,serif;font-style:italic;font-size:19px;color:#6E2A2A">{{ arcGone }}</p>
+
+        <sc-if value="{{ arcIsNfm }}">
+          <div style="margin-top:18px">
+            <h3 style="font-family:'Cormorant Garamond',Garamond,serif;font-weight:500;font-size:clamp(22px,2.8vw,30px);letter-spacing:.14em;text-transform:uppercase;margin:0">The returns cart</h3>
+            <p style="margin:8px 0 0;font-family:'Cormorant Garamond',Garamond,serif;font-style:italic;font-size:20px;color:#635846">Books you sent back. Open one and press not for me again to put it back.</p>
+          </div>
+        </sc-if>
+        <sc-if value="{{ arcEmpty }}">
+          <p style="margin:22px 0 0;font-family:'Cormorant Garamond',Garamond,serif;font-style:italic;font-size:20px;color:#635846">{{ arcEmptyText }}</p>
+        </sc-if>
+
+        <sc-for list="{{ arcCases }}" as="c" hint-placeholder-count="3">
+          <section aria-label="{{ c.plate }}" style="margin-top:30px">
+            <div class="arc-case">
+              <div class="arc-crown"><span class="arc-plate">{{ c.plate }}</span></div>
+              <sc-for list="{{ c.rows }}" as="r" hint-placeholder-count="2">
+                <div class="arc-shelf">
+                  <div class="arc-row">
+                    <div class="arc-deco arc-left" aria-hidden="true">
+                      <sc-for list="{{ r.left }}" as="sp"><sc-if value="{{ sp.plain }}"><span class="arc-sp" style="{{ sp.style }}"></span></sc-if></sc-for>
+                    </div>
+                    <sc-for list="{{ r.books }}" as="bk">
+                      <div class="arc-bk">
+                        <button type="button" class="arc-cover" data-arc-book="{{ bk.id }}" aria-haspopup="dialog" aria-label="{{ bk.aria }}" onClick="{{ bk.onOpen }}" style="{{ bk.houseStyle }}">
+                          <span class="arc-house" aria-hidden="true"><span class="arc-face"><span class="arc-frame"></span><svg class="arc-cup" viewBox="0 0 40 40" aria-hidden="true"><path d="M14 5c-3 3 3 4 0 8M21 4c-3 3 3 4 0 8" fill="none" stroke="#E3D1A0" stroke-width="1.3" stroke-linecap="round"/><path d="M8 18h22v8a8 8 0 0 1-8 8h-6a8 8 0 0 1-8-8z" fill="none" stroke="#E3D1A0" stroke-width="1.5"/><path d="M30 21h2.5a3.5 3.5 0 0 1 0 7H30" fill="none" stroke="#E3D1A0" stroke-width="1.5"/><path d="M5 37h28" stroke="#E3D1A0" stroke-width="1.5" stroke-linecap="round"/></svg><span class="arc-ht">{{ bk.title }}</span><span class="arc-ha">{{ bk.author }}</span></span></span>
+                          <img src="{{ bk.artSrc }}" alt="" style="position:absolute;top:0;left:0;width:100%;height:100%;object-fit:cover;display:none" data-art="1"/>
+                          <sc-if value="{{ bk.done }}"><span class="arc-done" aria-hidden="true">&#10022; Series complete</span></sc-if>
+                          <sc-if value="{{ bk.loved }}"><span class="arc-tag" aria-hidden="true">&#9829; loved it</span></sc-if>
+                        </button>
+                      </div>
+                    </sc-for>
+                    <div class="arc-deco arc-right" aria-hidden="true">
+                      <sc-for list="{{ r.right }}" as="sp">
+                        <sc-if value="{{ sp.plain }}"><span class="arc-sp" style="{{ sp.style }}"></span></sc-if>
+                        <sc-if value="{{ sp.candle }}"><span class="arc-candle"><span class="arc-flame"></span><span class="arc-wax" style="{{ sp.waxStyle }}"></span></span></sc-if>
+                      </sc-for>
+                    </div>
+                  </div>
+                  <div class="arc-rail"></div>
+                </div>
+              </sc-for>
+            </div>
+            <sc-if value="{{ c.hasLine }}"><p style="margin:8px 0 0;text-align:right;font-family:'Cormorant Garamond',Garamond,serif;font-style:italic;font-size:18px;color:#635846">{{ c.line }}</p></sc-if>
+          </section>
+        </sc-for>
       </div>
 
-      <sc-if value="{{ arcReadOn }}">
-        <div id="arc-read" role="tabpanel" aria-label="Read and loved">
-        <section aria-label="The stacks" style="margin-top:30px;background:#E5DCCA;padding:6px">
-          <div style="position:relative;border:1px solid #A8863F;overflow:hidden;background:radial-gradient(120% 82% at 50% 2%,#FBF6E9 0%,#F2EADA 42%,#E2D7BF 100%)">
-            <div style="position:relative;padding:28px 30px 26px;display:flex;flex-direction:column;align-items:center">
-              <p style="margin:0 0 14px;font-size:10px;letter-spacing:.4em;text-transform:uppercase;color:#635846;text-align:center">The stacks — shelved by author</p>
-              <div data-m="plate" style="display:flex;align-items:center;justify-content:center;gap:14px;margin:0 0 16px;min-height:24px;max-width:100%">
-                <span aria-hidden="true" style="flex:0 0 26px;height:1px;background:#A8863F"></span>
-                <p aria-hidden="true" style="margin:0;font-family:'Cormorant Garamond',Garamond,serif;font-style:italic;font-size:17px;line-height:1.3;color:#4A443A;text-align:center">{{ plate }}</p>
-                <span aria-hidden="true" style="flex:0 0 26px;height:1px;background:#A8863F"></span>
-              </div>
-              <div style="display:flex;flex-direction:column;align-items:stretch;width:max-content;max-width:100%">
-                <div style="border:1px solid #A8863F;border-bottom:none;border-radius:190px 190px 0 0;padding:30px 30px 0;background:linear-gradient(rgba(255,253,246,.7),rgba(255,253,246,0))">
-                  <div data-m="stacks" style="display:flex;align-items:flex-end;justify-content:center;flex-wrap:wrap;gap:5px;min-height:76px;max-width:700px">
-                    <sc-for list="{{ archiveSpines }}" as="bk" hint-placeholder-count="18">
-                      <button type="button" onClick="{{ bk.onClick }}" onmouseenter="{{ bk.onEnter }}" onmouseleave="{{ bk.onLeave }}" onfocus="{{ bk.onEnter }}" onblur="{{ bk.onLeave }}" aria-label="{{ bk.tip }}" style="{{ bk.style }}" style-hover="transform:translateY(-8px)"></button>
-                    </sc-for>
-                  </div>
+        <sc-if value="{{ hasArcCard }}">
+          <div class="arc-veil" onClick="{{ arcVeilClick }}" onkeydown="{{ arcCardKey }}">
+            <div class="arc-sheet" role="dialog" aria-modal="true" aria-labelledby="arc-card-h">
+              <button id="arc-card-close" type="button" class="arc-close" onClick="{{ arcClose }}">Close</button>
+              <div class="arc-sheet-top">
+                <div class="arc-cover arc-cover-card" style="{{ arcCard.houseStyle }}">
+                  <span class="arc-house" aria-hidden="true"><span class="arc-face"><span class="arc-frame"></span><svg class="arc-cup" viewBox="0 0 40 40" aria-hidden="true"><path d="M14 5c-3 3 3 4 0 8M21 4c-3 3 3 4 0 8" fill="none" stroke="#E3D1A0" stroke-width="1.3" stroke-linecap="round"/><path d="M8 18h22v8a8 8 0 0 1-8 8h-6a8 8 0 0 1-8-8z" fill="none" stroke="#E3D1A0" stroke-width="1.5"/><path d="M30 21h2.5a3.5 3.5 0 0 1 0 7H30" fill="none" stroke="#E3D1A0" stroke-width="1.5"/><path d="M5 37h28" stroke="#E3D1A0" stroke-width="1.5" stroke-linecap="round"/></svg><span class="arc-ht">{{ arcCard.title }}</span><span class="arc-ha">{{ arcCard.author }}</span></span></span>
+                  <img src="{{ arcCard.artSrc }}" alt="" style="position:absolute;top:0;left:0;width:100%;height:100%;object-fit:cover;display:none" data-art="1"/>
                 </div>
-                <div style="height:18px;border:1px solid #6E5A2E;background:repeating-linear-gradient(90deg,#B49A5E 0 2px,#E0CE9E 2px 7px,#B49A5E 7px 9px,rgba(110,90,46,.3) 9px 12px), linear-gradient(#E0CE9E,#A8863F)"></div>
-                <div style="height:14px;margin:0 36px;background:linear-gradient(#D8CBAC,#BCAD8A);border:1px solid #A8863F;border-top:none"></div>
+                <div style="min-width:0">
+                  <h4 id="arc-card-h" class="arc-card-h">{{ arcCard.title }}</h4>
+                  <p class="arc-card-p">{{ arcCard.author }}</p>
+                  <p class="arc-card-p">{{ arcCard.volLine }}</p>
+                  <sc-if value="{{ arcCard.interest }}"><p class="arc-card-p">{{ arcCard.interest }}</p></sc-if>
+                  <p class="arc-card-when">{{ arcCard.whenLine }}</p>
+                  <sc-if value="{{ arcCard.grHref }}"><p style="margin:10px 0 0;line-height:1.2"><a class="grlink" href="{{ arcCard.grHref }}" target="_blank" rel="noopener noreferrer" aria-label="{{ arcCard.grAria }}" style="{{ arcCard.grStyle }}">{{ arcCard.grLabel }}</a></p></sc-if>
+                </div>
               </div>
-              <p style="margin:14px 0 0;font-size:11.5px;letter-spacing:.2em;text-transform:uppercase;color:#635846;text-align:center">{{ shelfLine }}</p>
+              <div data-m="verdicts" role="group" aria-label="Mark {{ arcCard.title }}" style="display:flex;flex-wrap:wrap;gap:6px;margin-top:16px">
+                <sc-for list="{{ arcCard.pills }}" as="p" hint-placeholder-count="5"><button type="button" onClick="{{ p.onClick }}" aria-pressed="{{ p.on }}" aria-label="{{ p.aria }}" style="{{ p.style }}">{{ p.label }}</button></sc-for>
+              </div>
             </div>
           </div>
-        </section>
-
-        <section aria-label="Everything read" style="margin-top:46px">
-          <div style="display:flex;align-items:baseline;justify-content:space-between;gap:16px;flex-wrap:wrap">
-            <h3 style="font-family:'Cormorant Garamond',Garamond,serif;font-weight:500;font-size:clamp(22px,2.8vw,30px);letter-spacing:.14em;text-transform:uppercase;margin:0">Everything I have read</h3>
-            <span style="font-size:11px;letter-spacing:.28em;text-transform:uppercase;color:#635846">{{ readSeriesCount }} series represented</span>
-          </div>
-          <div style="height:1px;background:#A8863F;margin:14px 0 0"></div>
-          <sc-if value="{{ noRead }}">
-            <p style="margin:18px 0 0;font-family:'Cormorant Garamond',Garamond,serif;font-style:italic;font-size:20px;color:#635846">Nothing read yet. Press <em>read</em> or <em>loved</em> on a pick and it lands here.</p>
-          </sc-if>
-          <sc-for list="{{ readBySeries }}" as="s" hint-placeholder-count="8">
-            <div style="display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.5fr);gap:26px;align-items:start;padding:18px 0;border-bottom:1px solid #D6CCB6" data-m="two">
-              <div style="min-width:0">
-                <p style="margin:0;font-family:'Cormorant Garamond',Garamond,serif;font-size:21px;line-height:1.16">{{ s.name }}</p>
-                <p style="margin:3px 0 0;font-size:11.5px;letter-spacing:.14em;text-transform:uppercase;color:#635846">{{ s.author }}</p>
-                <sc-if value="{{ s.complete }}">
-                  <p style="margin:6px 0 0;font-size:9.5px;letter-spacing:.24em;text-transform:uppercase;color:#6E5A2E">complete</p>
-                </sc-if>
-              </div>
-              <ul style="list-style:none;margin:0;padding:0;min-width:0">
-                <sc-for list="{{ s.books }}" as="bk" hint-placeholder-count="2">
-                  <li style="display:flex;align-items:center;flex-wrap:wrap;gap:6px 10px;padding:4px 0">
-                    <span aria-hidden="true" style="{{ bk.thumbStyle }}"><img src="{{ bk.artSrc }}" alt="" style="position:absolute;top:0;left:0;width:100%;height:100%;object-fit:cover;display:none" data-art="1"/></span>
-                    <span aria-hidden="true" style="flex:0 0 14px;font-size:11px;color:#A8863F">✓</span>
-                    <span style="flex:1;min-width:0;font-family:'Cormorant Garamond',Garamond,serif;font-size:19px;line-height:1.3">{{ bk.t }} <span style="font-size:13.5px;color:#635846">{{ bk.n }}</span><sc-if value="{{ bk.grHref }}"><span style="display:block;margin-top:3px;line-height:1.2"><a class="grlink" href="{{ bk.grHref }}" target="_blank" rel="noopener noreferrer" aria-label="{{ bk.grAria }}" style="{{ bk.grStyle }}">{{ bk.grLabel }}</a></span></sc-if></span>
-                    <span data-m="verdicts" style="display:flex;gap:6px;flex-wrap:wrap;align-items:center;justify-content:flex-end"><sc-if value="{{ bk.vrCompact }}"><button type="button" onClick="{{ bk.vrOnOpen }}" aria-expanded="false" aria-label="{{ bk.vrSumAria }}" style="{{ bk.vrSumStyle }}">{{ bk.vrSumLabel }}</button></sc-if><sc-if value="{{ bk.vrOpen }}"><sc-for list="{{ bk.vrPills }}" as="p" hint-placeholder-count="5"><button type="button" onClick="{{ p.onClick }}" aria-pressed="{{ p.on }}" aria-label="{{ p.aria }}" style="{{ p.style }}">{{ p.label }}</button></sc-for></sc-if></span>
-                  </li>
-                </sc-for>
-              </ul>
-            </div>
-          </sc-for>
-        </section>
-
-        <section aria-label="Standalones" style="margin-top:46px">
-          <div style="display:flex;align-items:baseline;justify-content:space-between;gap:16px;flex-wrap:wrap">
-            <h3 style="font-family:'Cormorant Garamond',Garamond,serif;font-weight:500;font-size:clamp(22px,2.8vw,30px);letter-spacing:.14em;text-transform:uppercase;margin:0">Standalones</h3>
-            <span style="font-size:11px;letter-spacing:.28em;text-transform:uppercase;color:#635846">{{ soloCount }} read outside a series</span>
-          </div>
-          <div style="height:1px;background:#A8863F;margin:14px 0 0"></div>
-          <sc-if value="{{ noSolo }}">
-            <p style="margin:18px 0 0;font-family:'Cormorant Garamond',Garamond,serif;font-style:italic;font-size:20px;color:#635846">Nothing yet. Press <em>read</em> or <em>loved</em> on a pick and it lands here.</p>
-          </sc-if>
-          <sc-for list="{{ soloRows }}" as="b" hint-placeholder-count="3">
-            <div data-m="row" style="display:grid;grid-template-columns:minmax(0,74px) minmax(0,1fr) minmax(0,180px);gap:22px;align-items:center;padding:18px 0;border-bottom:1px solid #D6CCB6">
-              <div role="img" aria-label="{{ b.alt }}" style="{{ b.coverStyle }}"></div>
-              <div style="min-width:0">
-                <p style="margin:0;font-family:'Cormorant Garamond',Garamond,serif;font-size:23px;line-height:1.16">{{ b.title }}</p>
-                <p style="margin:4px 0 0;font-size:12.5px;letter-spacing:.14em;text-transform:uppercase;color:#635846">{{ b.pubGenreLine }}</p>
-                <sc-if value="{{ b.grHref }}"><p style="margin:6px 0 0;line-height:1.2"><a class="grlink" href="{{ b.grHref }}" target="_blank" rel="noopener noreferrer" aria-label="{{ b.grAria }}" style="{{ b.grStyle }}">{{ b.grLabel }}</a></p></sc-if>
-              </div>
-              <div data-m="verdicts" style="display:flex;flex-direction:column;align-items:flex-start;gap:8px">
-                <sc-for list="{{ b.vrPills }}" as="p" hint-placeholder-count="5"><button type="button" onClick="{{ p.onClick }}" aria-pressed="{{ p.on }}" aria-label="{{ p.aria }}" style="{{ p.style }}">{{ p.label }}</button></sc-for>
-              </div>
-            </div>
-          </sc-for>
-        </section>
-        </div>
-      </sc-if>
-
-      <sc-if value="{{ arcNfmOn }}">
-        <div id="arc-nfm" role="tabpanel" aria-label="Not for me">
-        <section aria-label="Not for me" style="margin-top:30px">
-          <p style="margin:0;font-family:'Cormorant Garamond',Garamond,serif;font-style:italic;font-size:20px;color:#635846">Books you set aside. Press not for me again to put one back: a pick returns to Home as open.</p>
-          <div style="height:1px;background:#A8863F;margin:16px 0 0"></div>
-          <sc-if value="{{ noNotForMe }}">
-            <p style="margin:22px 0 0;font-family:'Cormorant Garamond',Garamond,serif;font-style:italic;font-size:20px;color:#635846">Nothing set aside. Press <em>not for me</em> on a pick and it waits here.</p>
-          </sc-if>
-          <sc-for list="{{ notForMe }}" as="b" hint-placeholder-count="2">
-            <div data-m="row" style="display:grid;grid-template-columns:minmax(0,74px) minmax(0,1fr) minmax(0,150px);gap:22px;align-items:center;padding:18px 0;border-bottom:1px solid #D6CCB6">
-              <div role="img" aria-label="{{ b.alt }}" style="{{ b.coverStyle }}"></div>
-              <div style="min-width:0">
-                <p style="margin:0;font-family:'Cormorant Garamond',Garamond,serif;font-size:23px;line-height:1.16">{{ b.title }}</p>
-                <p style="margin:4px 0 0;font-size:12.5px;letter-spacing:.14em;text-transform:uppercase;color:#635846">{{ b.pubLine }}</p>
-                <sc-if value="{{ b.grHref }}"><p style="margin:6px 0 0;line-height:1.2"><a class="grlink" href="{{ b.grHref }}" target="_blank" rel="noopener noreferrer" aria-label="{{ b.grAria }}" style="{{ b.grStyle }}">{{ b.grLabel }}</a></p></sc-if>
-                <sc-if value="{{ b.hasTropes }}">
-                  <p style="margin:8px 0 0;font-size:14px;color:#4A443A">{{ b.tropeLine }}</p>
-                </sc-if>
-              </div>
-              <div data-m="verdicts" style="display:flex;flex-direction:column;align-items:flex-start;gap:8px">
-                <sc-for list="{{ b.vrPills }}" as="p" hint-placeholder-count="5"><button type="button" onClick="{{ p.onClick }}" aria-pressed="{{ p.on }}" aria-label="{{ p.aria }}" style="{{ p.style }}">{{ p.label }}</button></sc-for>
-              </div>
-            </div>
-          </sc-for>
-        </section>
-        </div>
-      </sc-if>
+        </sc-if>
     </div>
     </sc-if>
 
@@ -1543,7 +1571,7 @@ window.SHELF_METER={draw:draw,colors:COLORS,dials:DIALS};
       grBusy=false;
       if(!r.ok||r.j.error){grMsg(r.j.error||'The import failed \u2014 try again.');return;}
       var box=document.getElementById('gr-preview');if(box)box.style.display='none';
-      grMsg('Imported '+plural(r.j.imported||0,'book')+'. They are on My Shelf and in the Archive.');
+      grMsg('Imported '+plural(r.j.imported||0,'book')+'. They are on My Shelf and in Finished Brews.');
       try{window.dispatchEvent(new Event('shelf:imported'));}catch(_){}
     }).catch(function(){grBusy=false;grMsg('The shelf server did not answer \u2014 nothing was imported.');});
   }
@@ -2510,6 +2538,14 @@ function seasonWindow(season,nowIso){
           daysLeft:Math.max(0,endN-dayNum(nowIso)+1)};
 }
 function seasonName(key){return key.charAt(0).toUpperCase()+key.slice(1)}
+/* THS-105: the season a moment falls in and its plate ("christmas cocoa season
+   2026"), from the same table as the corner. Christmas in January belongs to
+   the year it started in. startN orders the bookcases, newest first. */
+function seasonOfTime(d,t){
+  const dt=new Date(t), season=seasonNow(d,dt).season, win=seasonWindow(season,isoDay(dt));
+  const label=(season.drink&&season.drink.label)||(seasonName(season.key)+' season');
+  return {key:season.key+':'+win.year, startN:win.startN, year:win.year, plate:label+' '+win.year};
+}
 function prettyDay(iso){
   const M=['January','February','March','April','May','June','July','August',
            'September','October','November','December'];
@@ -2595,7 +2631,7 @@ function hydrateIds(d){
 
 class Component extends DCLogic {
   state={ data:(typeof window!=='undefined'&&window.SHELF_DATA)?hydrateIds(window.SHELF_DATA):null,
-    states:{}, ts:{}, open:{}, q:0, view:'home', tip:'', peek:'', peekVol:false, vol:'', volOf:'', volT:0, plate:'', plateId:'', plateT:0, lastTapId:'', lastTapT:0, reading:{},
+    states:{}, ts:{}, open:{}, q:0, view:'home', tip:'', peek:'', peekVol:false, vol:'', volOf:'', volT:0, reading:{},
     /* THS-43 (Home part 2): the reading days per book, the stamps kept, and
        which stamp was pressed in during this visit (the celebration only
        fires for that one) */
@@ -2605,10 +2641,11 @@ class Component extends DCLogic {
        the server has answered, confirmed that the answer is a goal she gave,
        and ask opens Home's own question */
     goal:{n:null, live:false, confirmed:false, ask:false}, goalDraft:DEFAULT_SEASON_GOAL, goalMsg:'',
-    syn:{}, arc:'read', sync:'?',
+    syn:{}, arc:'read', arcOpen:'', arcGone:'', sync:'?',
     rowOpen:'', volSel:'', volSelOf:'', lastMark:null, issueDone:null,
     added:[], addOpen:false, addQ:'', addMsg:'', addResults:[],
-    mobile:(typeof window!=='undefined'&&window.matchMedia)?window.matchMedia('(max-width:880px)').matches:false };
+    mobile:(typeof window!=='undefined'&&window.matchMedia)?window.matchMedia('(max-width:880px)').matches:false,
+    wide:(typeof window!=='undefined'&&window.matchMedia)?window.matchMedia('(min-width:1100px)').matches:false };
 
   /* ---- one identity per book ------------------------------------------
      Every book carries the pipeline's canonical id — a month's pick and a
@@ -2656,13 +2693,35 @@ class Component extends DCLogic {
 
   setVolume(id,vs){ this.apply(id, vs==='read'?'unread':'read'); }
 
-  unreadId(id,isVolume){
-    const d0=this.state.data||{};
-    /* a book that is ALSO a pick/carry-over must come fully back to Home when
-       reversed — an 'unread' volume-mark would keep hiding the pick, so the
-       shared id is simply cleared (the volume face reads out-now on its own) */
-    const isPick=(d0.books||[]).concat(d0.pending||[],d0.resolved||[]).some(b=>b.id===id);
-    this.apply(id, isVolume&&!isPick ? 'unread' : null);
+  /* ---- THS-105: the Archive's book card ------------------------------
+     A book opens its card on a tap; focus goes to Close, and back to the book
+     when the card shuts. The card holds the one verdict row: a mark changes
+     only here. */
+  arcFocus(sel){ setTimeout(()=>{ try{ const el=document.querySelector(sel); if(el)el.focus(); }catch(e){} },0); }
+  arcOpenCard(id){ this.setState({arcOpen:id,arcGone:''}); this.arcFocus('#arc-card-close'); }
+  arcCloseCard(){
+    const id=this.state.arcOpen;
+    this.setState({arcOpen:''});
+    setTimeout(()=>{ try{
+      const el=document.querySelector('[data-arc-book="'+id+'"]')||document.querySelector('[data-m="arcfilters"] button[aria-pressed="true"]');
+      if(el)el.focus(); }catch(e){} },0);
+  }
+  /* a mark that takes the book out of the Archive shuts the card and says so */
+  arcLeft(title,toShelf){
+    this.setState({arcOpen:'',arcGone:title+(toShelf?' moved to My Shelf.':' left Finished Brews.')});
+    this.arcFocus('#arc-gone');
+  }
+  arcCardKey(e){
+    if(!e)return;
+    if(e.key==='Escape'){ try{e.preventDefault();e.stopPropagation();}catch(_){} this.arcCloseCard(); return; }
+    if(e.key!=='Tab')return;
+    /* the card holds focus: Tab wraps from its last control to its first */
+    const box=e.currentTarget&&e.currentTarget.querySelector('[role="dialog"]'); if(!box)return;
+    const f=Array.prototype.slice.call(box.querySelectorAll('button,a[href]'));
+    if(!f.length)return;
+    const first=f[0], last=f[f.length-1], at=document.activeElement;
+    if(e.shiftKey&&at===first){ e.preventDefault(); last.focus(); }
+    else if(!e.shiftKey&&at===last){ e.preventDefault(); first.focus(); }
   }
 
   /* ---- one verdict row everywhere a book shows ------------------
@@ -3200,6 +3259,9 @@ class Component extends DCLogic {
       this._mq=window.matchMedia('(max-width:880px)');
       this._mqListener=()=>this.setState({mobile:this._mq.matches});
       this._mq.addEventListener('change',this._mqListener);
+      this._wq=window.matchMedia('(min-width:1100px)');
+      this._wqListener=()=>this.setState({wide:this._wq.matches});
+      this._wq.addEventListener('change',this._wqListener);
     }
     /* #57: remember where the last tap/click landed so the confetti bursts
        from there (a plain global, not state — no re-render) */
@@ -3285,7 +3347,7 @@ class Component extends DCLogic {
     if(typeof document!=='undefined')document.addEventListener('visibilitychange',()=>{
       if(!document.hidden){this.flushOutbox(); this.pull(); this._goalStamps();}});
   }
-  componentWillUnmount(){ if(this._imp&&typeof window!=='undefined')window.removeEventListener('shelf:imported',this._imp); if(this._goal&&typeof window!=='undefined')window.removeEventListener('shelf:interests',this._goal); clearTimeout(this._goalRetry); clearTimeout(this._seasonRetry); clearInterval(this._t); clearInterval(this._s); clearTimeout(this._m); if(this._mq&&this._mqListener)this._mq.removeEventListener('change',this._mqListener); }
+  componentWillUnmount(){ if(this._imp&&typeof window!=='undefined')window.removeEventListener('shelf:imported',this._imp); if(this._goal&&typeof window!=='undefined')window.removeEventListener('shelf:interests',this._goal); clearTimeout(this._goalRetry); clearTimeout(this._seasonRetry); clearInterval(this._t); clearInterval(this._s); clearTimeout(this._m); if(this._mq&&this._mqListener)this._mq.removeEventListener('change',this._mqListener); if(this._wq&&this._wqListener)this._wq.removeEventListener('change',this._wqListener); }
 
   nav(on) {
     return { display:'flex', alignItems:'center', gap:'10px', width:'100%', padding:'13px 18px',
@@ -3295,10 +3357,6 @@ class Component extends DCLogic {
       marginRight: on?'-11px':'0' };
   }
 
-  tab(on) {
-    return { fontSize:'10.5px', letterSpacing:'.24em', textTransform:'uppercase', padding:'12px 18px', minHeight:'42px',
-      color: on?'#F3EDE1':'#635846', background: on?'#1E3A2F':'transparent' };
-  }
   pill(on,tone){
     const c=tone||FOREST;
     return {fontFamily:"'EB Garamond',Georgia,serif",fontSize:'10.5px',letterSpacing:'.22em',textTransform:'uppercase',
@@ -3717,8 +3775,6 @@ class Component extends DCLogic {
         const wk=weeksSince((b.issue||{}).ym);
         return {...card,waitNote:'You never decided · waiting '+wk+(wk===1?' week':' weeks')};}));
 
-    const CLOTH=['#6E2A2A','#2B3F38','#7A5A2A','#3E3630','#5A2F2A','#33443E','#6B4A25','#42382C'];
-
     /* ---- every book the page knows by id, for the season receipt ------- */
     const byId={};
     (d.books||[]).forEach(b=>{ byId[b.id]={t:b.title}; });
@@ -3752,67 +3808,143 @@ class Component extends DCLogic {
     const wantCount=wantList.length;
     const inSeries={}; d.series.forEach(s=>s.books.forEach(b=>{ if(b.id) inSeries[b.id]=1; }));
 
-    /* ---- Archive: the resolved side — read & loved · not for me ----------- */
-    const arc=this.state.arc||'read';
-    const seenA={};   // one identity per book — a re-recommendation renders once
-    const readSolo=picks.filter(b=>{ if((S[b.id]!=='read'&&S[b.id]!=='loved')||inSeries[b.id]||seenA[b.id])return false; seenA[b.id]=1; return true; });
-    const readBySeries=d.series.map(s=>{
-      const rows=s.books.filter(b=>vstate(s,b)==='read');
-      return {name:s.name,author:s.author,complete:rows.length>0&&rows.length===s.books.length,
-        books:rows.map(b=>({t:b.t,n:b.n,...this.verdictRow(b.id,b.t,{key:'arc|'+b.id}),
-          ...this.grFields(b.t,s.author,false,b.grUrl),
-          art:b.img||'',
-          artSrc:b.img||'data:image/gif;base64,R0lGODlhAQABAAAAACH5BAEKAAEALAAAAAABAAEAAAICTAEAOw==',
-          thumbStyle:{flex:'0 0 34px',width:'34px',height:'51px',position:'relative',overflow:'hidden',
-            background:'repeating-linear-gradient(90deg,#EFE7D6 0 4px,#E4DAC4 4px 8px)',
-            border:'1px solid '+(b.img?'rgba(33,30,25,.35)':'#D6CCB6')},
-          }))};
-    }).filter(s=>s.books.length);
-    const soloRows=readSolo.map((b,i)=>{
-      return {...this.book(b,i),...this.verdictRow(b.id,b.title)};
+    /* ---- Archive: the library of bookcases (THS-105) ---------------------
+       Every book she marked read or loved stands face-out in the bookcase of
+       the season she marked it in; the books she sent back stand in the
+       returns cart. One identity per book: a re-recommendation counts once. */
+    const arcFilter=(this.state.arc==='loved'||this.state.arc==='nfm')?this.state.arc:'read';
+    const arcPer=this.state.wide?6:3;
+    const pickBy={}; picks.forEach(b=>{ if(!pickBy[b.id])pickBy[b.id]=b; });
+    const interestOf=(id)=>{ const l=pickBy[id]&&pickBy[id].lane; return l?l.charAt(0).toUpperCase()+l.slice(1):''; };
+    const seenA={};
+    const arcEntry=(o)=>({...o,ts:Number(TS[o.id]||0),loved:S[o.id]==='loved',skip:S[o.id]==='skip',
+      interest:interestOf(o.id)});
+    /* a series is finished when every volume is read; the book marked last
+       carries the "series complete" plate, because a finished series leaves
+       the Series page and this is the one place left to say so */
+    const seriesDone={};
+    d.series.forEach(s=>{
+      const vols=s.books||[];
+      if(!vols.length||!vols.every(b=>vstate(s,b)==='read'))return;
+      let fin=null;
+      vols.forEach((b,i)=>{ const t=Number(TS[b.id]||0); if(t>0&&(!fin||t>=fin.t))fin={id:b.id,t:t}; });
+      if(fin)seriesDone[fin.id]=true;
     });
-    const notForMe=picks.filter(b=>{ if(S[b.id]!=='skip'||seenA[b.id])return false; seenA[b.id]=1; return true; })
-      .map((b,i)=>{ const card=this.book(b,i);
-        return {...card,hasTropes:!!card.tropeLine,...this.verdictRow(b.id,b.title)}; });
-    const readLovedCount=readBySeries.reduce((n,s)=>n+s.books.length,0)+soloRows.length;
-    const archiveCount=readLovedCount+notForMe.length;
-    const shelved=[];
-    d.series.forEach(s=>s.books.forEach(b=>{
-      if(vstate(s,b)!=='read')return;
-      shelved.push({t:b.t,a:s.author,s:s.name,loved:S[b.id]==='loved',id:b.id,vol:true});
+    const arcRead=[];
+    d.series.forEach(s=>(s.books||[]).forEach((b,i)=>{
+      if(!b.id||vstate(s,b)!=='read'||seenA[b.id])return; seenA[b.id]=1;
+      const num=parseInt(String(b.n||'').replace(/\D/g,''),10)||(i+1);
+      arcRead.push(arcEntry({id:b.id,title:b.t,author:s.author||'',img:b.img||'',grUrl:b.grUrl,
+        series:s.name,vol:num,of:s.books.length,done:!!seriesDone[b.id]}));
     }));
-    readSolo.forEach(b=>shelved.push({t:b.title,a:b.author,s:'standalone',loved:S[b.id]==='loved',id:b.id,vol:false}));
-    shelved.sort((x,y)=>(x.a||'').split(' ').pop().localeCompare((y.a||'').split(' ').pop()));
-    const archiveSpines=shelved.map((bk,i)=>{
-      const tip=bk.t+' — '+bk.a+' · '+bk.s+(bk.loved?' · loved':'');
-      return {tip,onClick:()=>{
-          /* touch: a tap only peeks; the reversal needs a second, deliberate tap
-             on the SAME spine. #43 review: the old guard compared plateId/plateT,
-             but every tap's compat mouseenter sets plateId to this spine 1ms
-             before the click — so any spine's first tap after 600ms silently
-             un-read a book. The reversal now anchors on lastTapId/lastTapT,
-             which are written ONLY here. */
-          if(this.state.mobile){
-            if(this.state.lastTapId===bk.id&&Date.now()-(this.state.lastTapT||0)>600){
-              this.setState({plate:'',plateId:'',lastTapId:'',lastTapT:0});
-              this.unreadId(bk.id,bk.vol); return; }
-            this.setState({plate:tip,plateId:bk.id,plateT:Date.now(),lastTapId:bk.id,lastTapT:Date.now()}); return; }
-          this.unreadId(bk.id,bk.vol); },
-        onEnter:()=>this.setState({plate:tip, plateId:bk.id}),
-        onLeave:()=>{
-          /* the tap's own compat mouseleave arrives within milliseconds: only a
-             deliberate leave clears the peek */
-          if(Date.now()-(this.state.plateT||0)<600)return;
-          this.setState({plate:'',plateId:''}); },
-        style:{flex:'0 0 auto',width:'18px',height:(48+((i*13)%22))+'px',padding:0,cursor:'pointer',
-          transition:'transform .18s ease',background:bk.loved?BLOOD:CLOTH[(i+1)%CLOTH.length],
-          border:'1px solid rgba(33,30,25,.5)',
-          boxShadow:'inset 0 -8px 0 rgba(232,220,192,.5), inset 0 3px 0 rgba(232,220,192,.35)'}};
+    picks.forEach(b=>{
+      if((S[b.id]!=='read'&&S[b.id]!=='loved')||inSeries[b.id]||seenA[b.id])return; seenA[b.id]=1;
+      arcRead.push(arcEntry({id:b.id,title:b.title,author:b.author||'',img:b.img||'',grUrl:b.grUrl,
+        series:String(b.series||''),vol:0,of:0,done:false}));
     });
-    const shelfLine=shelved.length
-      ?((this.state.mobile?'Tap a spine for its title · tap again to put it back on the shelf · '
-          :'Hover for the title · click to put one back on the shelf · ')+shelved.length+' books here')
-      :'Empty. Mark something read and it arrives.';
+    const arcNfm=[];
+    picks.forEach(b=>{
+      if(S[b.id]!=='skip'||seenA[b.id])return; seenA[b.id]=1;
+      arcNfm.push(arcEntry({id:b.id,title:b.title,author:b.author||'',img:b.img||'',grUrl:b.grUrl,
+        series:String(b.series||''),vol:0,of:0,done:false}));
+    });
+    const newestFirst=(x,y)=>y.ts-x.ts;
+    const arcLoved=arcRead.filter(e=>e.loved);
+    const readLovedCount=arcRead.length;
+    const notForMeCount=arcNfm.length;
+    const archiveCount=readLovedCount+notForMeCount;
+    const arcN=(n,one,many)=>n+' '+(n===1?one:many);
+    const arcSummary=arcN(arcRead.length,'book','books')+' read · '+arcLoved.length+' loved · '+notForMeCount+' not for me';
+    const arcFilters=[['read','Read & loved',arcRead.length],['loved','Loved only',arcLoved.length],['nfm','Not for me',notForMeCount]]
+      .map(f=>({label:f[1]+' · '+f[2],on:arcFilter===f[0]?'true':'false',
+        onClick:()=>this.setState({arc:f[0],arcGone:''}),
+        style:{fontFamily:"'EB Garamond',Georgia,serif",fontSize:'11px',letterSpacing:'.2em',textTransform:'uppercase',
+          minHeight:'44px',padding:'0 14px',border:'1px solid '+(arcFilter===f[0]?FOREST:GOLD),
+          background:arcFilter===f[0]?FOREST:'transparent',color:arcFilter===f[0]?'#F3EDE1':INK,cursor:'pointer'}}));
+
+    /* the cloth a house edition wears: the same book always the same cloth */
+    const CLOTH=['#6E2A2A','#2B3F38','#7A5A2A','#3E3630','#5A2F2A','#33443E','#6B4A25','#42382C'];
+    const clothOf=(id)=>{ let h=0; for(let i=0;i<id.length;i++)h=(h*31+id.charCodeAt(i))%9973; return CLOTH[h%CLOTH.length]; };
+    const GIF='data:image/gif;base64,R0lGODlhAQABAAAAACH5BAEKAAEALAAAAAABAAEAAAICTAEAOw==';
+    const LEATHER=['#5a2a22','#6b3a24','#3d2a1e','#7a4a2a','#2f3a30','#4a1e1e','#6e2a2a','#3a3026','#7c5a2e','#26302c'];
+    const rnd=(n)=>{ const x=Math.sin(n*9301+49297)*233280; return x-Math.floor(x); };
+    /* decoration only: old leather spines, and one candle per shelf */
+    const spines=(n,seed,candleAt)=>{
+      const out=[];
+      for(let i=0;i<n;i++){
+        const k=seed*31+i;
+        if(i===candleAt){ out.push({candle:true,plain:false,style:{},
+          waxStyle:{height:'calc(var(--cw) * '+(0.3+rnd(k+3)*0.25).toFixed(2)+')'}}); continue; }
+        out.push({candle:false,plain:true,waxStyle:{},
+          style:{height:'calc(var(--cw) * 1.5 * '+(0.72+rnd(k)*0.26).toFixed(2)+')',
+            backgroundColor:LEATHER[Math.floor(rnd(k+7)*LEATHER.length)],
+            width:'calc(var(--sw) * '+(0.8+rnd(k+5)*0.5).toFixed(2)+')'}});
+      }
+      return out;
+    };
+    const arcItem=(e)=>({id:e.id,title:e.title,author:e.author,loved:e.loved,done:e.done,
+      aria:e.title+(e.author?' by '+e.author:'')+(e.loved?', loved':'')+(e.skip?', not for me':'')+(e.done?', series complete':'')+'. Opens its book card.',
+      artSrc:e.img||GIF,houseStyle:{background:clothOf(e.id)},
+      onOpen:()=>this.arcOpenCard(e.id)});
+    const arcCase=(plate,entries,line)=>{
+      const rows=[], seed0=plate.length*7;
+      for(let i=0;i<entries.length;i+=arcPer){
+        const bs=entries.slice(i,i+arcPer), ri=rows.length, side=this.state.wide?6:2, slot=this.state.wide?9:10;
+        rows.push({books:bs.map(arcItem),
+          left:spines(side,seed0+ri*13,-1),
+          right:spines(side+(arcPer-bs.length)*slot+3,seed0+ri*13+5,ri%2?4:2)});
+      }
+      return {plate,rows,hasLine:!!line,line:line||''};
+    };
+    /* a book goes in the season of its mark's date, by the season table in
+       build.py; a book with no dated mark stands in the last case */
+    const arcCases=[];
+    if(arcFilter==='read'){
+      const by={};
+      arcRead.forEach(e=>{
+        const se=e.ts?seasonOfTime(d,e.ts):{key:'earlier',startN:-1,plate:'Earlier reads'};
+        e.season=se;
+        (by[se.key]=by[se.key]||{se:se,list:[]}).list.push(e);
+      });
+      Object.keys(by).map(k=>by[k]).sort((a,b)=>b.se.startN-a.se.startN).forEach(g=>{
+        g.list.sort(newestFirst);
+        arcCases.push(arcCase(g.se.plate,g.list,g.se.key==='earlier'
+          ?arcN(g.list.length,'book','books')+' from before The Shelf kept dates'
+          :arcN(g.list.length,'book','books')+' this season'));
+      });
+    }else if(arcFilter==='loved'){
+      if(arcLoved.length)arcCases.push(arcCase('House favourites',arcLoved.slice().sort(newestFirst),''));
+    }else{
+      if(arcNfm.length)arcCases.push(arcCase('Not for me',arcNfm.slice().sort(newestFirst),''));
+    }
+    arcRead.forEach(e=>{ if(!e.season)e.season=e.ts?seasonOfTime(d,e.ts):{key:'earlier',startN:-1,plate:'Earlier reads'}; });
+    const arcEmpty=arcCases.length===0;
+    const arcEmptyText=arcFilter==='read'?'Nothing read yet. Press read or loved on a pick and it lands here.'
+      :arcFilter==='loved'?'Nothing loved yet. Press loved on a book and it stands here.'
+      :'Nothing sent back. Press not for me on a pick and it waits here.';
+
+    /* the book card: opens on a tap, holds the one place a mark changes */
+    const arcAll=arcRead.concat(arcNfm);
+    const ce=this.state.arcOpen?arcAll.filter(e=>e.id===this.state.arcOpen)[0]:null;
+    let arcCard=null;
+    if(ce){
+      const fmt=(t)=>new Date(t).toLocaleDateString('en-GB',{day:'numeric',month:'long',year:'numeric'});
+      const volLine=ce.vol?ce.series+' · book '+ce.vol+' of '+ce.of+(ce.done?' · series complete':'')
+        :(ce.series||'Standalone');
+      const whenLine=!ce.ts?'Read before The Shelf kept dates'
+        :ce.skip?'Sent back on '+fmt(ce.ts)
+        :(ce.loved?'Loved on ':'Read on ')+fmt(ce.ts)+' · '+seasonOfTime(d,ce.ts).plate.replace(/^./,c=>c.toUpperCase());
+      const verbs=['reading','want','read','loved','skip'];
+      const row=this.verdictRow(ce.id,ce.title);
+      arcCard={title:ce.title,author:ce.author,volLine,interest:ce.interest,whenLine,
+        artSrc:ce.img||GIF,houseStyle:{background:clothOf(ce.id)},
+        ...this.grFields(ce.title,ce.author,false,ce.grUrl),
+        pills:row.vrPills.map((p,i)=>({...p,onClick:()=>{
+          const v=verbs[i], was=p.on==='true';
+          p.onClick();
+          if(was||v==='want'||v==='reading')this.arcLeft(ce.title,!was);
+        }}))};
+    }
 
     /* ---- #84: the add-a-book panel's results ----------------------------- */
     const addRows=(this.state.addResults||[]).map(r=>{
@@ -3908,11 +4040,11 @@ class Component extends DCLogic {
       isHome:this.state.view==='home', isShelf:this.state.view==='shelf', isSeries:this.state.view==='series',
       seriesScreenStyle:this.state.seriesExtra?{paddingBottom:this.state.seriesExtra+'px'}:{},
       isArchive:this.state.view==='archive', isSettings:this.state.view==='settings',
-      goHome:()=>{this.settingsLeave();this.setState({view:'home',tip:'',peek:'',peekVol:false,vol:'',volOf:'',plate:'',plateId:'',rowOpen:'',volId:'',volSel:'',volSelOf:'',lastMark:null,issueDone:null});},
-      goShelf:()=>{this.settingsLeave();this.setState({view:'shelf',tip:'',peek:'',peekVol:false,vol:'',volOf:'',plate:'',plateId:'',rowOpen:'',volId:'',volSel:'',volSelOf:'',lastMark:null,issueDone:null});},
-      goSeries:()=>{this.settingsLeave();this.setState({view:'series',seriesExtra:0,tip:'',peek:'',peekVol:false,vol:'',volOf:'',plate:'',plateId:'',rowOpen:'',volId:'',volSel:'',volSelOf:'',lastMark:null,issueDone:null});},
-      goArchive:()=>{this.settingsLeave();this.setState({view:'archive',tip:'',peek:'',peekVol:false,vol:'',volOf:'',plate:'',plateId:'',rowOpen:'',volId:'',volSel:'',volSelOf:'',lastMark:null,issueDone:null});},
-      goSettings:()=>{this.setState({view:'settings',tip:'',peek:'',peekVol:false,vol:'',volOf:'',plate:'',plateId:'',rowOpen:'',volId:'',volSel:'',volSelOf:'',lastMark:null,issueDone:null});this.settingsEnter();},
+      goHome:()=>{this.settingsLeave();this.setState({view:'home',tip:'',peek:'',peekVol:false,vol:'',volOf:'',rowOpen:'',volId:'',volSel:'',volSelOf:'',lastMark:null,issueDone:null});},
+      goShelf:()=>{this.settingsLeave();this.setState({view:'shelf',tip:'',peek:'',peekVol:false,vol:'',volOf:'',rowOpen:'',volId:'',volSel:'',volSelOf:'',lastMark:null,issueDone:null});},
+      goSeries:()=>{this.settingsLeave();this.setState({view:'series',seriesExtra:0,tip:'',peek:'',peekVol:false,vol:'',volOf:'',rowOpen:'',volId:'',volSel:'',volSelOf:'',lastMark:null,issueDone:null});},
+      goArchive:()=>{this.settingsLeave();this.setState({view:'archive',arcOpen:'',arcGone:'',tip:'',peek:'',peekVol:false,vol:'',volOf:'',rowOpen:'',volId:'',volSel:'',volSelOf:'',lastMark:null,issueDone:null});},
+      goSettings:()=>{this.setState({view:'settings',tip:'',peek:'',peekVol:false,vol:'',volOf:'',rowOpen:'',volId:'',volSel:'',volSelOf:'',lastMark:null,issueDone:null});this.settingsEnter();},
       navHome:this.nav(this.state.view==='home'), navShelf:this.nav(this.state.view==='shelf'),
       navSeries:this.nav(this.state.view==='series'), navArchive:this.nav(this.state.view==='archive'),
       navSettings:this.nav(this.state.view==='settings'),
@@ -3983,19 +4115,12 @@ class Component extends DCLogic {
       /* series — the full run of every open series */
       seriesList, seriesClosed, noSeries:seriesList.length===0, hasSeries:seriesList.length>0,
 
-      /* archive — read & loved · not for me */
-      arcReadOn:arc!=='nfm', arcNfmOn:arc==='nfm',
-      tabReadStyle:this.tab(arc!=='nfm'), tabNfmStyle:this.tab(arc==='nfm'),
-      showRead:()=>this.setState({arc:'read'}), showNfm:()=>this.setState({arc:'nfm'}),
-      readLovedCount, notForMe, notForMeCount:notForMe.length, noNotForMe:notForMe.length===0,
-      arcReadIdx:arc!=='nfm'?0:-1, arcNfmIdx:arc==='nfm'?0:-1,
-      arcKey:(e)=>{ const k=e&&e.key; if(k!=='ArrowLeft'&&k!=='ArrowRight')return;
-        const next=k==='ArrowRight'?'nfm':'read';
-        this.setState({arc:next});
-        try{ const el=document.getElementById('arc-tab-'+next); if(el)el.focus(); }catch(_){} },
-      readBySeries, readSeriesCount:readBySeries.length, noRead:readBySeries.length===0,
-      soloRows, soloCount:soloRows.length, noSolo:soloRows.length===0,
-      archiveSpines, shelfLine, plate:this.state.plate||'',
+      /* the Archive's bookcases (THS-105) */
+      arcSummary, arcFilters, arcCases, arcIsNfm:arcFilter==='nfm', arcEmpty, arcEmptyText,
+      arcGone:this.state.arcGone||'', hasArcCard:!!arcCard, arcCard:arcCard||{},
+      arcClose:()=>this.arcCloseCard(),
+      arcVeilClick:(e)=>{ if(e&&e.target===e.currentTarget)this.arcCloseCard(); },
+      arcCardKey:(e)=>this.arcCardKey(e),
 
       /* #84: add a book — one panel, at the top of My Shelf and the Archive */
       addOpen:!!this.state.addOpen, addExpanded:this.state.addOpen?'true':'false',
