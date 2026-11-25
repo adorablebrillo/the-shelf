@@ -891,7 +891,7 @@
         <sc-if value="{{ addOpen }}">
           <section aria-label="Add a book" style="margin-top:14px;padding:18px 20px 6px;border:1px solid #C6BBA3;background:#F6F1E4">
             <form role="search" onSubmit="{{ onAddSearch }}" style="display:flex;gap:10px;flex-wrap:wrap;align-items:stretch">
-              <label for="add-q" style="flex:1 1 100%;font-size:10.5px;letter-spacing:.28em;text-transform:uppercase;color:#635846">Search Apple Books by title or author</label>
+              <label for="add-q" style="flex:1 1 100%;font-size:10.5px;letter-spacing:.28em;text-transform:uppercase;color:#635846">Search Apple Books and Goodreads by title or author</label>
               <input id="add-q" name="q" type="text" autocomplete="off" placeholder="title or author" style="flex:1 1 220px;min-width:0;min-height:48px;box-sizing:border-box;background:#FBF6EC;border:1px solid #C6BBA3;padding:12px 14px;font-family:'EB Garamond',Georgia,serif;font-size:16px;color:#211E19"/>
               <button type="submit" style="flex:0 0 auto;min-height:48px;padding:12px 22px;font-size:11px;letter-spacing:.24em;text-transform:uppercase;background:#1E3A2F;color:#F3EDE1;border:1px solid #1E3A2F" style-hover="background:#2A5241">search</button>
             </form>
@@ -1070,7 +1070,7 @@
         <sc-if value="{{ addOpen }}">
           <section aria-label="Add a book" style="margin-top:14px;padding:18px 20px 6px;border:1px solid #C6BBA3;background:#F6F1E4">
             <form role="search" onSubmit="{{ onAddSearch }}" style="display:flex;gap:10px;flex-wrap:wrap;align-items:stretch">
-              <label for="add-q" style="flex:1 1 100%;font-size:10.5px;letter-spacing:.28em;text-transform:uppercase;color:#635846">Search Apple Books by title or author</label>
+              <label for="add-q" style="flex:1 1 100%;font-size:10.5px;letter-spacing:.28em;text-transform:uppercase;color:#635846">Search Apple Books and Goodreads by title or author</label>
               <input id="add-q" name="q" type="text" autocomplete="off" placeholder="title or author" style="flex:1 1 220px;min-width:0;min-height:48px;box-sizing:border-box;background:#FBF6EC;border:1px solid #C6BBA3;padding:12px 14px;font-family:'EB Garamond',Georgia,serif;font-size:16px;color:#211E19"/>
               <button type="submit" style="flex:0 0 auto;min-height:48px;padding:12px 22px;font-size:11px;letter-spacing:.24em;text-transform:uppercase;background:#1E3A2F;color:#F3EDE1;border:1px solid #1E3A2F" style-hover="background:#2A5241">search</button>
             </form>
@@ -1765,7 +1765,7 @@ window.SHELF_METER={draw:draw,colors:COLORS,dials:DIALS};
     var row=bmEl('div','display:flex;gap:8px');
     var inp=bmEl('input','flex:1;min-width:0;min-height:44px;box-sizing:border-box;background:#FBF6EC;border:1px solid #C6BBA3;padding:10px 12px;font-family:\'EB Garamond\',Georgia,serif;font-size:16px;color:#211E19');
     inp.type='search';inp.setAttribute('data-act','bm-q');inp.setAttribute('data-id',i.id);inp.value=BM_Q[i.id]||'';
-    inp.placeholder='search Apple Books';
+    inp.placeholder='search by title or author';
     var go=bmBtn('search','dosearch',i.id,'font-size:10.5px;letter-spacing:.24em;text-transform:uppercase;padding:12px 16px;border:1px solid #1E3A2F;background:#1E3A2F;color:#F3EDE1');
     go.setAttribute('data-id',i.id);
     row.appendChild(inp);row.appendChild(go);
@@ -1784,7 +1784,7 @@ window.SHELF_METER={draw:draw,colors:COLORS,dials:DIALS};
       var t=bmEl('span','flex:1;min-width:0');
       t.appendChild(bmEl('span','font-size:15px;color:#211E19',r.title));
       t.appendChild(document.createTextNode(' '));
-      t.appendChild(bmEl('span','font-size:13px;color:#635846;font-style:italic','— '+r.author));
+      t.appendChild(bmEl('span','font-size:13px;color:#635846;font-style:italic','— '+r.author+(r.source==='goodreads'?' · on Goodreads':'')));
       row.appendChild(t);
       var on=BM_BOOKS.filter(function(b){return b.id===r.id;})[0];
       if(on){
@@ -1847,12 +1847,13 @@ window.SHELF_METER={draw:draw,colors:COLORS,dials:DIALS};
   function bmSearchFor(id){
     var q=BM_Q[id];
     if(!q||!String(q).trim()){bmMsg('Type a title or an author first.');return;}
-    bmMsg('Searching Apple Books\u2026');
+    bmMsg('Searching Apple Books and Goodreads\u2026');
     fetch('/api/search?q='+encodeURIComponent(q))
       .then(function(r){return r.json();})
       .then(function(j){
         BM_RES[id]=(j&&j.results)||[];
-        bmMsg(!j||j.error?((j&&j.error)||'The search failed — try again.'):'');
+        bmMsg(!j||j.error?((j&&j.error)||'The search failed — try again.'):
+          (!BM_RES[id].length&&j.goodreads==='down'?'Apple Books has no match, and Goodreads did not answer — try again.':''));
         /* the renderer wants the interest, not its id; it may be gone by now */
         var i=bmFind(id);if(i)bmRenderRes(i);
       })
@@ -1881,7 +1882,7 @@ window.SHELF_METER={draw:draw,colors:COLORS,dials:DIALS};
     else if(act==='dosearch'){bmSearchFor(id);}
     else if(act==='addbook'){
       var r=(BM_RES[id]||[])[+v];if(!r)return;
-      var body={id:r.id,title:r.title,author:r.author,date:r.date,cover:r.cover,genre:r.genre,appleId:r.appleId,url:r.url,interest:id,reading:true};
+      var body={id:r.id,title:r.title,author:r.author,date:r.date,cover:r.cover,genre:r.genre,appleId:r.appleId,url:r.url,gr:r.gr,series:r.series,series_num:r.series_num,interest:id,reading:true};
       bmMsg('Adding\u2026');
       fetch('/api/books',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)})
         .then(function(x){return x.json();})
@@ -2268,7 +2269,7 @@ function toggleNever(w){
 function stepReading(){
   var f=document.createDocumentFragment();
   if(!S.interests.length){ f.appendChild(el('p','tiny','Go back and pick at least one shelf first.')); return f; }
-  f.appendChild(el('p','tiny','Choose what the book is for, then find it in Apple Books. The curator reads these as examples of your taste.'));
+  f.appendChild(el('p','tiny','Choose what the book is for, then find it in Apple Books or Goodreads. The curator reads these as examples of your taste.'));
   var chips=el('div','tiles');
   S.interests.forEach(function(x){
     var b=btn(x.label,function(){S.forId=x.id;render();});
@@ -2278,7 +2279,7 @@ function stepReading(){
   });
   f.appendChild(chips);
   f.appendChild(grp('Find a book'));
-  var row=el('div','row'),input=textInput('search Apple Books \u2014 try \u201cbaby\u201d','Search Apple Books',S.q);
+  var row=el('div','row'),input=textInput('search by title or author \u2014 try \u201cbaby\u201d','Search Apple Books and Goodreads',S.q);
   input.style.flex='1';
   row.appendChild(input);
   var sbtn=btn('search',function(){search(input.value.trim());});
@@ -2329,13 +2330,13 @@ function stepReading(){
 function search(q){
   if(!q){ S.msg='Type a title or an author first.'; render(); return; }
   S.q=q;
-  S.msg='Searching Apple Books\u2026'; S.results=[]; render();
+  S.msg='Searching Apple Books and Goodreads\u2026'; S.results=[]; render();
   fetch('/api/search?q='+encodeURIComponent(q))
    .then(function(r){return r.json();})
    .then(function(j){
      var res=(j&&j.results)||[];
      S.results=res;
-     S.msg=!res.length?'No books found for \u201c'+q+'\u201d.':'Found '+res.length+' book'+(res.length===1?'':'s')+'.';
+     S.msg=!res.length?(j&&j.goodreads==='down'?'Apple Books has no match, and Goodreads did not answer \u2014 try again.':'No books found for \u201c'+q+'\u201d.'):'Found '+res.length+' book'+(res.length===1?'':'s')+'.';
      render();
    })
    .catch(function(){ S.msg='The shelf server did not answer \u2014 try again.'; render(); });
@@ -2993,7 +2994,7 @@ class Component extends DCLogic {
   }
 
   /* ---- #84: add a book by search ---------------------------------------
-     A book the runs never picked: found on Apple Books, saved to the shelf
+     A book the runs never picked: found on Apple Books or Goodreads, saved to the shelf
      server's added-books file, and marked through the same /api/state path
      as every other verdict. It is filed on My Shelf or in the Archive only —
      never on Home, which stays for the issues' picks. */
@@ -3009,7 +3010,7 @@ class Component extends DCLogic {
   searchBooks(q){
     q=String(q||'').trim();
     if(!q){ this.setState({addMsg:'Type a title or an author first.',addResults:[]}); return; }
-    this.setState({addQ:q,addMsg:'Searching Apple Books\u2026',addResults:[]});
+    this.setState({addQ:q,addMsg:'Searching Apple Books and Goodreads\u2026',addResults:[]});
     fetch('/api/search?q='+encodeURIComponent(q))
       .then(r=>r.json().then(j=>({ok:r.ok,j})))
       .then(({ok,j})=>{
@@ -3017,7 +3018,7 @@ class Component extends DCLogic {
         const res=(j&&j.results)||[];
         this.setState({addResults:res,addMsg:!ok?((j&&j.error)||'The search failed \u2014 try again.')
           :(res.length?(res.length+(res.length===1?' book':' books')+' found \u2014 press a verdict to put one on your shelf.')
-          :'No books found for \u201c'+q+'\u201d.')}); })
+          :(j&&j.goodreads==='down'?'Apple Books has no match, and Goodreads did not answer \u2014 try again.':'No books found for \u201c'+q+'\u201d.'))}); })
       .catch(()=>{ if(this.state.addQ===q)this.setState({addMsg:'The shelf server did not answer \u2014 try again.'}); });
   }
   addBook(r){
@@ -3972,7 +3973,7 @@ class Component extends DCLogic {
 
     /* ---- #84: the add-a-book panel's results ----------------------------- */
     const addRows=(this.state.addResults||[]).map(r=>{
-      return {title:r.title, meta:[r.author,(r.date||'').slice(0,4)].filter(Boolean).join(' \u00b7 '),
+      return {title:r.title, meta:[r.author,(r.date||'').slice(0,4),r.source==='goodreads'?'on Goodreads':''].filter(Boolean).join(' \u00b7 '),
         alt:'Cover of '+r.title+' by '+r.author,
         coverStyle:{width:'56px',aspectRatio:'2/3',border:'1px solid '+INK,backgroundColor:'#D8CFBA',
           backgroundImage:r.cover?'url("'+r.cover+'")':'repeating-linear-gradient(90deg,#EFE7D6 0 5px,#E4DAC4 5px 10px)',

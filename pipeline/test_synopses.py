@@ -219,6 +219,13 @@ class NextSearchParseTests(Base):
         self.assertEqual(rows[1]['author'], 'SuperSummary')   # the study guide ranks second
         self.assertEqual(rows[2]['url'], 'https://www.goodreads.com/book/show/61431922-fourth-wing')
 
+    def test_a_result_carries_its_series_name_and_placement(self):
+        # THS-114 part 2: + add a book files a Goodreads-only book with it. A
+        # repeated series is a back-reference in the data, so that row reads as none
+        rows = S.parse_search(next_search_html())
+        self.assertEqual((rows[0]['series'], rows[0]['series_num']), ('The Empyrean', '1'))
+        self.assertEqual(rows[1]['series'], '')
+
     def test_a_result_blurb_is_read_whole_from_its_text_row(self):
         # a long blurb is a separate text row whose length counts UTF-8 bytes;
         # the blurb holds curly quotes and bullets, so a character count would

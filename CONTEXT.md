@@ -139,7 +139,7 @@ What opens when a book in Finished Brews is tapped: the cover, title, author, se
 A read book that isn't part of a series.
 
 **Added book**:
-A book the reader added herself with **+ add a book** (an Apple Books search at the top of My Shelf and Finished Brews) or brought in with the **Goodreads import**, not one a run picked. It lives in `added-books.json` on the config volume, keyed by the same book identity as every pick, and takes a verdict like any book. It files on My Shelf or in Finished Brews only — never on Home as a pick, with one exception: the book she is reading now shows in Home's reading-now card as a progress book. Taking its verdict back takes it off the shelf.
+A book the reader added herself with **+ add a book** (an Apple Books and Goodreads search at the top of My Shelf and Finished Brews: Apple's rows first, then the Goodreads books Apple lacks, so a Kindle-only book can be added; one tagged *on Goodreads* is saved with its Goodreads id, and its page is read once for date and cover) or brought in with the **Goodreads import**, not one a run picked. It lives in `added-books.json` on the config volume, keyed by the same book identity as every pick, and takes a verdict like any book. It files on My Shelf or in Finished Brews only — never on Home as a pick, with one exception: the book she is reading now shows in Home's reading-now card as a progress book. Taking its verdict back takes it off the shelf.
 _Avoid_: manual book, custom book
 
 **Goodreads link**:
