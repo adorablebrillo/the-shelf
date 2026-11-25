@@ -203,6 +203,41 @@ class ReaderTests(unittest.TestCase):
         self.assertEqual(cache, {})
 
 
+class CuratorAskTests(unittest.TestCase):
+    """The two curator questions share one call: the words and the genres
+    come out of whatever JSON the model wraps, and a bad answer is an empty
+    list, never a raise."""
+
+    def ask(self, content):
+        import urllib.request
+        orig = urllib.request.urlopen
+
+        class R:
+            def __enter__(s): return s
+            def __exit__(s, *a): return False
+            def read(s): return json.dumps({'choices': [{'message': {'content': content}}]}).encode()
+        urllib.request.urlopen = lambda req, timeout=0: R()
+        try:
+            return (releases.curate.suggest_slugs('k', 'Hockey romance'),
+                    releases.curate.suggest_terms('k', 'Hockey romance'))
+        finally:
+            urllib.request.urlopen = orig
+
+    def test_slugs_are_cleaned_and_unsafe_ones_dropped(self):
+        slugs, _ = self.ask('Here: {"slugs": ["Sports Romance", "../etc", "sports-romance", "hockey_romance", "x"]}')
+        self.assertEqual(slugs, ['sports-romance', 'hockey-romance', 'x'])
+
+    def test_terms_still_need_three(self):
+        _, terms = self.ask('{"queries": ["a b", "c d", "e f"]}')
+        self.assertEqual(terms, ['a b', 'c d', 'e f'])
+        _, few = self.ask('{"queries": ["a b"]}')
+        self.assertEqual(few, [])
+
+    def test_an_answer_that_is_not_json_is_empty(self):
+        self.assertEqual(self.ask('no idea'), ([], []))
+        self.assertEqual(self.ask('["a"]'), ([], []))
+
+
 class PickEntriesTests(unittest.TestCase):
     def test_seen_books_and_repeats_across_lists_are_left_out(self):
         a = [dict(id='1', name='One', author='A'), dict(id='2', name='Two', author='B')]
@@ -358,6 +393,13 @@ class RunTests(unittest.TestCase):
         self.run_main()
         self.assertEqual(asked, [])
 
+    def test_an_interest_that_wants_new_and_best_ever_books_reads_its_list(self):
+        self.set_interests([{'id': 'sport', 'label': 'Sport romance', 'kind': 'story',
+                             'dial': 'into it', 'mode': 'both'}])
+        self.goodreads(self.pages())
+        _, rep = self.run_main()
+        self.assertEqual(rep['interests']['sport romance']['listed'], 8)
+
     def test_a_typed_interest_asks_the_curator_once_and_keeps_the_slug(self):
         self.set_interests([{'id': 'hockey', 'label': 'Hockey romance', 'kind': 'story', 'dial': 'into it'}])
         releases.curate.api_key = lambda: 'key'
@@ -370,14 +412,16 @@ class RunTests(unittest.TestCase):
         self.run_main()
         self.assertEqual(self.slug_calls, ['Hockey romance'])      # the second run asks no one
 
-    def test_a_suggested_genre_with_no_books_is_not_kept(self):
+    def test_a_suggested_genre_with_no_books_is_not_kept_and_the_curator_is_asked_again(self):
         self.set_interests([{'id': 'hockey', 'label': 'Hockey romance', 'kind': 'story', 'dial': 'into it'}])
         releases.curate.api_key = lambda: 'key'
-        releases.curate.suggest_slugs = lambda key, label: ['not-a-genre']
+        releases.curate.suggest_slugs = lambda key, label: self.slug_calls.append(label) or ['not-a-genre']
         self.goodreads({'new_releases/not-a-genre': EMPTY})
         out, rep = self.run_main()
         self.assertNotIn('gr_slug', self.interest())
         self.assertEqual(rep['interests']['hockey romance']['reason'], 'no Goodreads genre')
+        self.run_main()
+        self.assertEqual(self.slug_calls, ['Hockey romance', 'Hockey romance'])
 
     def test_no_key_means_a_typed_interest_has_no_list_and_the_rest_still_run(self):
         self.set_interests([{'id': 'sport', 'label': 'Sport romance', 'kind': 'story', 'dial': 'into it'},
@@ -386,6 +430,27 @@ class RunTests(unittest.TestCase):
         out, rep = self.run_main()
         self.assertIn('no OpenRouter key', rep['interests']['hockey romance']['reason'])
         self.assertEqual(rep['interests']['sport romance']['listed'], 8)
+
+    def test_the_stage_stops_at_its_time_budget_and_keeps_what_it_found(self):
+        self.goodreads(self.pages())
+        served = reference._get
+        real_sleep = self._saved[-1]      # setUp stood in for sleep; this wait is real
+
+        def slow(url, timeout=0):
+            if 'new_releases' not in url:
+                real_sleep(0.3)          # a slow book page: 0.3 s of the 0.5 s budget
+            return served(url)
+        reference._get = slow
+        old = releases.BUDGET
+        releases.BUDGET = 0.5
+        try:
+            out, rep = self.run_main()
+        finally:
+            releases.BUDGET = old
+        self.assertTrue(rep['ok'])
+        self.assertEqual(rep['page_reads'], 2)
+        self.assertIn('time budget', rep['reason'])
+        self.assertEqual(sum(1 for u in rep['unobtainable'] if u['reason'] == 'time budget'), 6)
 
 
 class ProofRuleTests(unittest.TestCase):

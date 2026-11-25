@@ -28,5 +28,6 @@
   "synopsis_budget_seconds": 180,
   "goodreads_gap_seconds": 10,
   "releases_page_cap": 30,
-  "releases_entry_cap": 80
+  "releases_entry_cap": 80,
+  "releases_budget_seconds": 600
 }

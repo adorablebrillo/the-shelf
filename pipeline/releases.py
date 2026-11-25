@@ -4,7 +4,8 @@
 Apple Books cannot show a book it does not sell, and most Kindle-first books
 are not there. Goodreads lists them: every genre has a new-release page
 (goodreads.com/genres/new_releases/<slug>). For each interest whose dial is
-on (a best-ever interest is skipped: its books are not new), this stage:
+on (an interest whose mode is 'best ever' is skipped: its books are not new;
+'new' and 'both' are read), this stage:
 
   1. reads that interest's genre list once (one polite request);
   2. drops the books the shelf already saw (the pool, her marks);
@@ -17,15 +18,17 @@ on (a best-ever interest is skipped: its books are not new), this stage:
      found_by 'goodreads-genre:<slug>'.
 
 A catalog interest has a fixed genre slug (interests.CATALOG); a typed one is
-asked of the curator once, checked against the live list, and kept in
-interests.json like the search words are.
+asked of the curator, checked against the live list, and kept in
+interests.json like the search words are once a suggestion lists books.
 
 Everything here is best-effort, like reference.py: any failure prints why,
 writes data/releases-<month>.json with ok:false and exits 0 — the run goes on
 with Apple alone. Goodreads answers a client without a browser with a bot
 challenge once it asks too often (synopses.py measured it): book pages are read
 `goodreads_gap_seconds` apart, capped per run, cached by Goodreads id, and the
-first challenge ends the page reads for the run.
+first challenge ends the page reads for the run. The stage also stops itself
+at a time budget and writes what it has: the server ends the whole run when a
+stage passes its limit, and that would lose the finds.
 """
 import json
 import os
@@ -46,6 +49,10 @@ CFG = fetch.CFG
 LIST_URL = 'https://www.goodreads.com/genres/new_releases/%s'
 PAGE_CAP = int(CFG.get('releases_page_cap', 30))     # Goodreads book pages read per run
 ENTRY_CAP = int(CFG.get('releases_entry_cap', 80))   # list entries looked up per run, all interests
+# The server stops a stage after 1500 s and ends the run before curate; a stage that
+# stops itself earlier keeps its finds. The budget leaves room for the read in flight
+# (an Apple search with 429 retries, a page read timing out at 25 s).
+BUDGET = float(CFG.get('releases_budget_seconds', 600))
 PAGE_GAP = float(CFG.get('goodreads_gap_seconds', 10))
 CACHE_DAYS = 14      # ratings move: a page read older than this is read again
 APPLE_FAILS = 3      # Apple searches that fail in this stage before it stops asking Apple
@@ -220,6 +227,7 @@ def pick_entries(lists, seen, cap):
 
 
 def main():
+    deadline = time.time() + BUDGET
     mon = target_month(fetch.MODE)
     outdir = os.path.join(paths.BASE, CFG.get('output_dir', 'data'))
     rep_path = os.path.join(outdir, 'releases-%s.json' % mon)
@@ -247,12 +255,15 @@ def main():
     lists, slugs_found = [], False
     for i in doc.get('interests') or []:
         nm, label = interests.name(i), i.get('label') or interests.name(i)
-        if interests.dial(i) == 'off' or interests.best_ever(i):
+        if interests.dial(i) == 'off' or interests.mode(i) == 'best ever':
             continue
         row = report['interests'][nm] = {'label': label, 'slug': '', 'listed': 0, 'new': 0,
                                          'apple': 0, 'goodreads': 0, 'missed': 0, 'reason': ''}
         slug = interests.gr_slug(i)
         html = None
+        if time.time() > deadline:
+            row['reason'] = 'time budget reached before its list was read'
+            continue
         try:
             if slug:
                 time.sleep(reference.GAP)
@@ -304,7 +315,14 @@ def main():
     start_failed = fetch.STATS['search']['failed']
     apple_ok = lambda: fetch.STATS['search']['failed'] - start_failed < APPLE_FAILS
     found = []
+    out_of_time = 0
     for nm, slug, e in todo:
+        if time.time() > deadline:
+            out_of_time += 1
+            report['interests'][nm]['missed'] += 1
+            report['unobtainable'].append({'title': e['name'], 'author': e['author'],
+                                           'url': e['url'], 'reason': 'time budget'})
+            continue
         try:
             c, via, why = candidate_for(e, nm, slug, mon, apple_cache, reader, apple_ok)
         except Exception as ex:
@@ -323,6 +341,9 @@ def main():
                 json.dump(blob, f, indent=0)
         except Exception:
             pass
+    if out_of_time:
+        report['reason'] = ('; '.join(x for x in (report['reason'], '%d not looked up (time budget %d s reached)'
+                                                  % (out_of_time, BUDGET)) if x))
     report['page_reads'], report['page_cache_hits'] = reader.reads, reader.cached
     report['challenged'] = reader.challenged
 

@@ -110,8 +110,8 @@ saved as JSON in `data/`.
 
 ## The Goodreads new releases (releases.py)
 
-Runs right after fetch. For each interest whose dial is on (a best-ever interest
-is skipped), it reads that interest's Goodreads genre list once
+Runs right after fetch. For each interest whose dial is on (an interest whose mode is
+*best ever* is skipped; *new* and *both* are read), it reads that interest's Goodreads genre list once
 (`goodreads.com/genres/new_releases/<slug>`), drops the books the shelf already
 saw, and looks up the rest — at most `releases_entry_cap` (80) per run, the
 interests taking turns. A book is looked up on Apple Books first; with no Apple
@@ -122,14 +122,18 @@ appended to the month's candidates, lane = the interest, `found_by:
 goodreads-genre:<slug>`.
 
 A catalog interest has a fixed genre (`gr_slug` in `interests.py`); a typed
-interest asks the curator once for up to 3, keeps the first one whose list shows
-books as `gr_slug` in `interests.json`, and asks no one again.
+interest asks the curator for up to 3 and keeps the first one whose list shows
+books as `gr_slug` in `interests.json`; from then on it asks no one. When none
+of the suggestions lists books (Baby development, or Goodreads' bot check on the
+list read), nothing is kept and the curator is asked again on the next run.
 
 Goodreads answers a client without a browser with a bot check once it asks too
 often (`synopses.py` measured it), so book pages are read `goodreads_gap_seconds`
 (10) apart, at most `releases_page_cap` (30) per run, cached by Goodreads id for
 14 days in `data/goodreads-cache.json`, and the first bot check ends the page
-reads for that run. Everything is best-effort like the reference below: a
+reads for that run. The whole stage has a time budget (`releases_budget_seconds`,
+600): when it runs out the stage stops looking up books and writes what it has,
+so the server's 25-minute stage limit can never cut the run short. Everything is best-effort like the reference below: a
 failure prints why, `data/releases-<month>.json` says `ok:false`, and the run
 goes on with Apple alone.
 

@@ -5,7 +5,7 @@ web app (Cormorant Garamond, forest-green hero panels) that curates **new
 releases across the reader's interests — the book brew, any genre or topic;
 a fresh install starts with three romance ones — sport romance, romantasy &
 contemporary romance — at up to 12 picks an issue** — for one reader, every 1st of
-the month: fetch → Goodreads reference → filter → OpenRouter curation → build → serve. Five sections — **Home**
+the month: fetch → Goodreads new releases → Goodreads reference → filter → OpenRouter curation → build → serve. Five sections — **Home**
 (the reading-now card, the issue line with its progress bar, the month's picks, the book brew widget with each
 interest's dial, a list of anticipation countdown cards),
 **My Shelf**, **Series**, **Finished Brews** and **Settings**; on a phone the sections sit in a bar at the bottom of the screen.
