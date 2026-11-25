@@ -4,6 +4,7 @@ Serves the built page, holds settings (OpenRouter key, model), schedules the
 monthly run (1st, 09:00), exposes a small JSON API used by the in-page
 Settings pane. Pure stdlib — no pip installs."""
 import json, os, re, shutil, glob, sys, subprocess, tempfile, threading, time, urllib.request
+from concurrent.futures import ThreadPoolExecutor
 from contextlib import contextmanager, nullcontext
 from datetime import datetime, timedelta
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
@@ -382,7 +383,8 @@ class H(BaseHTTPRequestHandler):
         elif u.path == '/api/search':
             q = (parse_qs(u.query).get('q') or [''])[0]
             try:
-                self._json({'results': search_books(q)})
+                rows, gr_ok = search_all(q)
+                self._json({'results': rows, 'goodreads': 'ok' if gr_ok else 'down'})
             except Exception as e:
                 log('book search failed: %s' % str(e)[:80])
                 self._json({'error': 'Apple Books did not answer — try again', 'results': []}, 502)
@@ -781,11 +783,8 @@ def _clean(v, n=200):
     return ' '.join(str(v or '').split())[:n]
 
 
-def search_books(q, get_text=_get_text):
+def _apple_rows(q, get_text):
     """Up to 10 Apple Books ebook results for a free-text query."""
-    q = _clean(q, 120)
-    if not q:
-        return []
     url = 'https://itunes.apple.com/search?' + urlencode(
         {'term': q, 'media': 'ebook', 'entity': 'ebook', 'limit': 10, 'country': apple_country()})
     book_key = _pipeline_import('bookids').book_key
@@ -804,6 +803,109 @@ def search_books(q, get_text=_get_text):
                     'appleId': str(it.get('trackId') or ''),
                     'url': str(it.get('trackViewUrl') or '').split('?')[0]})
     return out[:10]
+
+
+# Kindle-only books are not in Apple Books, so every search also asks
+# Goodreads and lists the books Apple lacks after Apple's own rows. Apple's
+# search is fuzzy and never answers empty (a title it lacks returns older
+# books with similar words), so "Apple has no match" cannot be the trigger.
+GOODREADS_ROWS = 5
+
+
+class GoodreadsDown(Exception):
+    """Goodreads gave no usable answer: its bot challenge, a failed request or
+    a page whose markup the parser does not know. Never a real no-match."""
+
+
+def _goodreads_get(url):
+    return _pipeline_import('reference')._get(url, timeout=15)
+
+
+def goodreads_rows(q, get_page=_goodreads_get):
+    """Up to GOODREADS_ROWS Goodreads search rows shaped like Apple's rows
+    (cover and date stay empty: Goodreads' search leaves them out, and the
+    add reads the book's own page once). Raises GoodreadsDown when it cannot
+    say; a real search with no result is []."""
+    syn = _pipeline_import('synopses')
+    book_key = _pipeline_import('bookids').book_key
+    try:
+        html = get_page(syn.search_url(q, ''))
+    except Exception as e:
+        raise GoodreadsDown(str(e)[:80])
+    if syn._suspect(html):
+        raise GoodreadsDown('bot challenge')
+    rows = syn.parse_search(html)
+    if rows is None:
+        if syn._looks_like_search(html):
+            return []
+        raise GoodreadsDown('unknown page')
+    out, seen = [], set()
+    series = {}   # book id -> (series, number) from any of its editions' rows
+    for r in rows:
+        bid = book_key(_clean(r.get('title')), _clean(r.get('author')))
+        if bid and r.get('series') and bid not in series:
+            series[bid] = (r['series'], r.get('series_num') or '')
+    for r in rows:
+        title, author = _clean(r.get('title')), _clean(r.get('author'))
+        gid = syn.gr_id(r.get('url'))
+        bid = book_key(title, author)
+        if not (title and author and gid and bid) or bid in seen:
+            continue
+        # Goodreads lists study guides, box sets, scanned-page stubs without a
+        # writer and "<title> by <author>" duplicates beside the real book
+        if syn._junk_title(title) or author.lower() == 'unknown author' \
+                or (' by ' + author).lower() in title.lower():
+            continue
+        # a placeholder edition shows a stub blurb ('1'): the real edition is
+        # the next row for that book
+        if r.get('description') is not None and not syn._usable(r['description']):
+            continue
+        seen.add(bid)
+        out.append({'id': bid, 'title': title, 'author': author, 'date': '', 'cover': '',
+                    'genre': '', 'appleId': '', 'url': '', 'source': 'goodreads', 'gr': gid,
+                    'series': series.get(bid, ('', ''))[0], 'series_num': series.get(bid, ('', ''))[1]})
+        if len(out) == GOODREADS_ROWS:
+            break
+    return out
+
+
+def _squash(s):
+    return re.sub(r'[^a-z0-9]', '', str(s or '').lower())
+
+
+def search_all(q, get_text=_get_text, get_page=_goodreads_get):
+    """(rows, goodreads_ok). Apple's rows, then Goodreads' books that Apple
+    did not list; a row whose title is the typed title comes first. The two
+    searches run side by side. One failing leaves the other's rows; both
+    failing raises Apple's error."""
+    q = _clean(q, 120)
+    if not q:
+        return [], True
+    with ThreadPoolExecutor(2) as pool:
+        fa = pool.submit(_apple_rows, q, get_text)
+        fg = pool.submit(goodreads_rows, q, get_page)
+        apple, apple_err = [], None
+        try:
+            apple = fa.result()
+        except Exception as e:
+            apple_err = e
+        gr, gr_ok = [], True
+        try:
+            gr = fg.result()
+        except GoodreadsDown as e:
+            log('goodreads search failed: %s' % e)
+            gr_ok = False
+    if apple_err and not gr:
+        raise apple_err
+    have = {r['id'] for r in apple}
+    rows = apple + [r for r in gr if r['id'] not in have]
+    want = _squash(q)
+    rows.sort(key=lambda r: _squash(r['title']) != want)   # stable: only exact titles move up
+    return rows, gr_ok
+
+
+def search_books(q, get_text=_get_text, get_page=_goodreads_get):
+    return search_all(q, get_text, get_page)[0]
 
 
 def _interest_name(raw):
@@ -840,9 +942,10 @@ def save_added(d):
     _atomic_json(ADDED, d, indent=1)
 
 
-def added_add(book, get_text=_get_text):
+def added_add(book, get_text=_get_text, get_page=_goodreads_get):
     """(record, error). Saves one searched book; adding it twice returns the
-    first record. Its Apple page is read once, outside the lock, for series."""
+    first record. Its Apple page (or, for a Goodreads row, its Goodreads page)
+    is read once, outside the lock, for series, date and cover."""
     book = book if isinstance(book, dict) else {}
     title, author = _clean(book.get('title')), _clean(book.get('author'))
     bid = _pipeline_import('bookids').book_key(title, author)
@@ -866,21 +969,41 @@ def added_add(book, get_text=_get_text):
         if book.get('reading'):
             _mark_reading(rec['id'])
         return rec, None
+    gid = re.sub(r'\D', '', str(book.get('gr') or ''))[:20]
     url = str(book.get('url') or '').split('?')[0]
     if not re.match(r'^https://books\.apple\.com/', url):
         url = ''   # only Apple's own book pages are ever fetched
     ser = {'series': '', 'num': ''}
-    if url:
+    date, cover, genre = _clean(book.get('date'), 10), str(book.get('cover') or ''), _clean(book.get('genre'), 80)
+    if gid and not url:
+        # a Goodreads row (Apple Books has no such book): the search shows
+        # no cover or date, so the book's own page is read once for them. A
+        # page that cannot be read leaves them blank; the build finds a cover.
+        ser = {'series': _clean(book.get('series'), 120),
+               'num': _clean(book.get('series_num'), 8) if re.match(r'^\d{1,3}$', str(book.get('series_num') or '')) else ''}
+        try:
+            ref, syn = _pipeline_import('reference'), _pipeline_import('synopses')
+            page_url = syn.gr_url(gid)
+            html = get_page(page_url)
+            found = None if syn._suspect(html) else ref.parse_book(html, page_url)
+            if found:
+                date = date or str(found.get('date') or '')
+                cover = cover or str(found.get('cover') or '')
+                genre = genre or _clean(' '.join((found.get('genres') or [])[:3]), 80)
+        except Exception as e:
+            log('added book goodreads lookup failed: %s' % str(e)[:80])
+    elif url:
         try:
             ser = _pipeline_import('fetch').page_series(get_text(url))
         except Exception as e:
             log('added book series lookup failed: %s' % str(e)[:80])
-    cover = str(book.get('cover') or '')
     rec = {'id': bid, 'title': title, 'author': author,
-           'date': _clean(book.get('date'), 10), 'img': cover if cover.startswith('https://') else '',
-           'genre': _clean(book.get('genre'), 80), 'appleId': _clean(book.get('appleId'), 20),
+           'date': date, 'img': cover if cover.startswith('https://') else '',
+           'genre': genre, 'appleId': _clean(book.get('appleId'), 20),
            'url': url, 'series': _clean(ser.get('series'), 120), 'series_num': _clean(ser.get('num'), 8),
            'added': datetime.now().strftime('%Y-%m-%d')}
+    if gid and not url:
+        rec['gr'] = gid
     if interest:
         rec['interest'] = interest
     with ADDED_LOCK:

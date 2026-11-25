@@ -231,7 +231,8 @@ def parse_search(html):
     serves since 2026-11 ('Book search results for ... | Goodreads'), whose
     results live in its streamed data. A row from the Next.js page also
     carries `description` — the result's own blurb as the search shows it
-    ('' when it has none, None when the page's data cannot say)."""
+    ('' when it has none, None when the page's data cannot say), and the
+    result's series name and placement ('' when it has none)."""
     if not html:
         return None
     out = []
@@ -317,9 +318,15 @@ def _parse_search_next(html):
         author = _clean((node or {}).get('name') if isinstance(node, dict) else '', 120)
         if title and url.startswith('https://www.goodreads.com/book/show/'):
             desc = _flight_text(raw, b.get('description'))
+            ser = next((x for x in (b.get('bookSeries') or []) if isinstance(x, dict)), {})
+            # a repeated series is a "$..." back-reference to its first use:
+            # that row has the name, this one reads as no series
+            sdata = ser.get('series') if isinstance(ser.get('series'), dict) else {}
             ranked.setdefault(int(m.group(1)), {
                 'title': title, 'author': author, 'url': url,
-                'description': None if desc is None else _clean(desc)})
+                'description': None if desc is None else _clean(desc),
+                'series': _clean(sdata.get('title'), 120),
+                'series_num': _clean(ser.get('seriesPlacement'), 8)})
     seen, out = set(), []
     for _, row in sorted(ranked.items()):
         if row['url'] not in seen:
