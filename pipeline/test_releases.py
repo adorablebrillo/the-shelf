@@ -434,19 +434,23 @@ class RunTests(unittest.TestCase):
     def test_the_stage_stops_at_its_time_budget_and_keeps_what_it_found(self):
         self.goodreads(self.pages())
         served = reference._get
-        real_sleep = self._saved[-1]      # setUp stood in for sleep; this wait is real
+        clock = [1000.0]
+
+        class Clock:                       # the stage's own clock only: date.today() keeps real time
+            time = staticmethod(lambda: clock[0])
+            sleep = staticmethod(lambda s: None)
 
         def slow(url, timeout=0):
             if 'new_releases' not in url:
-                real_sleep(0.3)          # a slow book page: 0.3 s of the 0.5 s budget
+                clock[0] += 300            # each book page takes 300 s of the 500 s budget
             return served(url)
         reference._get = slow
-        old = releases.BUDGET
-        releases.BUDGET = 0.5
+        old_time, old_budget = releases.time, releases.BUDGET
+        releases.time, releases.BUDGET = Clock, 500
         try:
             out, rep = self.run_main()
         finally:
-            releases.BUDGET = old
+            releases.time, releases.BUDGET = old_time, old_budget
         self.assertTrue(rep['ok'])
         self.assertEqual(rep['page_reads'], 2)
         self.assertIn('time budget', rep['reason'])
