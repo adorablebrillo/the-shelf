@@ -391,6 +391,43 @@ def suggest_terms(key, label):
         return []
 
 
+def suggest_slugs(key, label):
+    """A typed interest's Goodreads genre: the curator call suggests up to 3
+    genre slugs once (the part of goodreads.com/genres/<slug> after the last
+    slash, most specific first), and interests.json keeps the first one whose
+    new-release page lists books. Returns a list of plain slugs (empty on
+    failure — the interest then has no Goodreads list this run)."""
+    sysmsg = ('You name Goodreads genre pages. Reply JSON {"slugs": [...]} with up to 3 '
+              'genre slugs, most specific first, as they appear in goodreads.com/genres/<slug>: '
+              'lowercase words joined by hyphens, for example sports-romance, '
+              'historical-fiction, cookbooks. Real Goodreads genres only.')
+    body = json.dumps({
+        'model': CFG.get('model', 'openai/gpt-4o-mini'),
+        'messages': [{'role': 'system', 'content': sysmsg},
+                     {'role': 'user', 'content': 'The interest: "%s"' % label}],
+        'temperature': 0.2,
+        'response_format': {'type': 'json_object'},
+    }).encode()
+    req = urllib.request.Request(
+        'https://openrouter.ai/api/v1/chat/completions', data=body,
+        headers={'Authorization': 'Bearer ' + key, 'Content-Type': 'application/json',
+                 'HTTP-Referer': 'https://the-shelf.local', 'X-Title': 'The Shelf'})
+    try:
+        with urllib.request.urlopen(req, timeout=120) as r:
+            data = json.loads(r.read().decode())
+        content = data['choices'][0]['message']['content']
+        m = re.search(r'\{[\s\S]*\}', content)
+        out = json.loads(m.group(0)) if m else {}
+        slugs = []
+        for q in out.get('slugs') or []:
+            q = str(q).strip().lower().replace('_', '-').replace(' ', '-')
+            if interests.slug_ok(q) and q not in slugs:
+                slugs.append(q)
+        return slugs[:3]
+    except Exception:
+        return []
+
+
 def call_model(key, payload, taste):
     """One curation call. Separated so tests can mock it deterministically."""
     body = json.dumps({

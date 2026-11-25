@@ -645,6 +645,19 @@ class SaveTests(unittest.TestCase):
         interests.merge_terms(kept, other)
         self.assertEqual(kept['interests'][0]['terms'], ['kept'])
 
+    def test_the_goodreads_genre_the_run_found_survives_the_readers_save(self):
+        """The run keeps the Goodreads genre of a typed interest in the file;
+        the reader's own save (it carries none) must not drop it, and a genre
+        the file already has is never overwritten."""
+        self._write({'interests': [{'id': 'hockey', 'label': 'Hockey romance', 'gr_slug': 'sports-romance'}]})
+        readers = {'interests': [{'id': 'hockey', 'label': 'Hockey romance', 'dial': 'obsessed'}]}
+        interests.merge_terms(readers, self._read())
+        self.assertEqual(readers['interests'][0]['gr_slug'], 'sports-romance')
+        self.assertEqual(readers['interests'][0]['dial'], 'obsessed')
+        run = {'interests': [{'id': 'hockey', 'gr_slug': 'hockey'}]}
+        interests.save_terms(run)
+        self.assertEqual(self._read()['interests'][0]['gr_slug'], 'sports-romance')
+
 
 
 if __name__ == '__main__':

@@ -247,7 +247,7 @@ def run_pipeline(settings, mode='adhoc'):
                 _sh.copy2(mf, dst)
     except Exception as e:
         log('baseline seed: %s' % e)
-    steps = ['fetch.py', 'reference.py', 'filter.py', 'curate.py', 'build.py']
+    steps = ['fetch.py', 'releases.py', 'reference.py', 'filter.py', 'curate.py', 'build.py']
     code = 0
     # Whatever a stage does — fails, runs past its time limit, or raises — the
     # run still ends below and clears 'running'. A flag left on would block

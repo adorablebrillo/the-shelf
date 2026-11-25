@@ -1,0 +1,461 @@
+<!DOCTYPE html><html><head><title>Sports Romance Books</title></head><body>
+<div class="bigBoxBody"><div class="bigBoxContent containerWithHeaderContent">
+<div class="coverRow   ">
+<div class="leftAlignedImage bookBox">
+              
+<div class="coverWrapper" id="bookCover351087_239708533">
+    <a href="/book/show/239708533-the-keeper"><img alt="The Keeper (Gods of the Game, #3)" title="" width="115" class="bookImage" src="https://i.gr-assets.com/images/S/compressed.photo.goodreads.com/books/1785405189l/239708533._SY475_.jpg" /></a>
+</div>
+
+
+  
+
+  
+<script type="text/javascript" charset="utf-8">
+//<![CDATA[  
+
+  function submitShelfLink(unique_id, book_id, shelf_id, shelf_name, submit_form, exclusive) {
+    var checkbox_id = 'shelf_name_' + unique_id + '_' + shelf_id;
+    var element = document.getElementById(checkbox_id)
+
+    var checked = element.checked
+    if (checked && exclusive) {
+      // can't uncheck a radio by clicking it!
+      return
+    }
+    if(document.getElementById("savingMessage")){
+      Element.show('savingMessage')
+    }
+    var element_id = 'shelfInDropdownName_' + unique_id + '_' + shelf_id;
+    Element.update(element_id, "saving...");
+    if (submit_form) {
+      Element.hide('shelfDropdown_' + unique_id)
+      var form = document.getElementById('addBookForm' + book_id)
+      if (form) {
+        form.shelf.value = shelf_name
+        form.onsubmit()
+      }
+    }
+    else {
+      var action = checked ? 'remove' : ''
+      element.checked = !element.checked
+      new Ajax.Request('/shelf/add_to_shelf', {asynchronous:true, evalScripts:true, onSuccess:function(request){shelfSubmitted(request, book_id, checkbox_id, element_id, unique_id, shelf_name)}, parameters:'book_id=' + book_id + '&name=' + shelf_name + '&a=' + action + '&authenticity_token=' + encodeURIComponent('ZI0D/oTWaKjPUPE/vnHRRmFs3U4Ggj3KlcMXDgxtUFR6UYoTBgq0WFmxDvLIyjfHeZGO+6iojvDainlYPzDVGQ==')})
+    }
+  }
+
+  function shelfSubmitted(request, book_id, checkbox_id, element_id, unique_id, shelf_name) {
+    Element.update('shelfListfalse_' + book_id, request.responseText)
+    afterShelfSave(checkbox_id, element_id, unique_id, shelf_name.escapeHTML())
+  }
+
+  function refreshGroupBox(group_id, book_id) {
+    new Ajax.Updater('addGroupBooks' + book_id + '', '/group/add_book_box', {asynchronous:true, evalScripts:true, onSuccess:function(request){refreshGroupBoxComplete(request, book_id);}, parameters:'id=' + group_id + '&book_id=' + book_id + '&refresh=true' + '&authenticity_token=' + encodeURIComponent('5GzFo9CwnvZKhLFd7nBubKrdTSdKMBAasVWOeEyZ7Xr6sExOUmxCBtxlTpCYy4jtsiAekuQaoyD+HOAuf8RoNw==')})
+  }
+//]]>
+</script>
+
+
+<script>
+//<![CDATA[
+      var newTip = new Tip($('bookCover351087_239708533'), "\n\n  <h2><a class=\"readable bookTitle\" href=\"https://www.goodreads.com/book/show/239708533-the-keeper?from_choice=false&amp;from_home_module=false\">The Keeper (Gods of the Game, #3)<\/a><\/h2>\n\n      <div>\n        by <a class=\"authorName\" href=\"/author/show/5758632.Ana_Huang\">Ana Huang<\/a><span title=\"Goodreads Author!\">*<\/span>\n      <\/div>\n\n          <div class=\"smallText uitext darkGreyText\">\n            <span class=\"minirating\"><span class=\"stars staticStars notranslate\"><span size=\"12x12\" class=\"staticStar p10\"><\/span><span size=\"12x12\" class=\"staticStar p10\"><\/span><span size=\"12x12\" class=\"staticStar p10\"><\/span><span size=\"12x12\" class=\"staticStar p6\"><\/span><span size=\"12x12\" class=\"staticStar p0\"><\/span><\/span> 3.96 avg rating &mdash; 14,643 ratings<\/span>            &mdash; published 2026\n          <\/div>\n\n    <div class=\"addBookTipDescription\">\n      \n<span id=\"freeTextContainer9201743034200760347\">He can resist any woman in the world...except for the one he shouldn&apos;t want.\n\nFamed goalkeeper Noah Wilson doesn’t do relationships or complications. The only thing the grumpy single dad wants is to do his job and spend more time with his daughter.\n\nUnfortunately, his bachelor status has made it imp<\/span>\n  <span id=\"freeText9201743034200760347\" style=\"display:none\">He can resist any woman in the world...except for the one he shouldn\'t want.\n\nFamed goalkeeper Noah Wilson doesn’t do relationships or complications. The only thing the grumpy single dad wants is to do his job and spend more time with his daughter.\n\nUnfortunately, his bachelor status has made it impossible to find the right nanny for her. With the World Cup looming and a string of fired nannies in his wake, he has no choice but to hire the last person he wants close to his orbit.\n\nCarina is too stubborn and far too appealing for her own good, but she’s also a natural with his daughter.\n\nAnd the way his heart skips a beat whenever she’s around? That’s nothing more than a coincidence. He’s sure of it.\n\n***\nCarina Vu has a problem. She’s worked multiple jobs and saved up for years to fulfill her childhood dream of visiting Antarctica, but just when she’s close, an unexpected emergency wipes her account clean.\n\nNow, she’s back to square one. The clock is ticking, and she needs another job ASAP. Her best (and only) option is to nanny for Noah, the brooding athlete whom she’s convinced hates her.\n\nBut the more time she spends with him and his adorable daughter, the more cracks she sees in his gruff exterior. And the man underneath all that grumpiness? He’s enough to make her rethink everything—including what (and who) it is that she actually wants.<\/span>\n  <a data-text-id=\"9201743034200760347\" href=\"#\" onclick=\"swapContent(\$(this));; return false;\">...more<\/a>\n\n    <\/div>\n\n\n", { style: 'addbook', stem: 'leftMiddle', hook: { tip: 'leftMiddle', target: 'rightMiddle' }, hideOn: false, width: 400, hideAfter: 0.05, delay: 0.35 });
+      $('bookCover351087_239708533').observe('prototip:shown', function() {
+        if (this.up('#box')) {
+          $$('div.prototip').each(function(i){i.setStyle({zIndex: $('box').getStyle('z-index')})});
+        } else {
+          $$('div.prototip').each(function(i){i.setStyle({zIndex: 6000})});
+        }
+      });
+
+      newTip['wrapper'].addClassName('prototipAllowOverflow');
+
+        $('bookCover351087_239708533').observe('prototip:shown', function () {
+          $$('div.prototip').each(function (e) {
+            if ($('bookCover351087_239708533').hasClassName('ignored')) {
+              e.setStyle({'display': 'none'});
+              return;
+            }
+            e.setStyle({'overflow': 'visible'});
+          });
+        });
+      $('bookCover351087_239708533').observe('prototip:hidden', function () {
+        $$('span.elementTwo').each(function (e) {
+          if (e.getStyle('display') !== 'none') {
+            var lessLink = e.next();
+            swapContent(lessLink);
+          }
+        });
+      });
+
+//]]>
+</script>
+
+
+
+            </div>
+
+
+
+
+            <div class="leftAlignedImage bookBox">
+              
+<div class="coverWrapper" id="bookCover351087_248283900">
+    <a href="/book/show/248283900-undone"><img alt="Undone (The Undone, #4)" title="" width="115" class="bookImage" src="https://i.gr-assets.com/images/S/compressed.photo.goodreads.com/books/1772898401l/248283900._SY475_.jpg" /></a>
+</div>
+
+
+  
+
+
+<script>
+//<![CDATA[
+      var newTip = new Tip($('bookCover351087_248283900'), "\n\n  <h2><a class=\"readable bookTitle\" href=\"https://www.goodreads.com/book/show/248283900-undone?from_choice=false&amp;from_home_module=false\">Undone (The Undone, #4)<\/a><\/h2>\n\n      <div>\n        by <a class=\"authorName\" href=\"/author/show/43993209.Peyton_Corinne\">Peyton Corinne<\/a><span title=\"Goodreads Author!\">*<\/span>\n      <\/div>\n\n          <div class=\"smallText uitext darkGreyText\">\n            <span class=\"minirating\"><span class=\"stars staticStars notranslate\"><span size=\"12x12\" class=\"staticStar p10\"><\/span><span size=\"12x12\" class=\"staticStar p10\"><\/span><span size=\"12x12\" class=\"staticStar p10\"><\/span><span size=\"12x12\" class=\"staticStar p10\"><\/span><span size=\"12x12\" class=\"staticStar p3\"><\/span><\/span> 4.07 avg rating &mdash; 9,144 ratings<\/span>            &mdash; published 2026\n          <\/div>\n\n    <div class=\"addBookTipDescription\">\n      \n<span id=\"freeTextContainer1265191820318765476\">From USA TODAY bestselling author Peyton Corinne comes a second-chance hockey romance between the team’s antihero and the new assistant coach’s daughter filled with Peyton’s trademark “earnest, raw, and sexy” (Elena Armas, New York Times bestselling author) storytelling.Toren Kane has always been a <\/span>\n  <span id=\"freeText1265191820318765476\" style=\"display:none\">From USA TODAY bestselling author Peyton Corinne comes a second-chance hockey romance between the team’s antihero and the new assistant coach’s daughter filled with Peyton’s trademark “earnest, raw, and sexy” (Elena Armas, New York Times bestselling author) storytelling.Toren Kane has always been a magnet for trouble. Branded as dangerous and brutal, his reputation has followed him from the playground to the ice rink. After a scandal cost him his first-round NHL draft pick, Toren’s last shot at redemption lies with Waterfell University’s hockey team—who all despise him for what he did to their captain at the last Frozen Four competition. To make matters worse, Waterfell’s new assistant coach is Christophe LaBlanc, Toren’s former coach and the man who knows all his darkest secrets.  Lillian LaBlanc is out of chances, according to her father. After flunking out of an Ivy League, she’s struggling and her father’s strict rules are the only things keeping her afloat. Suffering beneath the weight of his suffocating control, Lily is desperate to keep her need to paint as hidden as her depression. But her fragile stability is threatened when she discovers that Toren Kane, her childhood best friend and first love, is also attending Waterfell—and is on her father’s team.  As Toren and Lily’s lives collide once more, old wounds and unresolved feelings resurface. Toren must confront his self-destructive tendencies and learn to let others in, while Lily faces the daunting task of breaking free from her father’s grip. Their connection could be the key to healing—or the spark that reignites the chaos they’ve both been trying to escape.<\/span>\n  <a data-text-id=\"1265191820318765476\" href=\"#\" onclick=\"swapContent(\$(this));; return false;\">...more<\/a>\n\n    <\/div>\n\n\n", { style: 'addbook', stem: 'leftMiddle', hook: { tip: 'leftMiddle', target: 'rightMiddle' }, hideOn: false, width: 400, hideAfter: 0.05, delay: 0.35 });
+      $('bookCover351087_248283900').observe('prototip:shown', function() {
+        if (this.up('#box')) {
+          $$('div.prototip').each(function(i){i.setStyle({zIndex: $('box').getStyle('z-index')})});
+        } else {
+          $$('div.prototip').each(function(i){i.setStyle({zIndex: 6000})});
+        }
+      });
+
+      newTip['wrapper'].addClassName('prototipAllowOverflow');
+
+        $('bookCover351087_248283900').observe('prototip:shown', function () {
+          $$('div.prototip').each(function (e) {
+            if ($('bookCover351087_248283900').hasClassName('ignored')) {
+              e.setStyle({'display': 'none'});
+              return;
+            }
+            e.setStyle({'overflow': 'visible'});
+          });
+        });
+      $('bookCover351087_248283900').observe('prototip:hidden', function () {
+        $$('span.elementTwo').each(function (e) {
+          if (e.getStyle('display') !== 'none') {
+            var lessLink = e.next();
+            swapContent(lessLink);
+          }
+        });
+      });
+
+//]]>
+</script>
+
+
+
+            </div>
+
+
+
+
+            <div class="leftAlignedImage bookBox">
+              
+<div class="coverWrapper" id="bookCover351087_260062782">
+    <a href="/book/show/260062782-one-moore-time"><img alt="One Moore Time" title="" width="115" class="bookImage" src="https://i.gr-assets.com/images/S/compressed.photo.goodreads.com/books/1790827120l/260062782._SY475_.jpg" /></a>
+</div>
+
+
+  
+
+
+<script>
+//<![CDATA[
+      var newTip = new Tip($('bookCover351087_260062782'), "\n\n  <h2><a class=\"readable bookTitle\" href=\"https://www.goodreads.com/book/show/260062782-one-moore-time?from_choice=false&amp;from_home_module=false\">One Moore Time<\/a><\/h2>\n\n      <div>\n        by <a class=\"authorName\" href=\"/author/show/5760202.Mariana_Zapata\">Mariana Zapata<\/a><span title=\"Goodreads Author!\">*<\/span>\n      <\/div>\n\n          <div class=\"smallText uitext darkGreyText\">\n            <span class=\"minirating\"><span class=\"stars staticStars notranslate\"><span size=\"12x12\" class=\"staticStar p10\"><\/span><span size=\"12x12\" class=\"staticStar p10\"><\/span><span size=\"12x12\" class=\"staticStar p10\"><\/span><span size=\"12x12\" class=\"staticStar p10\"><\/span><span size=\"12x12\" class=\"staticStar p3\"><\/span><\/span> 4.23 avg rating &mdash; 13,668 ratings<\/span>            &mdash; published 2026\n          <\/div>\n\n    <div class=\"addBookTipDescription\">\n      \n<span id=\"freeTextContainer17459255232488417355\">He might be the greatest swimmer of all time, but he doesn’t know his bank login.\n\nVeronica Rubio can spot a hot mess a mile away.\n\nHaving to deal with one—much less work for one—isn’t exactly at the top of her list of things she wants to do.\n\nSo, when the trainwreck known as George Moore steamrolls<\/span>\n  <span id=\"freeText17459255232488417355\" style=\"display:none\">He might be the greatest swimmer of all time, but he doesn’t know his bank login.\n\nVeronica Rubio can spot a hot mess a mile away.\n\nHaving to deal with one—much less work for one—isn’t exactly at the top of her list of things she wants to do.\n\nSo, when the trainwreck known as George Moore steamrolls into her life, she wants to run away… if only it weren’t for the commission check she could make off selling his house.\n\nBut when the man with more gold medals than anyone else in the world needs help, Veronica finds it’s a lot easier said than done to leave him to figure things out on his own.\n\nEspecially not when he’s so nice to her grandma.\n\nAnd her brothers.\n\nHelping him out a little would be the nice thing to do… wouldn’t it?<\/span>\n  <a data-text-id=\"17459255232488417355\" href=\"#\" onclick=\"swapContent(\$(this));; return false;\">...more<\/a>\n\n    <\/div>\n\n\n", { style: 'addbook', stem: 'leftMiddle', hook: { tip: 'leftMiddle', target: 'rightMiddle' }, hideOn: false, width: 400, hideAfter: 0.05, delay: 0.35 });
+      $('bookCover351087_260062782').observe('prototip:shown', function() {
+        if (this.up('#box')) {
+          $$('div.prototip').each(function(i){i.setStyle({zIndex: $('box').getStyle('z-index')})});
+        } else {
+          $$('div.prototip').each(function(i){i.setStyle({zIndex: 6000})});
+        }
+      });
+
+      newTip['wrapper'].addClassName('prototipAllowOverflow');
+
+        $('bookCover351087_260062782').observe('prototip:shown', function () {
+          $$('div.prototip').each(function (e) {
+            if ($('bookCover351087_260062782').hasClassName('ignored')) {
+              e.setStyle({'display': 'none'});
+              return;
+            }
+            e.setStyle({'overflow': 'visible'});
+          });
+        });
+      $('bookCover351087_260062782').observe('prototip:hidden', function () {
+        $$('span.elementTwo').each(function (e) {
+          if (e.getStyle('display') !== 'none') {
+            var lessLink = e.next();
+            swapContent(lessLink);
+          }
+        });
+      });
+
+//]]>
+</script>
+
+
+
+            </div>
+
+
+
+
+            <div class="leftAlignedImage bookBox">
+              
+<div class="coverWrapper" id="bookCover351087_251803445">
+    <a href="/book/show/251803445-babygirl"><img alt="Babygirl" title="" width="115" class="bookImage" src="https://i.gr-assets.com/images/S/compressed.photo.goodreads.com/books/1786392010l/251803445._SY475_.jpg" /></a>
+</div>
+
+
+  
+
+
+<script>
+//<![CDATA[
+      var newTip = new Tip($('bookCover351087_251803445'), "\n\n  <h2><a class=\"readable bookTitle\" href=\"https://www.goodreads.com/book/show/251803445-babygirl?from_choice=false&amp;from_home_module=false\">Babygirl<\/a><\/h2>\n\n      <div>\n        by <a class=\"authorName\" href=\"/author/show/16116459.Lucy_Lennox\">Lucy Lennox<\/a><span title=\"Goodreads Author!\">*<\/span>\n      <\/div>\n\n          <div class=\"smallText uitext darkGreyText\">\n            <span class=\"minirating\"><span class=\"stars staticStars notranslate\"><span size=\"12x12\" class=\"staticStar p10\"><\/span><span size=\"12x12\" class=\"staticStar p10\"><\/span><span size=\"12x12\" class=\"staticStar p10\"><\/span><span size=\"12x12\" class=\"staticStar p10\"><\/span><span size=\"12x12\" class=\"staticStar p3\"><\/span><\/span> 4.35 avg rating &mdash; 4,593 ratings<\/span>            &mdash; published 2026\n          <\/div>\n\n    <div class=\"addBookTipDescription\">\n      \n<span id=\"freeTextContainer1011844181215744359\">From USA Today bestselling author Lucy Lennox comes an enemies-to-lovers MM college football romance.\n\nThey say I’m Demere University’s Golden Boy.\nThe Senator’s perfect son and heir.\nThe kicker who never misses.\nThe man who doesn’t make mistakes…\n\nUntil I do, and my fall from grace lands me in a do<\/span>\n  <span id=\"freeText1011844181215744359\" style=\"display:none\">From USA Today bestselling author Lucy Lennox comes an enemies-to-lovers MM college football romance.\n\nThey say I’m Demere University’s Golden Boy.\nThe Senator’s perfect son and heir.\nThe kicker who never misses.\nThe man who doesn’t make mistakes…\n\nUntil I do, and my fall from grace lands me in a dorm room with Elliot Vaughn.\n\nVaughn is reckless and rough.\nSolid muscle wrapped in ink.\nHe runs an illegal fight ring.\nHe breaks rules like it’s his job.\n\nAnd since he hates my guts, Vaughn’s decided to break me.\n\nHe brings people home—men, women.\nLocks eyes with me across the room while he ruins them.\nWhispers teasing words that burrow into my brain.\nCalls me names no straight man should respond to.\n\nHe steals my focus. Annihilates my control.\nMakes me want things I can’t afford to want.\n\nLike those rough hands on my skin.\nLike giving up everything they say I am for a future that’s all my own.\nLike choosing to be his \n  babygirl\n, even if it destroys us both.\n\nBabygirl is a steamy MM college standalone romance about a golden boy who can\'t look away, and the dangerous man who\'s been watching him right back.<\/span>\n  <a data-text-id=\"1011844181215744359\" href=\"#\" onclick=\"swapContent(\$(this));; return false;\">...more<\/a>\n\n    <\/div>\n\n\n", { style: 'addbook', stem: 'leftMiddle', hook: { tip: 'leftMiddle', target: 'rightMiddle' }, hideOn: false, width: 400, hideAfter: 0.05, delay: 0.35 });
+      $('bookCover351087_251803445').observe('prototip:shown', function() {
+        if (this.up('#box')) {
+          $$('div.prototip').each(function(i){i.setStyle({zIndex: $('box').getStyle('z-index')})});
+        } else {
+          $$('div.prototip').each(function(i){i.setStyle({zIndex: 6000})});
+        }
+      });
+
+      newTip['wrapper'].addClassName('prototipAllowOverflow');
+
+        $('bookCover351087_251803445').observe('prototip:shown', function () {
+          $$('div.prototip').each(function (e) {
+            if ($('bookCover351087_251803445').hasClassName('ignored')) {
+              e.setStyle({'display': 'none'});
+              return;
+            }
+            e.setStyle({'overflow': 'visible'});
+          });
+        });
+      $('bookCover351087_251803445').observe('prototip:hidden', function () {
+        $$('span.elementTwo').each(function (e) {
+          if (e.getStyle('display') !== 'none') {
+            var lessLink = e.next();
+            swapContent(lessLink);
+          }
+        });
+      });
+
+//]]>
+</script>
+
+
+
+            </div>
+
+
+
+
+            <div class="leftAlignedImage bookBox">
+              
+<div class="coverWrapper" id="bookCover351087_250384100">
+    <a href="/book/show/250384100-the-lockdown-mann"><img alt="The Lockdown Mann (Necessary Roughness, #2)" title="" width="115" class="bookImage" src="https://i.gr-assets.com/images/S/compressed.photo.goodreads.com/books/1789917943l/250384100._SY475_.jpg" /></a>
+</div>
+
+
+  
+
+
+<script>
+//<![CDATA[
+      var newTip = new Tip($('bookCover351087_250384100'), "\n\n  <h2><a class=\"readable bookTitle\" href=\"https://www.goodreads.com/book/show/250384100-the-lockdown-mann?from_choice=false&amp;from_home_module=false\">The Lockdown Mann (Necessary Roughness, #2)<\/a><\/h2>\n\n      <div>\n        by <a class=\"authorName\" href=\"/author/show/7013384.Riley_Hart\">Riley Hart<\/a><span title=\"Goodreads Author!\">*<\/span>\n      <\/div>\n\n          <div class=\"smallText uitext darkGreyText\">\n            <span class=\"minirating\"><span class=\"stars staticStars notranslate\"><span size=\"12x12\" class=\"staticStar p10\"><\/span><span size=\"12x12\" class=\"staticStar p10\"><\/span><span size=\"12x12\" class=\"staticStar p10\"><\/span><span size=\"12x12\" class=\"staticStar p10\"><\/span><span size=\"12x12\" class=\"staticStar p3\"><\/span><\/span> 4.10 avg rating &mdash; 674 ratings<\/span>            &mdash; published 2026\n          <\/div>\n\n    <div class=\"addBookTipDescription\">\n      \n<span id=\"freeTextContainer15501383238235735955\">Desmond\nI was sixteen years old when I met Oakley Manning during a family beach vacation. He was funny, gorgeous, as obsessed with football as I was, and hurting after his mom abandoned him.\n\nFor two weeks, we were inseparable. Oakley made me feel complete, settling something inside me.\n\nThen one ni<\/span>\n  <span id=\"freeText15501383238235735955\" style=\"display:none\">Desmond\nI was sixteen years old when I met Oakley Manning during a family beach vacation. He was funny, gorgeous, as obsessed with football as I was, and hurting after his mom abandoned him.\n\nFor two weeks, we were inseparable. Oakley made me feel complete, settling something inside me.\n\nThen one night, I kissed him…and he kissed me back.\n\nWhen he walked away afterward, I pretended it hurt less than it did. It’s a lesson that’s stuck with me—the people I want never choose me back.\n\nOakley\nEverything about what I shared with Desmond Jackson was perfect.\n\nThen, on the last morning of our trip, my ex-girlfriend-slash-best friend dropped a bomb: “I’m pregnant.” For the sake of the baby, we decided to make it work.\n\nEleven years later, Serena and I are still best friends, but our relationship is over, though we haven’t told anyone. Between her mom’s recent diagnosis and our daughter, we aren’t ready for more complications.\n\nEnter Des, recently traded to L.A.’s second pro football team—my team being the first. Now he’s always in my periphery, infuriating and needling me…and still capable of making my pulse race. Our chemistry is as combustive as ever. Des worships my body in ways I’ve never experienced, but he doesn’t believe in forever, and I can’t do casual.\n\nWe compete at everything, but he doesn’t know he’s already won my heart. I just hope it’s a prize he wants…and that my world won’t implode if I have him.\n\nThe Lockdown Mann is a second-chance romance between two professional football players, with a complicated history and an even more complicated present. Expect banter, anonymous online messaging, and heart. There is no cheating in this book.<\/span>\n  <a data-text-id=\"15501383238235735955\" href=\"#\" onclick=\"swapContent(\$(this));; return false;\">...more<\/a>\n\n    <\/div>\n\n\n", { style: 'addbook', stem: 'rightMiddle', hook: { tip: 'rightMiddle', target: 'leftMiddle' }, hideOn: false, width: 400, hideAfter: 0.05, delay: 0.35 });
+      $('bookCover351087_250384100').observe('prototip:shown', function() {
+        if (this.up('#box')) {
+          $$('div.prototip').each(function(i){i.setStyle({zIndex: $('box').getStyle('z-index')})});
+        } else {
+          $$('div.prototip').each(function(i){i.setStyle({zIndex: 6000})});
+        }
+      });
+
+      newTip['wrapper'].addClassName('prototipAllowOverflow');
+
+        $('bookCover351087_250384100').observe('prototip:shown', function () {
+          $$('div.prototip').each(function (e) {
+            if ($('bookCover351087_250384100').hasClassName('ignored')) {
+              e.setStyle({'display': 'none'});
+              return;
+            }
+            e.setStyle({'overflow': 'visible'});
+          });
+        });
+      $('bookCover351087_250384100').observe('prototip:hidden', function () {
+        $$('span.elementTwo').each(function (e) {
+          if (e.getStyle('display') !== 'none') {
+            var lessLink = e.next();
+            swapContent(lessLink);
+          }
+        });
+      });
+
+//]]>
+</script>
+
+
+
+            </div>
+
+            <div class="clear"></div>
+          </div>
+
+
+
+          <div class="coverRow   ">
+
+            <div class="leftAlignedImage bookBox">
+              
+<div class="coverWrapper" id="bookCover351087_252811191">
+    <a href="/book/show/252811191-tough-guy-and-the-show-off"><img alt="Tough Guy and the Show Off (Relationship Goals, #1)" title="" width="115" class="bookImage" src="https://i.gr-assets.com/images/S/compressed.photo.goodreads.com/books/1791000330l/252811191.jpg" /></a>
+</div>
+
+
+  
+
+
+<script>
+//<![CDATA[
+      var newTip = new Tip($('bookCover351087_252811191'), "\n\n  <h2><a class=\"readable bookTitle\" href=\"https://www.goodreads.com/book/show/252811191-tough-guy-and-the-show-off?from_choice=false&amp;from_home_module=false\">Tough Guy and the Show Off (Relationship Goals, #1)<\/a><\/h2>\n\n      <div>\n        by <a class=\"authorName\" href=\"/author/show/19197969.Mia_Monroe\">Mia  Monroe<\/a><span title=\"Goodreads Author!\">*<\/span>\n      <\/div>\n\n          <div class=\"smallText uitext darkGreyText\">\n            <span class=\"minirating\"><span class=\"stars staticStars notranslate\"><span size=\"12x12\" class=\"staticStar p10\"><\/span><span size=\"12x12\" class=\"staticStar p10\"><\/span><span size=\"12x12\" class=\"staticStar p10\"><\/span><span size=\"12x12\" class=\"staticStar p10\"><\/span><span size=\"12x12\" class=\"staticStar p3\"><\/span><\/span> 4.24 avg rating &mdash; 653 ratings<\/span>            &mdash; published 2026\n          <\/div>\n\n    <div class=\"addBookTipDescription\">\n      \n<span id=\"freeTextContainer17946302361357423172\">Beau has been my right hand man on the ice for years, but this season I&apos;m learning a lot of new things about his wrist shot.\nWe’ve been best friends since our rookie year. On the ice Beau is the tough guy, quick to slam any opponent into the boards so I&apos;m free to show off with a goal. Off the ice, I<\/span>\n  <span id=\"freeText17946302361357423172\" style=\"display:none\">Beau has been my right hand man on the ice for years, but this season I\'m learning a lot of new things about his wrist shot.\nWe’ve been best friends since our rookie year. On the ice Beau is the tough guy, quick to slam any opponent into the boards so I\'m free to show off with a goal. Off the ice, I\'m his protector, his wingman, and the guy who\'s happy to speak for him when he\'s all done playing nice for the day.\n\nWe’ve roomed together hundreds of nights on the road, so I was bound to walk in on him cranking one out eventually. No big deal, we all do it. So why can’t I get the image of it out of my head now? The look on his face, the sounds he was making…\n\nChalk it up to mid-season stress and exhaustion, I guess?\n\nAnd, hey, if we’re both going to be doing it anyway, no problem if we do it at the same time. We’re both only playing with our own sticks, right?\n\nNeither of us are looking to be the token queer players in the league, but it’s getting harder and harder to deny that something is happening here.\n\nBeau getting traded mid-season isn’t just going to screw up my game, it feels like a whole part of me has been ripped away. How are either of us supposed to get our heads around these feelings and still crush it on the ice?\n\nIf we can figure that out we might just have a scoring chance.\n\n\nTags: Wrist shots aren’t just on the ice, what’s a jerk off between besties, Show Off takes on a new meaning in private, the Tough Guy sure likes his cuddles, they’re a bonded pair, do not separate, no catching feelings allowed (spoiler: feelings will be caught) but wait, we’re straight guys. Do straight guys kiss? They do now.<\/span>\n  <a data-text-id=\"17946302361357423172\" href=\"#\" onclick=\"swapContent(\$(this));; return false;\">...more<\/a>\n\n    <\/div>\n\n\n", { style: 'addbook', stem: 'leftMiddle', hook: { tip: 'leftMiddle', target: 'rightMiddle' }, hideOn: false, width: 400, hideAfter: 0.05, delay: 0.35 });
+      $('bookCover351087_252811191').observe('prototip:shown', function() {
+        if (this.up('#box')) {
+          $$('div.prototip').each(function(i){i.setStyle({zIndex: $('box').getStyle('z-index')})});
+        } else {
+          $$('div.prototip').each(function(i){i.setStyle({zIndex: 6000})});
+        }
+      });
+
+      newTip['wrapper'].addClassName('prototipAllowOverflow');
+
+        $('bookCover351087_252811191').observe('prototip:shown', function () {
+          $$('div.prototip').each(function (e) {
+            if ($('bookCover351087_252811191').hasClassName('ignored')) {
+              e.setStyle({'display': 'none'});
+              return;
+            }
+            e.setStyle({'overflow': 'visible'});
+          });
+        });
+      $('bookCover351087_252811191').observe('prototip:hidden', function () {
+        $$('span.elementTwo').each(function (e) {
+          if (e.getStyle('display') !== 'none') {
+            var lessLink = e.next();
+            swapContent(lessLink);
+          }
+        });
+      });
+
+//]]>
+</script>
+
+
+
+            </div>
+
+
+
+
+            <div class="leftAlignedImage bookBox">
+              
+<div class="coverWrapper" id="bookCover351087_251606454">
+    <a href="/book/show/251606454-win-me-back"><img alt="Win Me Back (Blue Crescent Harbor, #3)" title="" width="115" class="bookImage" src="https://i.gr-assets.com/images/S/compressed.photo.goodreads.com/books/1789940770l/251606454._SY475_.jpg" /></a>
+</div>
+
+
+  
+
+
+<script>
+//<![CDATA[
+      var newTip = new Tip($('bookCover351087_251606454'), "\n\n  <h2><a class=\"readable bookTitle\" href=\"https://www.goodreads.com/book/show/251606454-win-me-back?from_choice=false&amp;from_home_module=false\">Win Me Back (Blue Crescent Harbor, #3)<\/a><\/h2>\n\n      <div>\n        by <a class=\"authorName\" href=\"/author/show/14135080.Camilla_Isley\">Camilla Isley<\/a><span title=\"Goodreads Author!\">*<\/span>\n      <\/div>\n\n          <div class=\"smallText uitext darkGreyText\">\n            <span class=\"minirating\"><span class=\"stars staticStars notranslate\"><span size=\"12x12\" class=\"staticStar p10\"><\/span><span size=\"12x12\" class=\"staticStar p10\"><\/span><span size=\"12x12\" class=\"staticStar p10\"><\/span><span size=\"12x12\" class=\"staticStar p6\"><\/span><span size=\"12x12\" class=\"staticStar p0\"><\/span><\/span> 3.87 avg rating &mdash; 480 ratings<\/span>            &mdash; published 2026\n          <\/div>\n\n    <div class=\"addBookTipDescription\">\n      \n<span id=\"freeTextContainer17249938268262540432\">This season, love deserves a comeback story.\n\nDr. Lila Callaway excels at putting broken things back together. But she could never mend her heart after Asher Wayne, the boy who promised her forever, chose football over their relationship. Years later, she runs the physical therapy department at Blue<\/span>\n  <span id=\"freeText17249938268262540432\" style=\"display:none\">This season, love deserves a comeback story.\n\nDr. Lila Callaway excels at putting broken things back together. But she could never mend her heart after Asher Wayne, the boy who promised her forever, chose football over their relationship. Years later, she runs the physical therapy department at Blue Crescent Medical Center, keeping her life orderly, safe, and free of infuriatingly charming athletes.\n\nUntil a severe ankle injury sidelines the NFL superstar. He belongs in world-class facilities, not a small-town clinic. But Ash will only let Lila oversee his rehabilitation, pushing all her buttons and looking far too handsome during their grueling daily sessions.\n\nLila establishes strict boundaries: no personal questions, no reminiscing, and absolutely no acknowledging the explosive chemistry still burning between them. Ash agrees to her terms, yet every intense exercise and lingering glance chips away at her ironclad defenses. He claims he returned for his recovery, but his relentless focus remains on her, making his temporary homecoming feel like a play for keeps.\n\nThirteen years apart, ten weeks of forced proximity, will it be enough for a second chance at first love?<\/span>\n  <a data-text-id=\"17249938268262540432\" href=\"#\" onclick=\"swapContent(\$(this));; return false;\">...more<\/a>\n\n    <\/div>\n\n\n", { style: 'addbook', stem: 'leftMiddle', hook: { tip: 'leftMiddle', target: 'rightMiddle' }, hideOn: false, width: 400, hideAfter: 0.05, delay: 0.35 });
+      $('bookCover351087_251606454').observe('prototip:shown', function() {
+        if (this.up('#box')) {
+          $$('div.prototip').each(function(i){i.setStyle({zIndex: $('box').getStyle('z-index')})});
+        } else {
+          $$('div.prototip').each(function(i){i.setStyle({zIndex: 6000})});
+        }
+      });
+
+      newTip['wrapper'].addClassName('prototipAllowOverflow');
+
+        $('bookCover351087_251606454').observe('prototip:shown', function () {
+          $$('div.prototip').each(function (e) {
+            if ($('bookCover351087_251606454').hasClassName('ignored')) {
+              e.setStyle({'display': 'none'});
+              return;
+            }
+            e.setStyle({'overflow': 'visible'});
+          });
+        });
+      $('bookCover351087_251606454').observe('prototip:hidden', function () {
+        $$('span.elementTwo').each(function (e) {
+          if (e.getStyle('display') !== 'none') {
+            var lessLink = e.next();
+            swapContent(lessLink);
+          }
+        });
+      });
+
+//]]>
+</script>
+
+
+
+            </div>
+
+
+
+
+            <div class="leftAlignedImage bookBox">
+              
+<div class="coverWrapper" id="bookCover351087_254939637">
+    <a href="/book/show/254939637-no-line-change"><img alt="No Line Change" title="" width="115" class="bookImage" src="https://i.gr-assets.com/images/S/compressed.photo.goodreads.com/books/1783120121l/254939637._SY475_.jpg" /></a>
+</div>
+
+
+  
+
+
+<script>
+//<![CDATA[
+      var newTip = new Tip($('bookCover351087_254939637'), "\n\n  <h2><a class=\"readable bookTitle\" href=\"https://www.goodreads.com/book/show/254939637-no-line-change?from_choice=false&amp;from_home_module=false\">No Line Change<\/a><\/h2>\n\n      <div>\n        by <a class=\"authorName\" href=\"/author/show/20974405.A_L_Heard\">A.L. Heard<\/a><span title=\"Goodreads Author!\">*<\/span>\n      <\/div>\n\n          <div class=\"smallText uitext darkGreyText\">\n            <span class=\"minirating\"><span class=\"stars staticStars notranslate\"><span size=\"12x12\" class=\"staticStar p10\"><\/span><span size=\"12x12\" class=\"staticStar p10\"><\/span><span size=\"12x12\" class=\"staticStar p10\"><\/span><span size=\"12x12\" class=\"staticStar p10\"><\/span><span size=\"12x12\" class=\"staticStar p3\"><\/span><\/span> 4.39 avg rating &mdash; 378 ratings<\/span>            &mdash; published 2026\n          <\/div>\n\n    <div class=\"addBookTipDescription\">\n      \n<span id=\"freeTextContainer13969077226644818308\">Dylan Everett is a superstar. First round pick. Two-time Stanley Cup champion. Gold-medal Olympian. Elite goal scorer. Captain of the Albuquerque Turkeys. He’s had a great career...up until his best friend / linemate / kind of boyfriend decided to change teams.Luc-Henri Baptiste is not a superstar. <\/span>\n  <span id=\"freeText13969077226644818308\" style=\"display:none\">Dylan Everett is a superstar. First round pick. Two-time Stanley Cup champion. Gold-medal Olympian. Elite goal scorer. Captain of the Albuquerque Turkeys. He’s had a great career...up until his best friend / linemate / kind of boyfriend decided to change teams.Luc-Henri Baptiste is not a superstar. He thought he had that in him, but after being bounced around a couple of teams, he’s given up that dream. He just wants to play hockey. When he’s traded to the Turkeys, he worries this is his last chance to make it in the NHL.Dylan’s just trying to help out a new teammate. It’s his job as captain, right? He didn’t mean for feelings to get tangled up in it, and he certainly wasn’t expecting to get tangled up with a teammate all over again...<\/span>\n  <a data-text-id=\"13969077226644818308\" href=\"#\" onclick=\"swapContent(\$(this));; return false;\">...more<\/a>\n\n    <\/div>\n\n\n", { style: 'addbook', stem: 'leftMiddle', hook: { tip: 'leftMiddle', target: 'rightMiddle' }, hideOn: false, width: 400, hideAfter: 0.05, delay: 0.35 });
+      $('bookCover351087_254939637').observe('prototip:shown', function() {
+        if (this.up('#box')) {
+          $$('div.prototip').each(function(i){i.setStyle({zIndex: $('box').getStyle('z-index')})});
+        } else {
+          $$('div.prototip').each(function(i){i.setStyle({zIndex: 6000})});
+        }
+      });
+
+      newTip['wrapper'].addClassName('prototipAllowOverflow');
+
+        $('bookCover351087_254939637').observe('prototip:shown', function () {
+          $$('div.prototip').each(function (e) {
+            if ($('bookCover351087_254939637').hasClassName('ignored')) {
+              e.setStyle({'display': 'none'});
+              return;
+            }
+            e.setStyle({'overflow': 'visible'});
+          });
+        });
+      $('bookCover351087_254939637').observe('prototip:hidden', function () {
+        $$('span.elementTwo').each(function (e) {
+          if (e.getStyle('display') !== 'none') {
+            var lessLink = e.next();
+            swapContent(lessLink);
+          }
+        });
+      });
+
+//]]>
+</script>
+
+
+
+            </div>
+
+
+
+
+            
+</div></div></div></body></html>

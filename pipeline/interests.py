@@ -77,42 +77,45 @@ STAGES = (
 )
 
 # The survey's catalog: the interests a reader can pick, with the words the
-# run searches for them. One table, in code — the survey's shelves and the
-# run's searches read the same list. The three romance interests keep their
-# words in config.json lane_terms (the table the lanes came from).
+# run searches for them and the Goodreads genre the new-release list is read
+# from (`gr_slug`: goodreads.com/genres/new_releases/<slug>; an interest with
+# none, like Baby development, has the curator suggest one). One table, in
+# code — the survey's shelves and the run's searches read the same list. The
+# three romance interests keep their words in config.json lane_terms (the
+# table the lanes came from).
 CATALOG = (
-    {'id': 'sport', 'label': 'Sport romance', 'kind': 'story'},
-    {'id': 'romantasy', 'label': 'Romantasy', 'kind': 'story'},
-    {'id': 'contemp', 'label': 'Contemporary romance', 'kind': 'story'},
-    {'id': 'thriller', 'label': 'Thriller', 'kind': 'story',
+    {'id': 'sport', 'label': 'Sport romance', 'kind': 'story', 'gr_slug': 'sports-romance'},
+    {'id': 'romantasy', 'label': 'Romantasy', 'kind': 'story', 'gr_slug': 'romantasy'},
+    {'id': 'contemp', 'label': 'Contemporary romance', 'kind': 'story', 'gr_slug': 'contemporary-romance'},
+    {'id': 'thriller', 'label': 'Thriller', 'kind': 'story', 'gr_slug': 'thriller',
      'terms': ['psychological thriller', 'crime thriller', 'domestic thriller']},
-    {'id': 'mystery', 'label': 'Mystery', 'kind': 'story',
+    {'id': 'mystery', 'label': 'Mystery', 'kind': 'story', 'gr_slug': 'mystery',
      'terms': ['detective mystery', 'cosy mystery', 'mystery novel']},
-    {'id': 'fantasy', 'label': 'Fantasy', 'kind': 'story',
+    {'id': 'fantasy', 'label': 'Fantasy', 'kind': 'story', 'gr_slug': 'fantasy',
      'terms': ['epic fantasy', 'cosy fantasy', 'urban fantasy']},
-    {'id': 'scifi', 'label': 'Sci-fi', 'kind': 'story',
+    {'id': 'scifi', 'label': 'Sci-fi', 'kind': 'story', 'gr_slug': 'science-fiction',
      'terms': ['science fiction', 'space opera', 'dystopian fiction']},
-    {'id': 'literary', 'label': 'Literary fiction', 'kind': 'story',
+    {'id': 'literary', 'label': 'Literary fiction', 'kind': 'story', 'gr_slug': 'literary-fiction',
      'terms': ['literary fiction', 'literary novel', 'literary fiction debut']},
-    {'id': 'historical', 'label': 'Historical fiction', 'kind': 'story',
+    {'id': 'historical', 'label': 'Historical fiction', 'kind': 'story', 'gr_slug': 'historical-fiction',
      'terms': ['historical fiction', 'historical novel', 'historical saga']},
-    {'id': 'horror', 'label': 'Horror', 'kind': 'story',
+    {'id': 'horror', 'label': 'Horror', 'kind': 'story', 'gr_slug': 'horror',
      'terms': ['horror novel', 'psychological horror', 'gothic horror']},
     {'id': 'baby', 'label': 'Baby development', 'kind': 'topic',
      'terms': ['baby development', 'infant development', 'newborn sleep']},
-    {'id': 'parenting', 'label': 'Parenting', 'kind': 'topic',
+    {'id': 'parenting', 'label': 'Parenting', 'kind': 'topic', 'gr_slug': 'parenting',
      'terms': ['parenting books', 'raising a baby', 'toddler parenting']},
-    {'id': 'memoir', 'label': 'Memoir', 'kind': 'topic',
+    {'id': 'memoir', 'label': 'Memoir', 'kind': 'topic', 'gr_slug': 'memoir',
      'terms': ['memoir', 'memoir books', 'memoir stories']},
-    {'id': 'health', 'label': 'Health & wellbeing', 'kind': 'topic',
+    {'id': 'health', 'label': 'Health & wellbeing', 'kind': 'topic', 'gr_slug': 'health',
      'terms': ['health books', 'wellbeing books', 'nutrition books']},
-    {'id': 'cooking', 'label': 'Cooking', 'kind': 'topic',
+    {'id': 'cooking', 'label': 'Cooking', 'kind': 'topic', 'gr_slug': 'cookbooks',
      'terms': ['cookbooks', 'baking books', 'cooking for beginners']},
-    {'id': 'business', 'label': 'Business & money', 'kind': 'topic',
+    {'id': 'business', 'label': 'Business & money', 'kind': 'topic', 'gr_slug': 'business',
      'terms': ['business books', 'money books', 'personal finance books']},
-    {'id': 'history', 'label': 'History', 'kind': 'topic',
+    {'id': 'history', 'label': 'History', 'kind': 'topic', 'gr_slug': 'history',
      'terms': ['history books', 'world history books', 'histories']},
-    {'id': 'science', 'label': 'Popular science', 'kind': 'topic',
+    {'id': 'science', 'label': 'Popular science', 'kind': 'topic', 'gr_slug': 'science',
      'terms': ['popular science', 'science books', 'science explained']},
 )
 # the romance catalog — the interests the romance rules hold for
@@ -198,20 +201,24 @@ def ensure(log=print):
 
 
 def merge_terms(base, other):
-    """The search words of `other` merged into `base`, interest by interest:
-    an interest in `base` with no words of its own takes the words `other`
-    gives it, and words that are already there are never overwritten.
+    """What the run found for an interest, merged from `other` into `base`,
+    interest by interest: the search words (`terms`) and the Goodreads genre
+    (`gr_slug`). An interest in `base` that has none takes the one `other`
+    gives it, and a value that is already there is never overwritten.
 
-    One rule for the two writers of the file — the run, which adds the words
-    it found, and the reader's own answers — so neither can drop the other's
+    One rule for the two writers of the file — the run, which adds what it
+    found, and the reader's own answers — so neither can drop the other's
     work."""
     by_id = {i.get('id'): i for i in (base.get('interests') or []) if isinstance(i, dict)}
     for i in (other.get('interests') or []):
-        if not isinstance(i, dict) or not i.get('terms'):
+        if not isinstance(i, dict):
             continue
         old = by_id.get(i.get('id'))
-        if old is not None and not old.get('terms'):
-            old['terms'] = i['terms']
+        if old is None:
+            continue
+        for field in ('terms', 'gr_slug'):
+            if i.get(field) and not old.get(field):
+                old[field] = i[field]
     return base
 
 
@@ -242,7 +249,8 @@ def write_atomic(p, doc):
 
 
 def save_terms(doc, log=print):
-    """The run's save: only the search words it suggested for an interest.
+    """The run's save: only the search words and the Goodreads genre it
+    suggested for an interest.
     Everything else on the volume wins, so a run can never roll back what the
     reader changed while it ran: the file is read again and written under the
     same lock the server's writers hold."""
@@ -380,6 +388,27 @@ def catalog_terms(i):
         return t
     c = by_id(i)
     return list((c or {}).get('terms') or [])
+
+
+SLUG_RE = re.compile(r'^[a-z0-9]+(-[a-z0-9]+)*$')
+
+
+def slug_ok(s):
+    """A Goodreads genre slug that is safe to put in a URL path."""
+    return isinstance(s, str) and len(s) <= 40 and bool(SLUG_RE.match(s))
+
+
+def gr_slug(i):
+    """The Goodreads genre this interest's new-release list is read from: its
+    own (kept in the file), else the catalog's. '' means the run must ask the
+    curator once. A slug the file carries that is not a plain slug is ignored,
+    never used in an address."""
+    s = i.get('gr_slug')
+    if slug_ok(s):
+        return s
+    c = by_id(i)
+    s = (c or {}).get('gr_slug')
+    return s if slug_ok(s) else ''
 
 
 def terms(i):

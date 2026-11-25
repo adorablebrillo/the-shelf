@@ -24,7 +24,7 @@ no accounts, no sharing, no growth loop.
 A monthly curated page: new releases across her interests — the
 book brew, any story genre or real-life topic (a fresh install starts with
 sport romance, romantasy, contemporary romance) — fetched from Apple Books
-(plus a Goodreads release reference), curated by a model against her taste
+(plus each interest's Goodreads new releases and a Goodreads release reference), curated by a model against her taste
 profile, and served as one page from her own server. Success is a drop that feels hand-picked for
 one person, where every verdict she gives visibly steers the next drop.
 
