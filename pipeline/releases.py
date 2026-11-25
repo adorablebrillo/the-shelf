@@ -273,7 +273,10 @@ def main():
                 # file keeps the first slug whose list shows books
                 for s in (curate.suggest_slugs(key, label) if key else []):
                     time.sleep(reference.GAP)
-                    h = reference._get(LIST_URL % s)
+                    try:
+                        h = reference._get(LIST_URL % s)
+                    except Exception:
+                        continue    # an unknown genre answers 404: try the next suggestion
                     if parse_genre_list(h):
                         slug, html = s, h
                         i['gr_slug'] = s

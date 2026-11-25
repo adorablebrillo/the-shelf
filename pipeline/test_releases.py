@@ -404,11 +404,12 @@ class RunTests(unittest.TestCase):
         self.set_interests([{'id': 'hockey', 'label': 'Hockey romance', 'kind': 'story', 'dial': 'into it'}])
         releases.curate.api_key = lambda: 'key'
         releases.curate.suggest_slugs = lambda key, label: self.slug_calls.append(label) or ['not-a-genre', 'sports-romance']
-        self.goodreads({'new_releases/not-a-genre': EMPTY, 'new_releases/sports-romance': LIST,
-                        '/book/show/': OSError('503')})
+        # Goodreads answers 404 for a genre it does not have (seen live), not an empty page
+        self.goodreads({'new_releases/not-a-genre': OSError('HTTP Error 404: Not Found'),
+                        'new_releases/sports-romance': LIST, '/book/show/': OSError('503')})
         self.run_main()
         kept = self.interest()
-        self.assertEqual(kept['gr_slug'], 'sports-romance')       # not the first one: its list showed no books
+        self.assertEqual(kept['gr_slug'], 'sports-romance')       # not the first one: Goodreads has no such genre
         self.run_main()
         self.assertEqual(self.slug_calls, ['Hockey romance'])      # the second run asks no one
 
