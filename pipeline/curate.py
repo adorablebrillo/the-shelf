@@ -361,19 +361,14 @@ def interests_block():
     return '\n'.join(lines)
 
 
-def suggest_terms(key, label):
-    """A typed interest's search words: the curator call suggests 3 to 5 once,
-    and interests.json keeps them. Returns a list (empty on failure — the
-    caller falls back to searching the interest's own name)."""
-    sysmsg = ('You suggest Apple Books search queries for the ebook store. Reply JSON '
-              '{"queries": [...]} with 3 to 5 short queries, each 2 to 4 words, that find '
-              'books about the topic. Plain topic words only — no author names, no '
-              'bestseller list names, no quotes.')
+def _ask_json(key, sysmsg, label, temperature):
+    """One small OpenRouter call that answers a JSON object about an interest:
+    the dict, or {} on any failure (the callers fall back, never raise)."""
     body = json.dumps({
         'model': CFG.get('model', 'openai/gpt-4o-mini'),
         'messages': [{'role': 'system', 'content': sysmsg},
                      {'role': 'user', 'content': 'The interest: "%s"' % label}],
-        'temperature': 0.3,
+        'temperature': temperature,
         'response_format': {'type': 'json_object'},
     }).encode()
     req = urllib.request.Request(
@@ -385,10 +380,40 @@ def suggest_terms(key, label):
             data = json.loads(r.read().decode())
         content = data['choices'][0]['message']['content']
         out = json.loads(re.search(r'\{[\s\S]*\}', content).group(0)) if not content.strip().startswith('{') else json.loads(content)
-        qs = [str(q).strip() for q in (out.get('queries') or []) if str(q).strip()][:5]
-        return qs if len(qs) >= 3 else []
+        return out if isinstance(out, dict) else {}
     except Exception:
-        return []
+        return {}
+
+
+def suggest_terms(key, label):
+    """A typed interest's search words: the curator call suggests 3 to 5 once,
+    and interests.json keeps them. Returns a list (empty on failure — the
+    caller falls back to searching the interest's own name)."""
+    sysmsg = ('You suggest Apple Books search queries for the ebook store. Reply JSON '
+              '{"queries": [...]} with 3 to 5 short queries, each 2 to 4 words, that find '
+              'books about the topic. Plain topic words only — no author names, no '
+              'bestseller list names, no quotes.')
+    out = _ask_json(key, sysmsg, label, 0.3)
+    qs = [str(q).strip() for q in (out.get('queries') or []) if str(q).strip()][:5]
+    return qs if len(qs) >= 3 else []
+
+
+def suggest_slugs(key, label):
+    """A typed interest's Goodreads genre: the curator call suggests up to 3
+    genre slugs (the part of goodreads.com/genres/<slug> after the last
+    slash, most specific first); the run keeps the first whose new-release
+    page lists books. Returns a list of plain slugs (empty on failure — the
+    interest then has no Goodreads list this run)."""
+    sysmsg = ('You name Goodreads genre pages. Reply JSON {"slugs": [...]} with up to 3 '
+              'genre slugs, most specific first, as they appear in goodreads.com/genres/<slug>: '
+              'lowercase words joined by hyphens, for example sports-romance, '
+              'historical-fiction, cookbooks. Real Goodreads genres only.')
+    slugs = []
+    for q in _ask_json(key, sysmsg, label, 0.2).get('slugs') or []:
+        q = str(q).strip().lower().replace('_', '-').replace(' ', '-')
+        if interests.slug_ok(q) and q not in slugs:
+            slugs.append(q)
+    return slugs[:3]
 
 
 def call_model(key, payload, taste):

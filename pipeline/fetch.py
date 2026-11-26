@@ -1,9 +1,11 @@
 #!/usr/bin/env python3
 """The Shelf pipeline — stage 1: fetch candidates, with provenance.
 
-Discovery runs entirely on Apple Books (the only source still live — the old
-charts-RSS / Reddit / Goodreads / romance.io fetches all died in 2026; see
-the skill's references/sources-and-fetch.md). Two nets:
+This stage searches Apple Books (the old charts-RSS / Reddit / romance.io
+fetches died in 2026; see the skill's references/sources-and-fetch.md, and the
+old Goodreads list pages 404). Goodreads is read by the stages that follow —
+releases.py (each interest's new-release list) and reference.py (the month's
+popular list) — which add their finds to this stage's candidates file. Two nets:
 
   · her interests — one query per search word of each active interest in
                    interests.json (the book brew); a catalog interest takes
@@ -504,7 +506,7 @@ def main():
                  'foreign_dropped': dropped_foreign,
                  'publishers_resolved': pub_n, 'publishers_missing': len(kept) - pub_n, 'audio': audio_n},
         'sources': {'apple-search': dict(STATS['search']), 'product-pages': dict(STATS['pages']),
-                    'removed_dead': ['apple-rss charts (404/timeout)', 'reddit (403)', 'goodreads (404)', 'romance.io (403)']},
+                    'removed_dead': ['apple-rss charts (404/timeout)', 'reddit (403)', 'romance.io (403)']},
         'failures': STATS['failures'][:20],
     }
     out = os.path.join(outdir, 'candidates-%s.json' % mon)
@@ -526,7 +528,7 @@ def main():
           % (len(watched), len(wc), (' — ' + ', '.join(wc)) if wc else ''))
     print('pool: %d records · undated %d · foreign dropped %d %s · publishers %d/%d · audio %d'
           % (len(kept), undated, sum(dropped_foreign.values()), dropped_foreign, pub_n, len(kept), audio_n))
-    print('sources: apple-search %d calls/%d failed · product pages %d calls/%d failed/%d cache-hits · removed dead: charts-rss, reddit, goodreads, romance.io'
+    print('sources: apple-search %d calls/%d failed · product pages %d calls/%d failed/%d cache-hits · removed dead: charts-rss, reddit, romance.io'
           % (STATS['search']['calls'], STATS['search']['failed'], STATS['pages']['calls'], STATS['pages']['failed'], STATS['pages']['cache_hits']))
     for f in STATS['failures'][:5]:
         print('  ! %s' % f)

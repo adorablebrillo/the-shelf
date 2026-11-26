@@ -5,7 +5,7 @@ web app (Cormorant Garamond, forest-green hero panels) that curates **new
 releases across the reader's interests — the book brew, any genre or topic;
 a fresh install starts with three romance ones — sport romance, romantasy &
 contemporary romance — at up to 12 picks an issue** — for one reader, every 1st of
-the month: fetch → Goodreads reference → filter → OpenRouter curation → build → serve. Five sections — **Home**
+the month: fetch → Goodreads new releases → Goodreads reference → filter → OpenRouter curation → build → serve. Five sections — **Home**
 (the reading-now card, the issue line with its progress bar, the month's picks, the book brew widget with each
 interest's dial, a list of anticipation countdown cards),
 **My Shelf**, **Series**, **Finished Brews** and **Settings**; on a phone the sections sit in a bar at the bottom of the screen.
@@ -14,7 +14,7 @@ interest's dial, a list of anticipation countdown cards),
 
 | Path | Purpose |
 |---|---|
-| `pipeline/` | fetch.py / reference.py / filter.py / curate.py / build.py + `taste-prompt.md` (the curator's brief) |
+| `pipeline/` | fetch.py / releases.py / reference.py / filter.py / curate.py / build.py + `taste-prompt.md` (the curator's brief) |
 | `container/` | server.py (web UI + settings API + scheduler) and Dockerfile |
 | `templates/` | Unraid Community Applications template (`my-the-shelf.xml`) + icon |
 | `.lavish/assets/` | the design's art — the seasonal coffee illustrations |
@@ -78,6 +78,7 @@ you bring your own data.
 ## How it works
 
 1. **fetch** — Apple Books only: a query per interest's search words (interests.json — the book brew; a typed interest gets its words suggested once) + a query per author (the authors of every series you track + the authors you watch — **settings → Authors**), then each book's real publisher, language and audiobook availability read from its page
+   **releases** — then each interest's Goodreads new-release list (a Kindle book Apple Books does not sell): the unseen books are looked up on Apple Books first and read from their own Goodreads page otherwise, with the usual proof for small publishers (4.0+ from 100 readers); best-effort, so a Goodreads failure leaves the run on Apple alone
 2. **filter** — the reader's hard rules (M/F only, dark romance & dark academia welcome, spice 3–5, a widening pool, trad-pub first) and **your shelf's verdicts**: not-for-me and already-read books never come back; every run reports how many candidates your shelf excluded
 3. **curate** — one curation call per run, up to three when a thin interest widens (`taste-prompt.md` + an interests block the request carries) → up to her picked count of books, split across the interests by dial (floor two per interest; thin interests widen 30→60→90 days before being dropped; a best-ever interest takes any date, rated 4.0+; a topic interest keeping the baby's birth month and year is asked for that age's stage — 0–3 to 25–36 months), hooks, top pick, MMC vibe scores
 4. **build** — injects the month into the approved template → `index.html`; every book the page renders also carries a **real synopsis** — its Goodreads page (title + author lookup), Apple's description as fallback, and an honest line when neither has one — cached on the data volume, so a book is looked up once and rebuilds never refetch (a book that took Apple's copy only because Goodreads did not answer is asked again on a later build); every book also carries a small **goodreads ↗** link, in a new tab, for more than the blurb says: it opens the book's own Goodreads page when the shelf is sure of it (the page the blurb lookup matched by title and author, found for books already cached one search per book within the same time budget, or the Book Id of a Goodreads import, which wins), and a Goodreads search for its title and author otherwise

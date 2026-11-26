@@ -330,6 +330,14 @@ def kindle_candidate(e, mon):
         data = parse_book(_get(e['url']), e['url'])
     except Exception:
         return None
+    return page_candidate(e, data)
+
+
+def page_candidate(e, data):
+    """The candidate a parsed Goodreads book page (parse_book's answer) makes
+    for list entry `e`, or None when the page is not that book. The release
+    lists build theirs from a cached page, so the read and the candidate are
+    two steps."""
     if not data or not data.get('title'):
         return None
     if e.get('title') and not _title_match(e['title'], data['title']):

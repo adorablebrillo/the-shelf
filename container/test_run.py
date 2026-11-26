@@ -50,7 +50,7 @@ class RunBase(unittest.TestCase):
         self.pipeline = os.path.join(root, 'pipeline')
         os.makedirs(self.cfg)
         os.makedirs(os.path.join(self.pipeline, 'data'))
-        for stage in ('fetch.py', 'reference.py', 'filter.py', 'curate.py'):
+        for stage in ('fetch.py', 'releases.py', 'reference.py', 'filter.py', 'curate.py'):
             self._stage(stage, QUICK_STAGE)
         self._stage('build.py', STAND_IN_BUILD)
         self._old = {k: getattr(server, k) for k in
